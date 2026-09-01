@@ -62,6 +62,7 @@ interface CanvasStoreState {
   updateLane: (laneId: string, updates: { name?: string; role?: string; system?: string; colorHex?: string }) => void;
   moveLane: (laneId: string, direction: 'up' | 'down') => void;
   deleteLane: (laneId: string) => void;
+  alignAllLanes: () => void;
 }
 
 export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
@@ -78,72 +79,102 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
 
     // Apply Real Magnetic Snapping during drag
     const SNAP_RADIUS = 16;
+    const LANE_SNAP = 25;
     const GAP_X = 40;
     const GAP_Y = 30;
 
     const modifiedChanges = changes.map((change) => {
       if (change.type === 'position' && change.position && change.dragging) {
         const draggingNode = currentProject.nodes.find((n) => n.id === change.id);
-        if (!draggingNode || draggingNode.type === 'PoolLane') return change;
+        if (!draggingNode) return change;
 
-        const dWidth = (draggingNode.measured?.width || draggingNode.width || 210) as number;
-        const dHeight = (draggingNode.measured?.height || draggingNode.height || 120) as number;
+        const isDraggingLane = draggingNode.type === 'PoolLane';
+        const dWidth = (draggingNode.style?.width as number) || (draggingNode.measured?.width || draggingNode.width || (isDraggingLane ? 2200 : 210)) as number;
+        const dHeight = (draggingNode.style?.height as number) || (draggingNode.measured?.height || draggingNode.height || (isDraggingLane ? 160 : 120)) as number;
 
         let snapX = change.position.x;
         let snapY = change.position.y;
 
-        const otherNodes = currentProject.nodes.filter(
-          (n) => n.id !== change.id && n.type !== 'PoolLane'
-        );
+        if (isDraggingLane) {
+          // --- LANE TO LANE SNAPPING ---
+          const otherLanes = currentProject.nodes.filter(
+            (n) => n.id !== change.id && n.type === 'PoolLane'
+          );
 
-        for (const other of otherNodes) {
-          const oWidth = (other.measured?.width || other.width || 210) as number;
-          const oHeight = (other.measured?.height || other.height || 120) as number;
-          const oX = other.position.x;
-          const oY = other.position.y;
+          for (const other of otherLanes) {
+            const oWidth = (other.style?.width as number) || (other.measured?.width || other.width || 2200) as number;
+            const oHeight = (other.style?.height as number) || (other.measured?.height || other.height || 160) as number;
+            const oX = other.position.x;
+            const oY = other.position.y;
 
-          // --- HORIZONTAL AXIS SNAP (X) ---
-          // 1. Center to Center
-          if (Math.abs((snapX + dWidth / 2) - (oX + oWidth / 2)) <= SNAP_RADIUS) {
-            snapX = oX + oWidth / 2 - dWidth / 2;
-          }
-          // 2. Left to Left
-          else if (Math.abs(snapX - oX) <= SNAP_RADIUS) {
-            snapX = oX;
-          }
-          // 3. Right to Right
-          else if (Math.abs((snapX + dWidth) - (oX + oWidth)) <= SNAP_RADIUS) {
-            snapX = oX + oWidth - dWidth;
-          }
-          // 4. Side-by-Side Right (Snap to the right of other with Gap)
-          else if (Math.abs(snapX - (oX + oWidth + GAP_X)) <= SNAP_RADIUS) {
-            snapX = oX + oWidth + GAP_X;
-          }
-          // 5. Side-by-Side Left (Snap to the left of other with Gap)
-          else if (Math.abs((snapX + dWidth) - (oX - GAP_X)) <= SNAP_RADIUS) {
-            snapX = oX - GAP_X - dWidth;
-          }
+            // 1. Left X Align (Snap to same left margin)
+            if (Math.abs(snapX - oX) <= LANE_SNAP) {
+              snapX = oX;
+            }
+            // 2. Right X Align
+            else if (Math.abs((snapX + dWidth) - (oX + oWidth)) <= LANE_SNAP) {
+              snapX = oX + oWidth - dWidth;
+            }
 
-          // --- VERTICAL AXIS SNAP (Y) ---
-          // 1. Center to Center
-          if (Math.abs((snapY + dHeight / 2) - (oY + oHeight / 2)) <= SNAP_RADIUS) {
-            snapY = oY + oHeight / 2 - dHeight / 2;
+            // 3. Stack Below (0px gap contact)
+            if (Math.abs(snapY - (oY + oHeight)) <= LANE_SNAP) {
+              snapY = oY + oHeight;
+            }
+            // 4. Stack Above (0px gap contact)
+            else if (Math.abs((snapY + dHeight) - oY) <= LANE_SNAP) {
+              snapY = oY - dHeight;
+            }
+
+            // 5. Vertical Lane: Stack Right
+            if (Math.abs(snapX - (oX + oWidth)) <= LANE_SNAP) {
+              snapX = oX + oWidth;
+            }
+            // 6. Vertical Lane: Stack Left
+            else if (Math.abs((snapX + dWidth) - oX) <= LANE_SNAP) {
+              snapX = oX - dWidth;
+            }
+            // 7. Vertical Lane: Top Y Align
+            if (Math.abs(snapY - oY) <= LANE_SNAP) {
+              snapY = oY;
+            }
           }
-          // 2. Top to Top
-          else if (Math.abs(snapY - oY) <= SNAP_RADIUS) {
-            snapY = oY;
-          }
-          // 3. Bottom to Bottom
-          else if (Math.abs((snapY + dHeight) - (oY + oHeight)) <= SNAP_RADIUS) {
-            snapY = oY + oHeight - dHeight;
-          }
-          // 4. Stacked Below (Snap below other with Gap)
-          else if (Math.abs(snapY - (oY + oHeight + GAP_Y)) <= SNAP_RADIUS) {
-            snapY = oY + oHeight + GAP_Y;
-          }
-          // 5. Stacked Above (Snap above other with Gap)
-          else if (Math.abs((snapY + dHeight) - (oY - GAP_Y)) <= SNAP_RADIUS) {
-            snapY = oY - GAP_Y - dHeight;
+        } else {
+          // --- ACTIVITY CARD TO CARD SNAPPING ---
+          const otherNodes = currentProject.nodes.filter(
+            (n) => n.id !== change.id && n.type !== 'PoolLane'
+          );
+
+          for (const other of otherNodes) {
+            const oWidth = (other.measured?.width || other.width || 210) as number;
+            const oHeight = (other.measured?.height || other.height || 120) as number;
+            const oX = other.position.x;
+            const oY = other.position.y;
+
+            // --- HORIZONTAL AXIS SNAP (X) ---
+            if (Math.abs((snapX + dWidth / 2) - (oX + oWidth / 2)) <= SNAP_RADIUS) {
+              snapX = oX + oWidth / 2 - dWidth / 2;
+            } else if (Math.abs(snapX - oX) <= SNAP_RADIUS) {
+              snapX = oX;
+            } else if (Math.abs((snapX + dWidth) - (oX + oWidth)) <= SNAP_RADIUS) {
+              snapX = oX + oWidth - dWidth;
+            } else if (Math.abs(snapX - (oX + oWidth + GAP_X)) <= SNAP_RADIUS) {
+              snapX = oX + oWidth + GAP_X;
+            } else if (Math.abs((snapX + dWidth) - (oX - GAP_X)) <= SNAP_RADIUS) {
+              snapX = oX - GAP_X - dWidth;
+            }
+
+            // --- VERTICAL AXIS SNAP (Y) ---
+            if (Math.abs((snapY + dHeight / 2) - (oY + oHeight / 2)) <= SNAP_RADIUS) {
+              snapY = oY + oHeight / 2 - dHeight / 2;
+            } else if (Math.abs(snapY - oY) <= SNAP_RADIUS) {
+              snapY = oY;
+            } else if (Math.abs((snapY + dHeight) - (oY + oHeight)) <= SNAP_RADIUS) {
+              snapY = oY + oHeight - dHeight;
+            } else if (Math.abs(snapY - (oY + oHeight + GAP_Y)) <= SNAP_RADIUS) {
+              snapY = oY + oHeight + GAP_Y;
+            } else if (Math.abs((snapY + dHeight) - (oY - GAP_Y)) <= SNAP_RADIUS) {
+              snapY = oY - GAP_Y - dHeight;
+            }
           }
         }
 
@@ -759,6 +790,93 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
     projectStore.setProjectData({
       ...currentProject,
       pools: nextPools,
+      nodes: nextNodes
+    });
+  },
+
+  alignAllLanes: () => {
+    const projectStore = useProjectStore.getState();
+    const currentProject = projectStore.currentProject;
+    if (!currentProject) return;
+
+    const laneNodes = currentProject.nodes.filter((n) => n.type === 'PoolLane');
+    if (laneNodes.length === 0) return;
+
+    const isVertical = laneNodes[0].data.orientation === 'vertical';
+    let nextNodes = [...currentProject.nodes];
+
+    if (!isVertical) {
+      // Sort horizontal lanes from top to bottom
+      const sortedLanes = [...laneNodes].sort((a, b) => a.position.y - b.position.y);
+      const minX = Math.min(...sortedLanes.map((l) => l.position.x));
+      const startY = Math.min(...sortedLanes.map((l) => l.position.y));
+      const targetWidth = Math.max(
+        2200,
+        ...sortedLanes.map((l) => (l.style?.width as number) || (l.measured?.width as number) || 2200)
+      );
+
+      let currentY = startY;
+
+      sortedLanes.forEach((lane) => {
+        const laneHeight = (lane.style?.height as number) || (lane.measured?.height as number) || 160;
+
+        nextNodes = nextNodes.map((n) => {
+          if (n.id === lane.id) {
+            return {
+              ...n,
+              position: { x: minX, y: currentY },
+              style: {
+                ...n.style,
+                width: targetWidth,
+                height: laneHeight,
+                zIndex: -1
+              },
+              zIndex: -1
+            };
+          }
+          return n;
+        });
+
+        currentY += laneHeight;
+      });
+    } else {
+      // Sort vertical lanes (columns) from left to right
+      const sortedLanes = [...laneNodes].sort((a, b) => a.position.x - b.position.x);
+      const startX = Math.min(...sortedLanes.map((l) => l.position.x));
+      const minY = Math.min(...sortedLanes.map((l) => l.position.y));
+      const targetHeight = Math.max(
+        1600,
+        ...sortedLanes.map((l) => (l.style?.height as number) || (l.measured?.height as number) || 1600)
+      );
+
+      let currentX = startX;
+
+      sortedLanes.forEach((lane) => {
+        const laneWidth = (lane.style?.width as number) || (lane.measured?.width as number) || 240;
+
+        nextNodes = nextNodes.map((n) => {
+          if (n.id === lane.id) {
+            return {
+              ...n,
+              position: { x: currentX, y: minY },
+              style: {
+                ...n.style,
+                width: laneWidth,
+                height: targetHeight,
+                zIndex: -1
+              },
+              zIndex: -1
+            };
+          }
+          return n;
+        });
+
+        currentX += laneWidth;
+      });
+    }
+
+    projectStore.setProjectData({
+      ...currentProject,
       nodes: nextNodes
     });
   }

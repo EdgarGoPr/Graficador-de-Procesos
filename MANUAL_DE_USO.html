@@ -203,17 +203,17 @@
         </div>
       </div>
       <div style="font-size: 8.5pt; color: #64748B; font-family: monospace; text-align: right;">
-        Versión: 4.1<br />Win: <code>ProcesStudio.exe</code><br />Mac: <code>ProcesStudio_Mac.command</code>
+        Versión: 4.2<br />Win: <code>ProcesStudio.exe</code><br />Mac: <code>ProcesStudio_Mac.command</code>
       </div>
     </div>
 
-    <h2>1. Atracción Magnética Real y Orientación de Tarjetas</h2>
-    <p><strong>ProcesStudio Portable</strong> (identificado con el isotipo <strong>PS</strong>) cuenta con imantación física y control de orientación:</p>
+    <h2>1. Acoplamiento Magnético de Carriles y Orientación</h2>
+    <p><strong>ProcesStudio Portable</strong> (identificado con el isotipo <strong>PS</strong>) cuenta con alineación integral:</p>
     
     <ul>
-      <li><strong>Atracción Magnética Real (Snap-to-Align):</strong> Al acercar una tarjeta a otra (a menos de 16px de sus ejes centrales, bordes o separación contigua), la tarjeta salta y se imanta de forma tangible al punto exacto.</li>
-      <li><strong>Orientación Horizontal y Vertical:</strong> Las tarjetas y los carriles pueden rotarse y configurarse en formato <code>↔️ Horizontal (Apaisado)</code> o <code>↕️ Vertical (Columna)</code> desde el panel de propiedades lateral o con 1 clic en la barra flotante de selección (<code>[ 🔄 Orientación ]</code>).</li>
-      <li><strong>Carriles Redimensionables:</strong> Los Swimlanes se estiran y adaptan con manijas en las 4 esquinas (<code>NodeResizer</code>) escalando automáticamente su cabecera y cuadrícula.</li>
+      <li><strong>Imantación de Carril con Carril:</strong> Al mover un carril cerca de otro, se alinea automáticamente sobre el mismo eje $X$ y se acopla inmediatamente debajo (o al lado si es vertical) sin solapamientos.</li>
+      <li><strong>Botón "Acoplar Carriles":</strong> Botón de 1-clic en la barra de herramientas para ordenar, apilar e igualar los anchos de todos los carriles presentes.</li>
+      <li><strong>Orientación Horizontal y Vertical:</strong> Las tarjetas y los carriles pueden configurarse en formato <code>↔️ Horizontal</code> o <code>↕️ Vertical</code> desde el panel de propiedades lateral o con 1 clic en la barra flotante de selección (<code>[ 🔄 Orientación ]</code>).</li>
     </ul>
 
     <h2>2. Interacciones Principales en el Lienzo</h2>
@@ -282,7 +282,7 @@
         <tr>
           <td><strong>Carril Funcional</strong></td>
           <td><span class="badge badge-blue">#0284C7</span> Azul</td>
-          <td>Banda contenedora redimensionable y orientable (horizontal/vertical).</td>
+          <td>Banda contenedora con acoplamiento magnético y autoalineación.</td>
         </tr>
         <tr>
           <td><strong>Conector de Flujo</strong></td>

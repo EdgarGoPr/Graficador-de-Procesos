@@ -2,7 +2,7 @@ import React from 'react';
 import { useCanvasStore } from '../../store/useCanvasStore';
 import { useProjectStore } from '../../store/useProjectStore';
 import { useUiStore } from '../../store/useUiStore';
-import { Box, Copy, Clipboard, Trash2, RotateCcw } from 'lucide-react';
+import { Box, Copy, Clipboard, Trash2, RotateCcw, AlignJustify } from 'lucide-react';
 
 export const SelectionToolbar: React.FC = () => {
   const {
@@ -12,7 +12,8 @@ export const SelectionToolbar: React.FC = () => {
     pasteSelection,
     setCompressModalOpen,
     deleteSelected,
-    updateNodeData
+    updateNodeData,
+    alignAllLanes
   } = useCanvasStore();
 
   const { currentProject } = useProjectStore();
@@ -21,8 +22,9 @@ export const SelectionToolbar: React.FC = () => {
   const hasSelection = selectedNodeIds.length > 0;
   const hasMultiple = selectedNodeIds.length >= 2;
   const hasClipboard = Boolean(clipboardPayload && clipboardPayload.nodes.length > 0);
+  const hasLanes = currentProject?.nodes.some((n) => n.type === 'PoolLane') ?? false;
 
-  if (!hasSelection && !hasClipboard) return null;
+  if (!hasSelection && !hasClipboard && !hasLanes) return null;
 
   const handleCopy = () => {
     const ok = copySelection();
@@ -56,6 +58,21 @@ export const SelectionToolbar: React.FC = () => {
         <div className="flex items-center px-2 py-1 bg-theme-surface-subtle rounded-xl text-[11px] font-mono font-bold text-theme-accent border border-theme-border mr-1">
           <span>{selectedNodeIds.length} selecc.</span>
         </div>
+      )}
+
+      {/* Dock and Align Lanes Button */}
+      {hasLanes && (
+        <button
+          onClick={() => {
+            alignAllLanes();
+            showNotification('Carriles alineados y acoplados con éxito', 'success');
+          }}
+          className="flex items-center space-x-1 px-2.5 py-1.5 rounded-xl bg-theme-surface-subtle hover:bg-theme-surface border border-theme-border text-xs font-medium text-sky-400 transition-colors cursor-pointer"
+          title="Acoplar y alinear todos los carriles en secuencia continua sin solapamientos"
+        >
+          <AlignJustify className="w-3.5 h-3.5" />
+          <span>Acoplar Carriles</span>
+        </button>
       )}
 
       {hasMultiple && (

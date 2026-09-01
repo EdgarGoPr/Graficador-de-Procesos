@@ -8,7 +8,7 @@
     "organizationUnit": "Justicia Administrativa Municipal de Faltas",
     "processObjective": "Definir el objetivo y alcance operativo del proceso.",
     "createdAt": "2026-09-01T15:50:30.507Z",
-    "updatedAt": "2026-09-01T18:47:14.563Z",
+    "updatedAt": "2026-09-01T18:59:49.072Z",
     "status": "DRAFT",
     "legalNormativeBasis": [
       "Normativa aplicable general"
@@ -88,7 +88,7 @@
         "width": 96,
         "height": 96
       },
-      "selected": true,
+      "selected": false,
       "dragging": false
     },
     {
@@ -186,21 +186,25 @@
         "inputs": [],
         "outputs": [],
         "operationalRisks": [],
-        "tags": []
+        "tags": [],
+        "orientation": "horizontal"
       },
       "measured": {
         "width": 2200,
-        "height": 160
+        "height": 829
       },
       "selected": false,
-      "dragging": false
+      "dragging": false,
+      "width": 2200,
+      "height": 829,
+      "resizing": false
     },
     {
-      "id": "lane_node_1788288292306",
+      "id": "lane_node_1788288778125",
       "type": "PoolLane",
       "position": {
-        "x": -686.1337765571714,
-        "y": -1091.193173656458
+        "x": -678.2239365149874,
+        "y": -426.8115047509693
       },
       "style": {
         "width": 2200,
@@ -209,11 +213,11 @@
       },
       "zIndex": -1,
       "data": {
-        "standardId": "LANE-02",
-        "title": "Carril Funcional #2",
+        "standardId": "LANE-03",
+        "title": "Carril Funcional #3",
         "description": "Carril contenedor de actividades",
         "nodeType": "PoolLane",
-        "laneId": "lane_node_1788288292306",
+        "laneId": "lane_node_1788288778125",
         "laneName": "Mesa de Entradas / Inspectoría",
         "roleName": "Inspector / Operador",
         "itSystem": "SAM / VUPRA",
@@ -225,14 +229,11 @@
         "tags": []
       },
       "measured": {
-        "width": 2093,
-        "height": 387
+        "width": 2200,
+        "height": 160
       },
       "selected": false,
-      "dragging": false,
-      "width": 2093,
-      "height": 387,
-      "resizing": false
+      "dragging": false
     }
   ],
   "edges": [
