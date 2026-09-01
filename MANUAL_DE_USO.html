@@ -174,7 +174,7 @@
       <h1>Manual de Uso y Guía Técnica Integral</h1>
       <div class="subtitle">ProcesosStudio Portable &bull; BPMN 2.0 (ISO/IEC 19510) & Sistemas de Calidad ISO 9001:2015</div>
       <div style="font-size: 8.5pt; color: #64748B; margin-top: 6px; font-family: monospace;">
-        Versión: 2.6 | Formato Oficial: PDF / Windows Desktop (.EXE) | Persistencia: JSON Abierto
+        Versión: 2.7 | Formato Oficial: PDF / Windows Desktop (.EXE) | Persistencia: JSON Abierto
       </div>
     </div>
 
@@ -183,12 +183,12 @@
     
     <p><strong>Arquitectura Zero-AppData:</strong> La aplicación es 100% portable. No requiere instalación, privilegios administrativos ni conexión a Internet. Todos los proyectos se guardan en formato <code>.json</code> transparente en la carpeta <code>../Proyectos/</code>.</p>
 
-    <h2>2. Compresión, Descompresión y Copiado de Procesos</h2>
+    <h2>2. Compresión, Descompresión y Disposición Relativa</h2>
     <ul>
-      <li><strong>Compresión en Subproceso:</strong> Seleccione múltiples nodos (área de selección o <code>Shift + Clic</code>) y presione <strong>"Comprimir en Subproceso"</strong>. El sistema valida la regla BPMN de entrada y salida única, encapsulando las actividades en un único item con título.</li>
-      <li><strong>Visualización y Descompresión:</strong> Presione <strong>"Ampliar ↗"</strong> para ver el detalle jerárquico o <strong>"Descomprimir en el Lienzo"</strong> para volver a desplegar todas las tarjetas individuales con sus conexiones secuenciales automáticas.</li>
-      <li><strong>Portapapeles Integral (<code>Ctrl + C</code> / <code>Ctrl + V</code>):</strong> Copie y pegue cualquier elemento o selección múltiple (incluyendo subprocesos completos con todas sus tareas internas).</li>
-      <li><strong>Autoguardado Continuo:</strong> Las disposiciones espaciales, dimensiones y colores de tarjetas y conexiones se guardan automáticamente en segundo plano.</li>
+      <li><strong>Preservación de Geometría Relativa:</strong> Al comprimir actividades en un Subproceso, se guarda el snapshot espacial relativo exacto. Si traslada la tarjeta del Subproceso y la descomprime, las actividades reaparecen con la misma forma y disposición espacial original pero en la nueva ubicación.</li>
+      <li><strong>Movimiento Sincronizado en Bloque:</strong> Tras descomprimir, todas las tarjetas se mantienen seleccionadas de forma conjunta, permitiéndole arrastrarlas en bloque hasta que haga clic en un espacio vacío del lienzo.</li>
+      <li><strong>Portapapeles Integral (<code>Ctrl + C</code> / <code>Ctrl + V</code>):</strong> Copie y pegue cualquier elemento o selección múltiple con sus conexiones relativas y tareas internas.</li>
+      <li><strong>Autoguardado Continuo:</strong> Todas las posiciones, dimensiones y colores de tarjetas y conexiones se guardan automáticamente en tiempo real.</li>
     </ul>
 
     <h2>3. Glosario de Componentes y Notación BPMN 2.0</h2>
@@ -229,7 +229,7 @@
         <tr>
           <td><strong>Subproceso</strong></td>
           <td><span class="badge badge-blue">#3B82F6</span></td>
-          <td><strong>Actividad compuesta que encapsula un procedimiento secundario.</strong> Permite compresión y descompresión bidireccional.</td>
+          <td><strong>Actividad compuesta que encapsula un procedimiento secundario.</strong> Permite compresión y descompresión bidireccional con geometría relativa.</td>
         </tr>
         <tr>
           <td><strong>Temporizador SLA</strong></td>
@@ -254,7 +254,7 @@
       </tbody>
     </table>
 
-    <h2>4. Tutorial Práctico: Compresión y Descompresión</h2>
+    <h2>4. Tutorial Práctico: Compresión, Traslado y Descompresión</h2>
     <p><strong>Caso de Estudio:</strong> <em>"Procedimiento Sancionatorio por Obras Clandestinas" (Código: PRC-OBR-001)</em></p>
     
     <div class="diagram-box">
@@ -278,12 +278,12 @@
 
     <div class="card-step">
       <h4>Paso 1: Modelado y Compresión en Subproceso</h4>
-      <p>Seleccione las actividades de regularización con el ratón y presione <strong>📦 Comprimir en Subproceso</strong>. El sistema creará el nodo unificado <code>SUB-01</code>.</p>
+      <p>Seleccione las actividades de regularización con el ratón y presione <strong>📦 Comprimir en Subproceso</strong>. El sistema guardará la distribución geométrica relativa y creará el nodo <code>SUB-01</code>.</p>
     </div>
 
     <div class="card-step">
-      <h4>Paso 2: Visualización y Descompresión Bidireccional</h4>
-      <p>Haga clic en <strong>Ampliar ↗</strong> para editar el detalle interno, o presione <strong>Descomprimir</strong> para volver a desplegar las 3 tarjetas en el lienzo.</p>
+      <h4>Paso 2: Traslado y Descompresión en Bloque</h4>
+      <p>Mueva la tarjeta del Subproceso a cualquier otra parte del lienzo y presione <strong>Descomprimir</strong>: las actividades reaparecerán conservando su disposición original y se moverán en bloque hasta hacer clic fuera.</p>
     </div>
 
     <div class="card-step">

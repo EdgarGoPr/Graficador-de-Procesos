@@ -91,6 +91,26 @@ export interface SubProcessStep {
   risk?: string;
 }
 
+export interface CompressedNodeSnapshot {
+  id: string;
+  type?: string;
+  relativeX: number;
+  relativeY: number;
+  width?: number;
+  height?: number;
+  data: BpmnNodeData;
+}
+
+export interface CompressedSubProcessSnapshot {
+  nodes: CompressedNodeSnapshot[];
+  internalEdges: Array<{
+    id: string;
+    source: string;
+    target: string;
+    data: SequenceFlowData;
+  }>;
+}
+
 export interface BpmnNodeData {
   standardId: string; // e.g. "TSK-01", "GTW-01", "QC-01", "TMR-01", "SUB-01"
   title: string;
@@ -109,6 +129,7 @@ export interface BpmnNodeData {
   qualityCheckpoint?: QualityCheckpointConfig;
   operationalRisks: OperationalRiskConfig[];
   subProcessSteps?: SubProcessStep[]; // Pasos internos detallados del subproceso
+  compressedSnapshot?: CompressedSubProcessSnapshot; // Snapshot de geometría relativa y nodos para descompresión exacta
   customBgColor?: string; // Color personalizado de fondo de la tarjeta
   customBorderColor?: string; // Color personalizado de borde de la tarjeta
   customTextColor?: string; // Color personalizado del texto de la tarjeta

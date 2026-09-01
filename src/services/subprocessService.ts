@@ -1,5 +1,12 @@
 import { Node, Edge } from '@xyflow/react';
-import { BpmnNodeData, SequenceFlowData, SubProcessStep, BPMN_NODE_TYPES } from '../types/process';
+import {
+  BpmnNodeData,
+  SequenceFlowData,
+  SubProcessStep,
+  BPMN_NODE_TYPES,
+  CompressedNodeSnapshot,
+  CompressedSubProcessSnapshot
+} from '../types/process';
 import { ProcessProjectFile } from '../types/project';
 
 export interface ValidationResult {
@@ -73,7 +80,8 @@ export function validateSubProcessCompression(
 }
 
 /**
- * Compresses multiple nodes into a single encapsulated SubProcess node and rewires outer flows
+ * Compresses multiple nodes into a single encapsulated SubProcess node,
+ * storing a snapshot of exact relative coordinates and internal flows for reversible decompression.
  */
 export function compressNodesToSubProcess(
   nodeIds: string[],
@@ -90,10 +98,37 @@ export function compressNodesToSubProcess(
   const selectedSet = new Set(nodeIds);
   const selectedNodes = project.nodes.filter((n) => selectedSet.has(n.id));
 
-  // Sort nodes horizontally left to right for natural sequence
+  // Sort nodes horizontally left to right
   const sortedNodes = [...selectedNodes].sort((a, b) => a.position.x - b.position.x);
 
-  // Convert selected nodes into ordered subProcessSteps
+  // Calculate geometric center of the group
+  const avgX = Math.round(sortedNodes.reduce((acc, n) => acc + n.position.x, 0) / sortedNodes.length);
+  const avgY = Math.round(sortedNodes.reduce((acc, n) => acc + n.position.y, 0) / sortedNodes.length);
+
+  // Capture spatial snapshot with relative offsets: (node.x - avgX, node.y - avgY)
+  const snapshotNodes: CompressedNodeSnapshot[] = sortedNodes.map((n) => ({
+    id: n.id,
+    type: n.type,
+    relativeX: Math.round(n.position.x - avgX),
+    relativeY: Math.round(n.position.y - avgY),
+    width: (n as any).width || (n.style as any)?.width,
+    height: (n as any).height || (n.style as any)?.height,
+    data: JSON.parse(JSON.stringify(n.data))
+  }));
+
+  const snapshotEdges = validation.internalEdges.map((e) => ({
+    id: e.id,
+    source: e.source,
+    target: e.target,
+    data: JSON.parse(JSON.stringify(e.data || { id: e.id, source: e.source, target: e.target }))
+  }));
+
+  const compressedSnapshot: CompressedSubProcessSnapshot = {
+    nodes: snapshotNodes,
+    internalEdges: snapshotEdges
+  };
+
+  // Convert selected nodes into ordered subProcessSteps for tabular and detail views
   const subProcessSteps: SubProcessStep[] = sortedNodes.map((node, index) => {
     const data = node.data;
     return {
@@ -111,10 +146,6 @@ export function compressNodesToSubProcess(
     };
   });
 
-  // Calculate geometric center
-  const avgX = Math.round(sortedNodes.reduce((acc, n) => acc + n.position.x, 0) / sortedNodes.length);
-  const avgY = Math.round(sortedNodes.reduce((acc, n) => acc + n.position.y, 0) / sortedNodes.length);
-
   const primaryLaneId = sortedNodes[0]?.data?.laneId || project.pools[0]?.lanes[0]?.id || 'lane_1';
   const primaryLane = project.pools[0]?.lanes.find((l) => l.id === primaryLaneId);
 
@@ -124,6 +155,7 @@ export function compressNodesToSubProcess(
     id: newSubProcessId,
     type: 'SubProcess',
     position: { x: avgX, y: avgY },
+    selected: true,
     data: {
       standardId: standardId || `SUB-01`,
       title: title || 'Subproceso Integrado',
@@ -138,11 +170,12 @@ export function compressNodesToSubProcess(
       outputs: sortedNodes[sortedNodes.length - 1]?.data?.outputs || [],
       operationalRisks: sortedNodes.flatMap((n) => n.data.operationalRisks || []),
       subProcessSteps: subProcessSteps,
+      compressedSnapshot: compressedSnapshot,
       tags: ['Subproceso', 'Encapsulado']
     }
   };
 
-  // Rewire connections
+  // Rewire external connections
   const remainingEdges: Edge<SequenceFlowData>[] = [];
 
   for (const edge of project.edges) {
@@ -150,7 +183,7 @@ export function compressNodesToSubProcess(
     const isTargetSelected = selectedSet.has(edge.target);
 
     if (isSourceSelected && isTargetSelected) {
-      // Internal edge: remove from macro canvas (it lives inside subProcessSteps)
+      // Internal edge: stored inside compressedSnapshot
       continue;
     }
 
@@ -190,7 +223,7 @@ export function compressNodesToSubProcess(
     remainingEdges.push(edge);
   }
 
-  // Remove the old compressed nodes and append the new Subprocess node
+  // Remove old compressed nodes and append new Subprocess node
   const remainingNodes = project.nodes.filter((n) => !selectedSet.has(n.id));
   remainingNodes.push(newSubProcessNode);
 
@@ -205,7 +238,8 @@ export function compressNodesToSubProcess(
 }
 
 /**
- * Decompresses an existing SubProcess node back into individual canvas tasks with sequential sequence flows
+ * Decompresses an existing SubProcess node back into the canvas, restoring the EXACT original spatial layout
+ * relative to the current position of the subprocess, and selecting all unpacked nodes for synchronized block movement.
  */
 export function decompressSubProcessToCanvas(
   subProcessNodeId: string,
@@ -216,105 +250,151 @@ export function decompressSubProcessToCanvas(
     return { error: 'No se encontró el nodo de subproceso a descomprimir.' };
   }
 
-  const steps = subProcessNode.data?.subProcessSteps || [];
-  if (steps.length === 0) {
-    return { error: 'El subproceso seleccionado no contiene etapas internas para desplegar en el lienzo.' };
-  }
+  const currentX = subProcessNode.position.x;
+  const currentY = subProcessNode.position.y;
+  const snapshot = subProcessNode.data?.compressedSnapshot;
 
-  const startX = subProcessNode.position.x;
-  const startY = subProcessNode.position.y;
-  const laneId = subProcessNode.data.laneId;
-  const laneName = subProcessNode.data.laneName;
+  let unpackedNodes: Node<BpmnNodeData>[] = [];
+  let internalEdges: Edge<SequenceFlowData>[] = [];
+  let entryNodeId: string = '';
+  let exitNodeId: string = '';
 
-  const unpackedNodes: Node<BpmnNodeData>[] = [];
-  const internalEdges: Edge<SequenceFlowData>[] = [];
+  if (snapshot && snapshot.nodes && snapshot.nodes.length > 0) {
+    // RECONSTRUCT EXACT SPATIAL LAYOUT RELATIVE TO SUBPROCESS CURRENT POSITION
+    unpackedNodes = snapshot.nodes.map((sn) => ({
+      id: sn.id,
+      type: sn.type || 'UserTask',
+      position: {
+        x: currentX + sn.relativeX,
+        y: currentY + sn.relativeY
+      },
+      selected: true, // Marked selected for group dragging in block
+      width: sn.width,
+      height: sn.height,
+      data: JSON.parse(JSON.stringify(sn.data))
+    }));
 
-  // Generate individual nodes
-  steps.forEach((step, idx) => {
-    const nodeId = `node_step_${Date.now()}_${idx}`;
-    const standardId = `TSK-${Math.floor(10 + Math.random() * 89)}`;
-
-    const node: Node<BpmnNodeData> = {
-      id: nodeId,
-      type: 'UserTask',
-      position: { x: startX + idx * 260, y: startY },
+    internalEdges = snapshot.internalEdges.map((se) => ({
+      id: se.id,
+      source: se.source,
+      target: se.target,
+      type: 'sequenceFlow',
       data: {
-        standardId,
-        title: step.title,
-        description: step.description || `Etapa ${step.stepNumber} del procedimiento.`,
-        nodeType: BPMN_NODE_TYPES.USER_TASK,
-        laneId: laneId,
-        laneName: laneName,
-        roleName: step.role || 'Operador',
-        itSystem: step.system || 'SAM',
-        legalFramework: subProcessNode.data.legalFramework || 'Normativa General',
-        inputs: step.inputs || [],
-        outputs: step.outputs || [],
-        operationalRisks: step.risk
-          ? [{
-              riskId: `RSK-${idx + 1}`,
-              description: step.risk,
-              probability: 'MEDIUM',
-              impact: 'HIGH',
-              mitigatingControl: 'Control de supervisión',
-              controlType: 'PREVENTIVE'
-            }]
-          : [],
-        tags: ['Descomprimido']
+        conditionText: se.data?.conditionText || '',
+        ...se.data,
+        id: se.data?.id || se.id,
+        source: se.source,
+        target: se.target
       }
-    };
+    }));
 
-    unpackedNodes.push(node);
+    // Find entry and exit nodes based on internal edges
+    const targetSet = new Set(internalEdges.map((e) => e.target));
+    const sourceSet = new Set(internalEdges.map((e) => e.source));
 
-    // Create sequential edge to next step
-    if (idx > 0) {
-      const prevNodeId = unpackedNodes[idx - 1].id;
-      internalEdges.push({
-        id: `e_${prevNodeId}_${nodeId}`,
-        source: prevNodeId,
-        target: nodeId,
-        type: 'sequenceFlow',
+    // Entry is node without incoming internal edge (or leftmost)
+    const entryCandidate = unpackedNodes.find((n) => !targetSet.has(n.id)) || unpackedNodes[0];
+    entryNodeId = entryCandidate.id;
+
+    // Exit is node without outgoing internal edge (or rightmost)
+    const exitCandidate = unpackedNodes.find((n) => !sourceSet.has(n.id)) || unpackedNodes[unpackedNodes.length - 1];
+    exitNodeId = exitCandidate.id;
+  } else {
+    // FALLBACK: Decompress from subProcessSteps
+    const steps = subProcessNode.data?.subProcessSteps || [];
+    if (steps.length === 0) {
+      return { error: 'El subproceso seleccionado no contiene etapas internas para desplegar en el lienzo.' };
+    }
+
+    const laneId = subProcessNode.data.laneId;
+    const laneName = subProcessNode.data.laneName;
+
+    steps.forEach((step, idx) => {
+      const nodeId = `node_step_${Date.now()}_${idx}`;
+      const standardId = `TSK-${Math.floor(10 + Math.random() * 89)}`;
+
+      const node: Node<BpmnNodeData> = {
+        id: nodeId,
+        type: 'UserTask',
+        position: { x: currentX + idx * 260, y: currentY },
+        selected: true, // Marked selected for group dragging
         data: {
+          standardId,
+          title: step.title,
+          description: step.description || `Etapa ${step.stepNumber} del procedimiento.`,
+          nodeType: BPMN_NODE_TYPES.USER_TASK,
+          laneId: laneId,
+          laneName: laneName,
+          roleName: step.role || 'Operador',
+          itSystem: step.system || 'SAM',
+          legalFramework: subProcessNode.data.legalFramework || 'Normativa General',
+          inputs: step.inputs || [],
+          outputs: step.outputs || [],
+          operationalRisks: step.risk
+            ? [{
+                riskId: `RSK-${idx + 1}`,
+                description: step.risk,
+                probability: 'MEDIUM',
+                impact: 'HIGH',
+                mitigatingControl: 'Control de supervisión',
+                controlType: 'PREVENTIVE'
+              }]
+            : [],
+          tags: ['Descomprimido']
+        }
+      };
+
+      unpackedNodes.push(node);
+
+      if (idx > 0) {
+        const prevNodeId = unpackedNodes[idx - 1].id;
+        internalEdges.push({
           id: `e_${prevNodeId}_${nodeId}`,
           source: prevNodeId,
           target: nodeId,
-          conditionText: ''
-        }
-      });
-    }
-  });
+          type: 'sequenceFlow',
+          data: {
+            id: `e_${prevNodeId}_${nodeId}`,
+            source: prevNodeId,
+            target: nodeId,
+            conditionText: ''
+          }
+        });
+      }
+    });
 
-  const firstUnpackedId = unpackedNodes[0].id;
-  const lastUnpackedId = unpackedNodes[unpackedNodes.length - 1].id;
+    entryNodeId = unpackedNodes[0].id;
+    exitNodeId = unpackedNodes[unpackedNodes.length - 1].id;
+  }
 
   // Rewire outer edges
   const updatedEdges: Edge<SequenceFlowData>[] = [];
 
   for (const edge of project.edges) {
     if (edge.target === subProcessNodeId) {
-      // Incoming to subprocess -> connect to first step
+      // Incoming to subprocess -> connect to entry node
       updatedEdges.push({
         ...edge,
-        target: firstUnpackedId,
+        target: entryNodeId,
         data: {
           id: edge.data?.id || edge.id,
           source: edge.data?.source || edge.source,
           conditionText: edge.data?.conditionText || '',
           ...edge.data,
-          target: firstUnpackedId
+          target: entryNodeId
         }
       });
     } else if (edge.source === subProcessNodeId) {
-      // Outgoing from subprocess -> connect from last step
+      // Outgoing from subprocess -> connect from exit node
       updatedEdges.push({
         ...edge,
-        source: lastUnpackedId,
+        source: exitNodeId,
         data: {
           id: edge.data?.id || edge.id,
           target: edge.data?.target || edge.target,
           conditionText: edge.data?.conditionText || '',
           ...edge.data,
-          source: lastUnpackedId
+          source: exitNodeId
         }
       });
     } else {
@@ -322,14 +402,18 @@ export function decompressSubProcessToCanvas(
     }
   }
 
-  // Combine remaining nodes with unpacked nodes
-  const updatedNodes = project.nodes.filter((n) => n.id !== subProcessNodeId).concat(unpackedNodes);
-  const finalEdges = updatedEdges.concat(internalEdges);
+  // Deselect all existing nodes so ONLY the newly unpacked group is selected
+  const updatedExistingNodes: Node<BpmnNodeData>[] = project.nodes
+    .filter((n) => n.id !== subProcessNodeId)
+    .map((n) => ({ ...n, selected: false }));
+
+  const finalNodes: Node<BpmnNodeData>[] = [...updatedExistingNodes, ...unpackedNodes];
+  const finalEdges: Edge<SequenceFlowData>[] = [...updatedEdges, ...internalEdges];
 
   return {
     project: {
       ...project,
-      nodes: updatedNodes,
+      nodes: finalNodes,
       edges: finalEdges
     },
     unpackedNodeIds: unpackedNodes.map((n) => n.id)
@@ -401,10 +485,11 @@ export function pasteClipboardPayload(
         target: newTarget,
         selected: false,
         data: {
-          ...oldEdge.data,
           id: newEdgeId,
           source: newSource,
-          target: newTarget
+          target: newTarget,
+          conditionText: oldEdge.data?.conditionText || '',
+          ...oldEdge.data
         }
       });
     }

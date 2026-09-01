@@ -8,7 +8,7 @@
     "organizationUnit": "Tribunal Administrativo de Faltas - Municipalidad de Córdoba",
     "processObjective": "Estandarizar el circuito unificado de justicia administrativa municipal: desde la detección e ingreso multicanal (Inspectores, CMU, App Ciudadana), digitalización y apertura automática de expediente en SIGEF, enriquecimiento registral, distribución equitativa de causas (Sede Central y CPCs), gestión de medidas cautelares y acarreos, hasta el régimen de notificaciones (CiDi/OCEP), instancias de descargo, sentencias de rebeldía, cámara de apelaciones y pase a Procuración Fiscal.",
     "createdAt": "2026-09-01T09:00:00Z",
-    "updatedAt": "2026-09-01T15:49:29.335Z",
+    "updatedAt": "2026-09-01T16:09:23.468Z",
     "status": "APPROVED",
     "legalNormativeBasis": [
       "Código de Convivencia Ciudadana de la Ciudad de Córdoba (Ord. 12.468 y modif.)",
@@ -84,232 +84,11 @@
   ],
   "nodes": [
     {
-      "id": "n-start-infraccion",
-      "type": "StartEvent",
-      "position": {
-        "x": 50,
-        "y": 200
-      },
-      "data": {
-        "standardId": "EVT-01",
-        "title": "Detección de Presunta Infracción",
-        "description": "Inicio por control en vía pública, detección remota por cámaras de seguridad o denuncia vecinal.",
-        "nodeType": "StartEvent",
-        "laneId": "lane-operativa-captura",
-        "itSystem": "Canales Vía Pública",
-        "legalFramework": "Código de Convivencia Ciudadana",
-        "inputs": [
-          "Conducta antirreglamentaria observada",
-          "Video domos policiales"
-        ],
-        "outputs": [
-          "Alerta o registro de presunta infracción"
-        ],
-        "operationalRisks": [],
-        "tags": [
-          "Inicio",
-          "Detección"
-        ]
-      },
-      "measured": {
-        "width": 112,
-        "height": 112
-      }
-    },
-    {
-      "id": "n-task-app-ciudadana",
-      "type": "UserTask",
-      "position": {
-        "x": 260,
-        "y": 60
-      },
-      "data": {
-        "standardId": "TSK-01",
-        "title": "Ingreso de Denuncia Ciudadana",
-        "description": "El vecino ingresa evidencia y tipificación preliminar a través de la App Ciudadana.",
-        "nodeType": "UserTask",
-        "laneId": "lane-ciudadano",
-        "itSystem": "App Ciudadana",
-        "legalFramework": "Ordenanza de Participación y Denuncia Vecinal",
-        "inputs": [
-          "Reporte del vecino",
-          "Fotos geolocalizadas"
-        ],
-        "outputs": [
-          "Ticket de denuncia ciudadana"
-        ],
-        "operationalRisks": [
-          {
-            "riskId": "RSK-01",
-            "description": "Denuncias apócrifas o sin coordenadas de validez",
-            "probability": "MEDIUM",
-            "impact": "LOW",
-            "mitigatingControl": "Autenticación VeDi y validación geoespacial obligatoria",
-            "controlType": "PREVENTIVE"
-          }
-        ],
-        "tags": [
-          "Ciudadano",
-          "App"
-        ]
-      },
-      "measured": {
-        "width": 450,
-        "height": 180
-      }
-    },
-    {
-      "id": "n-task-emplazamiento-ambiental",
-      "type": "UserTask",
-      "position": {
-        "x": 480,
-        "y": 60
-      },
-      "data": {
-        "standardId": "TSK-02",
-        "title": "Emplazamiento Previo (Medio Ambiente)",
-        "description": "Los Promotores de Convivencia intiman al administrado a subsanar la falta dentro del plazo legal.",
-        "nodeType": "UserTask",
-        "laneId": "lane-operativa-captura",
-        "itSystem": "App Constataciones",
-        "legalFramework": "Régimen de Subsanación Ambiental",
-        "slaDuration": {
-          "value": 48,
-          "unit": "HOURS",
-          "iso8601String": "PT48H",
-          "isPeremptory": true
-        },
-        "inputs": [
-          "Ticket de denuncia ambiental"
-        ],
-        "outputs": [
-          "Acta de intimación / Emplazamiento diligenciado"
-        ],
-        "operationalRisks": [],
-        "tags": [
-          "Promotores",
-          "Emplazamiento"
-        ]
-      },
-      "measured": {
-        "width": 530,
-        "height": 195
-      }
-    },
-    {
-      "id": "n-task-labrado-operativo",
-      "type": "UserTask",
-      "position": {
-        "x": 480,
-        "y": 200
-      },
-      "data": {
-        "standardId": "TSK-03",
-        "title": "Labrado de Acta (Móvil / Papel / CMU)",
-        "description": "Confección digital del acta con toma de fotografías, geoposicionamiento o digitalización de actas de papel.",
-        "nodeType": "UserTask",
-        "laneId": "lane-operativa-captura",
-        "itSystem": "App Inspectores / SEMM / CMU",
-        "legalFramework": "Artículos de Procedimiento Inspectivo",
-        "inputs": [
-          "Evidencia in situ",
-          "Informe CMU",
-          "Incumplimiento de emplazamiento"
-        ],
-        "outputs": [
-          "Acta formal labrada"
-        ],
-        "operationalRisks": [
-          {
-            "riskId": "RSK-02",
-            "description": "Defectos formales o falta de tipificación exacta",
-            "probability": "LOW",
-            "impact": "HIGH",
-            "mitigatingControl": "Campos obligatorios parametrizados en el dispositivo móvil",
-            "controlType": "PREVENTIVE"
-          }
-        ],
-        "tags": [
-          "Fiscalización",
-          "Acta"
-        ]
-      },
-      "measured": {
-        "width": 582,
-        "height": 180
-      }
-    },
-    {
-      "id": "n-task-preferenciales",
-      "type": "UserTask",
-      "position": {
-        "x": 700,
-        "y": 200
-      },
-      "data": {
-        "standardId": "TSK-04",
-        "title": "Tratamiento de Medidas Preferenciales y Acarreos",
-        "description": "Gestión urgente de medidas cautelares: Clausura de locales, Decomisos de mercadería y Secuestros de vehículos por grúa.",
-        "nodeType": "UserTask",
-        "laneId": "lane-operativa-captura",
-        "itSystem": "App Móvil / Sistema de Grúas y Depósitos",
-        "legalFramework": "Procedimiento de Medidas Preventivas Urgentes",
-        "inputs": [
-          "Acta con medida accesoria"
-        ],
-        "outputs": [
-          "Faja de clausura / Acta de secuestro / Remisión a depósito"
-        ],
-        "operationalRisks": [],
-        "tags": [
-          "Preferenciales",
-          "Acarreo",
-          "Clausura"
-        ]
-      },
-      "measured": {
-        "width": 670,
-        "height": 174
-      }
-    },
-    {
-      "id": "n-task-sigef-ingreso",
-      "type": "ServiceTask",
-      "position": {
-        "x": 920,
-        "y": 320
-      },
-      "data": {
-        "standardId": "TSK-05",
-        "title": "Generación de Acta Digital y Apertura de Expediente en SIGEF",
-        "description": "Creación automática del identificador único de causa digital e integración de evidencias multimedia.",
-        "nodeType": "ServiceTask",
-        "laneId": "lane-computos-sistemas",
-        "itSystem": "SIGEF",
-        "legalFramework": "Reglamento de Digitalización de Actuaciones",
-        "inputs": [
-          "Acta transmitida"
-        ],
-        "outputs": [
-          "Expediente digital caratulado"
-        ],
-        "operationalRisks": [],
-        "tags": [
-          "SIGEF",
-          "Automatización"
-        ]
-      },
-      "measured": {
-        "width": 546,
-        "height": 174
-      }
-    },
-    {
       "id": "n-task-enriquecido-computos",
       "type": "UserTask",
       "position": {
-        "x": 1312.4999999999998,
-        "y": -2012.499999999999
+        "x": 2206.2991128140993,
+        "y": -1368.32045923308
       },
       "data": {
         "standardId": "TSK-06",
@@ -484,7 +263,7 @@
         "width": 680,
         "height": 174
       },
-      "selected": true,
+      "selected": false,
       "dragging": false
     },
     {
@@ -812,138 +591,239 @@
         "width": 112,
         "height": 112
       }
+    },
+    {
+      "id": "node_step_1788278962658_0",
+      "type": "UserTask",
+      "position": {
+        "x": -30,
+        "y": -71
+      },
+      "data": {
+        "standardId": "TSK-65",
+        "title": "Detección de Presunta Infracción",
+        "description": "Inicio por control en vía pública, detección remota por cámaras de seguridad o denuncia vecinal.",
+        "nodeType": "UserTask",
+        "laneId": "lane-operativa-captura",
+        "laneName": "Fiscalización y Vía Pública",
+        "roleName": "Responsable",
+        "itSystem": "Canales Vía Pública",
+        "legalFramework": "Código de Convivencia Ciudadana",
+        "inputs": [
+          "Conducta antirreglamentaria observada",
+          "Video domos policiales"
+        ],
+        "outputs": [
+          "Alerta o registro de presunta infracción"
+        ],
+        "operationalRisks": [],
+        "tags": [
+          "Descomprimido"
+        ]
+      },
+      "measured": {
+        "width": 529,
+        "height": 174
+      }
+    },
+    {
+      "id": "node_step_1788278962658_1",
+      "type": "UserTask",
+      "position": {
+        "x": 230,
+        "y": -71
+      },
+      "data": {
+        "standardId": "TSK-77",
+        "title": "Labrado de Acta (Móvil / Papel / CMU)",
+        "description": "Confección digital del acta con toma de fotografías, geoposicionamiento o digitalización de actas de papel.",
+        "nodeType": "UserTask",
+        "laneId": "lane-operativa-captura",
+        "laneName": "Fiscalización y Vía Pública",
+        "roleName": "Responsable",
+        "itSystem": "App Inspectores / SEMM / CMU",
+        "legalFramework": "Código de Convivencia Ciudadana",
+        "inputs": [
+          "Evidencia in situ",
+          "Informe CMU",
+          "Incumplimiento de emplazamiento"
+        ],
+        "outputs": [
+          "Acta formal labrada"
+        ],
+        "operationalRisks": [
+          {
+            "riskId": "RSK-2",
+            "description": "Defectos formales o falta de tipificación exacta",
+            "probability": "MEDIUM",
+            "impact": "HIGH",
+            "mitigatingControl": "Control de supervisión",
+            "controlType": "PREVENTIVE"
+          }
+        ],
+        "tags": [
+          "Descomprimido"
+        ]
+      },
+      "measured": {
+        "width": 582,
+        "height": 180
+      }
+    },
+    {
+      "id": "node_step_1788278962658_2",
+      "type": "UserTask",
+      "position": {
+        "x": 490,
+        "y": -71
+      },
+      "data": {
+        "standardId": "TSK-22",
+        "title": "Ingreso de Denuncia Ciudadana",
+        "description": "El vecino ingresa evidencia y tipificación preliminar a través de la App Ciudadana.",
+        "nodeType": "UserTask",
+        "laneId": "lane-operativa-captura",
+        "laneName": "Fiscalización y Vía Pública",
+        "roleName": "Responsable",
+        "itSystem": "App Ciudadana",
+        "legalFramework": "Código de Convivencia Ciudadana",
+        "inputs": [
+          "Reporte del vecino",
+          "Fotos geolocalizadas"
+        ],
+        "outputs": [
+          "Ticket de denuncia ciudadana"
+        ],
+        "operationalRisks": [
+          {
+            "riskId": "RSK-3",
+            "description": "Denuncias apócrifas o sin coordenadas de validez",
+            "probability": "MEDIUM",
+            "impact": "HIGH",
+            "mitigatingControl": "Control de supervisión",
+            "controlType": "PREVENTIVE"
+          }
+        ],
+        "tags": [
+          "Descomprimido"
+        ]
+      },
+      "measured": {
+        "width": 450,
+        "height": 180
+      }
+    },
+    {
+      "id": "node_step_1788278962658_3",
+      "type": "UserTask",
+      "position": {
+        "x": 750,
+        "y": -71
+      },
+      "data": {
+        "standardId": "TSK-87",
+        "title": "Tratamiento de Medidas Preferenciales y Acarreos",
+        "description": "Gestión urgente de medidas cautelares: Clausura de locales, Decomisos de mercadería y Secuestros de vehículos por grúa.",
+        "nodeType": "UserTask",
+        "laneId": "lane-operativa-captura",
+        "laneName": "Fiscalización y Vía Pública",
+        "roleName": "Responsable",
+        "itSystem": "App Móvil / Sistema de Grúas y Depósitos",
+        "legalFramework": "Código de Convivencia Ciudadana",
+        "inputs": [
+          "Acta con medida accesoria"
+        ],
+        "outputs": [
+          "Faja de clausura / Acta de secuestro / Remisión a depósito"
+        ],
+        "operationalRisks": [],
+        "tags": [
+          "Descomprimido"
+        ]
+      },
+      "measured": {
+        "width": 670,
+        "height": 174
+      }
+    },
+    {
+      "id": "node_step_1788278962658_4",
+      "type": "UserTask",
+      "position": {
+        "x": 1010,
+        "y": -71
+      },
+      "data": {
+        "standardId": "TSK-72",
+        "title": "Emplazamiento Previo (Medio Ambiente)",
+        "description": "Los Promotores de Convivencia intiman al administrado a subsanar la falta dentro del plazo legal.",
+        "nodeType": "UserTask",
+        "laneId": "lane-operativa-captura",
+        "laneName": "Fiscalización y Vía Pública",
+        "roleName": "Responsable",
+        "itSystem": "App Constataciones",
+        "legalFramework": "Código de Convivencia Ciudadana",
+        "inputs": [
+          "Ticket de denuncia ambiental"
+        ],
+        "outputs": [
+          "Acta de intimación / Emplazamiento diligenciado"
+        ],
+        "operationalRisks": [],
+        "tags": [
+          "Descomprimido"
+        ]
+      },
+      "measured": {
+        "width": 530,
+        "height": 174
+      }
+    },
+    {
+      "id": "node_step_1788278962658_5",
+      "type": "UserTask",
+      "position": {
+        "x": 1270,
+        "y": -71
+      },
+      "data": {
+        "standardId": "TSK-52",
+        "title": "Generación de Acta Digital y Apertura de Expediente en SIGEF",
+        "description": "Creación automática del identificador único de causa digital e integración de evidencias multimedia.",
+        "nodeType": "UserTask",
+        "laneId": "lane-operativa-captura",
+        "laneName": "Fiscalización y Vía Pública",
+        "roleName": "Responsable",
+        "itSystem": "SIGEF",
+        "legalFramework": "Código de Convivencia Ciudadana",
+        "inputs": [
+          "Acta transmitida"
+        ],
+        "outputs": [
+          "Expediente digital caratulado"
+        ],
+        "operationalRisks": [],
+        "tags": [
+          "Descomprimido"
+        ]
+      },
+      "measured": {
+        "width": 546,
+        "height": 174
+      }
     }
   ],
   "edges": [
     {
-      "id": "e-01",
-      "source": "n-start-infraccion",
-      "target": "n-task-app-ciudadana",
-      "type": "sequenceFlow",
-      "data": {
-        "id": "e-01",
-        "source": "n-start-infraccion",
-        "target": "n-task-app-ciudadana",
-        "conditionText": "Reporte ciudadano",
-        "strokeColor": "#64748B",
-        "strokeWidth": 2,
-        "isAnimated": false
-      }
-    },
-    {
-      "id": "e-02",
-      "source": "n-start-infraccion",
-      "target": "n-task-labrado-operativo",
-      "type": "sequenceFlow",
-      "data": {
-        "id": "e-02",
-        "source": "n-start-infraccion",
-        "target": "n-task-labrado-operativo",
-        "conditionText": "Inspectores / Domos CMU",
-        "strokeColor": "#64748B",
-        "strokeWidth": 2,
-        "isAnimated": false
-      }
-    },
-    {
-      "id": "e-03",
-      "source": "n-task-app-ciudadana",
-      "target": "n-task-emplazamiento-ambiental",
-      "type": "sequenceFlow",
-      "data": {
-        "id": "e-03",
-        "source": "n-task-app-ciudadana",
-        "target": "n-task-emplazamiento-ambiental",
-        "conditionText": "Falta ambiental",
-        "strokeColor": "#64748B",
-        "strokeWidth": 2,
-        "isAnimated": false
-      }
-    },
-    {
-      "id": "e-04",
-      "source": "n-task-app-ciudadana",
-      "target": "n-task-labrado-operativo",
-      "type": "sequenceFlow",
-      "data": {
-        "id": "e-04",
-        "source": "n-task-app-ciudadana",
-        "target": "n-task-labrado-operativo",
-        "conditionText": "Infracción de tránsito directa",
-        "strokeColor": "#64748B",
-        "strokeWidth": 2,
-        "isAnimated": false
-      }
-    },
-    {
-      "id": "e-05",
-      "source": "n-task-emplazamiento-ambiental",
-      "target": "n-task-labrado-operativo",
-      "type": "sequenceFlow",
-      "data": {
-        "id": "e-05",
-        "source": "n-task-emplazamiento-ambiental",
-        "target": "n-task-labrado-operativo",
-        "conditionText": "Ciudadano no subsana en plazo",
-        "strokeColor": "#64748B",
-        "strokeWidth": 2,
-        "isAnimated": false
-      }
-    },
-    {
-      "id": "e-06",
-      "source": "n-task-labrado-operativo",
-      "target": "n-task-preferenciales",
-      "type": "sequenceFlow",
-      "data": {
-        "id": "e-06",
-        "source": "n-task-labrado-operativo",
-        "target": "n-task-preferenciales",
-        "conditionText": "Aplica secuestro, acarreo o clausura",
-        "strokeColor": "#64748B",
-        "strokeWidth": 2,
-        "isAnimated": false
-      }
-    },
-    {
-      "id": "e-07",
-      "source": "n-task-labrado-operativo",
-      "target": "n-task-sigef-ingreso",
-      "type": "sequenceFlow",
-      "data": {
-        "id": "e-07",
-        "source": "n-task-labrado-operativo",
-        "target": "n-task-sigef-ingreso",
-        "conditionText": "Acta estándar",
-        "strokeColor": "#64748B",
-        "strokeWidth": 2,
-        "isAnimated": false
-      }
-    },
-    {
-      "id": "e-08",
-      "source": "n-task-preferenciales",
-      "target": "n-task-sigef-ingreso",
-      "type": "sequenceFlow",
-      "data": {
-        "id": "e-08",
-        "source": "n-task-preferenciales",
-        "target": "n-task-sigef-ingreso",
-        "conditionText": "Carga de actuación preferencial",
-        "strokeColor": "#64748B",
-        "strokeWidth": 2,
-        "isAnimated": false
-      }
-    },
-    {
       "id": "e-09",
-      "source": "n-task-sigef-ingreso",
+      "source": "node_step_1788278962658_5",
       "target": "n-task-enriquecido-computos",
       "type": "sequenceFlow",
       "data": {
         "id": "e-09",
-        "source": "n-task-sigef-ingreso",
         "target": "n-task-enriquecido-computos",
+        "conditionText": "",
+        "source": "node_step_1788278962658_5",
         "strokeColor": "#64748B",
         "strokeWidth": 2,
         "isAnimated": false
@@ -1215,6 +1095,66 @@
         "strokeColor": "#64748B",
         "strokeWidth": 2,
         "isAnimated": false
+      }
+    },
+    {
+      "id": "e_node_step_1788278962658_0_node_step_1788278962658_1",
+      "source": "node_step_1788278962658_0",
+      "target": "node_step_1788278962658_1",
+      "type": "sequenceFlow",
+      "data": {
+        "id": "e_node_step_1788278962658_0_node_step_1788278962658_1",
+        "source": "node_step_1788278962658_0",
+        "target": "node_step_1788278962658_1",
+        "conditionText": ""
+      }
+    },
+    {
+      "id": "e_node_step_1788278962658_1_node_step_1788278962658_2",
+      "source": "node_step_1788278962658_1",
+      "target": "node_step_1788278962658_2",
+      "type": "sequenceFlow",
+      "data": {
+        "id": "e_node_step_1788278962658_1_node_step_1788278962658_2",
+        "source": "node_step_1788278962658_1",
+        "target": "node_step_1788278962658_2",
+        "conditionText": ""
+      }
+    },
+    {
+      "id": "e_node_step_1788278962658_2_node_step_1788278962658_3",
+      "source": "node_step_1788278962658_2",
+      "target": "node_step_1788278962658_3",
+      "type": "sequenceFlow",
+      "data": {
+        "id": "e_node_step_1788278962658_2_node_step_1788278962658_3",
+        "source": "node_step_1788278962658_2",
+        "target": "node_step_1788278962658_3",
+        "conditionText": ""
+      }
+    },
+    {
+      "id": "e_node_step_1788278962658_3_node_step_1788278962658_4",
+      "source": "node_step_1788278962658_3",
+      "target": "node_step_1788278962658_4",
+      "type": "sequenceFlow",
+      "data": {
+        "id": "e_node_step_1788278962658_3_node_step_1788278962658_4",
+        "source": "node_step_1788278962658_3",
+        "target": "node_step_1788278962658_4",
+        "conditionText": ""
+      }
+    },
+    {
+      "id": "e_node_step_1788278962658_4_node_step_1788278962658_5",
+      "source": "node_step_1788278962658_4",
+      "target": "node_step_1788278962658_5",
+      "type": "sequenceFlow",
+      "data": {
+        "id": "e_node_step_1788278962658_4_node_step_1788278962658_5",
+        "source": "node_step_1788278962658_4",
+        "target": "node_step_1788278962658_5",
+        "conditionText": ""
       }
     }
   ],
