@@ -37,22 +37,22 @@ export const NewProjectModal: React.FC<NewProjectModalProps> = ({ isOpen, onClos
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4 select-none animate-fadeIn">
-      <div className="w-full max-w-lg bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 select-none animate-fadeIn">
+      <div className="w-full max-w-lg bg-theme-surface border border-theme-border rounded-2xl shadow-2xl overflow-hidden transition-colors">
         {/* Header */}
-        <div className="px-6 py-4 bg-slate-950/60 border-b border-slate-800 flex items-center justify-between">
+        <div className="px-6 py-4 bg-theme-surface-subtle border-b border-theme-border flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <div className="p-1.5 rounded-lg bg-cyan-500/20 text-cyan-400">
+            <div className="p-1.5 rounded-lg bg-[#0284C7]/15 text-theme-accent">
               <Shield className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-slate-100">Crear Nuevo Proyecto BPMN 2.0</h3>
-              <p className="text-[11px] text-slate-400">Se guardará como archivo JSON en ../Proyectos/</p>
+              <h3 className="text-sm font-bold text-theme-text">Crear Nuevo Proyecto BPMN 2.0</h3>
+              <p className="text-[11px] text-theme-text-muted">Se guardará como archivo JSON en ../Proyectos/</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-slate-200 transition-colors"
+            className="p-1.5 rounded-lg hover:bg-theme-surface-hover text-theme-text-muted hover:text-theme-text transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
@@ -61,8 +61,8 @@ export const NewProjectModal: React.FC<NewProjectModalProps> = ({ isOpen, onClos
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4 text-xs">
           <div>
-            <label className="flex items-center text-[11px] font-bold text-slate-300 mb-1">
-              <FileText className="w-3.5 h-3.5 mr-1.5 text-cyan-400" />
+            <label className="flex items-center text-[11px] font-bold text-theme-text mb-1">
+              <FileText className="w-3.5 h-3.5 mr-1.5 text-theme-accent" />
               Título Formal del Procedimiento *
             </label>
             <input
@@ -71,13 +71,13 @@ export const NewProjectModal: React.FC<NewProjectModalProps> = ({ isOpen, onClos
               placeholder="ej: Procedimiento Sancionatorio por Obras Clandestinas"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-100 placeholder-slate-500 focus:border-cyan-500 outline-none text-xs"
+              className="w-full bg-theme-surface-subtle border border-theme-border rounded-xl px-3 py-2 text-theme-text placeholder-theme-text-muted focus:border-theme-accent outline-none text-xs"
             />
           </div>
 
           <div>
-            <label className="flex items-center text-[11px] font-bold text-slate-300 mb-1">
-              <User className="w-3.5 h-3.5 mr-1.5 text-blue-400" />
+            <label className="flex items-center text-[11px] font-bold text-theme-text mb-1">
+              <User className="w-3.5 h-3.5 mr-1.5 text-[#3B82F6]" />
               Responsable / Autor del Modelado
             </label>
             <input
@@ -85,13 +85,13 @@ export const NewProjectModal: React.FC<NewProjectModalProps> = ({ isOpen, onClos
               placeholder="ej: Lic. Fernando Gómez (Analista de Procesos)"
               value={author}
               onChange={(e) => setAuthor(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-100 placeholder-slate-500 focus:border-cyan-500 outline-none text-xs"
+              className="w-full bg-theme-surface-subtle border border-theme-border rounded-xl px-3 py-2 text-theme-text placeholder-theme-text-muted focus:border-[#3B82F6] outline-none text-xs"
             />
           </div>
 
           <div>
-            <label className="flex items-center text-[11px] font-bold text-slate-300 mb-1">
-              <Building2 className="w-3.5 h-3.5 mr-1.5 text-amber-400" />
+            <label className="flex items-center text-[11px] font-bold text-theme-text mb-1">
+              <Building2 className="w-3.5 h-3.5 mr-1.5 text-[#F59E0B]" />
               Unidad Organizativa / Dependencia
             </label>
             <input
@@ -99,21 +99,21 @@ export const NewProjectModal: React.FC<NewProjectModalProps> = ({ isOpen, onClos
               placeholder="ej: Dirección de Obras Privadas / Tribunal de Faltas"
               value={orgUnit}
               onChange={(e) => setOrgUnit(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-100 placeholder-slate-500 focus:border-cyan-500 outline-none text-xs"
+              className="w-full bg-theme-surface-subtle border border-theme-border rounded-xl px-3 py-2 text-theme-text placeholder-theme-text-muted focus:border-[#F59E0B] outline-none text-xs"
             />
           </div>
 
-          <div className="pt-4 border-t border-slate-800 flex items-center justify-end space-x-3">
+          <div className="pt-4 border-t border-theme-border flex items-center justify-end space-x-3">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition-colors"
+              className="px-4 py-2 rounded-xl bg-theme-surface-subtle hover:bg-theme-surface border border-theme-border text-theme-text text-xs font-semibold transition-colors"
             >
               Cancelar
             </button>
             <button
               type="submit"
-              className="flex items-center space-x-1.5 px-5 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white text-xs font-bold shadow-lg shadow-cyan-500/25 transition-transform active:scale-95"
+              className="flex items-center space-x-1.5 px-5 py-2 rounded-xl bg-gradient-to-r from-[#0284C7] to-[#3B82F6] hover:brightness-110 text-white text-xs font-bold shadow-lg shadow-blue-500/20 transition-transform active:scale-95"
             >
               <Plus className="w-4 h-4" />
               <span>Crear Proyecto</span>
@@ -124,3 +124,4 @@ export const NewProjectModal: React.FC<NewProjectModalProps> = ({ isOpen, onClos
     </div>
   );
 };
+

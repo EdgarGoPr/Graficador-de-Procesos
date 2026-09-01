@@ -34,7 +34,7 @@ export const SequenceFlowEdge = memo(({
         style={{
           ...style,
           strokeWidth: selected ? 3 : 2,
-          stroke: selected ? '#38abf8' : '#64748b',
+          stroke: selected ? 'var(--theme-accent)' : 'var(--theme-border)',
           transition: 'stroke 0.2s, stroke-width 0.2s',
         }}
       />
@@ -46,7 +46,7 @@ export const SequenceFlowEdge = memo(({
               transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
               pointerEvents: 'all',
             }}
-            className="nodrag nopan px-2 py-0.5 rounded-md bg-slate-900/90 border border-slate-700/80 text-[10px] font-mono text-cyan-300 shadow-md backdrop-blur-sm"
+            className="nodrag nopan px-2 py-0.5 rounded-md bg-theme-surface border border-theme-border text-[10px] font-mono text-theme-accent shadow-md backdrop-blur-sm"
           >
             {conditionText}
           </div>
@@ -57,3 +57,4 @@ export const SequenceFlowEdge = memo(({
 });
 
 SequenceFlowEdge.displayName = 'SequenceFlowEdge';
+

@@ -58,7 +58,7 @@ const ProcessCanvasInternal: React.FC = () => {
     addNode,
     deleteSelected
   } = useCanvasStore();
-  const { setPropertiesPanelOpen } = useUiStore();
+  const { setPropertiesPanelOpen, theme } = useUiStore();
 
   const onDragOver = useCallback((event: React.DragEvent) => {
     event.preventDefault();
@@ -126,7 +126,7 @@ const ProcessCanvasInternal: React.FC = () => {
 
   if (!currentProject) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-slate-950 text-slate-400">
+      <div className="flex-1 flex items-center justify-center bg-theme-bg text-theme-text-muted">
         No hay proyecto cargado.
       </div>
     );
@@ -135,7 +135,7 @@ const ProcessCanvasInternal: React.FC = () => {
   return (
     <div
       ref={reactFlowWrapper}
-      className="flex-1 h-full relative bg-slate-950"
+      className="flex-1 h-full relative bg-theme-canvas transition-colors"
       onKeyDown={onKeyDown}
       tabIndex={0}
     >
@@ -155,26 +155,31 @@ const ProcessCanvasInternal: React.FC = () => {
         fitView
         minZoom={0.2}
         maxZoom={2}
-        className="bg-slate-950"
+        className="bg-theme-canvas"
         defaultEdgeOptions={{
           type: 'sequenceFlow',
           animated: false,
         }}
       >
         <SwimlaneBackground pools={currentProject.pools} laneHeight={140} totalWidth={2600} />
-        <Controls className="!bg-slate-900 !border-slate-700 !text-slate-200 fill-slate-200" />
+        <Controls className="!bg-theme-surface !border-theme-border !text-theme-text fill-current shadow-lg" />
         <MiniMap
           nodeColor={(node) => {
-            if (node.type === 'StartEvent') return '#10b981';
-            if (node.type === 'EndEvent') return '#ef4444';
-            if (node.type === 'QualityCheckpointEvent') return '#ec4899';
-            if (node.type?.includes('Gateway')) return '#f59e0b';
-            return '#3b82f6';
+            if (node.type === 'StartEvent') return '#10B981';
+            if (node.type === 'EndEvent') return '#EF4444';
+            if (node.type === 'QualityCheckpointEvent') return '#10B981';
+            if (node.type?.includes('Gateway') || node.type === 'TimerBoundaryEvent') return '#F59E0B';
+            return '#3B82F6';
           }}
-          className="!bg-slate-900/90 !border-slate-800 !rounded-lg"
-          maskColor="rgba(15, 23, 42, 0.7)"
+          className="!bg-theme-surface/90 !border-theme-border !rounded-lg shadow-xl"
+          maskColor={theme === 'dark' ? 'rgba(24, 24, 27, 0.75)' : 'rgba(241, 243, 245, 0.75)'}
         />
-        <Background variant={BackgroundVariant.Dots} gap={24} size={1} color="#334155" />
+        <Background
+          variant={BackgroundVariant.Dots}
+          gap={24}
+          size={1}
+          color={theme === 'dark' ? '#3F3F46' : '#CBD5E1'}
+        />
       </ReactFlow>
     </div>
   );
@@ -187,3 +192,4 @@ export const ProcessCanvas: React.FC = () => {
     </ReactFlowProvider>
   );
 };
+

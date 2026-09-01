@@ -2,10 +2,61 @@
 @tailwind components;
 @tailwind utilities;
 
+:root,
+.dark {
+  /* Modo Oscuro */
+  --theme-bg: #0F172A;
+  --theme-canvas-bg: #18181B; /* Gris Oscuro Profundo para el Lienzo BPMN */
+  --theme-surface: #1E293B;
+  --theme-surface-subtle: #0B1120;
+  --theme-surface-hover: #2B394E;
+  --theme-card: #1E293B;
+  --theme-text: #E2E8F0;
+  --theme-text-muted: #94A3B8;
+  --theme-accent: #38BDF8;
+  --theme-accent-hover: #0284C7;
+  --theme-border: #334155;
+  --theme-border-subtle: #1E293B;
+
+  /* Semánticos */
+  --sem-green: #10B981;
+  --sem-blue: #3B82F6;
+  --sem-amber: #F59E0B;
+  --sem-red: #EF4444;
+
+  color-scheme: dark;
+}
+
+.light {
+  /* Modo Claro */
+  --theme-bg: #F8F9FA;
+  --theme-canvas-bg: #F1F3F5;
+  --theme-surface: #FFFFFF;
+  --theme-surface-subtle: #F1F5F9;
+  --theme-surface-hover: #E2E8F0;
+  --theme-card: #FFFFFF;
+  --theme-text: #1E293B;
+  --theme-text-muted: #64748B;
+  --theme-accent: #0284C7;
+  --theme-accent-hover: #0369A1;
+  --theme-border: #E2E8F0;
+  --theme-border-subtle: #CBD5E1;
+
+  /* Semánticos */
+  --sem-green: #10B981;
+  --sem-blue: #3B82F6;
+  --sem-amber: #F59E0B;
+  --sem-red: #EF4444;
+
+  color-scheme: light;
+}
+
 @layer base {
   body {
-    @apply bg-slate-950 text-slate-100 antialiased;
+    background-color: var(--theme-bg);
+    color: var(--theme-text);
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    transition: background-color 0.2s ease, color 0.2s ease;
   }
 }
 
@@ -16,16 +67,16 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(15, 23, 42, 0.6);
+  background: var(--theme-surface-subtle);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(51, 65, 85, 0.8);
+  background: var(--theme-border);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(100, 116, 139, 1);
+  background: var(--theme-text-muted);
 }
 
 /* Print CSS Optimization */
@@ -42,3 +93,4 @@
     display: none !important;
   }
 }
+

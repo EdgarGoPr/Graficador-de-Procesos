@@ -9,4 +9,7 @@ contextBridge.exposeInMainWorld('procesosStorage', {
   writeProject: (fileName, data) => ipcRenderer.invoke('procesos:writeProject', fileName, data),
   deleteProject: (fileName) => ipcRenderer.invoke('procesos:deleteProject', fileName),
   getProjectsPath: () => ipcRenderer.invoke('procesos:getProjectsPath'),
+  openProjectsFolder: () => ipcRenderer.invoke('procesos:openProjectsFolder'),
+  openProjectFile: (fileName) => ipcRenderer.invoke('procesos:openProjectFile', fileName),
 });
+

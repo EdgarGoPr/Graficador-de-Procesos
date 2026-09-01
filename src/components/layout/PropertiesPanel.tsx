@@ -45,28 +45,28 @@ export const PropertiesPanel: React.FC = () => {
     const targetNode = currentProject.nodes.find((n) => n.id === edge.target);
 
     return (
-      <aside className="w-80 h-full bg-slate-900/95 border-l border-slate-800 flex flex-col shrink-0 select-none overflow-y-auto">
-        <div className="p-3 border-b border-slate-800 flex items-center justify-between bg-slate-950/40">
+      <aside className="w-80 h-full bg-theme-surface border-l border-theme-border flex flex-col shrink-0 select-none overflow-y-auto transition-colors">
+        <div className="p-3 border-b border-theme-border flex items-center justify-between bg-theme-surface-subtle">
           <div className="flex items-center space-x-2">
-            <div className="p-1 rounded bg-cyan-500/20 text-cyan-400">
+            <div className="p-1 rounded bg-[#0284C7]/15 text-theme-accent">
               <GitBranch className="w-4 h-4" />
             </div>
             <div>
-              <h4 className="text-xs font-bold text-slate-100">Secuencia de Flujo</h4>
-              <span className="text-[10px] font-mono text-cyan-400">Transición BPMN</span>
+              <h4 className="text-xs font-bold text-theme-text">Secuencia de Flujo</h4>
+              <span className="text-[10px] font-mono text-theme-accent">Transición BPMN</span>
             </div>
           </div>
           <div className="flex items-center space-x-1">
             <button
               onClick={() => deleteSelected()}
               title="Eliminar flujo"
-              className="p-1.5 rounded hover:bg-rose-950/60 text-rose-400 transition-colors"
+              className="p-1.5 rounded hover:bg-[#EF4444]/15 text-[#EF4444] transition-colors"
             >
               <Trash2 className="w-4 h-4" />
             </button>
             <button
               onClick={() => setPropertiesPanelOpen(false)}
-              className="p-1.5 rounded hover:bg-slate-800 text-slate-400 transition-colors"
+              className="p-1.5 rounded hover:bg-theme-surface-subtle text-theme-text-muted transition-colors"
             >
               <X className="w-4 h-4" />
             </button>
@@ -76,19 +76,19 @@ export const PropertiesPanel: React.FC = () => {
         <div className="p-4 space-y-4 text-xs">
           {/* Conexión origen -> destino */}
           <div className="space-y-2">
-            <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 font-mono">
+            <label className="text-[10px] font-bold uppercase tracking-wider text-theme-text-muted font-mono">
               Nodos Conectados
             </label>
-            <div className="p-2.5 rounded-lg bg-slate-950 border border-slate-800 space-y-2 text-[11px]">
+            <div className="p-2.5 rounded-lg bg-theme-surface-subtle border border-theme-border space-y-2 text-[11px]">
               <div>
-                <span className="text-[10px] text-slate-400 block">Origen:</span>
-                <span className="font-mono text-cyan-300 font-semibold">
+                <span className="text-[10px] text-theme-text-muted block">Origen:</span>
+                <span className="font-mono text-theme-accent font-semibold">
                   {sourceNode?.data?.standardId || 'Nodo'} - {sourceNode?.data?.title || 'Inicio'}
                 </span>
               </div>
-              <div className="pt-1.5 border-t border-slate-800/80">
-                <span className="text-[10px] text-slate-400 block">Destino:</span>
-                <span className="font-mono text-blue-300 font-semibold">
+              <div className="pt-1.5 border-t border-theme-border">
+                <span className="text-[10px] text-theme-text-muted block">Destino:</span>
+                <span className="font-mono text-[#3B82F6] font-semibold">
                   {targetNode?.data?.standardId || 'Nodo'} - {targetNode?.data?.title || 'Destino'}
                 </span>
               </div>
@@ -96,8 +96,8 @@ export const PropertiesPanel: React.FC = () => {
           </div>
 
           {/* Condición de bifurcación / Etiqueta */}
-          <div className="space-y-2 pt-3 border-t border-slate-800">
-            <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 font-mono">
+          <div className="space-y-2 pt-3 border-t border-theme-border">
+            <label className="text-[10px] font-bold uppercase tracking-wider text-theme-text-muted font-mono">
               Condición o Etiqueta del Flujo
             </label>
             <input
@@ -105,9 +105,9 @@ export const PropertiesPanel: React.FC = () => {
               placeholder="ej: Admite trámite / Pago voluntario / No subsanado"
               value={edge.data?.conditionText || ''}
               onChange={(e) => updateEdgeData(edge.id, { conditionText: e.target.value })}
-              className="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1.5 text-cyan-300 font-mono text-xs focus:border-cyan-500 outline-none mt-0.5"
+              className="w-full bg-theme-surface-subtle border border-theme-border rounded px-2 py-1.5 text-theme-accent font-mono text-xs focus:border-theme-accent outline-none mt-0.5"
             />
-            <p className="text-[10px] text-slate-400 leading-relaxed">
+            <p className="text-[10px] text-theme-text-muted leading-relaxed">
               Este texto se mostrará sobre la flecha en el lienzo BPMN y se exportará en la Ficha Técnica ISO 9001.
             </p>
           </div>
@@ -193,29 +193,29 @@ export const PropertiesPanel: React.FC = () => {
   const isCheckpoint = data.nodeType === 'QualityCheckpointEvent' || !!data.qualityCheckpoint;
 
   return (
-    <aside className="w-80 h-full bg-slate-900/95 border-l border-slate-800 flex flex-col shrink-0 select-none overflow-y-auto">
+    <aside className="w-80 h-full bg-theme-surface border-l border-theme-border flex flex-col shrink-0 select-none overflow-y-auto transition-colors">
       {/* Header */}
-      <div className="p-3 border-b border-slate-800 flex items-center justify-between bg-slate-950/40">
+      <div className="p-3 border-b border-theme-border flex items-center justify-between bg-theme-surface-subtle">
         <div className="flex items-center space-x-2">
-          <div className="p-1 rounded bg-blue-500/20 text-blue-400">
+          <div className="p-1 rounded bg-[#3B82F6]/15 text-[#3B82F6]">
             <FileText className="w-4 h-4" />
           </div>
           <div>
-            <h4 className="text-xs font-bold text-slate-100">Propiedades del Nodo</h4>
-            <span className="text-[10px] font-mono text-cyan-400">{data.standardId}</span>
+            <h4 className="text-xs font-bold text-theme-text">Propiedades del Nodo</h4>
+            <span className="text-[10px] font-mono text-theme-accent">{data.standardId}</span>
           </div>
         </div>
         <div className="flex items-center space-x-1">
           <button
             onClick={() => deleteSelected()}
             title="Eliminar elemento"
-            className="p-1.5 rounded hover:bg-rose-950/60 text-rose-400 transition-colors"
+            className="p-1.5 rounded hover:bg-[#EF4444]/15 text-[#EF4444] transition-colors"
           >
             <Trash2 className="w-4 h-4" />
           </button>
           <button
             onClick={() => setPropertiesPanelOpen(false)}
-            className="p-1.5 rounded hover:bg-slate-800 text-slate-400 transition-colors"
+            className="p-1.5 rounded hover:bg-theme-surface-subtle text-theme-text-muted transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
@@ -226,52 +226,52 @@ export const PropertiesPanel: React.FC = () => {
       <div className="p-4 space-y-4 text-xs">
         {/* Identificación */}
         <div className="space-y-2">
-          <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 font-mono">
+          <label className="text-[10px] font-bold uppercase tracking-wider text-theme-text-muted font-mono">
             Identificación y Taxonomía
           </label>
           <div className="grid grid-cols-3 gap-2">
             <div className="col-span-1">
-              <label className="text-[10px] text-slate-400">ID Estándar</label>
+              <label className="text-[10px] text-theme-text-muted">ID Estándar</label>
               <input
                 type="text"
                 value={data.standardId || ''}
                 onChange={(e) => handleUpdate({ standardId: e.target.value })}
-                className="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1.5 font-mono text-cyan-300 focus:border-cyan-500 outline-none"
+                className="w-full bg-theme-surface-subtle border border-theme-border rounded px-2 py-1.5 font-mono text-theme-accent focus:border-theme-accent outline-none"
               />
             </div>
             <div className="col-span-2">
-              <label className="text-[10px] text-slate-400">Tipo de Nodo</label>
-              <div className="bg-slate-950 border border-slate-800 rounded px-2 py-1.5 text-slate-300 font-mono text-[10px] truncate">
+              <label className="text-[10px] text-theme-text-muted">Tipo de Nodo</label>
+              <div className="bg-theme-surface-subtle border border-theme-border rounded px-2 py-1.5 text-theme-text font-mono text-[10px] truncate">
                 {data.nodeType}
               </div>
             </div>
           </div>
 
           <div>
-            <label className="text-[10px] text-slate-400">Título / Nombre Operativo</label>
+            <label className="text-[10px] text-theme-text-muted">Título / Nombre Operativo</label>
             <input
               type="text"
               value={data.title || ''}
               onChange={(e) => handleUpdate({ title: e.target.value })}
-              className="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1.5 text-slate-100 font-medium focus:border-blue-500 outline-none mt-0.5"
+              className="w-full bg-theme-surface-subtle border border-theme-border rounded px-2 py-1.5 text-theme-text font-medium focus:border-[#3B82F6] outline-none mt-0.5"
             />
           </div>
 
           <div>
-            <label className="text-[10px] text-slate-400">Descripción Procedimental</label>
+            <label className="text-[10px] text-theme-text-muted">Descripción Procedimental</label>
             <textarea
               rows={2}
               value={data.description || ''}
               onChange={(e) => handleUpdate({ description: e.target.value })}
-              className="w-full bg-slate-950 border border-slate-800 rounded p-2 text-slate-300 text-xs focus:border-blue-500 outline-none mt-0.5"
+              className="w-full bg-theme-surface-subtle border border-theme-border rounded p-2 text-theme-text text-xs focus:border-[#3B82F6] outline-none mt-0.5"
             />
           </div>
         </div>
 
         {/* Carril y Responsable */}
-        <div className="space-y-2 pt-3 border-t border-slate-800">
-          <label className="flex items-center text-[10px] font-bold uppercase tracking-wider text-slate-400 font-mono">
-            <Layers className="w-3.5 h-3.5 mr-1 text-blue-400" />
+        <div className="space-y-2 pt-3 border-t border-theme-border">
+          <label className="flex items-center text-[10px] font-bold uppercase tracking-wider text-theme-text-muted font-mono">
+            <Layers className="w-3.5 h-3.5 mr-1 text-[#3B82F6]" />
             Carril (Swimlane) y Rol
           </label>
           <select
@@ -285,7 +285,7 @@ export const PropertiesPanel: React.FC = () => {
                 itSystem: data.itSystem || selectedLane?.system
               });
             }}
-            className="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1.5 text-slate-200 outline-none focus:border-blue-500"
+            className="w-full bg-theme-surface-subtle border border-theme-border rounded px-2 py-1.5 text-theme-text outline-none focus:border-[#3B82F6]"
           >
             {lanes.map((lane) => (
               <option key={lane.id} value={lane.id}>
@@ -296,24 +296,24 @@ export const PropertiesPanel: React.FC = () => {
         </div>
 
         {/* Sistema TI y Normativa */}
-        <div className="space-y-2 pt-3 border-t border-slate-800">
-          <label className="flex items-center text-[10px] font-bold uppercase tracking-wider text-slate-400 font-mono">
-            <Server className="w-3.5 h-3.5 mr-1 text-cyan-400" />
+        <div className="space-y-2 pt-3 border-t border-theme-border">
+          <label className="flex items-center text-[10px] font-bold uppercase tracking-wider text-theme-text-muted font-mono">
+            <Server className="w-3.5 h-3.5 mr-1 text-theme-accent" />
             Sistema Informático y Marco Legal
           </label>
           <div>
-            <label className="text-[10px] text-slate-400">Sistema Informático / TI</label>
+            <label className="text-[10px] text-theme-text-muted">Sistema Informático / TI</label>
             <input
               type="text"
               placeholder="ej: SAM, VUPRA, Expediente Electrónico"
               value={data.itSystem || ''}
               onChange={(e) => handleUpdate({ itSystem: e.target.value })}
-              className="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1.5 text-cyan-300 font-mono text-xs focus:border-cyan-500 outline-none mt-0.5"
+              className="w-full bg-theme-surface-subtle border border-theme-border rounded px-2 py-1.5 text-theme-accent font-mono text-xs focus:border-theme-accent outline-none mt-0.5"
             />
           </div>
           <div>
-            <label className="flex items-center text-[10px] text-slate-400">
-              <Scale className="w-3 h-3 mr-1 text-amber-400" />
+            <label className="flex items-center text-[10px] text-theme-text-muted">
+              <Scale className="w-3 h-3 mr-1 text-[#F59E0B]" />
               Marco Normativo / Articulado
             </label>
             <input
@@ -321,20 +321,20 @@ export const PropertiesPanel: React.FC = () => {
               placeholder="ej: Ord. 12.850 Art. 24 / Ley 24.449"
               value={data.legalFramework || ''}
               onChange={(e) => handleUpdate({ legalFramework: e.target.value })}
-              className="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1.5 text-amber-300/90 text-xs focus:border-amber-500 outline-none mt-0.5"
+              className="w-full bg-theme-surface-subtle border border-theme-border rounded px-2 py-1.5 text-[#F59E0B] text-xs focus:border-[#F59E0B] outline-none mt-0.5"
             />
           </div>
         </div>
 
         {/* Plazos y SLA (ISO 8601) */}
-        <div className="space-y-2 pt-3 border-t border-slate-800">
-          <label className="flex items-center text-[10px] font-bold uppercase tracking-wider text-slate-400 font-mono">
-            <Clock className="w-3.5 h-3.5 mr-1 text-amber-400" />
+        <div className="space-y-2 pt-3 border-t border-theme-border">
+          <label className="flex items-center text-[10px] font-bold uppercase tracking-wider text-theme-text-muted font-mono">
+            <Clock className="w-3.5 h-3.5 mr-1 text-[#F59E0B]" />
             Plazos y SLA (ISO 8601)
           </label>
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <label className="text-[10px] text-slate-400">Duración</label>
+              <label className="text-[10px] text-theme-text-muted">Duración</label>
               <input
                 type="number"
                 min="0"
@@ -346,11 +346,11 @@ export const PropertiesPanel: React.FC = () => {
                     data.slaDuration?.isPeremptory || false
                   )
                 }
-                className="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1.5 text-slate-100 outline-none focus:border-amber-500"
+                className="w-full bg-theme-surface-subtle border border-theme-border rounded px-2 py-1.5 text-theme-text outline-none focus:border-[#F59E0B]"
               />
             </div>
             <div>
-              <label className="text-[10px] text-slate-400">Unidad</label>
+              <label className="text-[10px] text-theme-text-muted">Unidad</label>
               <select
                 value={data.slaDuration?.unit || TIME_UNIT_TYPES.BUSINESS_DAYS}
                 onChange={(e) =>
@@ -360,7 +360,7 @@ export const PropertiesPanel: React.FC = () => {
                     data.slaDuration?.isPeremptory || false
                   )
                 }
-                className="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1.5 text-slate-200 outline-none focus:border-amber-500"
+                className="w-full bg-theme-surface-subtle border border-theme-border rounded px-2 py-1.5 text-theme-text outline-none focus:border-[#F59E0B]"
               >
                 <option value={TIME_UNIT_TYPES.HOURS}>Horas (PT)</option>
                 <option value={TIME_UNIT_TYPES.BUSINESS_DAYS}>Días Hábiles (P)</option>
@@ -381,9 +381,9 @@ export const PropertiesPanel: React.FC = () => {
                   e.target.checked
                 )
               }
-              className="rounded bg-slate-950 border-slate-800 text-amber-500 focus:ring-0"
+              className="rounded bg-theme-surface-subtle border-theme-border text-[#F59E0B] focus:ring-0"
             />
-            <label htmlFor="chk-peremptory" className="text-xs text-amber-300 font-semibold cursor-pointer">
+            <label htmlFor="chk-peremptory" className="text-xs text-[#F59E0B] font-semibold cursor-pointer">
               Plazo Perentorio / Fatal
             </label>
           </div>
@@ -391,15 +391,15 @@ export const PropertiesPanel: React.FC = () => {
 
         {/* Tipificación de Compuertas (Gateways) */}
         {isGateway && (
-          <div className="space-y-2 pt-3 border-t border-slate-800">
-            <label className="flex items-center text-[10px] font-bold uppercase tracking-wider text-amber-400 font-mono">
+          <div className="space-y-2 pt-3 border-t border-theme-border">
+            <label className="flex items-center text-[10px] font-bold uppercase tracking-wider text-[#F59E0B] font-mono">
               <GitBranch className="w-3.5 h-3.5 mr-1" />
               Tipología de Resolución
             </label>
             <select
               value={data.gatewayResolutionType || GATEWAY_RESOLUTION_TYPES.CUSTOM}
               onChange={(e) => handleUpdate({ gatewayResolutionType: e.target.value as GatewayResolutionType })}
-              className="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1.5 text-amber-300 outline-none focus:border-amber-500"
+              className="w-full bg-theme-surface-subtle border border-theme-border rounded px-2 py-1.5 text-[#F59E0B] outline-none focus:border-[#F59E0B]"
             >
               <option value={GATEWAY_RESOLUTION_TYPES.SENTENCE_FINE}>Sentencia / Multa Condenatoria</option>
               <option value={GATEWAY_RESOLUTION_TYPES.VOLUNTARY_PAYMENT}>Pago Voluntario</option>
@@ -411,20 +411,20 @@ export const PropertiesPanel: React.FC = () => {
         )}
 
         {/* ISO 9001 - Insumos (Inputs) y Entregables (Outputs) */}
-        <div className="space-y-3 pt-3 border-t border-slate-800">
-          <label className="flex items-center text-[10px] font-bold uppercase tracking-wider text-pink-400 font-mono">
+        <div className="space-y-3 pt-3 border-t border-theme-border">
+          <label className="flex items-center text-[10px] font-bold uppercase tracking-wider text-[#10B981] font-mono">
             <ShieldCheck className="w-3.5 h-3.5 mr-1" />
             Gestión de Calidad (ISO 9001 - Insumos y Salidas)
           </label>
 
           {/* Insumos */}
           <div>
-            <label className="text-[10px] text-slate-400">Insumos / Requisitos Previos</label>
+            <label className="text-[10px] text-theme-text-muted">Insumos / Requisitos Previos</label>
             <div className="space-y-1 my-1">
               {(data.inputs || []).map((inp, idx) => (
-                <div key={idx} className="flex items-center justify-between bg-slate-950 px-2 py-1 rounded border border-slate-800 text-[11px] text-slate-300">
+                <div key={idx} className="flex items-center justify-between bg-theme-surface-subtle px-2 py-1 rounded border border-theme-border text-[11px] text-theme-text">
                   <span className="truncate">{inp}</span>
-                  <button onClick={() => handleRemoveInput(idx)} className="text-slate-400 hover:text-rose-400 ml-1">
+                  <button onClick={() => handleRemoveInput(idx)} className="text-theme-text-muted hover:text-[#EF4444] ml-1">
                     <X className="w-3 h-3" />
                   </button>
                 </div>
@@ -437,11 +437,11 @@ export const PropertiesPanel: React.FC = () => {
                 value={newInputText}
                 onChange={(e) => setNewInputText(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleAddInput()}
-                className="flex-1 bg-slate-950 border border-slate-800 rounded px-2 py-1 text-xs text-slate-200 outline-none"
+                className="flex-1 bg-theme-surface-subtle border border-theme-border rounded px-2 py-1 text-xs text-theme-text outline-none"
               />
               <button
                 onClick={handleAddInput}
-                className="px-2 py-1 bg-slate-800 hover:bg-slate-700 rounded text-slate-200"
+                className="px-2 py-1 bg-theme-surface hover:bg-theme-surface-hover border border-theme-border rounded text-theme-text"
               >
                 <Plus className="w-3.5 h-3.5" />
               </button>
@@ -450,12 +450,12 @@ export const PropertiesPanel: React.FC = () => {
 
           {/* Salidas / Entregables */}
           <div>
-            <label className="text-[10px] text-slate-400">Salidas / Entregables Formales</label>
+            <label className="text-[10px] text-theme-text-muted">Salidas / Entregables Formales</label>
             <div className="space-y-1 my-1">
               {(data.outputs || []).map((out, idx) => (
-                <div key={idx} className="flex items-center justify-between bg-slate-950 px-2 py-1 rounded border border-slate-800 text-[11px] text-slate-300">
+                <div key={idx} className="flex items-center justify-between bg-theme-surface-subtle px-2 py-1 rounded border border-theme-border text-[11px] text-theme-text">
                   <span className="truncate">{out}</span>
-                  <button onClick={() => handleRemoveOutput(idx)} className="text-slate-400 hover:text-rose-400 ml-1">
+                  <button onClick={() => handleRemoveOutput(idx)} className="text-theme-text-muted hover:text-[#EF4444] ml-1">
                     <X className="w-3 h-3" />
                   </button>
                 </div>
@@ -468,11 +468,11 @@ export const PropertiesPanel: React.FC = () => {
                 value={newOutputText}
                 onChange={(e) => setNewOutputText(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleAddOutput()}
-                className="flex-1 bg-slate-950 border border-slate-800 rounded px-2 py-1 text-xs text-slate-200 outline-none"
+                className="flex-1 bg-theme-surface-subtle border border-theme-border rounded px-2 py-1 text-xs text-theme-text outline-none"
               />
               <button
                 onClick={handleAddOutput}
-                className="px-2 py-1 bg-slate-800 hover:bg-slate-700 rounded text-slate-200"
+                className="px-2 py-1 bg-theme-surface hover:bg-theme-surface-hover border border-theme-border rounded text-theme-text"
               >
                 <Plus className="w-3.5 h-3.5" />
               </button>
@@ -482,13 +482,13 @@ export const PropertiesPanel: React.FC = () => {
 
         {/* Punto de Control de Calidad (QC) */}
         {isCheckpoint && (
-          <div className="space-y-2 pt-3 border-t border-slate-800 bg-pink-950/20 p-2.5 rounded-lg border border-pink-900/40">
-            <label className="flex items-center text-[10px] font-bold uppercase tracking-wider text-pink-300 font-mono">
+          <div className="space-y-2 pt-3 border-t border-theme-border bg-[#10B981]/10 p-2.5 rounded-lg border border-[#10B981]/30">
+            <label className="flex items-center text-[10px] font-bold uppercase tracking-wider text-[#10B981] font-mono">
               <ShieldCheck className="w-3.5 h-3.5 mr-1" />
               Punto de Inspección ISO 9001
             </label>
             <div>
-              <label className="text-[10px] text-slate-400">Criterio de Inspección</label>
+              <label className="text-[10px] text-theme-text-muted">Criterio de Inspección</label>
               <textarea
                 rows={2}
                 value={data.qualityCheckpoint?.inspectionCriteria || ''}
@@ -504,55 +504,55 @@ export const PropertiesPanel: React.FC = () => {
                     }
                   })
                 }
-                className="w-full bg-slate-950 border border-slate-800 rounded p-2 text-pink-200 text-xs focus:border-pink-500 outline-none mt-0.5"
+                className="w-full bg-theme-surface border border-theme-border rounded p-2 text-theme-text text-xs focus:border-[#10B981] outline-none mt-0.5"
               />
             </div>
           </div>
         )}
 
         {/* Riesgos Operativos y Controles Mitigantes */}
-        <div className="space-y-3 pt-3 border-t border-slate-800">
-          <label className="flex items-center text-[10px] font-bold uppercase tracking-wider text-rose-400 font-mono">
+        <div className="space-y-3 pt-3 border-t border-theme-border">
+          <label className="flex items-center text-[10px] font-bold uppercase tracking-wider text-[#EF4444] font-mono">
             <AlertTriangle className="w-3.5 h-3.5 mr-1" />
             Matriz de Riesgos y Mitigaciones
           </label>
 
           <div className="space-y-2">
             {(data.operationalRisks || []).map((rsk, idx) => (
-              <div key={idx} className="p-2 rounded bg-rose-950/20 border border-rose-900/40 space-y-1">
+              <div key={idx} className="p-2 rounded bg-[#EF4444]/10 border border-[#EF4444]/30 space-y-1">
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-bold font-mono text-rose-400">{rsk.riskId}</span>
-                  <button onClick={() => handleRemoveRisk(idx)} className="text-slate-400 hover:text-rose-400">
+                  <span className="text-[10px] font-bold font-mono text-[#EF4444]">{rsk.riskId}</span>
+                  <button onClick={() => handleRemoveRisk(idx)} className="text-theme-text-muted hover:text-[#EF4444]">
                     <Trash2 className="w-3 h-3" />
                   </button>
                 </div>
-                <p className="text-[11px] text-rose-200/90 font-medium leading-snug">{rsk.description}</p>
-                <div className="text-[10px] text-emerald-400/90 bg-slate-950/80 p-1.5 rounded border border-emerald-900/30">
-                  <span className="font-semibold text-emerald-300">Control: </span>
+                <p className="text-[11px] text-theme-text font-medium leading-snug">{rsk.description}</p>
+                <div className="text-[10px] text-[#10B981] bg-theme-surface-subtle p-1.5 rounded border border-theme-border">
+                  <span className="font-semibold text-[#10B981]">Control: </span>
                   {rsk.mitigatingControl}
                 </div>
               </div>
             ))}
           </div>
 
-          <div className="space-y-1.5 pt-2 border-t border-slate-800/60">
+          <div className="space-y-1.5 pt-2 border-t border-theme-border">
             <input
               type="text"
               placeholder="Riesgo operativo identificado..."
               value={newRiskDesc}
               onChange={(e) => setNewRiskDesc(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1 text-xs text-slate-200 outline-none"
+              className="w-full bg-theme-surface-subtle border border-theme-border rounded px-2 py-1 text-xs text-theme-text outline-none"
             />
             <input
               type="text"
               placeholder="Control mitigante asociado..."
               value={newMitigation}
               onChange={(e) => setNewMitigation(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1 text-xs text-emerald-300 outline-none"
+              className="w-full bg-theme-surface-subtle border border-theme-border rounded px-2 py-1 text-xs text-[#10B981] outline-none"
             />
             <button
               onClick={handleAddRisk}
-              className="w-full py-1 bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 rounded border border-rose-800/40 text-[11px] font-semibold flex items-center justify-center space-x-1"
+              className="w-full py-1 bg-[#EF4444]/15 hover:bg-[#EF4444]/25 text-[#EF4444] rounded border border-[#EF4444]/30 text-[11px] font-semibold flex items-center justify-center space-x-1 transition-colors"
             >
               <Plus className="w-3 h-3" />
               <span>Registrar Riesgo y Mitigación</span>
@@ -563,3 +563,4 @@ export const PropertiesPanel: React.FC = () => {
     </aside>
   );
 };
+

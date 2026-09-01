@@ -122,6 +122,34 @@ ipcMain.handle('procesos:getProjectsPath', async () => {
   return projectsDir;
 });
 
+ipcMain.handle('procesos:openProjectsFolder', async () => {
+  try {
+    if (!fs.existsSync(projectsDir)) {
+      fs.mkdirSync(projectsDir, { recursive: true });
+    }
+    await shell.openPath(projectsDir);
+    return true;
+  } catch (err) {
+    console.error('Error opening projects folder:', err);
+    return false;
+  }
+});
+
+ipcMain.handle('procesos:openProjectFile', async (_, fileName) => {
+  try {
+    const filePath = path.join(projectsDir, path.basename(fileName));
+    if (fs.existsSync(filePath)) {
+      shell.showItemInFolder(filePath);
+      return true;
+    }
+    await shell.openPath(projectsDir);
+    return true;
+  } catch (err) {
+    console.error('Error revealing project file:', err);
+    return false;
+  }
+});
+
 app.whenReady().then(createWindow);
 
 app.on('window-all-closed', () => {
@@ -135,3 +163,4 @@ app.on('activate', () => {
     createWindow();
   }
 });
+

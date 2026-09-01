@@ -1,0 +1,402 @@
+{
+  "schemaVersion": "1.0.0",
+  "documentControl": {
+    "documentTitle": "Procedimiento de Identificación, Registro y Gestión de Actas de Infracción",
+    "documentCode": "PRC-TF-2026-002",
+    "version": "1.0",
+    "authorName": "Administración del Tribunal de Faltas",
+    "organizationUnit": "Tribunal Administrativo de Faltas - Municipalidad de Córdoba",
+    "processObjective": "Estandarizar el circuito operativo integral desde la identificación de la presunta infracción por múltiples canales, su registro y consolidación digital en SIGEF con generación automática de expediente, hasta el enriquecimiento de datos, distribución equitativa entre juzgados y notificación (electrónica vía CiDi o postal) para el tratamiento de la causa.",
+    "createdAt": "2026-09-01T10:30:00Z",
+    "updatedAt": "2026-09-01T10:30:00Z",
+    "status": "APPROVED",
+    "legalNormativeBasis": [
+      "Código de Convivencia Ciudadana de la Ciudad de Córdoba",
+      "Reglamento de Procedimiento del Tribunal Administrativo de Faltas",
+      "Ley de Notificación Electrónica y Domicilio Electrónico (CiDi)"
+    ],
+    "revisionHistory": [
+      {
+        "revisionDate": "2026-09-01T10:30:00Z",
+        "version": "1.0",
+        "author": "Tribunal Administrativo de Faltas",
+        "changeDescription": "Modelado del proceso unificado de Identificación, Registro y Gestión en TAF"
+      }
+    ]
+  },
+  "pools": [
+    {
+      "id": "pool-actas-taf",
+      "name": "Circuito General de Actas e Infracciones",
+      "organization": "Municipalidad de Córdoba - Justicia Administrativa de Faltas",
+      "lanes": [
+        {
+          "id": "lane-origen-constatacion",
+          "name": "Identificación y Constatación en Vía Pública",
+          "role": "Ciudadano / Inspector / Promotor de Convivencia / CMU",
+          "system": "App Ciudadana / App Inspectores / SEMM / CMU Cámaras / Actas de Papel",
+          "colorHex": "#f59e0b",
+          "order": 0
+        },
+        {
+          "id": "lane-registro-computos",
+          "name": "Registro, Digitalización y Cómputos",
+          "role": "Área de Cómputos y Sistemas",
+          "system": "SIGEF / App Constataciones / Sistemas de Enriquecimiento",
+          "colorHex": "#0ea5e9",
+          "order": 1
+        },
+        {
+          "id": "lane-juzgados-gestion",
+          "name": "Juzgados de Faltas y Notificaciones",
+          "role": "Juez de Faltas / Mesa de Entradas / Notificadores",
+          "system": "CiDi / Correo Postal / Sistema de Gestión de Causas TAF",
+          "colorHex": "#8b5cf6",
+          "order": 2
+        }
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "id": "n-start-identificacion",
+      "type": "StartEvent",
+      "position": { "x": 40, "y": 120 },
+      "data": {
+        "standardId": "EVT-01",
+        "title": "Identificación de Presunta Infracción",
+        "description": "Detección de una presunta falta mediante control inspectivo, cámaras de monitoreo urbano (CMU) o reporte del vecino vía App Ciudadana.",
+        "nodeType": "StartEvent",
+        "laneId": "lane-origen-constatacion",
+        "itSystem": "Canales de Entrada Múltiples",
+        "legalFramework": "Código de Convivencia Ciudadana",
+        "inputs": ["Observación directa", "Captura de domos de Policía de Cba", "Reporte vecinal"],
+        "outputs": ["Registro de presunta infracción"],
+        "operationalRisks": [],
+        "tags": ["Inicio", "Identificación"]
+      }
+    },
+    {
+      "id": "n-task-canal-ciudadano",
+      "type": "UserTask",
+      "position": { "x": 220, "y": 260 },
+      "data": {
+        "standardId": "TSK-01",
+        "title": "Recepción de Denuncia Ciudadana y Derivación",
+        "description": "El ciudadano identifica la infracción en la App Ciudadana. Se canaliza según tipo: Medio Ambiente (promotores emplazan) o Tránsito (actúan instructores de denuncias).",
+        "nodeType": "UserTask",
+        "laneId": "lane-origen-constatacion",
+        "itSystem": "App Ciudadana",
+        "legalFramework": "Código de Convivencia Ciudadana",
+        "inputs": ["Denuncia del ciudadano"],
+        "outputs": ["Derivación a Promotores o Instructor de Denuncias"],
+        "operationalRisks": [],
+        "tags": ["Ciudadanos", "Denuncia"]
+      }
+    },
+    {
+      "id": "n-task-emplazamiento",
+      "type": "UserTask",
+      "position": { "x": 440, "y": 260 },
+      "data": {
+        "standardId": "TSK-02",
+        "title": "Emplazamiento y Constatación de Reparación",
+        "description": "Promotores notifican el emplazamiento para subsanar la falta. Si el ciudadano no repara, se remite a labrado por App Constataciones.",
+        "nodeType": "UserTask",
+        "laneId": "lane-origen-constatacion",
+        "itSystem": "App Constataciones",
+        "legalFramework": "Régimen de Emplazamiento Previo",
+        "inputs": ["Derivación de denuncia ambiental / CMU"],
+        "outputs": ["Acta por falta de subsanación"],
+        "operationalRisks": [
+          {
+            "riskId": "RSK-01",
+            "description": "Vencimiento de plazos de emplazamiento sin verificación",
+            "probability": "LOW",
+            "impact": "MEDIUM",
+            "mitigatingControl": "Alertas automáticas en App Constataciones",
+            "controlType": "PREVENTIVE"
+          }
+        ],
+        "tags": ["Promotores", "Emplazamiento"]
+      }
+    },
+    {
+      "id": "n-task-labrado-actas",
+      "type": "UserTask",
+      "position": { "x": 440, "y": 90 },
+      "data": {
+        "standardId": "TSK-03",
+        "title": "Labrado de Actas por Canales Inspectivos",
+        "description": "Generación del acta mediante App Inspectores, SEMM, App Constataciones o confección manual mediante Actas de Papel.",
+        "nodeType": "UserTask",
+        "laneId": "lane-origen-constatacion",
+        "itSystem": "App Inspectores / SEMM / Formato Papel",
+        "legalFramework": "Artículos de Constatación e Infracción",
+        "inputs": ["Identificación en calle", "Videos de domos CMU"],
+        "outputs": ["Acta labrada física o digital"],
+        "operationalRisks": [],
+        "tags": ["Inspectores", "Acta"]
+      }
+    },
+    {
+      "id": "n-task-sigef",
+      "type": "ServiceTask",
+      "position": { "x": 680, "y": 140 },
+      "data": {
+        "standardId": "TSK-04",
+        "title": "Generación de Acta Digital y Expediente Automático en SIGEF",
+        "description": "Consolidación del acta en el sistema SIGEF y apertura inmediata y automatizada del número de expediente administrativo.",
+        "nodeType": "ServiceTask",
+        "laneId": "lane-registro-computos",
+        "itSystem": "SIGEF",
+        "legalFramework": "Reglamento de Digitalización de Actas",
+        "inputs": ["Actas de sistemas móviles", "Actas de papel digitalizadas"],
+        "outputs": ["Acta Digital en SIGEF", "Expediente automático creado"],
+        "operationalRisks": [],
+        "tags": ["SIGEF", "Automatización"]
+      }
+    },
+    {
+      "id": "n-task-enriquecido",
+      "type": "UserTask",
+      "position": { "x": 900, "y": 140 },
+      "data": {
+        "standardId": "TSK-05",
+        "title": "Enriquecido de Datos en Cómputos",
+        "description": "Cómputos incorpora al expediente los datos registrales del presunto infractor, titular dominial del vehículo o inmueble según corresponda (proceso automático o manual para excepciones).",
+        "nodeType": "UserTask",
+        "laneId": "lane-registro-computos",
+        "itSystem": "SIGEF / Bases Registrales",
+        "legalFramework": "Protocolo de Validación de Identidad Registral",
+        "inputs": ["Expediente automático"],
+        "outputs": ["Expediente enriquecido con datos filiatorios/patrimoniales"],
+        "operationalRisks": [],
+        "tags": ["Cómputos", "Enriquecido"]
+      }
+    },
+    {
+      "id": "n-task-equilibrio",
+      "type": "ServiceTask",
+      "position": { "x": 1120, "y": 140 },
+      "data": {
+        "standardId": "TSK-06",
+        "title": "Equilibrio y Distribución de Causas entre Juzgados",
+        "description": "Asignación y sorteo equitativo de los expedientes entre los distintos Juzgados de Faltas en función de la carga operativa y competencia.",
+        "nodeType": "ServiceTask",
+        "laneId": "lane-juzgados-gestion",
+        "itSystem": "Sistema de Distribución TAF",
+        "legalFramework": "Reglamento Interno de Turnos y Distribución de Causas",
+        "inputs": ["Expediente enriquecido"],
+        "outputs": ["Causa radicada en Juzgado asignado"],
+        "operationalRisks": [],
+        "tags": ["Distribución", "Juzgados"]
+      }
+    },
+    {
+      "id": "n-qc-validacion-datos",
+      "type": "QualityCheckpointEvent",
+      "position": { "x": 1340, "y": 140 },
+      "data": {
+        "standardId": "QC-01",
+        "title": "Control de Calidad: Verificación de Datos Correctos",
+        "description": "Control de consistencia y validez técnica-legal de los datos incorporados en el expediente antes de librar notificaciones.",
+        "nodeType": "QualityCheckpointEvent",
+        "laneId": "lane-juzgados-gestion",
+        "itSystem": "Sistema TAF",
+        "legalFramework": "Requisitos de Validez del Acto Administrativo",
+        "qualityCheckpoint": {
+          "checkpointCode": "QC-DAT-01",
+          "inspectionCriteria": "Verificación de congruencia de titularidad, domicilio y encuadre infraccional.",
+          "severity": "HIGH",
+          "sampleRatePercentage": 100,
+          "responsibleRole": "Secretaría de Juzgado",
+          "evidenceRequired": "Aprobación para despacho o desestimación fundada"
+        },
+        "inputs": ["Expediente asignado"],
+        "outputs": ["Pase a Notificación (SI) o Desestimación (NO)"],
+        "operationalRisks": [],
+        "tags": ["Control", "Calidad"]
+      }
+    },
+    {
+      "id": "n-end-desestimacion",
+      "type": "EndEvent",
+      "position": { "x": 1340, "y": 10 },
+      "data": {
+        "standardId": "EVT-02",
+        "title": "Juzgado Desestima",
+        "description": "El Juzgado desestima las actuaciones por vicios de forma, inconsistencia insubsanable de datos o falta de mérito.",
+        "nodeType": "EndEvent",
+        "laneId": "lane-juzgados-gestion",
+        "itSystem": "Sistema TAF",
+        "legalFramework": "Código de Procedimiento de Faltas",
+        "inputs": ["Expediente con datos incorrectos / vicios"],
+        "outputs": ["Resolución de archivo o desestimación"],
+        "operationalRisks": [],
+        "tags": ["Cierre", "Desestimado"]
+      }
+    },
+    {
+      "id": "n-task-notif-cidi",
+      "type": "UserTask",
+      "position": { "x": 1540, "y": 140 },
+      "data": {
+        "standardId": "TSK-07",
+        "title": "Notificación Electrónica (CiDi)",
+        "description": "Envío de la cédula de notificación digital al domicilio electrónico del presunto infractor a través de la plataforma Ciudadano Digital (CiDi).",
+        "nodeType": "UserTask",
+        "laneId": "lane-juzgados-gestion",
+        "itSystem": "CiDi / Interfaz TAF",
+        "legalFramework": "Ley de Domicilio Electrónico y CiDi",
+        "slaDuration": {
+          "value": 24,
+          "unit": "HOURS",
+          "iso8601String": "PT24H",
+          "isPeremptory": false
+        },
+        "inputs": ["Expediente con datos validados"],
+        "outputs": ["Cédula digital emitida con estado de entrega"],
+        "operationalRisks": [],
+        "tags": ["CiDi", "Notificación Digital"]
+      }
+    },
+    {
+      "id": "n-task-notif-correo",
+      "type": "UserTask",
+      "position": { "x": 1750, "y": 40 },
+      "data": {
+        "standardId": "TSK-08",
+        "title": "Notificación por Correo Postal",
+        "description": "Emisión y despacho de cédula en soporte papel vía correo postal cuando la notificación electrónica (CiDi) resulta infructuosa o no se encuentra adherido.",
+        "nodeType": "UserTask",
+        "laneId": "lane-juzgados-gestion",
+        "itSystem": "Gestión Postal / Correo Oficial",
+        "legalFramework": "Régimen de Notificaciones Postales",
+        "inputs": ["Aviso de no entrega digital"],
+        "outputs": ["Cédula física diligenciada"],
+        "operationalRisks": [],
+        "tags": ["Correo", "Notificación Física"]
+      }
+    },
+    {
+      "id": "n-end-tratamiento-causa",
+      "type": "EndEvent",
+      "position": { "x": 1960, "y": 140 },
+      "data": {
+        "standardId": "EVT-03",
+        "title": "Tratamiento de Causa en Juzgado",
+        "description": "Con la constancia de notificación efectiva (digital o postal), el expediente queda formalmente habilitado para el tratamiento de la causa (descargo, pago voluntario o audiencia de juzgamiento).",
+        "nodeType": "EndEvent",
+        "laneId": "lane-juzgados-gestion",
+        "itSystem": "Sistema TAF",
+        "legalFramework": "Código de Procedimiento de Faltas",
+        "inputs": ["Notificación fehaciente diligenciada"],
+        "outputs": ["Inicio de etapa resolutiva / Sentencia"],
+        "operationalRisks": [],
+        "tags": ["Tratamiento", "Fin Proceso Registro"]
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "e-01",
+      "source": "n-start-identificacion",
+      "target": "n-task-labrado-actas",
+      "type": "sequenceFlow",
+      "data": { "id": "e-01", "source": "n-start-identificacion", "target": "n-task-labrado-actas", "conditionText": "Inspectores / CMU" }
+    },
+    {
+      "id": "e-02",
+      "source": "n-start-identificacion",
+      "target": "n-task-canal-ciudadano",
+      "type": "sequenceFlow",
+      "data": { "id": "e-02", "source": "n-start-identificacion", "target": "n-task-canal-ciudadano", "conditionText": "Reporte ciudadano" }
+    },
+    {
+      "id": "e-03",
+      "source": "n-task-canal-ciudadano",
+      "target": "n-task-emplazamiento",
+      "type": "sequenceFlow",
+      "data": { "id": "e-03", "source": "n-task-canal-ciudadano", "target": "n-task-emplazamiento", "conditionText": "Medio Ambiente / Emplazamiento" }
+    },
+    {
+      "id": "e-04",
+      "source": "n-task-canal-ciudadano",
+      "target": "n-task-labrado-actas",
+      "type": "sequenceFlow",
+      "data": { "id": "e-04", "source": "n-task-canal-ciudadano", "target": "n-task-labrado-actas", "conditionText": "Tránsito (Instructor Denuncias)" }
+    },
+    {
+      "id": "e-05",
+      "source": "n-task-emplazamiento",
+      "target": "n-task-labrado-actas",
+      "type": "sequenceFlow",
+      "data": { "id": "e-05", "source": "n-task-emplazamiento", "target": "n-task-labrado-actas", "conditionText": "Ciudadano no repara (App Constataciones)" }
+    },
+    {
+      "id": "e-06",
+      "source": "n-task-labrado-actas",
+      "target": "n-task-sigef",
+      "type": "sequenceFlow",
+      "data": { "id": "e-06", "source": "n-task-labrado-actas", "target": "n-task-sigef", "conditionText": "Generación de Acta Digital y Expediente" }
+    },
+    {
+      "id": "e-07",
+      "source": "n-task-sigef",
+      "target": "n-task-enriquecido",
+      "type": "sequenceFlow",
+      "data": { "id": "e-07", "source": "n-task-sigef", "target": "n-task-enriquecido", "conditionText": "Pase a Cómputos" }
+    },
+    {
+      "id": "e-08",
+      "source": "n-task-enriquecido",
+      "target": "n-task-equilibrio",
+      "type": "sequenceFlow",
+      "data": { "id": "e-08", "source": "n-task-enriquecido", "target": "n-task-equilibrio", "conditionText": "Causa enriquecida" }
+    },
+    {
+      "id": "e-09",
+      "source": "n-task-equilibrio",
+      "target": "n-qc-validacion-datos",
+      "type": "sequenceFlow",
+      "data": { "id": "e-09", "source": "n-task-equilibrio", "target": "n-qc-validacion-datos" }
+    },
+    {
+      "id": "e-10",
+      "source": "n-qc-validacion-datos",
+      "target": "n-end-desestimacion",
+      "type": "sequenceFlow",
+      "data": { "id": "e-10", "source": "n-qc-validacion-datos", "target": "n-end-desestimacion", "conditionText": "Datos NO correctos" }
+    },
+    {
+      "id": "e-11",
+      "source": "n-qc-validacion-datos",
+      "target": "n-task-notif-cidi",
+      "type": "sequenceFlow",
+      "data": { "id": "e-11", "source": "n-qc-validacion-datos", "target": "n-task-notif-cidi", "conditionText": "Datos SI correctos" }
+    },
+    {
+      "id": "e-12",
+      "source": "n-task-notif-cidi",
+      "target": "n-end-tratamiento-causa",
+      "type": "sequenceFlow",
+      "data": { "id": "e-12", "source": "n-task-notif-cidi", "target": "n-end-tratamiento-causa", "conditionText": "Llegó notificación CiDi" }
+    },
+    {
+      "id": "e-13",
+      "source": "n-task-notif-cidi",
+      "target": "n-task-notif-correo",
+      "type": "sequenceFlow",
+      "data": { "id": "e-13", "source": "n-task-notif-cidi", "target": "n-task-notif-correo", "conditionText": "No llegó CiDi" }
+    },
+    {
+      "id": "e-14",
+      "source": "n-task-notif-correo",
+      "target": "n-end-tratamiento-causa",
+      "type": "sequenceFlow",
+      "data": { "id": "e-14", "source": "n-task-notif-correo", "target": "n-end-tratamiento-causa", "conditionText": "Notificación por Correo entregada" }
+    }
+  ],
+  "fileName": "2026-09-01_proc-identificacion-registro-gestion-actas-taf.json"
+}

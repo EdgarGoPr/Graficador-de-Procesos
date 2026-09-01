@@ -26,19 +26,18 @@ export const SwimlaneBackground: React.FC<SwimlaneBackgroundProps> = ({
         return (
           <div key={pool.id} className="relative mb-8">
             {/* Pool Header */}
-            <div className="flex items-center px-4 py-2 bg-slate-900/90 border-b border-slate-700/60 text-slate-200 shadow-md">
-              <Layers className="w-4 h-4 text-cyan-400 mr-2" />
-              <span className="font-bold text-sm tracking-wide text-cyan-300">
+            <div className="flex items-center px-4 py-2 bg-theme-surface border-b border-theme-border text-theme-text shadow-md">
+              <Layers className="w-4 h-4 text-theme-accent mr-2" />
+              <span className="font-bold text-sm tracking-wide text-theme-accent">
                 {pool.name}
               </span>
-              <span className="ml-3 text-xs text-slate-400 font-mono">
+              <span className="ml-3 text-xs text-theme-text-muted font-mono">
                 [{pool.organization}]
               </span>
             </div>
 
             {/* Swimlanes */}
             {pool.lanes.map((lane, idx) => {
-              const y = currentYOffset;
               currentYOffset += laneHeight;
               const isEven = idx % 2 === 0;
 
@@ -49,28 +48,28 @@ export const SwimlaneBackground: React.FC<SwimlaneBackgroundProps> = ({
                     height: `${laneHeight}px`,
                     width: '100%'
                   }}
-                  className={`relative flex border-b border-r border-slate-800/80 ${
-                    isEven ? 'bg-slate-950/40' : 'bg-slate-900/30'
+                  className={`relative flex border-b border-r border-theme-border/70 ${
+                    isEven ? 'bg-theme-surface-subtle/40' : 'bg-theme-surface/30'
                   }`}
                 >
                   {/* Lane Header Banner */}
                   <div
-                    className="w-56 shrink-0 border-r border-slate-800/80 p-3 flex flex-col justify-between"
+                    className="w-56 shrink-0 border-r border-theme-border/70 p-3 flex flex-col justify-between bg-theme-surface/60 backdrop-blur-sm"
                     style={{
-                      borderLeft: `4px solid ${lane.colorHex || '#3b82f6'}`
+                      borderLeft: `4px solid ${lane.colorHex || '#3B82F6'}`
                     }}
                   >
                     <div>
-                      <div className="text-xs font-bold text-slate-100 line-clamp-1">
+                      <div className="text-xs font-bold text-theme-text line-clamp-1">
                         {lane.name}
                       </div>
-                      <div className="flex items-center text-[10px] text-slate-400 mt-1">
-                        <UserCheck className="w-3 h-3 mr-1 text-slate-400 shrink-0" />
+                      <div className="flex items-center text-[10px] text-theme-text-muted mt-1">
+                        <UserCheck className="w-3 h-3 mr-1 text-theme-text-muted shrink-0" />
                         <span className="truncate">{lane.role}</span>
                       </div>
                     </div>
 
-                    <div className="flex items-center text-[9px] font-mono text-cyan-400/90 bg-slate-950/60 px-1.5 py-0.5 rounded border border-slate-800">
+                    <div className="flex items-center text-[9px] font-mono text-theme-accent bg-theme-surface-subtle px-1.5 py-0.5 rounded border border-theme-border">
                       <Server className="w-2.5 h-2.5 mr-1 shrink-0" />
                       <span className="truncate">{lane.system}</span>
                     </div>
@@ -78,7 +77,7 @@ export const SwimlaneBackground: React.FC<SwimlaneBackgroundProps> = ({
 
                   {/* Lane Body Grid area */}
                   <div className="flex-1 relative">
-                    <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b15_1px,transparent_1px),linear-gradient(to_bottom,#1e293b15_1px,transparent_1px)] bg-[size:40px_40px]" />
+                    <div className="absolute inset-0 bg-[linear-gradient(to_right,var(--theme-border)_1px,transparent_1px),linear-gradient(to_bottom,var(--theme-border)_1px,transparent_1px)] bg-[size:40px_40px] opacity-15" />
                   </div>
                 </div>
               );
@@ -89,3 +88,4 @@ export const SwimlaneBackground: React.FC<SwimlaneBackgroundProps> = ({
     </div>
   );
 };
+

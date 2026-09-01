@@ -8,6 +8,10 @@ dist/
 dist-ssr/
 *.local
 
+# Portable electron binaries (>100MB)
+MiAppProcesos_USB/App/electron/
+app-data/
+
 # Portable runtime data
 data/
 

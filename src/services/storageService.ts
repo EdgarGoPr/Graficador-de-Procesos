@@ -34,6 +34,8 @@ declare global {
       writeProject: (fileName: string, data: ProcessProjectFile) => Promise<boolean>;
       deleteProject: (fileName: string) => Promise<boolean>;
       getProjectsPath: () => Promise<string>;
+      openProjectsFolder: () => Promise<boolean>;
+      openProjectFile: (fileName: string) => Promise<boolean>;
     };
   }
 }
@@ -45,14 +47,45 @@ const LOCAL_STORAGE_INDEX_KEY = 'procesos_studio_project_index';
  * Universal Storage Service (Electron Portable IPC + Fallback Browser LocalStore)
  */
 export class StorageService {
-  private static isElectron(): boolean {
+  public static isElectron(): boolean {
     return typeof window !== 'undefined' && !!window.procesosStorage;
+  }
+
+  /**
+   * Opens the projects folder in the operating system file explorer (Windows Explorer)
+   */
+  public static async openProjectsFolder(): Promise<boolean> {
+    if (this.isElectron()) {
+      return await window.procesosStorage!.openProjectsFolder();
+    }
+    return false;
+  }
+
+  /**
+   * Reveals a specific project file in the operating system file explorer
+   */
+  public static async openProjectFile(fileName: string): Promise<boolean> {
+    if (this.isElectron()) {
+      return await window.procesosStorage!.openProjectFile(fileName);
+    }
+    return false;
+  }
+
+  /**
+   * Gets absolute or relative path to the projects directory
+   */
+  public static async getProjectsPath(): Promise<string> {
+    if (this.isElectron()) {
+      return await window.procesosStorage!.getProjectsPath();
+    }
+    return 'Navegador Web (localStorage)';
   }
 
   /**
    * Initializes sample projects if first launch
    */
   public static async initializeStorage(): Promise<void> {
+
     if (this.isElectron()) {
       const existing = await window.procesosStorage!.listProjects();
       if (existing.length === 0) {

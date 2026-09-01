@@ -9,12 +9,11 @@ import {
   FileCheck,
   Save,
   Download,
-  FolderOpen,
   Plus,
   Shield,
-  Layers,
-  Clock,
-  Sparkles
+  Sun,
+  Moon,
+  FolderOpen
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -27,12 +26,13 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
     saveCurrentProject,
     isSaving,
     hasUnsavedChanges,
-    lastSavedAt
   } = useProjectStore();
 
   const {
     activeView,
     setActiveView,
+    theme,
+    toggleTheme,
     showNotification
   } = useUiStore();
 
@@ -59,7 +59,25 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
   const handleExportJson = () => {
     if (!currentProject) return;
     StorageService.exportProjectToJsonFile(currentProject);
-    showNotification('Archivo JSON exportado correctamente', 'info');
+    showNotification('Archivo JSON descargado a tu disco', 'info');
+  };
+
+  const handleOpenFolder = async () => {
+    if (StorageService.isElectron()) {
+      if (currentProject?.fileName) {
+        await StorageService.openProjectFile(currentProject.fileName);
+      } else {
+        await StorageService.openProjectsFolder();
+      }
+      showNotification('Carpeta de proyectos abierta en el Explorador de Windows', 'info');
+    } else {
+      if (currentProject) {
+        StorageService.exportProjectToJsonFile(currentProject);
+        showNotification('En la Web el archivo se descarga a tu disco (Descargas)', 'info');
+      } else {
+        showNotification('En la Web los archivos se almacenan en el navegador. En el ejecutable .exe se guardan en ../Proyectos/', 'info');
+      }
+    }
   };
 
   const navTabs: { id: ActiveView; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
@@ -70,39 +88,39 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
   ];
 
   return (
-    <header className="h-14 bg-slate-900 border-b border-slate-800 px-4 flex items-center justify-between shrink-0 select-none z-30">
+    <header className="h-14 bg-theme-surface border-b border-theme-border px-4 flex items-center justify-between shrink-0 select-none z-30 transition-colors">
       {/* Brand & Project Info */}
       <div className="flex items-center space-x-3">
         <div
           onClick={() => setActiveView('DASHBOARD')}
-          className="flex items-center space-x-2 cursor-pointer group"
+          className="flex items-center space-x-2.5 cursor-pointer group"
         >
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-cyan-600 to-blue-500 flex items-center justify-center shadow-lg shadow-cyan-500/20 group-hover:scale-105 transition-transform">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-[#0284C7] to-[#3B82F6] flex items-center justify-center shadow-md shadow-blue-500/20 group-hover:scale-105 transition-transform">
             <Shield className="w-4 h-4 text-white" />
           </div>
           <div>
-            <div className="text-xs font-bold tracking-wider text-slate-100 uppercase flex items-center">
+            <div className="text-xs font-bold tracking-wider text-theme-text uppercase flex items-center">
               <span>ProcesosStudio</span>
-              <span className="ml-1.5 text-[9px] font-mono font-normal bg-cyan-950 text-cyan-400 px-1 py-0.2 rounded border border-cyan-800/60">
+              <span className="ml-1.5 text-[9px] font-mono font-semibold bg-[#38BDF8]/10 text-theme-accent px-1.5 py-0.5 rounded border border-theme-accent/30">
                 PORTABLE
               </span>
             </div>
-            <div className="text-[10px] text-slate-400 font-mono">
+            <div className="text-[10px] text-theme-text-muted font-mono">
               BPMN 2.0 &bull; ISO 9001:2015
             </div>
           </div>
         </div>
 
         {currentProject && (
-          <div className="hidden lg:flex items-center space-x-2 pl-3 border-l border-slate-800">
+          <div className="hidden lg:flex items-center space-x-2 pl-3 border-l border-theme-border">
             <div className="max-w-md truncate">
-              <span className="text-xs font-bold text-slate-200 truncate block">
+              <span className="text-xs font-bold text-theme-text truncate block">
                 {currentProject.documentControl.documentTitle}
               </span>
-              <div className="flex items-center space-x-2 text-[10px] text-slate-400 font-mono">
-                <span className="text-cyan-400">{currentProject.documentControl.documentCode}</span>
+              <div className="flex items-center space-x-2 text-[10px] text-theme-text-muted font-mono">
+                <span className="text-theme-accent font-semibold">{currentProject.documentControl.documentCode}</span>
                 <span>&bull;</span>
-                <span className="text-amber-400">{currentProject.documentControl.version}</span>
+                <span className="text-[#F59E0B] font-semibold">{currentProject.documentControl.version}</span>
                 <span>&bull;</span>
                 <span className="truncate max-w-[140px]">{currentProject.documentControl.authorName}</span>
               </div>
@@ -112,7 +130,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
       </div>
 
       {/* Navigation Tabs */}
-      <div className="flex items-center bg-slate-950 p-1 rounded-lg border border-slate-800/80">
+      <div className="flex items-center bg-theme-surface-subtle p-1 rounded-lg border border-theme-border">
         {navTabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeView === tab.id;
@@ -122,8 +140,8 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
               onClick={() => setActiveView(tab.id)}
               className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
                 isActive
-                  ? 'bg-slate-800 text-cyan-400 shadow-sm border border-slate-700/60 font-semibold'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
+                  ? 'bg-theme-surface text-theme-accent shadow-sm border border-theme-border font-bold'
+                  : 'text-theme-text-muted hover:text-theme-text hover:bg-theme-surface/50'
               }`}
             >
               <Icon className="w-3.5 h-3.5" />
@@ -133,14 +151,43 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
         })}
       </div>
 
-      {/* Action Buttons */}
+      {/* Action Buttons & Theme Switcher */}
       <div className="flex items-center space-x-2">
+        {/* Open Folder Button */}
+        <button
+          onClick={handleOpenFolder}
+          className="flex items-center space-x-1.5 px-2.5 py-1.5 bg-theme-surface-subtle hover:bg-theme-surface text-theme-text rounded-lg text-xs font-medium border border-theme-border transition-colors"
+          title="Abrir carpeta donde se guardan los proyectos JSON en disco"
+        >
+          <FolderOpen className="w-3.5 h-3.5 text-theme-accent" />
+          <span className="hidden md:inline">Ver Carpeta</span>
+        </button>
+
+        {/* Dark/Light Mode Toggle Button */}
+        <button
+          onClick={toggleTheme}
+          className="flex items-center space-x-1.5 px-2.5 py-1.5 bg-theme-surface-subtle hover:bg-theme-surface text-theme-text rounded-lg text-xs font-medium border border-theme-border transition-colors"
+          title={theme === 'dark' ? 'Cambiar a Modo Claro (#F8F9FA / #FFFFFF)' : 'Cambiar a Modo Oscuro (#0F172A / #1E293B)'}
+        >
+          {theme === 'dark' ? (
+            <>
+              <Sun className="w-3.5 h-3.5 text-[#F59E0B]" />
+              <span className="hidden xl:inline text-[11px] text-theme-text-muted">Modo Claro</span>
+            </>
+          ) : (
+            <>
+              <Moon className="w-3.5 h-3.5 text-theme-accent" />
+              <span className="hidden xl:inline text-[11px] text-theme-text-muted">Modo Oscuro</span>
+            </>
+          )}
+        </button>
+
         <button
           onClick={onOpenNewProjectModal}
-          className="flex items-center space-x-1 px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-medium border border-slate-700 transition-colors"
+          className="flex items-center space-x-1 px-2.5 py-1.5 bg-theme-surface-subtle hover:bg-theme-surface text-theme-text rounded-lg text-xs font-medium border border-theme-border transition-colors"
           title="Crear nuevo proyecto"
         >
-          <Plus className="w-3.5 h-3.5 text-cyan-400" />
+          <Plus className="w-3.5 h-3.5 text-theme-accent" />
           <span className="hidden sm:inline">Nuevo</span>
         </button>
 
@@ -148,10 +195,10 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
           <>
             <button
               onClick={handleExportJson}
-              className="flex items-center space-x-1 px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-medium border border-slate-700 transition-colors"
-              title="Descargar archivo JSON"
+              className="flex items-center space-x-1 px-2.5 py-1.5 bg-theme-surface-subtle hover:bg-theme-surface text-theme-text rounded-lg text-xs font-medium border border-theme-border transition-colors"
+              title="Descargar archivo JSON a tu equipo"
             >
-              <Download className="w-3.5 h-3.5 text-slate-400" />
+              <Download className="w-3.5 h-3.5 text-theme-text-muted" />
               <span className="hidden sm:inline">JSON</span>
             </button>
 
@@ -160,8 +207,8 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
               disabled={isSaving}
               className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-bold shadow-md transition-all ${
                 hasUnsavedChanges
-                  ? 'bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white animate-pulse'
-                  : 'bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-600/30'
+                  ? 'bg-gradient-to-r from-[#0284C7] to-[#3B82F6] hover:brightness-110 text-white animate-pulse'
+                  : 'bg-[#10B981]/15 text-[#10B981] border border-[#10B981]/30 hover:bg-[#10B981]/25'
               }`}
               title="Guardar cambios (Ctrl+S)"
             >
@@ -174,3 +221,5 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
     </header>
   );
 };
+
+

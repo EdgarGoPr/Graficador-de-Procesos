@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manual de Uso y Referencia Técnica | ProcesosStudio Portable BPMN 2.0 & ISO 9001:2015</title>
+  <style>
+    @page {
+      margin: 1.2cm;
+      size: A4 portrait;
+    }
+    :root {
+      --bg: #0F172A;
+      --card: #1E293B;
+      --card-subtle: #0B1120;
+      --text: #1E293B;
+      --text-dark: #0F172A;
+      --accent: #0284C7;
+      --border: #CBD5E1;
+      --green: #10B981;
+      --blue: #3B82F6;
+      --amber: #D97706;
+      --red: #DC2626;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background-color: #FFFFFF;
+      color: #1E293B;
+      line-height: 1.55;
+      margin: 0;
+      padding: 20px;
+      font-size: 10.5pt;
+    }
+    .container {
+      max-width: 850px;
+      margin: 0 auto;
+    }
+    .header-box {
+      border-bottom: 3px solid var(--accent);
+      padding-bottom: 16px;
+      margin-bottom: 24px;
+    }
+    h1 {
+      font-size: 22pt;
+      color: #0F172A;
+      margin: 0 0 6px 0;
+      letter-spacing: -0.5px;
+    }
+    .subtitle {
+      font-size: 11pt;
+      color: #64748B;
+      font-weight: 500;
+      margin: 0;
+    }
+    h2 {
+      font-size: 14pt;
+      color: #0369A1;
+      border-bottom: 1.5px solid #E2E8F0;
+      padding-bottom: 6px;
+      margin-top: 24px;
+      margin-bottom: 12px;
+      page-break-after: avoid;
+    }
+    h3 {
+      font-size: 11.5pt;
+      color: #0F172A;
+      margin-top: 16px;
+      margin-bottom: 8px;
+      page-break-after: avoid;
+    }
+    p {
+      margin: 0 0 10px 0;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0 18px 0;
+      font-size: 9.5pt;
+      page-break-inside: avoid;
+    }
+    th, td {
+      border: 1px solid #CBD5E1;
+      padding: 7px 10px;
+      text-align: left;
+    }
+    th {
+      background-color: #F1F5F9;
+      color: #0F172A;
+      font-weight: bold;
+    }
+    tr:nth-child(even) {
+      background-color: #F8FAFC;
+    }
+    code, pre {
+      font-family: 'JetBrains Mono', 'Consolas', monospace;
+      background-color: #F1F5F9;
+      border: 1px solid #E2E8F0;
+      border-radius: 4px;
+    }
+    code {
+      padding: 2px 5px;
+      color: #0369A1;
+      font-size: 9pt;
+    }
+    pre {
+      padding: 12px;
+      overflow-x: auto;
+      color: #0F172A;
+      font-size: 9pt;
+      line-height: 1.4;
+    }
+    ul, ol {
+      padding-left: 22px;
+      margin-top: 4px;
+      margin-bottom: 12px;
+    }
+    li {
+      margin-bottom: 4px;
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 8.5pt;
+      font-weight: bold;
+      font-family: monospace;
+      margin-right: 4px;
+    }
+    .badge-green { background-color: #ECFDF5; color: #047857; border: 1px solid #A7F3D0; }
+    .badge-blue { background-color: #EFF6FF; color: #1D4ED8; border: 1px solid #BFDBFE; }
+    .badge-amber { background-color: #FFFBEB; color: #B45309; border: 1px solid #FDE68A; }
+    .badge-red { background-color: #FEF2F2; color: #B91C1C; border: 1px solid #FECACA; }
+    .card-step {
+      background-color: #F8FAFC;
+      border: 1px solid #E2E8F0;
+      border-left: 4px solid var(--accent);
+      border-radius: 6px;
+      padding: 12px 16px;
+      margin-bottom: 12px;
+      page-break-inside: avoid;
+    }
+    .card-step h4 {
+      margin: 0 0 6px 0;
+      font-size: 10.5pt;
+      color: #0F172A;
+    }
+    .diagram-box {
+      background: #F1F5F9;
+      border: 1px dashed #94A3B8;
+      border-radius: 8px;
+      padding: 14px;
+      font-family: monospace;
+      font-size: 8.5pt;
+      line-height: 1.35;
+      margin: 14px 0;
+      color: #0F172A;
+      page-break-inside: avoid;
+    }
+    .footer {
+      margin-top: 30px;
+      padding-top: 14px;
+      border-top: 1px solid #E2E8F0;
+      font-size: 8.5pt;
+      color: #64748B;
+      text-align: center;
+      page-break-before: avoid;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    
+    <div class="header-box">
+      <h1>Manual de Uso y Guía Técnica Integral</h1>
+      <div class="subtitle">ProcesosStudio Portable &bull; BPMN 2.0 (ISO/IEC 19510) & Sistemas de Calidad ISO 9001:2015</div>
+      <div style="font-size: 8.5pt; color: #64748B; margin-top: 6px; font-family: monospace;">
+        Versión: 2.0 | Formato Oficial: PDF / Windows Desktop (.EXE) | Persistencia: JSON Abierto
+      </div>
+    </div>
+
+    <h2>1. Introducción y Arquitectura Portable</h2>
+    <p><strong>ProcesosStudio Portable</strong> es una solución integral para el modelado visual, trazabilidad y documentación estandarizada de procedimientos administrativos y flujos de procesos. Cumple estrictamente con la notación internacional <strong>BPMN 2.0 (ISO/IEC 19510:2013)</strong> y los requisitos normativos de <strong>ISO 9001:2015</strong> (Cláusulas 4.4, 6.1, 7.5 y 8.6).</p>
+    
+    <p><strong>Arquitectura Zero-AppData:</strong> La aplicación es 100% portable. No requiere instalación, privilegios administrativos ni conexión a Internet. Todos los proyectos se guardan en formato <code>.json</code> transparente en la carpeta <code>../Proyectos/</code>.</p>
+
+    <h2>2. Glosario de Componentes y Notación</h2>
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 18%;">Componente</th>
+          <th style="width: 14%;">Color</th>
+          <th>Función y Aplicación en el Procedimiento</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Evento de Inicio</strong></td>
+          <td><span class="badge badge-green">#10B981</span></td>
+          <td>Disparador inicial del trámite o expediente (ej: <em>Recepción de Acta</em>).</td>
+        </tr>
+        <tr>
+          <td><strong>Tarea de Usuario</strong></td>
+          <td><span class="badge badge-blue">#3B82F6</span></td>
+          <td>Actividad operativa realizada por un agente asistido por un sistema informático.</td>
+        </tr>
+        <tr>
+          <td><strong>Tarea de Servicio</strong></td>
+          <td><span class="badge badge-blue">#3B82F6</span></td>
+          <td>Procesamiento automatizado por software (ej: <em>Cálculo de liquidación</em>).</td>
+        </tr>
+        <tr>
+          <td><strong>Tarea Manual</strong></td>
+          <td><span class="badge badge-amber">#F59E0B</span></td>
+          <td>Inspección o diligencia física en campo sin software en tiempo real.</td>
+        </tr>
+        <tr>
+          <td><strong>Compuerta Exclusiva</strong></td>
+          <td><span class="badge badge-amber">#F59E0B</span></td>
+          <td>Bifurcación condicional donde el flujo toma una única rama de decisión.</td>
+        </tr>
+        <tr>
+          <td><strong>Temporizador SLA</strong></td>
+          <td><span class="badge badge-amber">#F59E0B</span></td>
+          <td>Límite temporal reglamentario que fija plazos perentorios (ISO 8601).</td>
+        </tr>
+        <tr>
+          <td><strong>Punto de Control QC</strong></td>
+          <td><span class="badge badge-green">#10B981</span></td>
+          <td>Hito de inspección ISO 9001 con criterio y evidencia documental obligatoria.</td>
+        </tr>
+        <tr>
+          <td><strong>Subproceso Embebido</strong></td>
+          <td><span class="badge badge-blue">#3B82F6</span></td>
+          <td>Grupo de actividades que conforman un procedimiento secundario autónomo.</td>
+        </tr>
+        <tr>
+          <td><strong>Evento de Fin</strong></td>
+          <td><span class="badge badge-red">#EF4444</span></td>
+          <td>Estado terminal formal del flujo (ej: <em>Expediente Archivado</em>).</td>
+        </tr>
+        <tr>
+          <td><strong>Carriles (Swimlanes)</strong></td>
+          <td>Gris / Azul</td>
+          <td>Bandas horizontales que delimitan roles, dependencias y sistemas TI intervinientes.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>3. Recorrido de Funcionalidades</h2>
+    <ul>
+      <li><strong>Dashboard de Proyectos:</strong> Buscador en tiempo real, métricas semánticas (Lead Time, Nodos, QC, Riesgos) y botón <strong>Abrir Carpeta</strong> para ir directamente a los archivos JSON en Windows.</li>
+      <li><strong>Lienzo BPMN 2.0:</strong> Paleta lateral con Drag & Drop, detección automática de carril, conexión de flechas con condiciones, MiniMapa y atajos <code>Ctrl+S</code> y <code>Delete</code>. Fondo gris oscuro carbón de alto contraste.</li>
+      <li><strong>Panel de Propiedades:</strong> Formulario lateral para cargar IDs, marco legal, duraciones SLA, insumos, entregables, checkpoints QC y riesgos operativos con controles mitigantes.</li>
+      <li><strong>Matriz SIPOC (ISO 9001 Cláusula 4.4):</strong> Tabla cruzada automática de Proveedores, Insumos, Tareas, Salidas, Clientes y Sistemas TI, con botón <strong>Exportar CSV</strong>.</li>
+      <li><strong>Ficha Técnica Formal (DAG):</strong> Algoritmo de ordenamiento topológico que secuencia paso a paso el procedimiento, calcula tiempos de ciclo y permite <strong>Imprimir / Guardar en PDF</strong> oficial.</li>
+      <li><strong>Conmutador de Temas:</strong> Alternancia rápida entre Modo Oscuro y Modo Claro con un solo clic.</li>
+    </ul>
+
+    <h2>4. Tutorial Práctico: Modelado Integral de un Proceso</h2>
+    <p><strong>Caso de Estudio:</strong> <em>"Procedimiento Sancionatorio por Obras Clandestinas" (Código: PRC-OBR-001)</em></p>
+    
+    <div class="diagram-box">
+[ INI-01: Acta de Infracción ]
+       │
+       ▼
+[ ACT-01: Cotejo Catastral ] (Sistema SAM)
+       │
+       ▼
+[ QC-01: Validación de Firma y Plano ] (Inspección ISO 9001)
+       │
+       ▼
+[ ACT-02: Notificación de Emplazamiento ] ──> [ TMR-01: Plazo Fatal 5 Días Hábiles ]
+                                                      │
+                                                      ▼
+                              [ DEC-01: ¿Presentó Descargo o Subsanación? ]
+                                     ├── (Rama A: Regulariza) ──> [ SUB-01: Subproceso Regularización ] ──> [ FIN-01: Archivo ]
+                                     └── (Rama B: Rebelde) ────> [ ACT-03: Sentencia de Clausura ] (Riesgo RSK-01) ──> [ FIN-02: Clausura ]
+    </div>
+
+    <div class="card-step">
+      <h4>Paso 1: Crear el Proyecto</h4>
+      <p>En el Dashboard haga clic en <strong>Nuevo Proyecto</strong>. Ingrese el Título <em>Procedimiento Sancionatorio por Obras Clandestinas</em>, Autor <em>Ing. Carlos Mendoza</em> y Dependencia <em>Dirección de Obras Privadas / Tribunal de Faltas</em>.</p>
+    </div>
+
+    <div class="card-step">
+      <h4>Paso 2: Modelar el Flujo de Trabajo en el Lienzo</h4>
+      <ol>
+        <li>Arrastre un <strong>Evento de Inicio</strong> (<code>INI-01</code>: <em>Acta de Infracción</em>) al carril de Inspectoría.</li>
+        <li>Conecte una <strong>Tarea de Usuario</strong> (<code>ACT-01</code>: <em>Cotejo Catastral en SAM</em>, plazo 2 días hábiles).</li>
+        <li>Agregue un <strong>Punto de Control QC</strong> (<code>QC-01</code>: <em>Auditoría formal de firma de inspector y plano catastral</em>).</li>
+        <li>Conecte una <strong>Tarea de Notificación</strong> (<code>ACT-02</code>: <em>Cédula legal con 5 días hábiles perentorios</em>) y asóciela a un <strong>Timer</strong> (<code>TMR-01</code>).</li>
+        <li>Agregue una <strong>Compuerta Exclusiva</strong> (<code>DEC-01</code>: <em>¿Presentó Descargo?</em>) con dos salidas:
+          <ul>
+            <li><strong>Rama A (Admite trámite):</strong> Conecta a un <strong>Subproceso</strong> (<code>SUB-01</code>: <em>Subsanación y Pago</em>) que finaliza en <code>FIN-01</code> (<em>Archivo Regularizado</em>).</li>
+            <li><strong>Rama B (No subsana):</strong> Conecta a una <strong>Tarea</strong> (<code>ACT-03</code>: <em>Sentencia de Clausura</em>) que finaliza en <code>FIN-02</code> (<em>Clausura y Multa</em>).</li>
+          </ul>
+        </li>
+      </ol>
+    </div>
+
+    <div class="card-step">
+      <h4>Paso 3: Asignar Riesgos Operativos y Mitigaciones (ISO 9001 Cláusula 6.1)</h4>
+      <p>Seleccione <code>ACT-03</code> y en el panel derecho registre el riesgo: <em>Ruptura indebida de fajas de clausura</em> con el control mitigante obligatorio: <em>Inspección de constatación a las 48 hs y denuncia penal por desobediencia</em>.</p>
+    </div>
+
+    <div class="card-step">
+      <h4>Paso 4: Guardar y Generar Ficha Técnica Oficial</h4>
+      <p>Presione <code>Ctrl + S</code>. Vaya a <strong>Matriz SIPOC</strong> para auditar entradas/salidas y luego a <strong>Ficha Técnica ISO 9001</strong> para obtener el informe secuencial topológico listo para imprimir o guardar en PDF.</p>
+    </div>
+
+    <h2>5. Ubicación de Archivos y Backups USB</h2>
+    <p>Los proyectos se guardan en:</p>
+    <pre>MiAppProcesos_USB/Proyectos/2026-09-01_proc-procedimiento-sancionatorio-por-obras-clandestinas-v1.0.json</pre>
+    <p>Para respaldar todos los procesos, copie la carpeta <code>Proyectos/</code> a un disco de backup o servicio en la nube.</p>
+
+    <div class="footer">
+      ProcesosStudio Portable &bull; Conforme a las normas ISO/IEC 19510:2013 y Sistemas de Gestión de la Calidad ISO 9001:2015.
+    </div>
+  </div>
+</body>
+</html>
