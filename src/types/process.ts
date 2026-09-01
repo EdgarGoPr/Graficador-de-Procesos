@@ -77,8 +77,22 @@ export interface OperationalRiskConfig {
   controlType: 'PREVENTIVE' | 'DETECTIVE' | 'CORRECTIVE';
 }
 
+export interface SubProcessStep {
+  id: string;
+  stepNumber: number;
+  title: string;
+  description?: string;
+  role: string;
+  system: string;
+  duration: string;
+  inputs?: string[];
+  outputs?: string[];
+  qualityCheck?: string;
+  risk?: string;
+}
+
 export interface BpmnNodeData {
-  standardId: string; // e.g. "TSK-01", "GTW-01", "QC-01", "TMR-01"
+  standardId: string; // e.g. "TSK-01", "GTW-01", "QC-01", "TMR-01", "SUB-01"
   title: string;
   description: string;
   nodeType: BpmnNodeType;
@@ -94,6 +108,7 @@ export interface BpmnNodeData {
   outputs: string[]; // Entregables / Salidas formales
   qualityCheckpoint?: QualityCheckpointConfig;
   operationalRisks: OperationalRiskConfig[];
+  subProcessSteps?: SubProcessStep[]; // Pasos internos detallados del subproceso
   tags: string[];
   [key: string]: unknown;
 }

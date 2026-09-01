@@ -13,7 +13,8 @@ import {
   Shield,
   Sun,
   Moon,
-  FolderOpen
+  FolderOpen,
+  Compass
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -33,7 +34,10 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
     setActiveView,
     theme,
     toggleTheme,
-    showNotification
+    showNotification,
+    isPropertiesPanelOpen,
+    setPropertiesPanelOpen,
+    setActiveRightTab
   } = useUiStore();
 
   // Keyboard shortcut Ctrl+S
@@ -181,6 +185,29 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
             </>
           )}
         </button>
+
+        {/* Navigator & Hierarchy Toggle Button */}
+        {activeView === 'CANVAS' && (
+          <button
+            onClick={() => {
+              if (isPropertiesPanelOpen) {
+                setActiveRightTab('NAVIGATOR');
+              } else {
+                setPropertiesPanelOpen(true);
+                setActiveRightTab('NAVIGATOR');
+              }
+            }}
+            className={`flex items-center space-x-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+              isPropertiesPanelOpen
+                ? 'bg-theme-surface-subtle hover:bg-theme-surface text-theme-accent border-theme-accent/40 font-bold'
+                : 'bg-theme-surface-subtle hover:bg-theme-surface text-theme-text border-theme-border'
+            }`}
+            title="Abrir Navegador de Macroprocesos y Subprocesos"
+          >
+            <Compass className="w-3.5 h-3.5 text-theme-accent" />
+            <span className="hidden lg:inline">Navegador</span>
+          </button>
+        )}
 
         <button
           onClick={onOpenNewProjectModal}

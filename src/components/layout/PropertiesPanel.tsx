@@ -13,7 +13,9 @@ import {
   Scale,
   GitBranch,
   Layers,
-  FileText
+  FileText,
+  Maximize2,
+  Compass
 } from 'lucide-react';
 import {
   BpmnNodeData,
@@ -27,7 +29,7 @@ import { buildIsoDurationString } from '../../services/leadTimeCalculator';
 export const PropertiesPanel: React.FC = () => {
   const { selectedNodeId, selectedEdgeId, updateNodeData, updateEdgeData, deleteSelected } = useCanvasStore();
   const { currentProject } = useProjectStore();
-  const { setPropertiesPanelOpen } = useUiStore();
+  const { setPropertiesPanelOpen, setActiveRightTab, openSubProcessDetail } = useUiStore();
 
   const [newInputText, setNewInputText] = useState('');
   const [newOutputText, setNewOutputText] = useState('');
@@ -35,6 +37,30 @@ export const PropertiesPanel: React.FC = () => {
   const [newMitigation, setNewMitigation] = useState('');
 
   if (!currentProject) return null;
+
+  // Render Empty State if nothing is selected
+  if (!selectedNodeId && !selectedEdgeId) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center p-6 text-center text-theme-text-muted space-y-3">
+        <div className="w-12 h-12 rounded-2xl bg-theme-surface-subtle border border-theme-border flex items-center justify-center text-theme-text-muted shadow-sm">
+          <FileText className="w-6 h-6" />
+        </div>
+        <div>
+          <h4 className="font-bold text-xs text-theme-text">Ningún elemento seleccionado</h4>
+          <p className="text-[11px] text-theme-text-muted mt-1 max-w-[200px]">
+            Haga clic sobre un nodo o flecha en el lienzo para ver y editar sus propiedades.
+          </p>
+        </div>
+        <button
+          onClick={() => setActiveRightTab('NAVIGATOR')}
+          className="flex items-center space-x-1.5 px-3 py-1.5 bg-theme-surface-subtle hover:bg-theme-surface text-theme-accent border border-theme-border rounded-lg text-xs font-semibold transition-colors mt-2"
+        >
+          <Compass className="w-3.5 h-3.5" />
+          <span>Ver Navegador de Procesos</span>
+        </button>
+      </div>
+    );
+  }
 
   // Render Edge Properties if an Edge is selected
   if (selectedEdgeId) {
@@ -45,7 +71,7 @@ export const PropertiesPanel: React.FC = () => {
     const targetNode = currentProject.nodes.find((n) => n.id === edge.target);
 
     return (
-      <aside className="w-80 h-full bg-theme-surface border-l border-theme-border flex flex-col shrink-0 select-none overflow-y-auto transition-colors">
+      <div className="flex-1 h-full bg-theme-surface flex flex-col select-none overflow-y-auto transition-colors">
         <div className="p-3 border-b border-theme-border flex items-center justify-between bg-theme-surface-subtle">
           <div className="flex items-center space-x-2">
             <div className="p-1 rounded bg-[#0284C7]/15 text-theme-accent">
@@ -63,12 +89,6 @@ export const PropertiesPanel: React.FC = () => {
               className="p-1.5 rounded hover:bg-[#EF4444]/15 text-[#EF4444] transition-colors"
             >
               <Trash2 className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => setPropertiesPanelOpen(false)}
-              className="p-1.5 rounded hover:bg-theme-surface-subtle text-theme-text-muted transition-colors"
-            >
-              <X className="w-4 h-4" />
             </button>
           </div>
         </div>
@@ -112,11 +132,9 @@ export const PropertiesPanel: React.FC = () => {
             </p>
           </div>
         </div>
-      </aside>
+      </div>
     );
   }
-
-  if (!selectedNodeId) return null;
 
   const node = currentProject.nodes.find((n) => n.id === selectedNodeId);
   if (!node) return null;
@@ -191,9 +209,10 @@ export const PropertiesPanel: React.FC = () => {
 
   const isGateway = data.nodeType.includes('Gateway');
   const isCheckpoint = data.nodeType === 'QualityCheckpointEvent' || !!data.qualityCheckpoint;
+  const isSubProcess = data.nodeType === 'SubProcess';
 
   return (
-    <aside className="w-80 h-full bg-theme-surface border-l border-theme-border flex flex-col shrink-0 select-none overflow-y-auto transition-colors">
+    <div className="flex-1 h-full bg-theme-surface flex flex-col select-none overflow-y-auto transition-colors">
       {/* Header */}
       <div className="p-3 border-b border-theme-border flex items-center justify-between bg-theme-surface-subtle">
         <div className="flex items-center space-x-2">
@@ -213,17 +232,35 @@ export const PropertiesPanel: React.FC = () => {
           >
             <Trash2 className="w-4 h-4" />
           </button>
-          <button
-            onClick={() => setPropertiesPanelOpen(false)}
-            className="p-1.5 rounded hover:bg-theme-surface-subtle text-theme-text-muted transition-colors"
-          >
-            <X className="w-4 h-4" />
-          </button>
         </div>
       </div>
 
       {/* Form Content */}
       <div className="p-4 space-y-4 text-xs">
+        {/* Subprocess Expansion Card if SubProcess */}
+        {isSubProcess && (
+          <div className="p-3.5 bg-[#3B82F6]/10 border border-[#3B82F6]/30 rounded-xl space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#3B82F6] font-mono flex items-center space-x-1">
+                <Layers className="w-3.5 h-3.5 mr-1" />
+                <span>Subproceso Expandible</span>
+              </span>
+              <span className="text-[10px] text-theme-text-muted font-mono font-semibold">
+                {data.subProcessSteps?.length || 0} etapas
+              </span>
+            </div>
+            <p className="text-[11px] text-theme-text-muted leading-relaxed">
+              Desglose el flujo interno con tareas detalladas, roles, duraciones y sistemas subordinados.
+            </p>
+            <button
+              onClick={() => openSubProcessDetail(node.id)}
+              className="w-full flex items-center justify-center space-x-1.5 py-2 px-3 rounded-lg bg-gradient-to-r from-[#0284C7] to-[#3B82F6] hover:brightness-110 text-white font-bold text-xs shadow-md transition-all hover:scale-[1.01]"
+            >
+              <Maximize2 className="w-3.5 h-3.5" />
+              <span>Ampliar y Editar Detalle Interno</span>
+            </button>
+          </div>
+        )}
         {/* Identificación */}
         <div className="space-y-2">
           <label className="text-[10px] font-bold uppercase tracking-wider text-theme-text-muted font-mono">
@@ -560,7 +597,7 @@ export const PropertiesPanel: React.FC = () => {
           </div>
         </div>
       </div>
-    </aside>
+    </div>
   );
 };
 

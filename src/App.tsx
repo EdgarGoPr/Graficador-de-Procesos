@@ -4,11 +4,12 @@ import { useUiStore } from './store/useUiStore';
 import { Header } from './components/layout/Header';
 import { SidebarPalette } from './components/layout/SidebarPalette';
 import { ProcessCanvas } from './components/canvas/ProcessCanvas';
-import { PropertiesPanel } from './components/layout/PropertiesPanel';
+import { RightSidebar } from './components/layout/RightSidebar';
 import { ProjectDashboard } from './components/dashboard/ProjectDashboard';
 import { SipocMatrixView } from './components/sipoc/SipocMatrixView';
 import { TechnicalReportView } from './components/report/TechnicalReportView';
 import { NewProjectModal } from './components/modals/NewProjectModal';
+import { SubProcessDetailModal } from './components/modals/SubProcessDetailModal';
 import { CheckCircle2, Info, AlertCircle, X } from 'lucide-react';
 
 export const App: React.FC = () => {
@@ -16,6 +17,8 @@ export const App: React.FC = () => {
   const {
     activeView,
     isPropertiesPanelOpen,
+    activeSubProcessNodeId,
+    closeSubProcessDetail,
     activeNotification,
     clearNotification
   } = useUiStore();
@@ -55,7 +58,7 @@ export const App: React.FC = () => {
           <div className="flex-1 flex w-full h-full overflow-hidden">
             <SidebarPalette />
             <ProcessCanvas />
-            {isPropertiesPanelOpen && <PropertiesPanel />}
+            {isPropertiesPanelOpen && <RightSidebar />}
           </div>
         )}
 
@@ -63,6 +66,14 @@ export const App: React.FC = () => {
 
         {activeView === 'REPORT' && <TechnicalReportView />}
       </main>
+
+      {/* SubProcess Detail Expansion Modal */}
+      {activeSubProcessNodeId && (
+        <SubProcessDetailModal
+          nodeId={activeSubProcessNodeId}
+          onClose={closeSubProcessDetail}
+        />
+      )}
 
       {/* Notification Toast */}
       {activeNotification && (
@@ -95,4 +106,5 @@ export const App: React.FC = () => {
   );
 };
 export default App;
+
 

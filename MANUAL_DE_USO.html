@@ -150,7 +150,7 @@
       border-radius: 8px;
       padding: 14px;
       font-family: monospace;
-      font-size: 8.5pt;
+      font-size: 8pt;
       line-height: 1.35;
       margin: 14px 0;
       color: #0F172A;
@@ -174,7 +174,7 @@
       <h1>Manual de Uso y Guía Técnica Integral</h1>
       <div class="subtitle">ProcesosStudio Portable &bull; BPMN 2.0 (ISO/IEC 19510) & Sistemas de Calidad ISO 9001:2015</div>
       <div style="font-size: 8.5pt; color: #64748B; margin-top: 6px; font-family: monospace;">
-        Versión: 2.0 | Formato Oficial: PDF / Windows Desktop (.EXE) | Persistencia: JSON Abierto
+        Versión: 2.1 | Formato Oficial: PDF / Windows Desktop (.EXE) | Persistencia: JSON Abierto
       </div>
     </div>
 
@@ -219,6 +219,11 @@
           <td>Bifurcación condicional donde el flujo toma una única rama de decisión.</td>
         </tr>
         <tr>
+          <td><strong>Subproceso</strong></td>
+          <td><span class="badge badge-blue">#3B82F6</span></td>
+          <td><strong>Actividad compuesta que agrupa un procedimiento secundario.</strong> Figura con icono y botón para ampliar en un proceso más detallado.</td>
+        </tr>
+        <tr>
           <td><strong>Temporizador SLA</strong></td>
           <td><span class="badge badge-amber">#F59E0B</span></td>
           <td>Límite temporal reglamentario que fija plazos perentorios (ISO 8601).</td>
@@ -227,11 +232,6 @@
           <td><strong>Punto de Control QC</strong></td>
           <td><span class="badge badge-green">#10B981</span></td>
           <td>Hito de inspección ISO 9001 con criterio y evidencia documental obligatoria.</td>
-        </tr>
-        <tr>
-          <td><strong>Subproceso Embebido</strong></td>
-          <td><span class="badge badge-blue">#3B82F6</span></td>
-          <td>Grupo de actividades que conforman un procedimiento secundario autónomo.</td>
         </tr>
         <tr>
           <td><strong>Evento de Fin</strong></td>
@@ -246,17 +246,15 @@
       </tbody>
     </table>
 
-    <h2>3. Recorrido de Funcionalidades</h2>
+    <h2>3. Navegador de Macroprocesos y Subprocesos (Menú Derecho)</h2>
+    <p>A la derecha de la aplicación, el usuario dispone del <strong>Navegador Jerárquico</strong> con dos pestañas intercambiables:</p>
     <ul>
-      <li><strong>Dashboard de Proyectos:</strong> Buscador en tiempo real, métricas semánticas (Lead Time, Nodos, QC, Riesgos) y botón <strong>Abrir Carpeta</strong> para ir directamente a los archivos JSON en Windows.</li>
-      <li><strong>Lienzo BPMN 2.0:</strong> Paleta lateral con Drag & Drop, detección automática de carril, conexión de flechas con condiciones, MiniMapa y atajos <code>Ctrl+S</code> y <code>Delete</code>. Fondo gris oscuro carbón de alto contraste.</li>
-      <li><strong>Panel de Propiedades:</strong> Formulario lateral para cargar IDs, marco legal, duraciones SLA, insumos, entregables, checkpoints QC y riesgos operativos con controles mitigantes.</li>
-      <li><strong>Matriz SIPOC (ISO 9001 Cláusula 4.4):</strong> Tabla cruzada automática de Proveedores, Insumos, Tareas, Salidas, Clientes y Sistemas TI, con botón <strong>Exportar CSV</strong>.</li>
-      <li><strong>Ficha Técnica Formal (DAG):</strong> Algoritmo de ordenamiento topológico que secuencia paso a paso el procedimiento, calcula tiempos de ciclo y permite <strong>Imprimir / Guardar en PDF</strong> oficial.</li>
-      <li><strong>Conmutador de Temas:</strong> Alternancia rápida entre Modo Oscuro y Modo Claro con un solo clic.</li>
+      <li><strong>🧭 Navegador:</strong> Muestra la tarjeta del Macroproceso y el listado de todos los Subprocesos. Al seleccionar cualquier Macroproceso o Subproceso, <strong>el sistema realiza un acercamiento y centrado automático (smooth zoom)</strong> en el lienzo.</li>
+      <li><strong>🔍 Ampliar Subproceso:</strong> Al presionar el botón <strong>"Ampliar"</strong> en el nodo o en el menú derecho, se abre el visualizador detallado para gestionar las tareas internas del subproceso (Paso 1, Paso 2, Paso 3...).</li>
+      <li><strong>⚙️ Propiedades:</strong> Formulario de edición de IDs, normativas, duraciones y matriz de riesgos.</li>
     </ul>
 
-    <h2>4. Tutorial Práctico: Modelado Integral de un Proceso</h2>
+    <h2>4. Tutorial Práctico: Modelado Integral con Subprocesos</h2>
     <p><strong>Caso de Estudio:</strong> <em>"Procedimiento Sancionatorio por Obras Clandestinas" (Código: PRC-OBR-001)</em></p>
     
     <div class="diagram-box">
@@ -274,6 +272,11 @@
                                                       ▼
                               [ DEC-01: ¿Presentó Descargo o Subsanación? ]
                                      ├── (Rama A: Regulariza) ──> [ SUB-01: Subproceso Regularización ] ──> [ FIN-01: Archivo ]
+                                     │                                 │
+                                     │                                 └──> [Paso 1: Plano Conforme a Obra]
+                                     │                                      [Paso 2: Liquidación Derechos]
+                                     │                                      [Paso 3: Pago en Caja y Libre Deuda]
+                                     │
                                      └── (Rama B: Rebelde) ────> [ ACT-03: Sentencia de Clausura ] (Riesgo RSK-01) ──> [ FIN-02: Clausura ]
     </div>
 
@@ -283,35 +286,31 @@
     </div>
 
     <div class="card-step">
-      <h4>Paso 2: Modelar el Flujo de Trabajo en el Lienzo</h4>
+      <h4>Paso 2: Modelar Nodos y Subprocesos</h4>
       <ol>
         <li>Arrastre un <strong>Evento de Inicio</strong> (<code>INI-01</code>: <em>Acta de Infracción</em>) al carril de Inspectoría.</li>
         <li>Conecte una <strong>Tarea de Usuario</strong> (<code>ACT-01</code>: <em>Cotejo Catastral en SAM</em>, plazo 2 días hábiles).</li>
-        <li>Agregue un <strong>Punto de Control QC</strong> (<code>QC-01</code>: <em>Auditoría formal de firma de inspector y plano catastral</em>).</li>
-        <li>Conecte una <strong>Tarea de Notificación</strong> (<code>ACT-02</code>: <em>Cédula legal con 5 días hábiles perentorios</em>) y asóciela a un <strong>Timer</strong> (<code>TMR-01</code>).</li>
-        <li>Agregue una <strong>Compuerta Exclusiva</strong> (<code>DEC-01</code>: <em>¿Presentó Descargo?</em>) con dos salidas:
-          <ul>
-            <li><strong>Rama A (Admite trámite):</strong> Conecta a un <strong>Subproceso</strong> (<code>SUB-01</code>: <em>Subsanación y Pago</em>) que finaliza en <code>FIN-01</code> (<em>Archivo Regularizado</em>).</li>
-            <li><strong>Rama B (No subsana):</strong> Conecta a una <strong>Tarea</strong> (<code>ACT-03</code>: <em>Sentencia de Clausura</em>) que finaliza en <code>FIN-02</code> (<em>Clausura y Multa</em>).</li>
-          </ul>
-        </li>
+        <li>Agregue un <strong>Punto de Control QC</strong> (<code>QC-01</code>: <em>Auditoría formal de firma y plano</em>).</li>
+        <li>Conecte una <strong>Tarea de Notificación</strong> (<code>ACT-02</code>: <em>Cédula legal con 5 días perentorios</em>) y un <strong>Timer</strong> (<code>TMR-01</code>).</li>
+        <li>Agregue una <strong>Compuerta Exclusiva</strong> (<code>DEC-01</code>).</li>
+        <li>Arrastre un <strong>Subproceso</strong> (<code>SUB-01</code>: <em>Trámite de Regularización y Pago</em>). Presione <strong>Ampliar</strong> para desglosar sus 3 etapas internas (Plano, Liquidación, Pago). Conecte la salida a <code>FIN-01</code>.</li>
+        <li>Conecte la otra rama a <code>ACT-03</code> (<em>Sentencia de Clausura</em>) con riesgo mitigado <code>RSK-01</code> y fin en <code>FIN-02</code>.</li>
       </ol>
     </div>
 
     <div class="card-step">
-      <h4>Paso 3: Asignar Riesgos Operativos y Mitigaciones (ISO 9001 Cláusula 6.1)</h4>
-      <p>Seleccione <code>ACT-03</code> y en el panel derecho registre el riesgo: <em>Ruptura indebida de fajas de clausura</em> con el control mitigante obligatorio: <em>Inspección de constatación a las 48 hs y denuncia penal por desobediencia</em>.</p>
+      <h4>Paso 3: Navegación y Centrado Automático</h4>
+      <p>En el menú lateral derecho (pestaña <strong>Navegador</strong>), haga clic sobre <code>SUB-01</code>: el sistema centrará suavemente el lienzo en el subproceso. Haga clic en <strong>Macroproceso</strong> para volver al panorama general.</p>
     </div>
 
     <div class="card-step">
       <h4>Paso 4: Guardar y Generar Ficha Técnica Oficial</h4>
-      <p>Presione <code>Ctrl + S</code>. Vaya a <strong>Matriz SIPOC</strong> para auditar entradas/salidas y luego a <strong>Ficha Técnica ISO 9001</strong> para obtener el informe secuencial topológico listo para imprimir o guardar en PDF.</p>
+      <p>Presione <code>Ctrl + S</code>. Vaya a <strong>Matriz SIPOC</strong> para auditar entradas/salidas y luego a <strong>Ficha Técnica ISO 9001</strong> para exportar el reporte formal en PDF.</p>
     </div>
 
     <h2>5. Ubicación de Archivos y Backups USB</h2>
-    <p>Los proyectos se guardan en:</p>
+    <p>Los proyectos se guardan en formato estándar en la carpeta:</p>
     <pre>MiAppProcesos_USB/Proyectos/2026-09-01_proc-procedimiento-sancionatorio-por-obras-clandestinas-v1.0.json</pre>
-    <p>Para respaldar todos los procesos, copie la carpeta <code>Proyectos/</code> a un disco de backup o servicio en la nube.</p>
 
     <div class="footer">
       ProcesosStudio Portable &bull; Conforme a las normas ISO/IEC 19510:2013 y Sistemas de Gestión de la Calidad ISO 9001:2015.

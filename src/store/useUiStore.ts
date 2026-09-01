@@ -2,12 +2,15 @@ import { create } from 'zustand';
 
 export type ActiveView = 'DASHBOARD' | 'CANVAS' | 'SIPOC' | 'REPORT';
 export type ThemeMode = 'dark' | 'light';
+export type RightPanelTab = 'PROPERTIES' | 'NAVIGATOR';
 
 interface UiStoreState {
   activeView: ActiveView;
   theme: ThemeMode;
   isSidebarOpen: boolean;
   isPropertiesPanelOpen: boolean;
+  activeRightTab: RightPanelTab;
+  activeSubProcessNodeId: string | null;
   searchFilter: string;
   activeNotification: { message: string; type: 'success' | 'info' | 'error' } | null;
 
@@ -17,6 +20,9 @@ interface UiStoreState {
   toggleSidebar: () => void;
   togglePropertiesPanel: () => void;
   setPropertiesPanelOpen: (open: boolean) => void;
+  setActiveRightTab: (tab: RightPanelTab) => void;
+  openSubProcessDetail: (nodeId: string) => void;
+  closeSubProcessDetail: () => void;
   setSearchFilter: (query: string) => void;
   showNotification: (message: string, type?: 'success' | 'info' | 'error') => void;
   clearNotification: () => void;
@@ -43,6 +49,8 @@ export const useUiStore = create<UiStoreState>((set) => ({
   theme: getInitialTheme(),
   isSidebarOpen: true,
   isPropertiesPanelOpen: true,
+  activeRightTab: 'NAVIGATOR', // Default to showing the hierarchy navigator
+  activeSubProcessNodeId: null,
   searchFilter: '',
   activeNotification: null,
 
@@ -69,6 +77,9 @@ export const useUiStore = create<UiStoreState>((set) => ({
   toggleSidebar: () => set((state) => ({ isSidebarOpen: !state.isSidebarOpen })),
   togglePropertiesPanel: () => set((state) => ({ isPropertiesPanelOpen: !state.isPropertiesPanelOpen })),
   setPropertiesPanelOpen: (open) => set({ isPropertiesPanelOpen: open }),
+  setActiveRightTab: (tab) => set({ activeRightTab: tab, isPropertiesPanelOpen: true }),
+  openSubProcessDetail: (nodeId) => set({ activeSubProcessNodeId: nodeId }),
+  closeSubProcessDetail: () => set({ activeSubProcessNodeId: null }),
   setSearchFilter: (query) => set({ searchFilter: query }),
   showNotification: (message, type = 'success') => {
     set({ activeNotification: { message, type } });
