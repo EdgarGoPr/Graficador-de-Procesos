@@ -9,6 +9,7 @@ interface UiStoreState {
   activeView: ActiveView;
   theme: ThemeMode;
   currentThemeId: AppThemeId;
+  baseThemeId: AppThemeId; // Temática base activa sobre la cual se aplican personalizaciones
   customThemeColors: ThemeColors;
   isSidebarOpen: boolean;
   isPropertiesPanelOpen: boolean;
@@ -36,16 +37,12 @@ interface UiStoreState {
   clearNotification: () => void;
 }
 
-const getInitialCustomTheme = (): ThemeColors => {
-  const saved = localStorage.getItem('procesos_custom_theme');
-  if (saved) {
-    try {
-      return JSON.parse(saved);
-    } catch {
-      // fallback
-    }
+const getInitialBaseThemeId = (): AppThemeId => {
+  const savedBase = localStorage.getItem('procesos_base_theme_id') as AppThemeId;
+  if (savedBase && PRESET_THEMES[savedBase] && savedBase !== 'custom') {
+    return savedBase;
   }
-  return PRESET_THEMES['antigravity-dark'].colors;
+  return 'antigravity-dark';
 };
 
 const getInitialThemeId = (): AppThemeId => {
@@ -56,12 +53,27 @@ const getInitialThemeId = (): AppThemeId => {
   return 'antigravity-dark';
 };
 
+const getInitialCustomTheme = (baseId: AppThemeId): ThemeColors => {
+  const saved = localStorage.getItem('procesos_custom_theme');
+  if (saved) {
+    try {
+      return JSON.parse(saved);
+    } catch {
+      // fallback
+    }
+  }
+  const basePreset = PRESET_THEMES[baseId] || PRESET_THEMES['antigravity-dark'];
+  return { ...basePreset.colors };
+};
+
 const initStore = () => {
+  const baseId = getInitialBaseThemeId();
   const themeId = getInitialThemeId();
-  const customColors = getInitialCustomTheme();
-  const colors = themeId === 'custom' ? customColors : PRESET_THEMES[themeId].colors;
+  const customColors = getInitialCustomTheme(baseId);
+  const colors = themeId === 'custom' ? customColors : (PRESET_THEMES[themeId]?.colors || customColors);
   applyThemeToDocument(colors);
   return {
+    baseId,
     themeId,
     customColors,
     themeMode: colors.isDark ? ('dark' as ThemeMode) : ('light' as ThemeMode)
@@ -74,6 +86,7 @@ export const useUiStore = create<UiStoreState>((set, get) => ({
   activeView: 'DASHBOARD',
   theme: initialData.themeMode,
   currentThemeId: initialData.themeId,
+  baseThemeId: initialData.baseId,
   customThemeColors: initialData.customColors,
   isSidebarOpen: true,
   isPropertiesPanelOpen: true,
@@ -90,21 +103,52 @@ export const useUiStore = create<UiStoreState>((set, get) => ({
     get().setAppTheme(targetThemeId);
   },
 
+  /**
+   * Sets the active base theme.
+   * Copies the full preset color scheme as the new baseline for subsequent customizations.
+   */
   setAppTheme: (themeId) => {
     localStorage.setItem('procesos_theme_id', themeId);
-    const colors = themeId === 'custom' ? get().customThemeColors : PRESET_THEMES[themeId].colors;
-    applyThemeToDocument(colors);
-    set({
-      currentThemeId: themeId,
-      theme: colors.isDark ? 'dark' : 'light'
-    });
+    
+    if (themeId !== 'custom') {
+      const presetColors = PRESET_THEMES[themeId].colors;
+      localStorage.setItem('procesos_base_theme_id', themeId);
+      localStorage.setItem('procesos_custom_theme', JSON.stringify(presetColors));
+      applyThemeToDocument(presetColors);
+      set({
+        baseThemeId: themeId,
+        currentThemeId: themeId,
+        customThemeColors: { ...presetColors },
+        theme: presetColors.isDark ? 'dark' : 'light'
+      });
+    } else {
+      const currentCustom = get().customThemeColors;
+      applyThemeToDocument(currentCustom);
+      set({
+        currentThemeId: 'custom',
+        theme: currentCustom.isDark ? 'dark' : 'light'
+      });
+    }
   },
 
+  /**
+   * Updates specific color variables while keeping the rest derived from the active base theme.
+   */
   updateCustomTheme: (updates) => {
-    const nextCustom = { ...get().customThemeColors, ...updates };
+    const baseId = get().baseThemeId;
+    const baseColors = PRESET_THEMES[baseId]?.colors || get().customThemeColors;
+    
+    // Merge: base colors + existing custom overrides + new updates
+    const nextCustom: ThemeColors = {
+      ...baseColors,
+      ...get().customThemeColors,
+      ...updates
+    };
+
     localStorage.setItem('procesos_custom_theme', JSON.stringify(nextCustom));
     localStorage.setItem('procesos_theme_id', 'custom');
     applyThemeToDocument(nextCustom);
+    
     set({
       currentThemeId: 'custom',
       customThemeColors: nextCustom,
@@ -112,23 +156,16 @@ export const useUiStore = create<UiStoreState>((set, get) => ({
     });
   },
 
+  /**
+   * Modifies only the canvas background color, maintaining the entire active base theme.
+   */
   setCanvasBgColor: (color) => {
-    const currentId = get().currentThemeId;
-    if (currentId === 'custom') {
-      get().updateCustomTheme({ canvasBg: color });
-    } else {
-      const activePreset = PRESET_THEMES[currentId].colors;
-      get().updateCustomTheme({
-        ...activePreset,
-        canvasBg: color
-      });
-    }
+    get().updateCustomTheme({ canvasBg: color });
   },
 
   setThemeModalOpen: (open) => set({ isThemeModalOpen: open }),
 
   toggleTheme: () => {
-    const current = get().currentThemeId;
     const isCurrentlyDark = get().theme === 'dark';
     const nextId = isCurrentlyDark ? 'antigravity-light' : 'antigravity-dark';
     get().setAppTheme(nextId);

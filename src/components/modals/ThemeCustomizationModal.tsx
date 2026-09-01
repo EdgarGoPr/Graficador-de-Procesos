@@ -11,7 +11,8 @@ import {
   Sliders,
   RotateCcw,
   Layers,
-  ArrowRight
+  ArrowRight,
+  Info
 } from 'lucide-react';
 
 const CANVAS_BG_PRESETS = [
@@ -30,6 +31,7 @@ export const ThemeCustomizationModal: React.FC = () => {
     isThemeModalOpen,
     setThemeModalOpen,
     currentThemeId,
+    baseThemeId,
     setAppTheme,
     customThemeColors,
     updateCustomTheme,
@@ -37,13 +39,15 @@ export const ThemeCustomizationModal: React.FC = () => {
     showNotification
   } = useUiStore();
 
-  const [activeTab, setActiveTab] = useState<'PRESETS' | 'CUSTOM' | 'CANVAS'>('PRESETS');
+  const [activeTab, setActiveTab] = useState<'PRESETS' | 'CANVAS' | 'CUSTOM'>('PRESETS');
 
   if (!isThemeModalOpen) return null;
 
   const currentColors = currentThemeId === 'custom'
     ? customThemeColors
     : PRESET_THEMES[currentThemeId].colors;
+
+  const activeBase = PRESET_THEMES[baseThemeId] || PRESET_THEMES['antigravity-dark'];
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fadeIn">
@@ -62,7 +66,7 @@ export const ThemeCustomizationModal: React.FC = () => {
                 </span>
               </h3>
               <p className="text-xs text-theme-text-muted">
-                Configurá temas integrales, fondos de pizarra y paletas cromáticas
+                Configurá temáticas integrales, fondos de pizarra y herencia de colores
               </p>
             </div>
           </div>
@@ -72,6 +76,31 @@ export const ThemeCustomizationModal: React.FC = () => {
           >
             <X className="w-4 h-4" />
           </button>
+        </div>
+
+        {/* Active Base Theme Info Banner */}
+        <div className="px-4 py-2 bg-theme-surface-subtle border-b border-theme-border flex items-center justify-between text-xs">
+          <div className="flex items-center space-x-1.5 text-theme-text-muted">
+            <Info className="w-3.5 h-3.5 text-theme-accent shrink-0" />
+            <span>
+              Temática Base Activa: <strong className="text-theme-text">{activeBase.name}</strong>
+              {currentThemeId === 'custom' && (
+                <span className="ml-1 text-[10px] text-theme-accent font-mono font-semibold">(con personalizaciones activas)</span>
+              )}
+            </span>
+          </div>
+          {currentThemeId === 'custom' && (
+            <button
+              onClick={() => {
+                setAppTheme(baseThemeId);
+                showNotification(`Revertido a la temática base: ${activeBase.name}`);
+              }}
+              className="flex items-center space-x-1 text-[11px] text-theme-accent hover:underline font-semibold"
+            >
+              <RotateCcw className="w-3 h-3" />
+              <span>Restablecer a base</span>
+            </button>
+          )}
         </div>
 
         {/* Tab Navigation */}
@@ -85,7 +114,7 @@ export const ThemeCustomizationModal: React.FC = () => {
             }`}
           >
             <Sparkles className="w-3.5 h-3.5" />
-            <span>Temáticas Antigravity</span>
+            <span>1. Seleccionar Temática Base</span>
           </button>
 
           <button
@@ -97,7 +126,7 @@ export const ThemeCustomizationModal: React.FC = () => {
             }`}
           >
             <Layers className="w-3.5 h-3.5" />
-            <span>Fondo de la Pizarra</span>
+            <span>2. Fondo de la Pizarra</span>
           </button>
 
           <button
@@ -109,7 +138,7 @@ export const ThemeCustomizationModal: React.FC = () => {
             }`}
           >
             <Sliders className="w-3.5 h-3.5" />
-            <span>Tema Personalizado Libre</span>
+            <span>3. Ajuste Fino de Colores</span>
           </button>
         </div>
 
@@ -117,16 +146,20 @@ export const ThemeCustomizationModal: React.FC = () => {
         <div className="p-5 flex-1 overflow-y-auto space-y-4">
           {/* TAB 1: PRESETS */}
           {activeTab === 'PRESETS' && (
-            <div className="space-y-4">
+            <div className="space-y-3">
+              <p className="text-xs text-theme-text-muted">
+                Elegí la temática base inicial. Cualquier cambio posterior conservará el estilo de esta selección:
+              </p>
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {Object.values(PRESET_THEMES).filter(t => t.id !== 'custom').map((theme) => {
-                  const isSelected = currentThemeId === theme.id;
+                  const isSelected = (currentThemeId === theme.id) || (currentThemeId === 'custom' && baseThemeId === theme.id);
                   return (
                     <div
                       key={theme.id}
                       onClick={() => {
                         setAppTheme(theme.id);
-                        showNotification(`Tema aplicado: ${theme.name}`);
+                        showNotification(`Temática base aplicada: ${theme.name}`);
                       }}
                       className={`p-3.5 rounded-xl border-2 transition-all cursor-pointer relative flex flex-col justify-between ${
                         isSelected
@@ -175,7 +208,7 @@ export const ThemeCustomizationModal: React.FC = () => {
                         {isSelected && (
                           <div className="flex items-center space-x-1 text-[11px] font-bold text-theme-accent">
                             <Check className="w-3.5 h-3.5 stroke-[3]" />
-                            <span>Activo</span>
+                            <span>{currentThemeId === 'custom' ? 'Base Activa' : 'Activo'}</span>
                           </div>
                         )}
                       </div>
@@ -191,10 +224,10 @@ export const ThemeCustomizationModal: React.FC = () => {
             <div className="space-y-4">
               <div>
                 <h4 className="text-xs font-bold uppercase tracking-wider text-theme-text mb-1">
-                  Color de Fondo del Lienzo BPMN
+                  Color de Fondo de la Pizarra y Carriles (BPMN)
                 </h4>
                 <p className="text-xs text-theme-text-muted mb-3">
-                  Seleccioná un tono preestablecido o ingresá un código hexadecimal personalizado para la superficie de trabajo.
+                  Cambiá el color de la parte de atrás de la pizarra. Todos los demás colores se mantendrán basados en <strong>{activeBase.name}</strong>.
                 </p>
               </div>
 
@@ -235,7 +268,7 @@ export const ThemeCustomizationModal: React.FC = () => {
               <div className="mt-4 p-3.5 rounded-xl bg-theme-surface-subtle border border-theme-border flex items-center justify-between">
                 <div className="space-y-0.5">
                   <span className="text-xs font-semibold text-theme-text">Selector Hexadecimal Libre</span>
-                  <p className="text-[10px] text-theme-text-muted">Elegí cualquier tono exacto con el selector</p>
+                  <p className="text-[10px] text-theme-text-muted">Elegí cualquier tono exacto para el fondo del lienzo</p>
                 </div>
                 <div className="flex items-center space-x-2">
                   <input
@@ -261,16 +294,16 @@ export const ThemeCustomizationModal: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <h4 className="text-xs font-bold uppercase tracking-wider text-theme-text mb-0.5">
-                    Diseñá tu propia Paleta de Colores
+                    Ajuste Fino de Colores (Basado en {activeBase.name})
                   </h4>
                   <p className="text-xs text-theme-text-muted">
-                    Personalizá cada variable cromática de la aplicación y del lienzo.
+                    Podés modificar variables individuales sin alterar el resto de la paleta.
                   </p>
                 </div>
                 <button
                   onClick={() => {
-                    updateCustomTheme(PRESET_THEMES['antigravity-dark'].colors);
-                    showNotification('Valores personalizados restablecidos');
+                    setAppTheme(baseThemeId);
+                    showNotification(`Restablecido a los valores originales de ${activeBase.name}`);
                   }}
                   className="flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-theme-surface-subtle hover:bg-theme-surface border border-theme-border text-[11px] text-theme-text-muted transition-colors"
                 >
@@ -284,11 +317,11 @@ export const ThemeCustomizationModal: React.FC = () => {
                 <div className="p-3 rounded-xl bg-theme-surface-subtle border border-theme-border flex items-center justify-between">
                   <div className="text-xs">
                     <div className="font-semibold text-theme-text">Fondo de Pizarra</div>
-                    <div className="text-[10px] text-theme-text-muted font-mono">{customThemeColors.canvasBg}</div>
+                    <div className="text-[10px] text-theme-text-muted font-mono">{currentColors.canvasBg}</div>
                   </div>
                   <input
                     type="color"
-                    value={customThemeColors.canvasBg}
+                    value={currentColors.canvasBg}
                     onChange={(e) => updateCustomTheme({ canvasBg: e.target.value })}
                     className="w-7 h-7 rounded cursor-pointer border-0 bg-transparent"
                   />
@@ -298,11 +331,11 @@ export const ThemeCustomizationModal: React.FC = () => {
                 <div className="p-3 rounded-xl bg-theme-surface-subtle border border-theme-border flex items-center justify-between">
                   <div className="text-xs">
                     <div className="font-semibold text-theme-text">Fondo de Aplicación</div>
-                    <div className="text-[10px] text-theme-text-muted font-mono">{customThemeColors.appBg}</div>
+                    <div className="text-[10px] text-theme-text-muted font-mono">{currentColors.appBg}</div>
                   </div>
                   <input
                     type="color"
-                    value={customThemeColors.appBg}
+                    value={currentColors.appBg}
                     onChange={(e) => updateCustomTheme({ appBg: e.target.value })}
                     className="w-7 h-7 rounded cursor-pointer border-0 bg-transparent"
                   />
@@ -312,11 +345,11 @@ export const ThemeCustomizationModal: React.FC = () => {
                 <div className="p-3 rounded-xl bg-theme-surface-subtle border border-theme-border flex items-center justify-between">
                   <div className="text-xs">
                     <div className="font-semibold text-theme-text">Superficie / Paneles</div>
-                    <div className="text-[10px] text-theme-text-muted font-mono">{customThemeColors.surface}</div>
+                    <div className="text-[10px] text-theme-text-muted font-mono">{currentColors.surface}</div>
                   </div>
                   <input
                     type="color"
-                    value={customThemeColors.surface}
+                    value={currentColors.surface}
                     onChange={(e) => updateCustomTheme({ surface: e.target.value, card: e.target.value })}
                     className="w-7 h-7 rounded cursor-pointer border-0 bg-transparent"
                   />
@@ -326,11 +359,11 @@ export const ThemeCustomizationModal: React.FC = () => {
                 <div className="p-3 rounded-xl bg-theme-surface-subtle border border-theme-border flex items-center justify-between">
                   <div className="text-xs">
                     <div className="font-semibold text-theme-text">Color de Acento Primario</div>
-                    <div className="text-[10px] text-theme-text-muted font-mono">{customThemeColors.accent}</div>
+                    <div className="text-[10px] text-theme-text-muted font-mono">{currentColors.accent}</div>
                   </div>
                   <input
                     type="color"
-                    value={customThemeColors.accent}
+                    value={currentColors.accent}
                     onChange={(e) => updateCustomTheme({ accent: e.target.value, edgeColor: e.target.value })}
                     className="w-7 h-7 rounded cursor-pointer border-0 bg-transparent"
                   />
@@ -340,11 +373,11 @@ export const ThemeCustomizationModal: React.FC = () => {
                 <div className="p-3 rounded-xl bg-theme-surface-subtle border border-theme-border flex items-center justify-between">
                   <div className="text-xs">
                     <div className="font-semibold text-theme-text">Color del Texto</div>
-                    <div className="text-[10px] text-theme-text-muted font-mono">{customThemeColors.text}</div>
+                    <div className="text-[10px] text-theme-text-muted font-mono">{currentColors.text}</div>
                   </div>
                   <input
                     type="color"
-                    value={customThemeColors.text}
+                    value={currentColors.text}
                     onChange={(e) => updateCustomTheme({ text: e.target.value })}
                     className="w-7 h-7 rounded cursor-pointer border-0 bg-transparent"
                   />
@@ -354,28 +387,28 @@ export const ThemeCustomizationModal: React.FC = () => {
                 <div className="p-3 rounded-xl bg-theme-surface-subtle border border-theme-border flex items-center justify-between">
                   <div className="text-xs">
                     <div className="font-semibold text-theme-text">Color de Bordes</div>
-                    <div className="text-[10px] text-theme-text-muted font-mono">{customThemeColors.border}</div>
+                    <div className="text-[10px] text-theme-text-muted font-mono">{currentColors.border}</div>
                   </div>
                   <input
                     type="color"
-                    value={customThemeColors.border}
+                    value={currentColors.border}
                     onChange={(e) => updateCustomTheme({ border: e.target.value })}
                     className="w-7 h-7 rounded cursor-pointer border-0 bg-transparent"
                   />
                 </div>
               </div>
 
-              {/* Dark/Light mode toggle for custom theme */}
+              {/* Dark/Light mode toggle */}
               <div className="p-3 rounded-xl bg-theme-surface-subtle border border-theme-border flex items-center justify-between">
                 <div className="text-xs">
                   <div className="font-semibold text-theme-text">Esquema Base (Dark / Light)</div>
                   <div className="text-[10px] text-theme-text-muted">Ajusta contraste automático de textos secundarios</div>
                 </div>
                 <button
-                  onClick={() => updateCustomTheme({ isDark: !customThemeColors.isDark })}
+                  onClick={() => updateCustomTheme({ isDark: !currentColors.isDark })}
                   className="px-3 py-1.5 rounded-lg bg-theme-surface border border-theme-border text-xs font-semibold text-theme-text flex items-center space-x-1.5"
                 >
-                  {customThemeColors.isDark ? (
+                  {currentColors.isDark ? (
                     <>
                       <Moon className="w-3.5 h-3.5 text-theme-accent" />
                       <span>Modo Oscuro</span>

@@ -11,13 +11,13 @@ interface SwimlaneBackgroundProps {
 export const SwimlaneBackground: React.FC<SwimlaneBackgroundProps> = ({
   pools,
   laneHeight = 140,
-  totalWidth = 2400
+  totalWidth = 2600
 }) => {
   if (!pools || pools.length === 0) return null;
 
   return (
     <div
-      className="absolute top-0 left-0 pointer-events-none select-none z-0"
+      className="absolute top-0 left-0 pointer-events-none select-none z-0 transition-colors"
       style={{ width: `${totalWidth}px` }}
     >
       {pools.map((pool) => {
@@ -25,7 +25,7 @@ export const SwimlaneBackground: React.FC<SwimlaneBackgroundProps> = ({
 
         return (
           <div key={pool.id} className="relative mb-8">
-            {/* Pool Header */}
+            {/* Pool Header Bar */}
             <div className="flex items-center px-4 py-2 bg-theme-surface border-b border-theme-border text-theme-text shadow-md">
               <Layers className="w-4 h-4 text-theme-accent mr-2" />
               <span className="font-bold text-sm tracking-wide text-theme-accent">
@@ -46,15 +46,14 @@ export const SwimlaneBackground: React.FC<SwimlaneBackgroundProps> = ({
                   key={lane.id}
                   style={{
                     height: `${laneHeight}px`,
-                    width: '100%'
+                    width: '100%',
+                    backgroundColor: isEven ? 'transparent' : 'rgba(128, 128, 128, 0.05)'
                   }}
-                  className={`relative flex border-b border-r border-theme-border/70 ${
-                    isEven ? 'bg-theme-surface-subtle/40' : 'bg-theme-surface/30'
-                  }`}
+                  className="relative flex border-b border-r border-theme-border/60 transition-colors"
                 >
-                  {/* Lane Header Banner */}
+                  {/* Lane Header Banner (Left Side) */}
                   <div
-                    className="w-56 shrink-0 border-r border-theme-border/70 p-3 flex flex-col justify-between bg-theme-surface/60 backdrop-blur-sm"
+                    className="w-60 shrink-0 border-r border-theme-border/80 p-3 flex flex-col justify-between bg-theme-surface/90 backdrop-blur-md transition-colors shadow-sm"
                     style={{
                       borderLeft: `4px solid ${lane.colorHex || '#3B82F6'}`
                     }}
@@ -88,4 +87,3 @@ export const SwimlaneBackground: React.FC<SwimlaneBackgroundProps> = ({
     </div>
   );
 };
-

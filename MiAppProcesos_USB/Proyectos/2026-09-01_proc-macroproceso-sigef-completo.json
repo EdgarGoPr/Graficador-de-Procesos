@@ -1,0 +1,716 @@
+{
+  "schemaVersion": "1.0.0",
+  "documentControl": {
+    "documentTitle": "Macroproceso Integral de Gestión Digital de Infracciones y Causas - SIGEF",
+    "documentCode": "MPR-TF-SIGEF-2026",
+    "version": "2.0",
+    "authorName": "Administración y Coordinación de Procesos del Tribunal de Faltas",
+    "organizationUnit": "Tribunal Administrativo de Faltas - Municipalidad de Córdoba",
+    "processObjective": "Estandarizar el circuito unificado de justicia administrativa municipal: desde la detección e ingreso multicanal (Inspectores, CMU, App Ciudadana), digitalización y apertura automática de expediente en SIGEF, enriquecimiento registral, distribución equitativa de causas (Sede Central y CPCs), gestión de medidas cautelares y acarreos, hasta el régimen de notificaciones (CiDi/OCEP), instancias de descargo, sentencias de rebeldía, cámara de apelaciones y pase a Procuración Fiscal.",
+    "createdAt": "2026-09-01T09:00:00Z",
+    "updatedAt": "2026-09-01T11:30:00Z",
+    "status": "APPROVED",
+    "legalNormativeBasis": [
+      "Código de Convivencia Ciudadana de la Ciudad de Córdoba (Ord. 12.468 y modif.)",
+      "Reglamento de Procedimiento del Tribunal Administrativo Municipal de Faltas",
+      "Régimen de Notificación Electrónica y Domicilio Vial Electrónico (CiDi)",
+      "Marco Regulatorio de Habilitaciones, Tránsito y Transporte Urbano"
+    ],
+    "revisionHistory": [
+      {
+        "revisionDate": "2026-09-01T11:30:00Z",
+        "version": "2.0",
+        "author": "Coordinación Operativa SIGEF",
+        "changeDescription": "Integración total del flujo operativo: acarreos, descargos omnicanal, rebeldías, apelaciones y pasaje a Procuración con matrices de riesgo y SLAs."
+      }
+    ]
+  },
+  "pools": [
+    {
+      "id": "pool-sigef-taf",
+      "name": "Sistema Integral de Gestión de Expedientes de Faltas (SIGEF)",
+      "organization": "Municipalidad de Córdoba",
+      "lanes": [
+        {
+          "id": "lane-ciudadano",
+          "name": "Ciudadanía y Administrados",
+          "role": "Vecino / Presunto Infractor",
+          "system": "App Ciudadana / Portal VeDi / Portal de Infracciones / Atención Presencial",
+          "colorHex": "#0ea5e9",
+          "order": 0
+        },
+        {
+          "id": "lane-operativa-captura",
+          "name": "Fiscalización y Vía Pública",
+          "role": "Inspectores / Promotores de Convivencia / Operadores CMU / Grúas",
+          "system": "App Inspectores / SEMM / App Constataciones / Cámaras CMU",
+          "colorHex": "#f59e0b",
+          "order": 1
+        },
+        {
+          "id": "lane-computos-sistemas",
+          "name": "Cómputos y Gestión Registral",
+          "role": "Operador de Cómputos / Motor de Reglas SIGEF",
+          "system": "SIGEF / SUGIT / Bases Registrales Automotores e Inmuebles",
+          "colorHex": "#10b981",
+          "order": 2
+        },
+        {
+          "id": "lane-notificaciones",
+          "name": "Oficina Central de Notificaciones (OCEP)",
+          "role": "Notificador Digital / Agente Postal OCEP",
+          "system": "CiDi / Correo Postal Oficial",
+          "colorHex": "#6366f1",
+          "order": 3
+        },
+        {
+          "id": "lane-juzgados",
+          "name": "Juzgados de Faltas (Sede Central / CPCs)",
+          "role": "Juez de Faltas / Secretario Letrado / Mesa de Entradas",
+          "system": "SIGEF Juzgados / Firma Digital",
+          "colorHex": "#8b5cf6",
+          "order": 4
+        },
+        {
+          "id": "lane-alzada-legal",
+          "name": "Alzada y Cobro Judicial",
+          "role": "Cámara de Apelaciones / Procuración Fiscal Municipal",
+          "system": "SIGEF Alzada / Sistema de Apremio",
+          "colorHex": "#ec4899",
+          "order": 5
+        }
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "id": "n-start-infraccion",
+      "type": "StartEvent",
+      "position": { "x": 50, "y": 200 },
+      "data": {
+        "standardId": "EVT-01",
+        "title": "Detección de Presunta Infracción",
+        "description": "Inicio por control en vía pública, detección remota por cámaras de seguridad o denuncia vecinal.",
+        "nodeType": "StartEvent",
+        "laneId": "lane-operativa-captura",
+        "itSystem": "Canales Vía Pública",
+        "legalFramework": "Código de Convivencia Ciudadana",
+        "inputs": ["Conducta antirreglamentaria observada", "Video domos policiales"],
+        "outputs": ["Alerta o registro de presunta infracción"],
+        "operationalRisks": [],
+        "tags": ["Inicio", "Detección"]
+      }
+    },
+    {
+      "id": "n-task-app-ciudadana",
+      "type": "UserTask",
+      "position": { "x": 260, "y": 60 },
+      "data": {
+        "standardId": "TSK-01",
+        "title": "Ingreso de Denuncia Ciudadana",
+        "description": "El vecino ingresa evidencia y tipificación preliminar a través de la App Ciudadana.",
+        "nodeType": "UserTask",
+        "laneId": "lane-ciudadano",
+        "itSystem": "App Ciudadana",
+        "legalFramework": "Ordenanza de Participación y Denuncia Vecinal",
+        "inputs": ["Reporte del vecino", "Fotos geolocalizadas"],
+        "outputs": ["Ticket de denuncia ciudadana"],
+        "operationalRisks": [
+          {
+            "riskId": "RSK-01",
+            "description": "Denuncias apócrifas o sin coordenadas de validez",
+            "probability": "MEDIUM",
+            "impact": "LOW",
+            "mitigatingControl": "Autenticación VeDi y validación geoespacial obligatoria",
+            "controlType": "PREVENTIVE"
+          }
+        ],
+        "tags": ["Ciudadano", "App"]
+      }
+    },
+    {
+      "id": "n-task-emplazamiento-ambiental",
+      "type": "UserTask",
+      "position": { "x": 480, "y": 60 },
+      "data": {
+        "standardId": "TSK-02",
+        "title": "Emplazamiento Previo (Medio Ambiente)",
+        "description": "Los Promotores de Convivencia intiman al administrado a subsanar la falta dentro del plazo legal.",
+        "nodeType": "UserTask",
+        "laneId": "lane-operativa-captura",
+        "itSystem": "App Constataciones",
+        "legalFramework": "Régimen de Subsanación Ambiental",
+        "slaDuration": {
+          "value": 48,
+          "unit": "HOURS",
+          "iso8601String": "PT48H",
+          "isPeremptory": true
+        },
+        "inputs": ["Ticket de denuncia ambiental"],
+        "outputs": ["Acta de intimación / Emplazamiento diligenciado"],
+        "operationalRisks": [],
+        "tags": ["Promotores", "Emplazamiento"]
+      }
+    },
+    {
+      "id": "n-task-labrado-operativo",
+      "type": "UserTask",
+      "position": { "x": 480, "y": 200 },
+      "data": {
+        "standardId": "TSK-03",
+        "title": "Labrado de Acta (Móvil / Papel / CMU)",
+        "description": "Confección digital del acta con toma de fotografías, geoposicionamiento o digitalización de actas de papel.",
+        "nodeType": "UserTask",
+        "laneId": "lane-operativa-captura",
+        "itSystem": "App Inspectores / SEMM / CMU",
+        "legalFramework": "Artículos de Procedimiento Inspectivo",
+        "inputs": ["Evidencia in situ", "Informe CMU", "Incumplimiento de emplazamiento"],
+        "outputs": ["Acta formal labrada"],
+        "operationalRisks": [
+          {
+            "riskId": "RSK-02",
+            "description": "Defectos formales o falta de tipificación exacta",
+            "probability": "LOW",
+            "impact": "HIGH",
+            "mitigatingControl": "Campos obligatorios parametrizados en el dispositivo móvil",
+            "controlType": "PREVENTIVE"
+          }
+        ],
+        "tags": ["Fiscalización", "Acta"]
+      }
+    },
+    {
+      "id": "n-task-preferenciales",
+      "type": "UserTask",
+      "position": { "x": 700, "y": 200 },
+      "data": {
+        "standardId": "TSK-04",
+        "title": "Tratamiento de Medidas Preferenciales y Acarreos",
+        "description": "Gestión urgente de medidas cautelares: Clausura de locales, Decomisos de mercadería y Secuestros de vehículos por grúa.",
+        "nodeType": "UserTask",
+        "laneId": "lane-operativa-captura",
+        "itSystem": "App Móvil / Sistema de Grúas y Depósitos",
+        "legalFramework": "Procedimiento de Medidas Preventivas Urgentes",
+        "inputs": ["Acta con medida accesoria"],
+        "outputs": ["Faja de clausura / Acta de secuestro / Remisión a depósito"],
+        "operationalRisks": [],
+        "tags": ["Preferenciales", "Acarreo", "Clausura"]
+      }
+    },
+    {
+      "id": "n-task-sigef-ingreso",
+      "type": "ServiceTask",
+      "position": { "x": 920, "y": 320 },
+      "data": {
+        "standardId": "TSK-05",
+        "title": "Generación de Acta Digital y Apertura de Expediente en SIGEF",
+        "description": "Creación automática del identificador único de causa digital e integración de evidencias multimedia.",
+        "nodeType": "ServiceTask",
+        "laneId": "lane-computos-sistemas",
+        "itSystem": "SIGEF",
+        "legalFramework": "Reglamento de Digitalización de Actuaciones",
+        "inputs": ["Acta transmitida"],
+        "outputs": ["Expediente digital caratulado"],
+        "operationalRisks": [],
+        "tags": ["SIGEF", "Automatización"]
+      }
+    },
+    {
+      "id": "n-task-enriquecido-computos",
+      "type": "UserTask",
+      "position": { "x": 1140, "y": 320 },
+      "data": {
+        "standardId": "TSK-06",
+        "title": "Enriquecido de Datos Registrales",
+        "description": "Cruce automatizado con bases de datos vehiculares, catastrales y tributarias (SUGIT/Rentas). Procesamiento manual por Cómputos para excepciones.",
+        "nodeType": "UserTask",
+        "laneId": "lane-computos-sistemas",
+        "itSystem": "SIGEF / SUGIT",
+        "legalFramework": "Convenios de Interoperabilidad de Bases de Datos",
+        "inputs": ["Expediente caratulado"],
+        "outputs": ["Expediente con datos filiatorios y dominiales validados"],
+        "operationalRisks": [
+          {
+            "riskId": "RSK-03",
+            "description": "Falta de radicación dominial o datos desactualizados",
+            "probability": "MEDIUM",
+            "impact": "MEDIUM",
+            "mitigatingControl": "Derivación a mesa de enriquecido manual de Cómputos",
+            "controlType": "CORRECTIVE"
+          }
+        ],
+        "tags": ["Cómputos", "Enriquecido"]
+      }
+    },
+    {
+      "id": "n-task-distribucion-juzgados",
+      "type": "ServiceTask",
+      "position": { "x": 1360, "y": 320 },
+      "data": {
+        "standardId": "TSK-07",
+        "title": "Equilibrio y Distribución de Causas",
+        "description": "Algoritmo de balanceo de carga para sortear y radicar las causas entre Juzgados de Sede Central o derivación a CPCs territoriales.",
+        "nodeType": "ServiceTask",
+        "laneId": "lane-computos-sistemas",
+        "itSystem": "SIGEF",
+        "legalFramework": "Reglamento de Competencia y Turnos",
+        "inputs": ["Expediente enriquecido"],
+        "outputs": ["Causa radicada en Juzgado asignado"],
+        "operationalRisks": [],
+        "tags": ["Distribución", "Juzgados", "CPCs"]
+      }
+    },
+    {
+      "id": "n-qc-auditoria-datos",
+      "type": "QualityCheckpointEvent",
+      "position": { "x": 1580, "y": 460 },
+      "data": {
+        "standardId": "QC-01",
+        "title": "Auditoría Previa de Admisibilidad y Datos",
+        "description": "El Juzgado controla la consistencia probatoria, legal y registral antes de ordenar el despacho de notificación.",
+        "nodeType": "QualityCheckpointEvent",
+        "laneId": "lane-juzgados",
+        "itSystem": "SIGEF",
+        "legalFramework": "Control de Validez del Acto Administrativo",
+        "qualityCheckpoint": {
+          "checkpointCode": "QC-JUZ-01",
+          "inspectionCriteria": "Consistencia entre tipificación, acta, fotografías y titularidad registral.",
+          "severity": "CRITICAL",
+          "sampleRatePercentage": 100,
+          "responsibleRole": "Secretario / Juez de Faltas",
+          "evidenceRequired": "Firma digital de auto de inicio o providencia de desestimación"
+        },
+        "inputs": ["Causa radicada"],
+        "outputs": ["Aprobado para notificación o Desestimación"],
+        "operationalRisks": [],
+        "tags": ["Control", "Calidad"]
+      }
+    },
+    {
+      "id": "n-end-desestimado",
+      "type": "EndEvent",
+      "position": { "x": 1580, "y": 600 },
+      "data": {
+        "standardId": "EVT-02",
+        "title": "Causa Desestimada y Archivada",
+        "description": "El Juzgado declara la nulidad o falta de mérito por vicios insubsanables o atipicidad.",
+        "nodeType": "EndEvent",
+        "laneId": "lane-juzgados",
+        "itSystem": "SIGEF",
+        "legalFramework": "Código de Procedimiento de Faltas",
+        "inputs": ["Resolución de desestimación"],
+        "outputs": ["Archivo digital definitivo"],
+        "operationalRisks": [],
+        "tags": ["Archivo", "Fin"]
+      }
+    },
+    {
+      "id": "n-task-oficio-liberacion",
+      "type": "UserTask",
+      "position": { "x": 1360, "y": 460 },
+      "data": {
+        "standardId": "TSK-08",
+        "title": "Emisión de Oficio de Liberación de Vehículo Secuestrado",
+        "description": "Para secuestros y acarreos, el Juzgado emite el oficio y liquida conceptos de acarreo y guarda tras comparecencia del titular.",
+        "nodeType": "UserTask",
+        "laneId": "lane-juzgados",
+        "itSystem": "SIGEF / Sistema de Depósitos",
+        "legalFramework": "Régimen de Guarda y Custodia Vehicular",
+        "inputs": ["Acreditación de titularidad", "Pago de acarreo/estadía"],
+        "outputs": ["Oficio de liberación emitido"],
+        "operationalRisks": [],
+        "tags": ["Acarreo", "Liberación"]
+      }
+    },
+    {
+      "id": "n-task-notificacion-cidi",
+      "type": "ServiceTask",
+      "position": { "x": 1800, "y": 380 },
+      "data": {
+        "standardId": "TSK-09",
+        "title": "Notificación Electrónica (CiDi)",
+        "description": "Envío automatizado de la cédula digital al domicilio vial electrónico con cupón de pago y enlace de descargo.",
+        "nodeType": "ServiceTask",
+        "laneId": "lane-notificaciones",
+        "itSystem": "CiDi / Interfaz SIGEF",
+        "legalFramework": "Ley de Domicilio Electrónico Ciudadano",
+        "slaDuration": {
+          "value": 24,
+          "unit": "HOURS",
+          "iso8601String": "PT24H",
+          "isPeremptory": false
+        },
+        "inputs": ["Providencia de notificación del Juzgado"],
+        "outputs": ["Cédula digital emitida con acuse de recibo"],
+        "operationalRisks": [],
+        "tags": ["CiDi", "Notificación Digital"]
+      }
+    },
+    {
+      "id": "n-task-notificacion-correo",
+      "type": "UserTask",
+      "position": { "x": 2020, "y": 380 },
+      "data": {
+        "standardId": "TSK-10",
+        "title": "Diligenciamiento Postal OCEP (Fuera de Alcance CiDi)",
+        "description": "Emisión física y distribución postal por OCEP en caso de no lectura electrónica o falta de cuenta CiDi vinculada.",
+        "nodeType": "UserTask",
+        "laneId": "lane-notificaciones",
+        "itSystem": "Correo Postal Oficial / OCEP",
+        "legalFramework": "Procedimiento de Notificación en Soporte Papel",
+        "inputs": ["Cédula no entregada por CiDi"],
+        "outputs": ["Aviso de retorno postal (positivo/negativo)"],
+        "operationalRisks": [
+          {
+            "riskId": "RSK-04",
+            "description": "Domicilio desactualizado o rehusamiento de entrega",
+            "probability": "HIGH",
+            "impact": "MEDIUM",
+            "mitigatingControl": "Segundo intento de entrega y posterior declaración de imposibilidad",
+            "controlType": "CORRECTIVE"
+          }
+        ],
+        "tags": ["OCEP", "Correo"]
+      }
+    },
+    {
+      "id": "n-end-imposibilidad-comparendo",
+      "type": "EndEvent",
+      "position": { "x": 2020, "y": 480 },
+      "data": {
+        "standardId": "EVT-03",
+        "title": "Declaración de Imposibilidad de Comparendo",
+        "description": "Agotamiento de vías de notificación postal sin localización del administrado. Causa en estado de espera.",
+        "nodeType": "EndEvent",
+        "laneId": "lane-juzgados",
+        "itSystem": "SIGEF",
+        "legalFramework": "Código de Procedimiento de Faltas",
+        "inputs": ["Diligenciamiento postal negativo reiterado"],
+        "outputs": ["Auto de imposibilidad de comparendo"],
+        "operationalRisks": [],
+        "tags": ["Imposibilidad", "Suspensión"]
+      }
+    },
+    {
+      "id": "n-task-pago-voluntario",
+      "type": "UserTask",
+      "position": { "x": 1800, "y": 60 },
+      "data": {
+        "standardId": "TSK-11",
+        "title": "Acogimiento a Pago Voluntario",
+        "description": "El ciudadano abona la infracción con beneficio de descuento (40%) si no presenta antecedentes ni agravantes.",
+        "nodeType": "UserTask",
+        "laneId": "lane-ciudadano",
+        "itSystem": "Portal de Infracciones / VeDi / Bancor",
+        "legalFramework": "Régimen de Pago Voluntario con Quita Legal",
+        "inputs": ["Cédula notificada", "Cupón vigente"],
+        "outputs": ["Comprobante de pago e impacto en SIGEF"],
+        "operationalRisks": [],
+        "tags": ["Pago", "Voluntario"]
+      }
+    },
+    {
+      "id": "n-task-descargo",
+      "type": "UserTask",
+      "position": { "x": 2240, "y": 200 },
+      "data": {
+        "standardId": "TSK-12",
+        "title": "Presentación y Evaluación de Descargo",
+        "description": "El ciudadano presenta su defensa de manera virtual (Portal/Ayuda Faltas) o presencial (OCA/CPCs). El Juzgado evalúa la prueba y solicita oficios técnicos si corresponde.",
+        "nodeType": "UserTask",
+        "laneId": "lane-juzgados",
+        "itSystem": "SIGEF Juzgados / Portal Administrado",
+        "legalFramework": "Derecho de Defensa y Debido Proceso",
+        "inputs": ["Escrito de descargo", "Pruebas documentales"],
+        "outputs": ["Sentencia / Fallo fundado del Juez"],
+        "operationalRisks": [],
+        "tags": ["Descargo", "Fallo"]
+      }
+    },
+    {
+      "id": "n-task-sentencia-rebeldia",
+      "type": "UserTask",
+      "position": { "x": 2460, "y": 460 },
+      "data": {
+        "standardId": "TSK-13",
+        "title": "Sentencia Automática en Rebeldía",
+        "description": "Transcurridos 7 días del vencimiento sin pago ni descargo, el sistema genera la sentencia en rebeldía para la firma del Juez y Secretario, con pérdida de bonificaciones.",
+        "nodeType": "UserTask",
+        "laneId": "lane-juzgados",
+        "itSystem": "SIGEF / Firma Digital",
+        "legalFramework": "Declaración de Rebeldía en Sede Administrativa",
+        "slaDuration": {
+          "value": 7,
+          "unit": "DAYS",
+          "iso8601String": "P7D",
+          "isPeremptory": true
+        },
+        "inputs": ["Plazo de comparecencia vencido"],
+        "outputs": ["Sentencia condenatoria en rebeldía firmada"],
+        "operationalRisks": [],
+        "tags": ["Rebeldía", "Sentencia"]
+      }
+    },
+    {
+      "id": "n-task-camara-apelacion",
+      "type": "UserTask",
+      "position": { "x": 2680, "y": 600 },
+      "data": {
+        "standardId": "TSK-14",
+        "title": "Tratamiento en Cámara de Apelaciones",
+        "description": "Revisión en segunda instancia ante recurso interpuesto dentro de los 5 días de notificada la rebeldía o condena.",
+        "nodeType": "UserTask",
+        "laneId": "lane-alzada-legal",
+        "itSystem": "SIGEF Alzada",
+        "legalFramework": "Recursos de Apelación y Jerárquico",
+        "slaDuration": {
+          "value": 5,
+          "unit": "DAYS",
+          "iso8601String": "P5D",
+          "isPeremptory": true
+        },
+        "inputs": ["Recurso de apelación formal"],
+        "outputs": ["Resolución de Cámara confirmatoria o modificatoria"],
+        "operationalRisks": [],
+        "tags": ["Cámara", "Apelación"]
+      }
+    },
+    {
+      "id": "n-task-procuracion-fiscal",
+      "type": "UserTask",
+      "position": { "x": 2900, "y": 600 },
+      "data": {
+        "standardId": "TSK-15",
+        "title": "Remisión a Procuración Fiscal (Cobro Judicial)",
+        "description": "Envío de la deuda firme con fuerza ejecutiva para cobro judicial por vía de apremio fiscal ante falta de pago y agotamiento de la vía recursiva.",
+        "nodeType": "UserTask",
+        "laneId": "lane-alzada-legal",
+        "itSystem": "Sistema de Apremio / Procuración",
+        "legalFramework": "Código Tributario y Ley de Juicio de Apremio",
+        "inputs": ["Sentencia firme impaga"],
+        "outputs": ["Título ejecutivo / Demanda de cobro"],
+        "operationalRisks": [
+          {
+            "riskId": "RSK-05",
+            "description": "Prescripción de la acción ejecutiva por demora en el traspaso",
+            "probability": "LOW",
+            "impact": "HIGH",
+            "mitigatingControl": "Traspaso de cartera automatizado por vencimiento de plazo en SIGEF",
+            "controlType": "PREVENTIVE"
+          }
+        ],
+        "tags": ["Procuración", "Apremio"]
+      }
+    },
+    {
+      "id": "n-end-multa-pagada",
+      "type": "EndEvent",
+      "position": { "x": 2900, "y": 60 },
+      "data": {
+        "standardId": "EVT-04",
+        "title": "Causa Cancelada y Finalizada",
+        "description": "Extinción de la acción infraccional por pago de la sanción, cumplimiento de sanción sustitutiva o absolución firme.",
+        "nodeType": "EndEvent",
+        "laneId": "lane-ciudadano",
+        "itSystem": "SIGEF",
+        "legalFramework": "Extinción de la Acción Contravencional",
+        "inputs": ["Acreditación de pago o resolución favorable"],
+        "outputs": ["Cierre y libre deuda emitido"],
+        "operationalRisks": [],
+        "tags": ["Finalizada", "Cancelada"]
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "e-01",
+      "source": "n-start-infraccion",
+      "target": "n-task-app-ciudadana",
+      "type": "sequenceFlow",
+      "data": { "id": "e-01", "source": "n-start-infraccion", "target": "n-task-app-ciudadana", "conditionText": "Reporte ciudadano" }
+    },
+    {
+      "id": "e-02",
+      "source": "n-start-infraccion",
+      "target": "n-task-labrado-operativo",
+      "type": "sequenceFlow",
+      "data": { "id": "e-02", "source": "n-start-infraccion", "target": "n-task-labrado-operativo", "conditionText": "Inspectores / Domos CMU" }
+    },
+    {
+      "id": "e-03",
+      "source": "n-task-app-ciudadana",
+      "target": "n-task-emplazamiento-ambiental",
+      "type": "sequenceFlow",
+      "data": { "id": "e-03", "source": "n-task-app-ciudadana", "target": "n-task-emplazamiento-ambiental", "conditionText": "Falta ambiental" }
+    },
+    {
+      "id": "e-04",
+      "source": "n-task-app-ciudadana",
+      "target": "n-task-labrado-operativo",
+      "type": "sequenceFlow",
+      "data": { "id": "e-04", "source": "n-task-app-ciudadana", "target": "n-task-labrado-operativo", "conditionText": "Infracción de tránsito directa" }
+    },
+    {
+      "id": "e-05",
+      "source": "n-task-emplazamiento-ambiental",
+      "target": "n-task-labrado-operativo",
+      "type": "sequenceFlow",
+      "data": { "id": "e-05", "source": "n-task-emplazamiento-ambiental", "target": "n-task-labrado-operativo", "conditionText": "Ciudadano no subsana en plazo" }
+    },
+    {
+      "id": "e-06",
+      "source": "n-task-labrado-operativo",
+      "target": "n-task-preferenciales",
+      "type": "sequenceFlow",
+      "data": { "id": "e-06", "source": "n-task-labrado-operativo", "target": "n-task-preferenciales", "conditionText": "Aplica secuestro, acarreo o clausura" }
+    },
+    {
+      "id": "e-07",
+      "source": "n-task-labrado-operativo",
+      "target": "n-task-sigef-ingreso",
+      "type": "sequenceFlow",
+      "data": { "id": "e-07", "source": "n-task-labrado-operativo", "target": "n-task-sigef-ingreso", "conditionText": "Acta estándar" }
+    },
+    {
+      "id": "e-08",
+      "source": "n-task-preferenciales",
+      "target": "n-task-sigef-ingreso",
+      "type": "sequenceFlow",
+      "data": { "id": "e-08", "source": "n-task-preferenciales", "target": "n-task-sigef-ingreso", "conditionText": "Carga de actuación preferencial" }
+    },
+    {
+      "id": "e-09",
+      "source": "n-task-sigef-ingreso",
+      "target": "n-task-enriquecido-computos",
+      "type": "sequenceFlow",
+      "data": { "id": "e-09", "source": "n-task-sigef-ingreso", "target": "n-task-enriquecido-computos" }
+    },
+    {
+      "id": "e-10",
+      "source": "n-task-enriquecido-computos",
+      "target": "n-task-distribucion-juzgados",
+      "type": "sequenceFlow",
+      "data": { "id": "e-10", "source": "n-task-enriquecido-computos", "target": "n-task-distribucion-juzgados" }
+    },
+    {
+      "id": "e-11",
+      "source": "n-task-distribucion-juzgados",
+      "target": "n-qc-auditoria-datos",
+      "type": "sequenceFlow",
+      "data": { "id": "e-11", "source": "n-task-distribucion-juzgados", "target": "n-qc-auditoria-datos" }
+    },
+    {
+      "id": "e-12",
+      "source": "n-task-distribucion-juzgados",
+      "target": "n-task-oficio-liberacion",
+      "type": "sequenceFlow",
+      "data": { "id": "e-12", "source": "n-task-distribucion-juzgados", "target": "n-task-oficio-liberacion", "conditionText": "Vehículo en guarda / Comparecencia urgente" }
+    },
+    {
+      "id": "e-13",
+      "source": "n-qc-auditoria-datos",
+      "target": "n-end-desestimado",
+      "type": "sequenceFlow",
+      "data": { "id": "e-13", "source": "n-qc-auditoria-datos", "target": "n-end-desestimado", "conditionText": "Inconsistencias insubsanables / Nulidad" }
+    },
+    {
+      "id": "e-14",
+      "source": "n-qc-auditoria-datos",
+      "target": "n-task-notificacion-cidi",
+      "type": "sequenceFlow",
+      "data": { "id": "e-14", "source": "n-qc-auditoria-datos", "target": "n-task-notificacion-cidi", "conditionText": "Datos válidos" }
+    },
+    {
+      "id": "e-15",
+      "source": "n-task-notificacion-cidi",
+      "target": "n-task-pago-voluntario",
+      "type": "sequenceFlow",
+      "data": { "id": "e-15", "source": "n-task-notificacion-cidi", "target": "n-task-pago-voluntario", "conditionText": "Notificado y abona en término" }
+    },
+    {
+      "id": "e-16",
+      "source": "n-task-notificacion-cidi",
+      "target": "n-task-descargo",
+      "type": "sequenceFlow",
+      "data": { "id": "e-16", "source": "n-task-notificacion-cidi", "target": "n-task-descargo", "conditionText": "Notificado y presenta defensa" }
+    },
+    {
+      "id": "e-17",
+      "source": "n-task-notificacion-cidi",
+      "target": "n-task-notificacion-correo",
+      "type": "sequenceFlow",
+      "data": { "id": "e-17", "source": "n-task-notificacion-cidi", "target": "n-task-notificacion-correo", "conditionText": "Fuera de alcance CiDi / No recepción" }
+    },
+    {
+      "id": "e-18",
+      "source": "n-task-notificacion-correo",
+      "target": "n-end-imposibilidad-comparendo",
+      "type": "sequenceFlow",
+      "data": { "id": "e-18", "source": "n-task-notificacion-correo", "target": "n-end-imposibilidad-comparendo", "conditionText": "Fracaso de entrega reiterado" }
+    },
+    {
+      "id": "e-19",
+      "source": "n-task-notificacion-correo",
+      "target": "n-task-descargo",
+      "type": "sequenceFlow",
+      "data": { "id": "e-19", "source": "n-task-notificacion-correo", "target": "n-task-descargo", "conditionText": "Notificado postal presenta defensa" }
+    },
+    {
+      "id": "e-20",
+      "source": "n-task-notificacion-cidi",
+      "target": "n-task-sentencia-rebeldia",
+      "type": "sequenceFlow",
+      "data": { "id": "e-20", "source": "n-task-notificacion-cidi", "target": "n-task-sentencia-rebeldia", "conditionText": "Sin pago ni descargo cumplidos 7 días del cupón" }
+    },
+    {
+      "id": "e-21",
+      "source": "n-task-pago-voluntario",
+      "target": "n-end-multa-pagada",
+      "type": "sequenceFlow",
+      "data": { "id": "e-21", "source": "n-task-pago-voluntario", "target": "n-end-multa-pagada" }
+    },
+    {
+      "id": "e-22",
+      "source": "n-task-descargo",
+      "target": "n-end-multa-pagada",
+      "type": "sequenceFlow",
+      "data": { "id": "e-22", "source": "n-task-descargo", "target": "n-end-multa-pagada", "conditionText": "Fallo abonado o revocación de multa" }
+    },
+    {
+      "id": "e-23",
+      "source": "n-task-sentencia-rebeldia",
+      "target": "n-task-camara-apelacion",
+      "type": "sequenceFlow",
+      "data": { "id": "e-23", "source": "n-task-sentencia-rebeldia", "target": "n-task-camara-apelacion", "conditionText": "Interpone apelación en 5 días" }
+    },
+    {
+      "id": "e-24",
+      "source": "n-task-sentencia-rebeldia",
+      "target": "n-task-procuracion-fiscal",
+      "type": "sequenceFlow",
+      "data": { "id": "e-24", "source": "n-task-sentencia-rebeldia", "target": "n-task-procuracion-fiscal", "conditionText": "Sentencia firme sin pago ni recurso" }
+    },
+    {
+      "id": "e-25",
+      "source": "n-task-camara-apelacion",
+      "target": "n-end-multa-pagada",
+      "type": "sequenceFlow",
+      "data": { "id": "e-25", "source": "n-task-camara-apelacion", "target": "n-end-multa-pagada", "conditionText": "Pago de resolución definitiva o absolución" }
+    },
+    {
+      "id": "e-26",
+      "source": "n-task-camara-apelacion",
+      "target": "n-task-procuracion-fiscal",
+      "type": "sequenceFlow",
+      "data": { "id": "e-26", "source": "n-task-camara-apelacion", "target": "n-task-procuracion-fiscal", "conditionText": "Fallo de alzada incumplido" }
+    },
+    {
+      "id": "e-27",
+      "source": "n-task-oficio-liberacion",
+      "target": "n-task-descargo",
+      "type": "sequenceFlow",
+      "data": { "id": "e-27", "source": "n-task-oficio-liberacion", "target": "n-task-descargo", "conditionText": "Vehículo restituido y causa continúa" }
+    }
+  ],
+  "fileName": "2026-09-01_proc-macroproceso-sigef-completo.json"
+}
