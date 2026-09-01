@@ -8,7 +8,7 @@
     "organizationUnit": "Justicia Administrativa Municipal de Faltas",
     "processObjective": "Definir el objetivo y alcance operativo del proceso.",
     "createdAt": "2026-09-01T15:50:30.507Z",
-    "updatedAt": "2026-09-01T18:35:19.907Z",
+    "updatedAt": "2026-09-01T18:47:14.563Z",
     "status": "DRAFT",
     "legalNormativeBasis": [
       "Normativa aplicable general"
@@ -60,8 +60,8 @@
       "id": "node_start",
       "type": "StartEvent",
       "position": {
-        "x": -206.9842398968674,
-        "y": -613.132825938172
+        "x": -442.8944270850695,
+        "y": -1084.9532003145762
       },
       "data": {
         "standardId": "INI-01",
@@ -88,15 +88,15 @@
         "width": 96,
         "height": 96
       },
-      "selected": false,
+      "selected": true,
       "dragging": false
     },
     {
       "id": "node_1788287508761",
       "type": "UserTask",
       "position": {
-        "x": -46.307026435047874,
-        "y": -602.6397994586907
+        "x": -290.9546279635537,
+        "y": -1072.275820250019
       },
       "data": {
         "standardId": "TSK-01",
@@ -126,8 +126,8 @@
       "id": "usertask_1788287596609_0",
       "type": "UserTask",
       "position": {
-        "x": 199.10555948991515,
-        "y": -602.5594271822373
+        "x": -43.35768845351474,
+        "y": -1072.1954479735655
       },
       "data": {
         "standardId": "TSK-01-C",
@@ -158,6 +158,81 @@
       },
       "selected": false,
       "dragging": false
+    },
+    {
+      "id": "lane_node_1788288285354",
+      "type": "PoolLane",
+      "position": {
+        "x": -677.1393655116256,
+        "y": -1256.3159476925027
+      },
+      "style": {
+        "width": 2200,
+        "height": 160,
+        "zIndex": -1
+      },
+      "zIndex": -1,
+      "data": {
+        "standardId": "LANE-01",
+        "title": "Carril Funcional #1",
+        "description": "Carril contenedor de actividades",
+        "nodeType": "PoolLane",
+        "laneId": "lane_node_1788288285354",
+        "laneName": "Mesa de Entradas / Inspectoría",
+        "roleName": "Inspector / Operador",
+        "itSystem": "SAM / VUPRA",
+        "legalFramework": "Marco normativo general",
+        "customBorderColor": "#38bdf8",
+        "inputs": [],
+        "outputs": [],
+        "operationalRisks": [],
+        "tags": []
+      },
+      "measured": {
+        "width": 2200,
+        "height": 160
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "lane_node_1788288292306",
+      "type": "PoolLane",
+      "position": {
+        "x": -686.1337765571714,
+        "y": -1091.193173656458
+      },
+      "style": {
+        "width": 2200,
+        "height": 160,
+        "zIndex": -1
+      },
+      "zIndex": -1,
+      "data": {
+        "standardId": "LANE-02",
+        "title": "Carril Funcional #2",
+        "description": "Carril contenedor de actividades",
+        "nodeType": "PoolLane",
+        "laneId": "lane_node_1788288292306",
+        "laneName": "Mesa de Entradas / Inspectoría",
+        "roleName": "Inspector / Operador",
+        "itSystem": "SAM / VUPRA",
+        "legalFramework": "Marco normativo general",
+        "customBorderColor": "#38bdf8",
+        "inputs": [],
+        "outputs": [],
+        "operationalRisks": [],
+        "tags": []
+      },
+      "measured": {
+        "width": 2093,
+        "height": 387
+      },
+      "selected": false,
+      "dragging": false,
+      "width": 2093,
+      "height": 387,
+      "resizing": false
     }
   ],
   "edges": [

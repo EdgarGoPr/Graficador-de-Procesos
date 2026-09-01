@@ -203,22 +203,22 @@
         </div>
       </div>
       <div style="font-size: 8.5pt; color: #64748B; font-family: monospace; text-align: right;">
-        Versión: 4.0<br />Win: <code>ProcesStudio.exe</code><br />Mac: <code>ProcesStudio_Mac.command</code>
+        Versión: 4.1<br />Win: <code>ProcesStudio.exe</code><br />Mac: <code>ProcesStudio_Mac.command</code>
       </div>
     </div>
 
-    <h2>1. Carriles Redimensionables y Guías de Alineación Magnética</h2>
-    <p><strong>ProcesStudio Portable</strong> (identificado con el isotipo <strong>PS</strong>) incorpora un motor visual avanzado de diagramación:</p>
+    <h2>1. Atracción Magnética Real y Orientación de Tarjetas</h2>
+    <p><strong>ProcesStudio Portable</strong> (identificado con el isotipo <strong>PS</strong>) cuenta con imantación física y control de orientación:</p>
     
     <ul>
-      <li><strong>Carriles como Tarjetas Nativas:</strong> Los Swimlanes se insertan desde la paleta izquierda y se pueden estirar, agrandar y personalizar con manijas en las 4 esquinas (<code>NodeResizer</code>). Todo su contenido interno se escala y adapta automáticamente al tamaño fijado.</li>
-      <li><strong>Líneas Guía Inteligentes:</strong> Al mover cualquier tarjeta, se proyectan líneas guía continuas en el mapa que marcan la alineación exacta con las demás tarjetas.</li>
-      <li><strong>Imantación Magnética (Snap):</strong> Al ubicar tarjetas contiguas (en horizontal o vertical), las tarjetas se atraen y encajan automáticamente con un espaciado uniforme y prolijo.</li>
+      <li><strong>Atracción Magnética Real (Snap-to-Align):</strong> Al acercar una tarjeta a otra (a menos de 16px de sus ejes centrales, bordes o separación contigua), la tarjeta salta y se imanta de forma tangible al punto exacto.</li>
+      <li><strong>Orientación Horizontal y Vertical:</strong> Las tarjetas y los carriles pueden rotarse y configurarse en formato <code>↔️ Horizontal (Apaisado)</code> o <code>↕️ Vertical (Columna)</code> desde el panel de propiedades lateral o con 1 clic en la barra flotante de selección (<code>[ 🔄 Orientación ]</code>).</li>
+      <li><strong>Carriles Redimensionables:</strong> Los Swimlanes se estiran y adaptan con manijas en las 4 esquinas (<code>NodeResizer</code>) escalando automáticamente su cabecera y cuadrícula.</li>
     </ul>
 
     <h2>2. Interacciones Principales en el Lienzo</h2>
     <ul>
-      <li><strong>Conectores Laterales Únicos:</strong> Los puntos conectores se ubican exclusivamente en los costados (izquierdo para entradas, derecho para salidas).</li>
+      <li><strong>Conectores Laterales y Verticales:</strong> Puntos conectores en los costados para flujos horizontales y arriba/abajo para flujos verticales.</li>
       <li><strong>Selección Nítida:</strong> Borde iluminado brillante que indica la tarjeta activa.</li>
       <li><strong>Redimensionamiento:</strong> Puntos en las cuatro esquinas para ajustar ancho y alto.</li>
       <li><strong>Navegación:</strong> Rueda del ratón para scroll vertical y <code>Ctrl + Rueda</code> (o <code>Cmd + Rueda</code> en Mac) para zoom focalizado en el cursor.</li>
@@ -242,7 +242,7 @@
         <tr>
           <td><strong>Tarea de Usuario</strong></td>
           <td><span class="badge badge-blue">#38BDF8</span> Acero</td>
-          <td>Actividad operativa realizada por un operador asistido por software.</td>
+          <td>Actividad operativa realizada por un agente asistido por software.</td>
         </tr>
         <tr>
           <td><strong>Tarea de Servicio</strong></td>
@@ -282,7 +282,7 @@
         <tr>
           <td><strong>Carril Funcional</strong></td>
           <td><span class="badge badge-blue">#0284C7</span> Azul</td>
-          <td>Banda contenedora redimensionable con escalado dinámico.</td>
+          <td>Banda contenedora redimensionable y orientable (horizontal/vertical).</td>
         </tr>
         <tr>
           <td><strong>Conector de Flujo</strong></td>

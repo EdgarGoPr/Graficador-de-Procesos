@@ -3,7 +3,7 @@ import { NodeProps, NodeResizer } from '@xyflow/react';
 import { BpmnNodeData } from '../../../types/process';
 import { hexToRgba } from '../../../types/theme';
 import { useCanvasStore } from '../../../store/useCanvasStore';
-import { Layers, Server, UserCheck, Edit2, Check, Palette, X } from 'lucide-react';
+import { Layers, Server, UserCheck, Edit2, Check, Palette, X, RotateCcw } from 'lucide-react';
 
 const PRESET_COLORS = [
   { label: 'Azul Acero', hex: '#38bdf8' },
@@ -20,12 +20,15 @@ export const SwimlaneNode = memo(({ id, data, selected }: NodeProps<any>) => {
   const nodeData = data as BpmnNodeData;
   const { updateNodeData } = useCanvasStore();
 
+  const isVertical = nodeData.orientation === 'vertical';
+
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     title: nodeData.title || 'Carril Operativo / Funcional',
     roleName: nodeData.roleName || 'Responsable de Área',
     itSystem: nodeData.itSystem || 'Sistema Informático',
-    colorHex: nodeData.customBorderColor || '#38bdf8'
+    colorHex: nodeData.customBorderColor || '#38bdf8',
+    orientation: nodeData.orientation || 'horizontal'
   });
 
   const opacity = nodeData.customBgOpacity ?? 15;
@@ -41,9 +44,18 @@ export const SwimlaneNode = memo(({ id, data, selected }: NodeProps<any>) => {
       title: formData.title.trim() || 'Carril Funcional',
       roleName: formData.roleName.trim() || 'Responsable de Área',
       itSystem: formData.itSystem.trim() || 'Sistema Informático',
-      customBorderColor: formData.colorHex
+      customBorderColor: formData.colorHex,
+      orientation: formData.orientation as 'horizontal' | 'vertical'
     });
     setIsEditing(false);
+  };
+
+  const toggleOrientation = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const newOrientation = isVertical ? 'horizontal' : 'vertical';
+    updateNodeData(id, {
+      orientation: newOrientation
+    });
   };
 
   return (
@@ -52,26 +64,34 @@ export const SwimlaneNode = memo(({ id, data, selected }: NodeProps<any>) => {
         backgroundColor: customBg,
         borderColor: accentColor
       }}
-      className={`group relative w-full h-full min-w-[500px] min-h-[120px] rounded-xl border-2 transition-all duration-150 shadow-sm flex ${
+      className={`group relative w-full h-full ${
+        isVertical ? 'min-w-[160px] min-h-[450px] flex-col' : 'min-w-[450px] min-h-[120px] flex-row'
+      } rounded-xl border-2 transition-all duration-150 shadow-sm flex ${
         selected ? '!ring-4 !ring-sky-400/40 !border-sky-400 shadow-xl' : 'hover:border-sky-400/60'
       }`}
     >
       <NodeResizer
         isVisible={selected}
-        minWidth={450}
-        minHeight={100}
+        minWidth={isVertical ? 150 : 400}
+        minHeight={isVertical ? 350 : 100}
         handleClassName="!w-3.5 !h-3.5 !bg-sky-400 !border-2 !border-slate-900 !rounded-full shadow-lg hover:scale-125 transition-transform z-50 cursor-nwse-resize"
         lineClassName="!border-2 !border-sky-400 !border-dashed"
       />
 
-      {/* Left Banner Header */}
+      {/* Banner Header (Left if Horizontal, Top if Vertical) */}
       <div
-        className="w-64 shrink-0 border-r border-theme-border/80 p-3.5 flex flex-col justify-between bg-theme-surface/95 backdrop-blur-md rounded-l-lg transition-colors shadow-sm relative z-10"
-        style={{
-          borderLeft: `6px solid ${accentColor}`
-        }}
+        className={`${
+          isVertical
+            ? 'w-full h-32 border-b rounded-t-lg p-3'
+            : 'w-64 h-full border-r rounded-l-lg p-3.5'
+        } shrink-0 border-theme-border/80 flex flex-col justify-between bg-theme-surface/95 backdrop-blur-md transition-colors shadow-sm relative z-10`}
+        style={
+          isVertical
+            ? { borderTop: `6px solid ${accentColor}` }
+            : { borderLeft: `6px solid ${accentColor}` }
+        }
       >
-        {/* Top: Order & Edit Button */}
+        {/* Top: Order & Action Buttons */}
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-1.5">
             <span
@@ -81,32 +101,44 @@ export const SwimlaneNode = memo(({ id, data, selected }: NodeProps<any>) => {
               {nodeData.standardId || 'LANE'}
             </span>
             <span className="text-[10px] text-theme-text-muted font-mono uppercase tracking-wider">
-              Carril
+              {isVertical ? 'Columna' : 'Carril'}
             </span>
           </div>
 
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              setFormData({
-                title: nodeData.title || 'Carril Operativo',
-                roleName: nodeData.roleName || 'Responsable de Área',
-                itSystem: nodeData.itSystem || 'Sistema Informático',
-                colorHex: accentColor
-              });
-              setIsEditing(true);
-            }}
-            onMouseDown={(e) => e.stopPropagation()}
-            className="nodrag nopan p-1 rounded text-theme-text-muted hover:text-sky-400 hover:bg-theme-surface transition-colors cursor-pointer"
-            title="Editar atributos del carril"
-          >
-            <Edit2 className="w-3.5 h-3.5" />
-          </button>
+          <div className="flex items-center space-x-1">
+            <button
+              type="button"
+              onClick={toggleOrientation}
+              onMouseDown={(e) => e.stopPropagation()}
+              className="nodrag nopan p-1 rounded text-theme-text-muted hover:text-sky-400 hover:bg-theme-surface transition-colors cursor-pointer"
+              title={`Cambiar a orientación ${isVertical ? 'Horizontal' : 'Vertical'}`}
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+            </button>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setFormData({
+                  title: nodeData.title || 'Carril Operativo',
+                  roleName: nodeData.roleName || 'Responsable de Área',
+                  itSystem: nodeData.itSystem || 'Sistema Informático',
+                  colorHex: accentColor,
+                  orientation: nodeData.orientation || 'horizontal'
+                });
+                setIsEditing(true);
+              }}
+              onMouseDown={(e) => e.stopPropagation()}
+              className="nodrag nopan p-1 rounded text-theme-text-muted hover:text-amber-400 hover:bg-theme-surface transition-colors cursor-pointer"
+              title="Editar atributos del carril"
+            >
+              <Edit2 className="w-3.5 h-3.5" />
+            </button>
+          </div>
         </div>
 
         {/* Middle: Lane Title */}
-        <div className="my-1.5">
+        <div className="my-1">
           <h3
             className="text-xs font-bold text-theme-text line-clamp-2 leading-tight cursor-pointer hover:text-theme-accent transition-colors"
             onClick={() => setIsEditing(true)}
@@ -114,7 +146,7 @@ export const SwimlaneNode = memo(({ id, data, selected }: NodeProps<any>) => {
           >
             {nodeData.title || 'Carril Operativo / Funcional'}
           </h3>
-          <div className="flex items-center text-[10px] text-theme-text-muted mt-1 truncate">
+          <div className="flex items-center text-[10px] text-theme-text-muted mt-0.5 truncate">
             <UserCheck className="w-3 h-3 mr-1 text-theme-text-muted shrink-0" />
             <span className="truncate">{nodeData.roleName || 'Responsable de Área'}</span>
           </div>
@@ -127,8 +159,8 @@ export const SwimlaneNode = memo(({ id, data, selected }: NodeProps<any>) => {
         </div>
       </div>
 
-      {/* Right Area: Grid Background that auto-scales with node size */}
-      <div className="flex-1 relative overflow-hidden rounded-r-lg pointer-events-none">
+      {/* Body Area: Grid Background that auto-scales with node size */}
+      <div className="flex-1 relative overflow-hidden pointer-events-none">
         <div className="absolute inset-0 bg-[linear-gradient(to_right,var(--theme-border)_1px,transparent_1px),linear-gradient(to_bottom,var(--theme-border)_1px,transparent_1px)] bg-[size:40px_40px] opacity-20" />
       </div>
 
@@ -200,6 +232,36 @@ export const SwimlaneNode = memo(({ id, data, selected }: NodeProps<any>) => {
                   required
                   className="w-full px-3 py-1.5 rounded-lg bg-theme-canvas border border-theme-border text-sm text-theme-text focus:outline-none focus:border-sky-400 transition-colors"
                 />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-theme-text-muted mb-1">
+                  Orientación del Carril:
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, orientation: 'horizontal' })}
+                    className={`py-1.5 px-3 rounded-lg border text-xs font-semibold flex items-center justify-center space-x-1.5 transition-all cursor-pointer ${
+                      formData.orientation === 'horizontal'
+                        ? 'border-sky-400 bg-sky-500/10 text-sky-400 ring-1 ring-sky-400'
+                        : 'border-theme-border text-theme-text-muted hover:border-theme-text-muted'
+                    }`}
+                  >
+                    <span>↔️ Horizontal (Fila)</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, orientation: 'vertical' })}
+                    className={`py-1.5 px-3 rounded-lg border text-xs font-semibold flex items-center justify-center space-x-1.5 transition-all cursor-pointer ${
+                      formData.orientation === 'vertical'
+                        ? 'border-sky-400 bg-sky-500/10 text-sky-400 ring-1 ring-sky-400'
+                        : 'border-theme-border text-theme-text-muted hover:border-theme-text-muted'
+                    }`}
+                  >
+                    <span>↕️ Vertical (Columna)</span>
+                  </button>
+                </div>
               </div>
 
               <div>

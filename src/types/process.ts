@@ -137,6 +137,7 @@ export interface BpmnNodeData {
   customTextColor?: string; // Color personalizado del texto de la tarjeta
   customFontSize?: number; // Tamaño de letra personalizado en px (ej: 10, 12, 14, 16, 18)
   displayMode?: 'full' | 'title_only'; // Modo de visualización: 'full' (completo) o 'title_only' (solo título)
+  orientation?: 'horizontal' | 'vertical'; // Orientación: 'horizontal' (apaisado) o 'vertical' (columna)
   tags: string[];
   [key: string]: unknown;
 }

@@ -1,6 +1,6 @@
 # MANUAL DE USO Y GUÍA TÉCNICA INTEGRAL
 ## ProcesStudio Portable — BPMN 2.0 (ISO 19510) & ISO 9001:2015
-**Versión del Manual:** 4.0 &bull; **Fecha de Emisión:** 2026-09-01 &bull; **Entorno:** Multiplataforma Portable USB (Windows & macOS)
+**Versión del Manual:** 4.1 &bull; **Fecha de Emisión:** 2026-09-01 &bull; **Entorno:** Multiplataforma Portable USB (Windows & macOS)
 
 ---
 
@@ -9,46 +9,39 @@
 **ProcesStudio Portable** (identificado con el isotipo **`PS`**) es una plataforma profesional concebida para el modelado, análisis, optimización, compresión jerárquica y documentación formal de procedimientos administrativos y flujos operativos institucionales. Integra de manera nativa:
 
 1. **Notación BPMN 2.0 (ISO/IEC 19510:2013)**: Diagramación formal de procesos, compresión y descompresión bidireccional de Subprocesos y Macroprocesos, redimensionamiento libre y proporcional de tarjetas.
-2. **Carriles (Swimlanes) como Tarjetas Nativas Redimensionables**:
-   * **Tarjetas de Primera Clase:** Los carriles son tarjetas contenedoras que se pueden arrastrar, mover, personalizar y redimensionar libremente mediante sus manijas en las 4 esquinas (`NodeResizer`).
-   * **Escalado Adaptable:** Todo el contenido (cabecera con rol/sistema, barra de acento cromático y cuadrícula de fondo) se ajusta dinámicamente al ancho y alto configurado.
-   * **Inmunidad Total al Zoom y Paneo:** Al integrarse como nodos en el lienzo, permanecen en sincronía matemática perfecta ante cualquier escala o desplazamiento del mapa.
-3. **Líneas Guía Inteligentes y Atracción Magnética (Smart Guides & Snap-to-Align)**:
-   * **Líneas Guía en Todo el Mapa:** Al arrastrar cualquier tarjeta, se trazan líneas luminosas continuas verticales y horizontales para indicar la alineación exacta respecto a las demás tarjetas.
-   * **Imantación Magnética (Snap):** Al acercar una tarjeta al lado de otra (horizontalmente) o una encima/debajo de otra (verticalmente), las tarjetas se atraen y alinean automáticamente con espaciado uniforme y prolijo.
-4. **Ejecución Multiplataforma 1-Clic (Windows & macOS)**:
+2. **Atracción Magnética Real y Guías Inteligentes (Snap-to-Align & Magnetic Drag)**:
+   * **Imantación Física en Tiempo Real:** Al desplazar cualquier tarjeta cerca de otra (a menos de 16px de sus centros, bordes o separación contigua de 40px en horizontal / 30px en vertical), la tarjeta **se atrae, salta y se fija magnéticamente** al punto exacto.
+   * **Líneas Guía Continuas en Todo el Mapa:** Trazado de líneas luminosas punteadas de alineación que cruzan la pantalla indicando los ejes de coincidencia visual.
+3. **Selección de Orientación en Tarjetas y Carriles (Horizontal / Vertical)**:
+   * **↔️ Orientación Horizontal (Landscape):** Formato apaisado óptimo para flujos procesales de izquierda a derecha.
+   * **↕️ Orientación Vertical (Portrait):** Formato en columna/torre óptimo para flujos jerárquicos de arriba a abajo.
+   * **Controles Rápidos:** Disponible con 1-clic en la **Barra Flotante Superior (`🔄 Orientación`)**, en el **Panel de Propiedades Lateral** y en las cabeceras de los carriles.
+4. **Carriles (Swimlanes) como Tarjetas Nativas Redimensionables**:
+   * **Tarjetas de Primera Clase:** Los carriles se pueden arrastrar, rotar de orientación y redimensionar con manijas en las 4 esquinas (`NodeResizer`).
+   * **Escalado Adaptable:** Todo el contenido (cabecera con rol/sistema, barra cromática y cuadrícula) se adapta dinámicamente.
+5. **Ejecución Multiplataforma 1-Clic (Windows & macOS)**:
    * 🖥️ **Windows:** Inicio instantáneo mediante `ProcesStudio.exe` (o `ProcesStudio.bat` en `App/`).
-   * 🍎 **macOS (Apple Mac):** Inicio instantáneo mediante `ProcesStudio_Mac.command` en cualquier Mac (Intel y chips M1/M2/M3/M4).
-5. **Persistencia 100% Autocontenida (Zero-AppData & Zero-Registry)**:
-   * Todo proyecto nuevo, modificación o exportación se guarda dentro de la subcarpeta local:
+   * 🍎 **macOS (Apple Mac):** Inicio instantáneo mediante `ProcesStudio_Mac.command` en cualquier Mac (Intel y procesadores Apple Silicon M1/M2/M3/M4).
+6. **Persistencia 100% Autocontenida (Zero-AppData & Zero-Registry)**:
+   * Todo proyecto se guarda de forma permanente dentro de la subcarpeta local:
      ```text
      MiAppProcesos_USB/Proyectos/
      ```
-   * Cero residuos en el sistema operativo; la carpeta puede copiarse a cualquier pendrive o PC/Mac y mantener todo su contenido.
-6. **Conectores Laterales Exclusivos y Redimensionamiento en Esquinas:**
-   * **Conexión Lateral:** Puntos conectores únicamente en los costados (izquierdo para entradas, derecho para salidas).
-   * **Anillo de Selección Brillante:** Halo luminoso al seleccionar cualquier elemento.
 7. **Navegación Fluida del Lienzo y Control de Zoom:**
-   * **Desplazamiento Vertical con la Rueda:** Mover la rueda del ratón desplaza el mapa de arriba a abajo.
+   * **Desplazamiento Vertical con la Rueda:** Mover la rueda del ratón desplaza el mapa verticalmente.
    * **Zoom Focalizado en el Puntero (`Ctrl + Rueda` / `Cmd + Rueda`):** Zoom in/out enfocado exactamente en las coordenadas del cursor.
-   * **Arrastre Libre:** Agarrar y arrastrar desde el fondo para mover el tablero.
-8. **Personalización Granular de Tarjetas y Tipografía:**
-   * **Modo de Visualización:** Alternancia entre `📋 Toda la info` y `🏷️ Solo título`.
-   * **Tamaño de Letra:** Ajuste entre 9px y 20px con contención estricta sin desbordamiento.
-   * **Temáticas:** Catálogo preconfigurado (*Pizarra Slate Pro, Midnight Acero, Salvia Forestal, etc.*).
 
 ---
 
-## 2. GUÍA DE ALINEACIÓN MAGNÉTICA Y CARRILES
+## 2. GUÍA DE ALINEACIÓN MAGNÉTICA Y ORIENTACIÓN
 
-### 2.1. Uso de Carriles (Swimlanes)
-1. **Insertar un Carril:** Arrastre un **Carril (Swimlane)** desde la paleta izquierda hacia el lienzo o presione sobre él para crearlo.
-2. **Ajustar Tamaño:** Seleccione el carril y arrastre los puntos de las 4 esquinas para expandir su ancho y alto según la cantidad de tareas requeridas.
-3. **Personalizar:** Haga clic en el botón `[ ✏️ ]` de la cabecera lateral del carril para editar su nombre, rol, sistema y color de acento.
+### 2.1. Atracción Magnética y Encaje Automático
+1. **Alineación de Ejes:** Al mover una tarjeta en línea con otra, sentirá la fuerza de atracción magnética que fija automáticamente la tarjeta sobre el eje horizontal o vertical.
+2. **Espaciado Uniforme:** Al acercar una tarjeta al costado de otra, la tarjeta se imanta con la separación reglamentaria de 40px para garantizar diagramas legibles y homogéneos.
 
-### 2.2. Guías Inteligentes y Atracción Magnética
-* **Alineación de Ejes:** Al mover una tarjeta en la misma línea que otra (centro con centro, o borde con borde), una línea punteada azul cielo atravesará el lienzo confirmando la alineación.
-* **Encaje Automático:** Al aproximar dos tarjetas consecutivas, notará una fuerza de atracción magnética que fija automáticamente la tarjeta con la separación visual reglamentaria.
+### 2.2. Cambio de Orientación (Horizontal ↔️ Vertical)
+* **Desde la Barra Superior:** Seleccione la tarjeta y presione el botón `[ 🔄 Orientación ]`.
+* **Desde el Panel de Propiedades:** Seleccione la opción deseada en el apartado `📐 Orientación de la Tarjeta` (`[ ↔️ Horizontal ]` o `[ ↕️ Vertical ]`).
 
 ---
 
@@ -66,7 +59,7 @@
 | 🟡 | **Evento de Temporización (Timer Event)** | `#F59E0B` (Miel) | Límite temporal reglamentario que fija plazos perentorios (ISO 8601). |
 | 🟢 | **Punto de Control de Calidad (Quality Checkpoint QC)** | `#34D399` (Esmeralda) | Hito de verificación formal bajo norma ISO 9001 con evidencia obligatoria. |
 | 🔴 | **Evento de Fin (End Event)** | `#F87171` (Coral) | Culminación o estado terminal del flujo. |
-| 🏊 | **Carril Funcional (Swimlane)** | `#0284C7` (Azul) | Banda contenedora redimensionable con escalado dinámico. |
+| 🏊 | **Carril Funcional (Swimlane)** | `#0284C7` (Azul) | Banda contenedora redimensionable y orientable (horizontal/vertical). |
 | ➖ | **Flujo de Secuencia (Sequence Flow)** | `#64748B` (Grafito) | Flecha direccional con soporte para etiquetas, colores y animación. |
 
 ---

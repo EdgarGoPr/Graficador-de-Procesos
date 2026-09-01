@@ -21,6 +21,7 @@ export const TaskNode = memo(({ data, selected }: NodeProps<any>) => {
   const hasRisks = nodeData.operationalRisks && nodeData.operationalRisks.length > 0;
   const hasQuality = !!nodeData.qualityCheckpoint;
   const isTitleOnly = nodeData.displayMode === 'title_only';
+  const isVertical = nodeData.orientation === 'vertical';
 
   const opacity = nodeData.customBgOpacity ?? 95;
   const customContainerStyle: React.CSSProperties = {
@@ -40,7 +41,13 @@ export const TaskNode = memo(({ data, selected }: NodeProps<any>) => {
   return (
     <div
       style={customContainerStyle}
-      className={`group relative w-full h-full ${isTitleOnly ? 'min-w-[170px] min-h-[70px]' : 'min-w-[210px] min-h-[120px]'} flex flex-col justify-between rounded-xl bg-theme-surface/95 backdrop-blur-sm border transition-all duration-150 shadow-md ${
+      className={`group relative w-full h-full ${
+        isVertical
+          ? 'min-w-[150px] min-h-[190px]'
+          : isTitleOnly
+          ? 'min-w-[170px] min-h-[70px]'
+          : 'min-w-[210px] min-h-[120px]'
+      } flex flex-col justify-between rounded-xl bg-theme-surface/95 backdrop-blur-sm border transition-all duration-150 shadow-md ${
         selected
           ? '!ring-2 !ring-sky-400 !border-sky-400 shadow-2xl scale-[1.01]'
           : (!nodeData.customBorderColor ? typeConfig.color : '') + ' hover:border-sky-400/70 hover:shadow-lg'
@@ -48,22 +55,29 @@ export const TaskNode = memo(({ data, selected }: NodeProps<any>) => {
     >
       <NodeResizer
         isVisible={selected}
-        minWidth={isTitleOnly ? 150 : 200}
-        minHeight={isTitleOnly ? 60 : 110}
+        minWidth={isVertical ? 140 : isTitleOnly ? 150 : 200}
+        minHeight={isVertical ? 160 : isTitleOnly ? 60 : 110}
         handleClassName="!w-3 !h-3 !bg-sky-400 !border-2 !border-slate-900 !rounded-full shadow-lg hover:scale-125 transition-transform z-50 cursor-nwse-resize"
         lineClassName="!border-2 !border-sky-400 !border-dashed"
       />
 
-      {/* Target Handle (Left) */}
+      {/* Connection Handles (Left & Right, plus Top & Bottom for Vertical) */}
       <Handle
         type="target"
         position={Position.Left}
         className="!w-3.5 !h-3.5 !bg-sky-400 !border-2 !border-slate-900 !rounded-full shadow-md !left-[-7px] hover:scale-125 transition-transform z-40"
       />
+      {isVertical && (
+        <Handle
+          type="target"
+          position={Position.Top}
+          className="!w-3.5 !h-3.5 !bg-sky-400 !border-2 !border-slate-900 !rounded-full shadow-md !top-[-7px] hover:scale-125 transition-transform z-40"
+        />
+      )}
 
-      {/* Inner Clipped Content Container */}
+      {/* Inner Content */}
       <div className="w-full h-full flex flex-col justify-between rounded-xl overflow-hidden">
-        {/* Card Header / Title Box */}
+        {/* Header / Title Box */}
         <div
           style={customHeaderStyle}
           className={`flex items-center justify-between px-2.5 py-1.5 bg-gradient-to-r ${typeConfig.headerBg} to-transparent rounded-t-xl border-b border-theme-border overflow-hidden shrink-0`}
@@ -81,7 +95,7 @@ export const TaskNode = memo(({ data, selected }: NodeProps<any>) => {
           </span>
         </div>
 
-        {/* Card Body */}
+        {/* Body */}
         <div className="p-2.5 flex-1 flex flex-col justify-between overflow-hidden">
           <div className="overflow-hidden">
             <h4
@@ -101,56 +115,59 @@ export const TaskNode = memo(({ data, selected }: NodeProps<any>) => {
             )}
           </div>
 
-          {/* Detailed Metadata & Badges only shown in Full mode */}
+          {/* Details */}
           {!isTitleOnly && (
             <div className="overflow-hidden">
               <div className="space-y-1 pt-1.5 border-t border-theme-border text-[10px] overflow-hidden">
                 {nodeData.itSystem && (
                   <div className="flex items-center text-theme-text-muted truncate">
                     <Server className="w-3 h-3 text-sky-400 mr-1.5 shrink-0" />
-                    <span className="truncate font-mono text-[10px]">{nodeData.itSystem}</span>
+                    <span className="truncate">{nodeData.itSystem}</span>
                   </div>
                 )}
-
                 {nodeData.slaDuration && (
-                  <div className={`flex items-center font-mono truncate ${nodeData.slaDuration.isPeremptory ? 'text-amber-400 font-semibold' : 'text-theme-text-muted'}`}>
-                    <Clock className="w-3 h-3 mr-1.5 shrink-0 text-amber-400" />
-                    <span className="text-[10px] truncate">
-                      {nodeData.slaDuration.value} {nodeData.slaDuration.unit === 'BUSINESS_DAYS' ? 'días hábiles' : nodeData.slaDuration.unit === 'CALENDAR_DAYS' ? 'días corr.' : 'hrs'}
+                  <div className="flex items-center text-theme-text-muted truncate">
+                    <Clock className="w-3 h-3 text-amber-400 mr-1.5 shrink-0" />
+                    <span className="truncate">
+                      SLA: {nodeData.slaDuration.value} {nodeData.slaDuration.unit.toLowerCase()}
                     </span>
                   </div>
                 )}
               </div>
 
-              {/* Quality & Risk Status Flags */}
-              <div className="flex items-center justify-between mt-1.5 pt-1.5 border-t border-theme-border overflow-hidden">
-                <div className="flex items-center space-x-1.5 truncate">
+              {/* Status Badges */}
+              {(hasRisks || hasQuality) && (
+                <div className="flex items-center space-x-2 pt-1.5 mt-1.5 border-t border-theme-border">
                   {hasQuality && (
-                    <span className="flex items-center text-[9px] font-medium bg-emerald-500/10 text-emerald-400 px-1.5 py-0.5 rounded border border-emerald-500/25 shrink-0">
-                      <ShieldCheck className="w-2.5 h-2.5 mr-0.5" />
-                      ISO 9001
+                    <span className="flex items-center text-[9px] text-emerald-400 font-mono">
+                      <ShieldCheck className="w-3 h-3 mr-0.5" /> QC
+                    </span>
+                  )}
+                  {hasRisks && (
+                    <span className="flex items-center text-[9px] text-amber-400 font-mono">
+                      <AlertTriangle className="w-3 h-3 mr-0.5" /> RIESGO
                     </span>
                   )}
                 </div>
-
-                {hasRisks && (
-                  <div className="flex items-center text-[9px] font-medium text-rose-400 bg-rose-500/10 px-1.5 py-0.5 rounded border border-rose-500/25 shrink-0">
-                    <AlertTriangle className="w-2.5 h-2.5 mr-1" />
-                    <span>{nodeData.operationalRisks?.length} Riesgo</span>
-                  </div>
-                )}
-              </div>
+              )}
             </div>
           )}
         </div>
       </div>
 
-      {/* Source Handle (Right) */}
+      {/* Source Handle (Right & Bottom for Vertical) */}
       <Handle
         type="source"
         position={Position.Right}
         className="!w-3.5 !h-3.5 !bg-sky-400 !border-2 !border-slate-900 !rounded-full shadow-md !right-[-7px] hover:scale-125 transition-transform z-40"
       />
+      {isVertical && (
+        <Handle
+          type="source"
+          position={Position.Bottom}
+          className="!w-3.5 !h-3.5 !bg-sky-400 !border-2 !border-slate-900 !rounded-full shadow-md !bottom-[-7px] hover:scale-125 transition-transform z-40"
+        />
+      )}
     </div>
   );
 });

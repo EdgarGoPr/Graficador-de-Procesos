@@ -1,7 +1,8 @@
 import React from 'react';
 import { useCanvasStore } from '../../store/useCanvasStore';
+import { useProjectStore } from '../../store/useProjectStore';
 import { useUiStore } from '../../store/useUiStore';
-import { Box, Copy, Clipboard, Trash2, Layers } from 'lucide-react';
+import { Box, Copy, Clipboard, Trash2, RotateCcw } from 'lucide-react';
 
 export const SelectionToolbar: React.FC = () => {
   const {
@@ -10,9 +11,11 @@ export const SelectionToolbar: React.FC = () => {
     copySelection,
     pasteSelection,
     setCompressModalOpen,
-    deleteSelected
+    deleteSelected,
+    updateNodeData
   } = useCanvasStore();
 
+  const { currentProject } = useProjectStore();
   const { showNotification } = useUiStore();
 
   const hasSelection = selectedNodeIds.length > 0;
@@ -35,6 +38,18 @@ export const SelectionToolbar: React.FC = () => {
     }
   };
 
+  const handleToggleOrientation = () => {
+    if (!currentProject) return;
+    selectedNodeIds.forEach((id) => {
+      const node = currentProject.nodes.find((n) => n.id === id);
+      if (node) {
+        const nextOrientation = node.data.orientation === 'vertical' ? 'horizontal' : 'vertical';
+        updateNodeData(id, { orientation: nextOrientation });
+      }
+    });
+    showNotification('Orientación actualizada', 'info');
+  };
+
   return (
     <div className="absolute top-4 left-1/2 -translate-x-1/2 z-40 flex items-center space-x-1.5 p-1.5 rounded-2xl bg-theme-surface/95 backdrop-blur-md border border-theme-border shadow-2xl animate-fadeIn">
       {hasSelection && (
@@ -46,7 +61,7 @@ export const SelectionToolbar: React.FC = () => {
       {hasMultiple && (
         <button
           onClick={() => setCompressModalOpen(true)}
-          className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:brightness-110 text-white text-xs font-bold shadow-md transition-all"
+          className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:brightness-110 text-white text-xs font-bold shadow-md transition-all cursor-pointer"
           title="Encapsular actividades seleccionadas en un único Subproceso"
         >
           <Box className="w-3.5 h-3.5" />
@@ -56,8 +71,19 @@ export const SelectionToolbar: React.FC = () => {
 
       {hasSelection && (
         <button
+          onClick={handleToggleOrientation}
+          className="flex items-center space-x-1 px-2.5 py-1.5 rounded-xl bg-theme-surface-subtle hover:bg-theme-surface border border-theme-border text-xs font-medium text-theme-text transition-colors cursor-pointer"
+          title="Alternar orientación de la tarjeta (Horizontal / Vertical)"
+        >
+          <RotateCcw className="w-3.5 h-3.5 text-sky-400" />
+          <span className="hidden sm:inline">Orientación</span>
+        </button>
+      )}
+
+      {hasSelection && (
+        <button
           onClick={handleCopy}
-          className="flex items-center space-x-1 px-2.5 py-1.5 rounded-xl bg-theme-surface-subtle hover:bg-theme-surface border border-theme-border text-xs font-medium text-theme-text transition-colors"
+          className="flex items-center space-x-1 px-2.5 py-1.5 rounded-xl bg-theme-surface-subtle hover:bg-theme-surface border border-theme-border text-xs font-medium text-theme-text transition-colors cursor-pointer"
           title="Copiar selección (Ctrl + C)"
         >
           <Copy className="w-3.5 h-3.5 text-theme-accent" />
@@ -68,7 +94,7 @@ export const SelectionToolbar: React.FC = () => {
       {hasClipboard && (
         <button
           onClick={handlePaste}
-          className="flex items-center space-x-1 px-2.5 py-1.5 rounded-xl bg-theme-surface-subtle hover:bg-theme-surface border border-theme-border text-xs font-medium text-theme-text transition-colors"
+          className="flex items-center space-x-1 px-2.5 py-1.5 rounded-xl bg-theme-surface-subtle hover:bg-theme-surface border border-theme-border text-xs font-medium text-theme-text transition-colors cursor-pointer"
           title="Pegar elementos copiados (Ctrl + V)"
         >
           <Clipboard className="w-3.5 h-3.5 text-emerald-500" />
@@ -79,7 +105,7 @@ export const SelectionToolbar: React.FC = () => {
       {hasSelection && (
         <button
           onClick={deleteSelected}
-          className="flex items-center space-x-1 px-2.5 py-1.5 rounded-xl hover:bg-red-500/15 border border-transparent hover:border-red-500/30 text-xs font-medium text-red-400 transition-colors"
+          className="flex items-center space-x-1 px-2.5 py-1.5 rounded-xl hover:bg-red-500/15 border border-transparent hover:border-red-500/30 text-xs font-medium text-red-400 transition-colors cursor-pointer"
           title="Eliminar elementos seleccionados (Supr / Delete)"
         >
           <Trash2 className="w-3.5 h-3.5" />

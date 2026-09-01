@@ -469,6 +469,37 @@ export const PropertiesPanel: React.FC = () => {
             )}
           </div>
 
+          {/* Selector de Orientación */}
+          <div className="space-y-1 bg-theme-surface p-2 rounded-lg border border-theme-border/60">
+            <span className="text-[9px] font-mono text-theme-text-muted font-bold block uppercase">
+              📐 Orientación de la Tarjeta:
+            </span>
+            <div className="grid grid-cols-2 gap-1.5">
+              <button
+                type="button"
+                onClick={() => applyCardStyleToScope(node.id, cardStyleScope, { orientation: 'horizontal' })}
+                className={`py-1.5 px-2 rounded-md text-[10px] font-semibold transition-all flex items-center justify-center space-x-1 cursor-pointer ${
+                  (data.orientation || 'horizontal') === 'horizontal'
+                    ? 'bg-theme-accent text-white shadow-sm font-bold'
+                    : 'bg-theme-surface-subtle text-theme-text-muted hover:text-theme-text'
+                }`}
+              >
+                <span>↔️ Horizontal</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => applyCardStyleToScope(node.id, cardStyleScope, { orientation: 'vertical' })}
+                className={`py-1.5 px-2 rounded-md text-[10px] font-semibold transition-all flex items-center justify-center space-x-1 cursor-pointer ${
+                  data.orientation === 'vertical'
+                    ? 'bg-theme-accent text-white shadow-sm font-bold'
+                    : 'bg-theme-surface-subtle text-theme-text-muted hover:text-theme-text'
+                }`}
+              >
+                <span>↕️ Vertical</span>
+              </button>
+            </div>
+          </div>
+
           {/* Selector de Ámbito / Alcance */}
           <div className="space-y-1 bg-theme-surface p-2 rounded-lg border border-theme-border/60">
             <span className="text-[9px] font-mono text-theme-text-muted font-bold block uppercase">

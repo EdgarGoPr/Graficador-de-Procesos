@@ -76,7 +76,89 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
     const currentProject = projectStore.currentProject;
     if (!currentProject) return;
 
-    const nextNodes = applyNodeChanges(changes, currentProject.nodes);
+    // Apply Real Magnetic Snapping during drag
+    const SNAP_RADIUS = 16;
+    const GAP_X = 40;
+    const GAP_Y = 30;
+
+    const modifiedChanges = changes.map((change) => {
+      if (change.type === 'position' && change.position && change.dragging) {
+        const draggingNode = currentProject.nodes.find((n) => n.id === change.id);
+        if (!draggingNode || draggingNode.type === 'PoolLane') return change;
+
+        const dWidth = (draggingNode.measured?.width || draggingNode.width || 210) as number;
+        const dHeight = (draggingNode.measured?.height || draggingNode.height || 120) as number;
+
+        let snapX = change.position.x;
+        let snapY = change.position.y;
+
+        const otherNodes = currentProject.nodes.filter(
+          (n) => n.id !== change.id && n.type !== 'PoolLane'
+        );
+
+        for (const other of otherNodes) {
+          const oWidth = (other.measured?.width || other.width || 210) as number;
+          const oHeight = (other.measured?.height || other.height || 120) as number;
+          const oX = other.position.x;
+          const oY = other.position.y;
+
+          // --- HORIZONTAL AXIS SNAP (X) ---
+          // 1. Center to Center
+          if (Math.abs((snapX + dWidth / 2) - (oX + oWidth / 2)) <= SNAP_RADIUS) {
+            snapX = oX + oWidth / 2 - dWidth / 2;
+          }
+          // 2. Left to Left
+          else if (Math.abs(snapX - oX) <= SNAP_RADIUS) {
+            snapX = oX;
+          }
+          // 3. Right to Right
+          else if (Math.abs((snapX + dWidth) - (oX + oWidth)) <= SNAP_RADIUS) {
+            snapX = oX + oWidth - dWidth;
+          }
+          // 4. Side-by-Side Right (Snap to the right of other with Gap)
+          else if (Math.abs(snapX - (oX + oWidth + GAP_X)) <= SNAP_RADIUS) {
+            snapX = oX + oWidth + GAP_X;
+          }
+          // 5. Side-by-Side Left (Snap to the left of other with Gap)
+          else if (Math.abs((snapX + dWidth) - (oX - GAP_X)) <= SNAP_RADIUS) {
+            snapX = oX - GAP_X - dWidth;
+          }
+
+          // --- VERTICAL AXIS SNAP (Y) ---
+          // 1. Center to Center
+          if (Math.abs((snapY + dHeight / 2) - (oY + oHeight / 2)) <= SNAP_RADIUS) {
+            snapY = oY + oHeight / 2 - dHeight / 2;
+          }
+          // 2. Top to Top
+          else if (Math.abs(snapY - oY) <= SNAP_RADIUS) {
+            snapY = oY;
+          }
+          // 3. Bottom to Bottom
+          else if (Math.abs((snapY + dHeight) - (oY + oHeight)) <= SNAP_RADIUS) {
+            snapY = oY + oHeight - dHeight;
+          }
+          // 4. Stacked Below (Snap below other with Gap)
+          else if (Math.abs(snapY - (oY + oHeight + GAP_Y)) <= SNAP_RADIUS) {
+            snapY = oY + oHeight + GAP_Y;
+          }
+          // 5. Stacked Above (Snap above other with Gap)
+          else if (Math.abs((snapY + dHeight) - (oY - GAP_Y)) <= SNAP_RADIUS) {
+            snapY = oY - GAP_Y - dHeight;
+          }
+        }
+
+        return {
+          ...change,
+          position: {
+            x: snapX,
+            y: snapY
+          }
+        };
+      }
+      return change;
+    });
+
+    const nextNodes = applyNodeChanges(modifiedChanges, currentProject.nodes);
     
     // Update selectedNodeIds based on node selection status
     const selected = nextNodes.filter((n) => n.selected).map((n) => n.id);
