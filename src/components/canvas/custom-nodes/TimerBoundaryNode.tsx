@@ -7,32 +7,38 @@ export const TimerBoundaryNode = memo(({ data, selected }: NodeProps<any>) => {
   const nodeData = data as BpmnNodeData;
   const sla = nodeData.slaDuration;
 
+  const customContainerStyle: React.CSSProperties = {
+    backgroundColor: nodeData.customBgColor || undefined,
+    borderColor: nodeData.customBorderColor || undefined,
+  };
+
   return (
     <div
-      className={`group relative flex flex-col items-center justify-center w-28 h-28 rounded-full bg-theme-surface border-2 border-dashed transition-all duration-200 shadow-xl border-[#F59E0B] ${
+      style={customContainerStyle}
+      className={`group relative flex flex-col items-center justify-center w-24 h-24 rounded-full bg-theme-surface/95 backdrop-blur-sm border-2 border-dashed transition-all duration-150 shadow-md border-amber-500/50 ${
         selected
-          ? 'border-[#F59E0B] ring-4 ring-[#F59E0B]/30 shadow-[#F59E0B]/20 shadow-xl scale-105'
-          : 'hover:border-[#F59E0B]/80'
+          ? 'border-amber-400 ring-2 ring-amber-400/40 shadow-xl scale-105'
+          : 'hover:border-amber-400/80 hover:shadow-lg'
       }`}
     >
       <Handle
         type="target"
         position={Position.Left}
-        className="w-3 h-3 bg-[#F59E0B] border-2 border-theme-surface !left-[-6px]"
+        className="w-2.5 h-2.5 bg-amber-400 border-2 border-theme-surface !left-[-5px]"
       />
 
       <div className="flex flex-col items-center justify-center p-2 text-center">
-        <div className="w-8 h-8 rounded-full bg-[#F59E0B]/20 text-[#F59E0B] flex items-center justify-center mb-1 animate-pulse">
-          <Clock className="w-4 h-4" />
+        <div className="w-6 h-6 rounded-full bg-amber-500/15 text-amber-400 flex items-center justify-center mb-0.5">
+          <Clock className="w-3 h-3" />
         </div>
-        <span className="text-[10px] font-mono font-bold text-[#F59E0B] tracking-wider">
+        <span className="text-[9px] font-mono font-bold text-amber-400 tracking-wider">
           {nodeData.standardId || 'TMR'}
         </span>
-        <span className="text-[10px] font-semibold text-theme-text line-clamp-1 max-w-[90px] leading-tight">
+        <span className="text-[9px] font-medium text-theme-text line-clamp-1 max-w-[78px] leading-tight">
           {sla ? `${sla.value} ${sla.unit === 'BUSINESS_DAYS' ? 'días háb.' : 'hrs'}` : nodeData.title}
         </span>
         {sla?.isPeremptory && (
-          <span className="flex items-center text-[8px] font-bold text-[#F59E0B] mt-0.5">
+          <span className="flex items-center text-[8px] font-bold text-amber-400 mt-0.5">
             <AlertCircle className="w-2 h-2 mr-0.5" />
             PERENTORIO
           </span>
@@ -42,11 +48,10 @@ export const TimerBoundaryNode = memo(({ data, selected }: NodeProps<any>) => {
       <Handle
         type="source"
         position={Position.Right}
-        className="w-3 h-3 bg-[#F59E0B] border-2 border-theme-surface !right-[-6px]"
+        className="w-2.5 h-2.5 bg-amber-400 border-2 border-theme-surface !right-[-5px]"
       />
     </div>
   );
 });
 
 TimerBoundaryNode.displayName = 'TimerBoundaryNode';
-

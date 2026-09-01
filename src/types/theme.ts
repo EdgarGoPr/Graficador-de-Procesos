@@ -37,16 +37,16 @@ export interface AppThemeDefinition {
 export const PRESET_THEMES: Record<AppThemeId, AppThemeDefinition> = {
   'antigravity-dark': {
     id: 'antigravity-dark',
-    name: 'Antigravity Dark (Clásico)',
-    description: 'Carbón gris oscuro y destellos azul cian profesionales.',
-    badge: '🌑 Oscuro',
+    name: 'Antigravity Slate Dark (Mate)',
+    description: 'Grafito profundo y azul pizarra mate para máxima comodidad visual.',
+    badge: '🌑 Slate Pro',
     category: 'dark',
     colors: {
       appBg: '#0F172A',
-      canvasBg: '#18181B',
+      canvasBg: '#131B2E',
       surface: '#1E293B',
-      surfaceSubtle: '#0B1120',
-      surfaceHover: '#2B394E',
+      surfaceSubtle: '#151F32',
+      surfaceHover: '#2A384F',
       card: '#1E293B',
       text: '#E2E8F0',
       textMuted: '#94A3B8',
@@ -54,103 +54,103 @@ export const PRESET_THEMES: Record<AppThemeId, AppThemeDefinition> = {
       accentHover: '#0284C7',
       border: '#334155',
       borderSubtle: '#1E293B',
-      edgeColor: '#38BDF8',
-      dotGridColor: '#3F3F46',
+      edgeColor: '#64748B',
+      dotGridColor: '#334155',
       isDark: true
     }
   },
   'antigravity-cosmic': {
     id: 'antigravity-cosmic',
     name: 'Antigravity Cosmic (Midnight)',
-    description: 'Azul espacial profundo con acento azul eléctrico de alto contraste.',
-    badge: '🪐 Cósmico',
+    description: 'Azul espacial suave con acento acero equilibrado.',
+    badge: '🪐 Midnight',
     category: 'dark',
     colors: {
-      appBg: '#090D16',
-      canvasBg: '#0B0F19',
-      surface: '#111827',
-      surfaceSubtle: '#070A10',
-      surfaceHover: '#1F2937',
-      card: '#111827',
-      text: '#F1F5F9',
-      textMuted: '#9CA3AF',
-      accent: '#3B82F6',
-      accentHover: '#2563EB',
-      border: '#1F2937',
-      borderSubtle: '#111827',
-      edgeColor: '#3B82F6',
-      dotGridColor: '#374151',
+      appBg: '#0B101B',
+      canvasBg: '#0F1626',
+      surface: '#151D2E',
+      surfaceSubtle: '#0D1422',
+      surfaceHover: '#1E293F',
+      card: '#151D2E',
+      text: '#E2E8F0',
+      textMuted: '#8DA0B8',
+      accent: '#60A5FA',
+      accentHover: '#3B82F6',
+      border: '#25334D',
+      borderSubtle: '#151D2E',
+      edgeColor: '#64748B',
+      dotGridColor: '#25334D',
       isDark: true
     }
   },
   'antigravity-emerald': {
     id: 'antigravity-emerald',
-    name: 'Antigravity Cyber Emerald',
-    description: 'Gris obsidiana con acentos neón esmeralda ISO 9001.',
-    badge: '🌲 Esmeralda',
+    name: 'Antigravity Forest Sage',
+    description: 'Gris bosque con acento salvia y esmeralda mate relajante.',
+    badge: '🌿 Salvia',
     category: 'dark',
     colors: {
-      appBg: '#08100C',
-      canvasBg: '#0C1712',
-      surface: '#11221A',
-      surfaceSubtle: '#060B08',
-      surfaceHover: '#183327',
-      card: '#11221A',
-      text: '#ECFDF5',
-      textMuted: '#6EE7B7',
-      accent: '#10B981',
-      accentHover: '#059669',
-      border: '#1E3A2B',
-      borderSubtle: '#11221A',
-      edgeColor: '#10B981',
-      dotGridColor: '#2D5A43',
+      appBg: '#0D1514',
+      canvasBg: '#101B19',
+      surface: '#162522',
+      surfaceSubtle: '#0F1A17',
+      surfaceHover: '#20332F',
+      card: '#162522',
+      text: '#E2E8F0',
+      textMuted: '#8CA8A0',
+      accent: '#34D399',
+      accentHover: '#10B981',
+      border: '#243D37',
+      borderSubtle: '#162522',
+      edgeColor: '#5E8077',
+      dotGridColor: '#243D37',
       isDark: true
     }
   },
   'antigravity-purple': {
     id: 'antigravity-purple',
     name: 'Antigravity Nebula Violet',
-    description: 'Púrpura espacial profundo y tonos neón violeta futuristas.',
-    badge: '🔮 Nebulosa',
+    description: 'Púrpura espacial profundo y lavanda suave mate.',
+    badge: '🔮 Lavanda',
     category: 'dark',
     colors: {
-      appBg: '#0E0919',
-      canvasBg: '#130D24',
-      surface: '#1B1333',
-      surfaceSubtle: '#090510',
-      surfaceHover: '#2A1E4F',
-      card: '#1B1333',
-      text: '#F3E8FF',
-      textMuted: '#C084FC',
-      accent: '#A855F7',
-      accentHover: '#9333EA',
-      border: '#33235E',
-      borderSubtle: '#1B1333',
-      edgeColor: '#A855F7',
-      dotGridColor: '#4C338A',
+      appBg: '#100E1C',
+      canvasBg: '#141224',
+      surface: '#1A162D',
+      surfaceSubtle: '#120F20',
+      surfaceHover: '#262040',
+      card: '#1A162D',
+      text: '#E2E8F0',
+      textMuted: '#9E95B8',
+      accent: '#A78BFA',
+      accentHover: '#8B5CF6',
+      border: '#30284F',
+      borderSubtle: '#1A162D',
+      edgeColor: '#716494',
+      dotGridColor: '#30284F',
       isDark: true
     }
   },
   'antigravity-light': {
     id: 'antigravity-light',
     name: 'Antigravity Light Studio',
-    description: 'Estilo claro ultra nítido con azul cerúleo institucional.',
-    badge: '☀️ Claro',
+    description: 'Fondo perla claro ultra nítido con acentos cerúleos refinados.',
+    badge: '☀️ Studio',
     category: 'light',
     colors: {
-      appBg: '#F8F9FA',
-      canvasBg: '#F1F3F5',
+      appBg: '#F8FAFC',
+      canvasBg: '#F1F5F9',
       surface: '#FFFFFF',
-      surfaceSubtle: '#F1F5F9',
-      surfaceHover: '#E2E8F0',
+      surfaceSubtle: '#F8FAFC',
+      surfaceHover: '#F1F5F9',
       card: '#FFFFFF',
       text: '#1E293B',
       textMuted: '#64748B',
       accent: '#0284C7',
       accentHover: '#0369A1',
       border: '#E2E8F0',
-      borderSubtle: '#CBD5E1',
-      edgeColor: '#0284C7',
+      borderSubtle: '#F1F5F9',
+      edgeColor: '#94A3B8',
       dotGridColor: '#CBD5E1',
       isDark: false
     }
@@ -158,39 +158,39 @@ export const PRESET_THEMES: Record<AppThemeId, AppThemeDefinition> = {
   'antigravity-solar': {
     id: 'antigravity-solar',
     name: 'Antigravity Warm Solar',
-    description: 'Tonalidad arena cálida y ámbar suave para lectura prolongada.',
+    description: 'Tonalidad cálida arena y ámbar suave para lectura prolongada.',
     badge: '🏖️ Cálido',
     category: 'light',
     colors: {
       appBg: '#FAF7F2',
-      canvasBg: '#F3EDE2',
+      canvasBg: '#F3EFE9',
       surface: '#FFFFFF',
-      surfaceSubtle: '#F8F4EC',
-      surfaceHover: '#ECE3D4',
+      surfaceSubtle: '#FAF7F2',
+      surfaceHover: '#F3EFE9',
       card: '#FFFFFF',
       text: '#292524',
       textMuted: '#78716C',
       accent: '#D97706',
       accentHover: '#B45309',
-      border: '#E7E0D3',
-      borderSubtle: '#D6CBB8',
-      edgeColor: '#D97706',
-      dotGridColor: '#D6CBB8',
+      border: '#E7DFD8',
+      borderSubtle: '#F3EFE9',
+      edgeColor: '#A8A29E',
+      dotGridColor: '#D6CEC6',
       isDark: false
     }
   },
   'custom': {
     id: 'custom',
-    name: '🎨 Tema Personalizado',
-    description: 'Paleta totalmente configurable por el usuario.',
-    badge: '✨ Libre',
+    name: 'Tema Personalizado',
+    description: 'Paleta cromática configurada a medida por el usuario.',
+    badge: '🎨 Custom',
     category: 'custom',
     colors: {
       appBg: '#0F172A',
-      canvasBg: '#18181B',
+      canvasBg: '#131B2E',
       surface: '#1E293B',
-      surfaceSubtle: '#0B1120',
-      surfaceHover: '#2B394E',
+      surfaceSubtle: '#151F32',
+      surfaceHover: '#2A384F',
       card: '#1E293B',
       text: '#E2E8F0',
       textMuted: '#94A3B8',
@@ -198,19 +198,17 @@ export const PRESET_THEMES: Record<AppThemeId, AppThemeDefinition> = {
       accentHover: '#0284C7',
       border: '#334155',
       borderSubtle: '#1E293B',
-      edgeColor: '#38BDF8',
-      dotGridColor: '#3F3F46',
+      edgeColor: '#64748B',
+      dotGridColor: '#334155',
       isDark: true
     }
   }
 };
 
 /**
- * Applies the CSS variables to document.documentElement in real time
+ * Injects CSS Custom Variables into document.documentElement for dynamic real-time theme application
  */
 export function applyThemeToDocument(colors: ThemeColors) {
-  if (typeof document === 'undefined') return;
-
   const root = document.documentElement;
 
   root.style.setProperty('--theme-bg', colors.appBg);
@@ -226,7 +224,13 @@ export function applyThemeToDocument(colors: ThemeColors) {
   root.style.setProperty('--theme-border', colors.border);
   root.style.setProperty('--theme-border-subtle', colors.borderSubtle);
   root.style.setProperty('--theme-edge-color', colors.edgeColor);
+  root.style.setProperty('--theme-dot-grid', colors.dotGridColor);
 
-  root.classList.remove('dark', 'light');
-  root.classList.add(colors.isDark ? 'dark' : 'light');
+  if (colors.isDark) {
+    root.classList.add('dark');
+    root.classList.remove('light');
+  } else {
+    root.classList.add('light');
+    root.classList.remove('dark');
+  }
 }

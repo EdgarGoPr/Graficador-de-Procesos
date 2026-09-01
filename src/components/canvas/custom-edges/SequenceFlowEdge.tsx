@@ -25,10 +25,10 @@ export const SequenceFlowEdge = memo(({
 
   const conditionText = data?.conditionText;
   const customStroke = data?.strokeColor;
-  const customWidth = data?.strokeWidth || (selected ? 3 : 2);
+  const customWidth = data?.strokeWidth || (selected ? 2.5 : 1.5);
   const isAnimated = data?.isAnimated;
 
-  const defaultStroke = selected ? 'var(--theme-accent)' : (customStroke || 'var(--theme-border)');
+  const defaultStroke = selected ? 'var(--theme-accent)' : (customStroke || 'var(--theme-edge-color, var(--theme-border))');
 
   return (
     <>
@@ -42,7 +42,7 @@ export const SequenceFlowEdge = memo(({
           stroke: defaultStroke,
           strokeDasharray: isAnimated ? '5,5' : style.strokeDasharray,
           animation: isAnimated ? 'flowAnimation 1s linear infinite' : undefined,
-          transition: 'stroke 0.2s, stroke-width 0.2s',
+          transition: 'stroke 0.15s, stroke-width 0.15s',
         }}
       />
       {conditionText && (
@@ -53,7 +53,7 @@ export const SequenceFlowEdge = memo(({
               transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
               pointerEvents: 'all',
             }}
-            className="nodrag nopan px-2.5 py-1 rounded-md bg-theme-surface border border-theme-border text-[10px] font-mono text-theme-accent shadow-md backdrop-blur-sm"
+            className="nodrag nopan px-2 py-0.5 rounded bg-theme-surface/95 border border-theme-border text-[9px] font-mono text-theme-accent shadow-sm backdrop-blur-sm"
           >
             {conditionText}
           </div>

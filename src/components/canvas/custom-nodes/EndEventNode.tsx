@@ -6,28 +6,34 @@ import { Square } from 'lucide-react';
 export const EndEventNode = memo(({ data, selected }: NodeProps<any>) => {
   const nodeData = data as BpmnNodeData;
 
+  const customContainerStyle: React.CSSProperties = {
+    backgroundColor: nodeData.customBgColor || undefined,
+    borderColor: nodeData.customBorderColor || undefined,
+  };
+
   return (
     <div
-      className={`group relative flex flex-col items-center justify-center w-28 h-28 rounded-full bg-theme-surface border-4 transition-all duration-200 shadow-lg ${
+      style={customContainerStyle}
+      className={`group relative flex flex-col items-center justify-center w-24 h-24 rounded-full bg-theme-surface/95 backdrop-blur-sm border-[3px] transition-all duration-150 shadow-md ${
         selected
-          ? 'border-[#EF4444] ring-4 ring-[#EF4444]/30 shadow-[#EF4444]/20 shadow-xl'
-          : 'border-[#EF4444] hover:border-[#EF4444]/80'
+          ? 'border-rose-400 ring-2 ring-rose-400/30 shadow-lg scale-[1.02]'
+          : 'border-rose-500/80 hover:border-rose-400 hover:shadow-lg'
       }`}
     >
       <Handle
         type="target"
         position={Position.Left}
-        className="w-3 h-3 bg-[#EF4444] border-2 border-theme-surface !left-[-6px]"
+        className="w-2.5 h-2.5 bg-rose-400 border-2 border-theme-surface !left-[-5px]"
       />
 
       <div className="flex flex-col items-center justify-center p-2 text-center">
-        <div className="w-8 h-8 rounded-full bg-[#EF4444]/20 text-[#EF4444] flex items-center justify-center mb-1">
-          <Square className="w-3.5 h-3.5 fill-[#EF4444]" />
+        <div className="w-6 h-6 rounded-full bg-rose-500/15 text-rose-400 flex items-center justify-center mb-0.5">
+          <Square className="w-2.5 h-2.5 fill-rose-400" />
         </div>
-        <span className="text-[10px] font-mono font-bold text-[#EF4444] tracking-wider">
+        <span className="text-[9px] font-mono font-bold text-rose-400 tracking-wider">
           {nodeData.standardId || 'END'}
         </span>
-        <span className="text-[10px] font-semibold text-theme-text line-clamp-1 max-w-[90px] leading-tight mt-0.5">
+        <span className="text-[9px] font-medium text-theme-text line-clamp-1 max-w-[78px] leading-tight">
           {nodeData.title}
         </span>
       </div>
@@ -36,4 +42,3 @@ export const EndEventNode = memo(({ data, selected }: NodeProps<any>) => {
 });
 
 EndEventNode.displayName = 'EndEventNode';
-
