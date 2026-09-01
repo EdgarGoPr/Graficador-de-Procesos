@@ -8,7 +8,7 @@
     "organizationUnit": "Tribunal Administrativo de Faltas - Municipalidad de Córdoba",
     "processObjective": "Estandarizar el circuito unificado de justicia administrativa municipal: desde la detección e ingreso multicanal (Inspectores, CMU, App Ciudadana), digitalización y apertura automática de expediente en SIGEF, enriquecimiento registral, distribución equitativa de causas (Sede Central y CPCs), gestión de medidas cautelares y acarreos, hasta el régimen de notificaciones (CiDi/OCEP), instancias de descargo, sentencias de rebeldía, cámara de apelaciones y pase a Procuración Fiscal.",
     "createdAt": "2026-09-01T09:00:00Z",
-    "updatedAt": "2026-09-01T17:39:40.789Z",
+    "updatedAt": "2026-09-01T17:49:52.601Z",
     "status": "APPROVED",
     "legalNormativeBasis": [
       "Código de Convivencia Ciudadana de la Ciudad de Córdoba (Ord. 12.468 y modif.)",
@@ -696,8 +696,8 @@
       "id": "node_step_1788278962658_0",
       "type": "UserTask",
       "position": {
-        "x": -807.360283560758,
-        "y": 447.7178151394188
+        "x": -851.077742435684,
+        "y": -383.3647032657374
       },
       "selected": false,
       "data": {
@@ -991,8 +991,8 @@
       "id": "node_1788284219055",
       "type": "StartEvent",
       "position": {
-        "x": -990.6333300604844,
-        "y": 428.95117321394594
+        "x": -1001.2257889354103,
+        "y": -401.2808562343038
       },
       "data": {
         "standardId": "EVT-01",

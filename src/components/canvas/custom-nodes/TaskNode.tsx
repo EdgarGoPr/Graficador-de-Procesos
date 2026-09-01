@@ -40,111 +40,132 @@ export const TaskNode = memo(({ data, selected }: NodeProps<any>) => {
   return (
     <div
       style={customContainerStyle}
-      className={`group relative w-full h-full ${isTitleOnly ? 'min-w-[170px] min-h-[70px]' : 'min-w-[210px] min-h-[120px]'} flex flex-col justify-between rounded-xl bg-theme-surface/95 backdrop-blur-sm border transition-all duration-150 shadow-md overflow-hidden ${
-        !nodeData.customBorderColor ? typeConfig.color : ''
-      } ${
-        selected ? 'ring-2 ring-sky-400/40 border-sky-400 shadow-xl scale-[1.01]' : 'hover:border-sky-400/70 hover:shadow-lg'
+      className={`group relative w-full h-full ${isTitleOnly ? 'min-w-[170px] min-h-[70px]' : 'min-w-[210px] min-h-[120px]'} flex flex-col justify-between rounded-xl bg-theme-surface/95 backdrop-blur-sm border transition-all duration-150 shadow-md ${
+        selected
+          ? '!ring-2 !ring-sky-400 !border-sky-400 shadow-2xl scale-[1.01]'
+          : (!nodeData.customBorderColor ? typeConfig.color : '') + ' hover:border-sky-400/70 hover:shadow-lg'
       }`}
     >
       <NodeResizer
         isVisible={selected}
         minWidth={isTitleOnly ? 150 : 200}
         minHeight={isTitleOnly ? 60 : 110}
-        handleClassName="!w-2.5 !h-2.5 !bg-sky-400 !border-2 !border-slate-900 !rounded-full shadow-md"
-        lineClassName="!border-sky-400 !border-dashed"
+        handleClassName="!w-3 !h-3 !bg-sky-400 !border-2 !border-slate-900 !rounded-full shadow-lg hover:scale-125 transition-transform z-50 cursor-nwse-resize"
+        lineClassName="!border-2 !border-sky-400 !border-dashed"
       />
 
+      {/* Target Handle (Left) */}
       <Handle
         type="target"
         position={Position.Left}
-        className="w-2.5 h-2.5 bg-sky-400 border-2 border-theme-surface !left-[-5px]"
+        className="!w-3.5 !h-3.5 !bg-sky-400 !border-2 !border-slate-900 !rounded-full shadow-md !left-[-7px] hover:scale-125 transition-transform z-40"
       />
 
-      {/* Card Header / Title Box */}
-      <div
-        style={customHeaderStyle}
-        className={`flex items-center justify-between px-2.5 py-1.5 bg-gradient-to-r ${typeConfig.headerBg} to-transparent rounded-t-xl border-b border-theme-border overflow-hidden shrink-0`}
-      >
-        <div className="flex items-center space-x-1.5 min-w-0">
-          <div className="p-1 rounded-md bg-theme-surface-subtle text-theme-text-muted shrink-0">
-            <Icon className="w-3 h-3" />
+      {/* Top Handle */}
+      <Handle
+        type="source"
+        id="top"
+        position={Position.Top}
+        className="!w-3 !h-3 !bg-sky-400 !border-2 !border-slate-900 !rounded-full shadow-md !top-[-6px] hover:scale-125 transition-transform z-40 opacity-0 group-hover:opacity-100 transition-opacity"
+      />
+
+      {/* Bottom Handle */}
+      <Handle
+        type="source"
+        id="bottom"
+        position={Position.Bottom}
+        className="!w-3 !h-3 !bg-sky-400 !border-2 !border-slate-900 !rounded-full shadow-md !bottom-[-6px] hover:scale-125 transition-transform z-40 opacity-0 group-hover:opacity-100 transition-opacity"
+      />
+
+      {/* Inner Clipped Content Container */}
+      <div className="w-full h-full flex flex-col justify-between rounded-xl overflow-hidden">
+        {/* Card Header / Title Box */}
+        <div
+          style={customHeaderStyle}
+          className={`flex items-center justify-between px-2.5 py-1.5 bg-gradient-to-r ${typeConfig.headerBg} to-transparent rounded-t-xl border-b border-theme-border overflow-hidden shrink-0`}
+        >
+          <div className="flex items-center space-x-1.5 min-w-0">
+            <div className="p-1 rounded-md bg-theme-surface-subtle text-theme-text-muted shrink-0">
+              <Icon className="w-3 h-3" />
+            </div>
+            <span className="text-[10px] font-mono font-bold tracking-wider text-theme-text truncate">
+              {nodeData.standardId || 'TSK-00'}
+            </span>
           </div>
-          <span className="text-[10px] font-mono font-bold tracking-wider text-theme-text truncate">
-            {nodeData.standardId || 'TSK-00'}
+          <span className={`text-[9px] font-medium px-2 py-0.5 rounded-full shrink-0 ${typeConfig.badge}`}>
+            {typeConfig.label}
           </span>
         </div>
-        <span className={`text-[9px] font-medium px-2 py-0.5 rounded-full shrink-0 ${typeConfig.badge}`}>
-          {typeConfig.label}
-        </span>
-      </div>
 
-      {/* Card Body */}
-      <div className="p-2.5 flex-1 flex flex-col justify-between overflow-hidden">
-        <div className="overflow-hidden">
-          <h4
-            style={{ fontSize: titleFontSize }}
-            className="text-xs font-semibold text-theme-text leading-snug line-clamp-2 mb-1 break-words overflow-hidden text-ellipsis"
-          >
-            {nodeData.title}
-          </h4>
-
-          {!isTitleOnly && nodeData.description && (
-            <p
-              style={{ fontSize: descFontSize }}
-              className="text-[11px] text-theme-text-muted line-clamp-2 leading-relaxed mb-2 break-words overflow-hidden text-ellipsis"
-            >
-              {nodeData.description}
-            </p>
-          )}
-        </div>
-
-        {/* Detailed Metadata & Badges only shown in Full mode */}
-        {!isTitleOnly && (
+        {/* Card Body */}
+        <div className="p-2.5 flex-1 flex flex-col justify-between overflow-hidden">
           <div className="overflow-hidden">
-            <div className="space-y-1 pt-1.5 border-t border-theme-border text-[10px] overflow-hidden">
-              {nodeData.itSystem && (
-                <div className="flex items-center text-theme-text-muted truncate">
-                  <Server className="w-3 h-3 text-sky-400 mr-1.5 shrink-0" />
-                  <span className="truncate font-mono text-[10px]">{nodeData.itSystem}</span>
-                </div>
-              )}
+            <h4
+              style={{ fontSize: titleFontSize }}
+              className="text-xs font-semibold text-theme-text leading-snug line-clamp-2 mb-1 break-words overflow-hidden text-ellipsis"
+            >
+              {nodeData.title}
+            </h4>
 
-              {nodeData.slaDuration && (
-                <div className={`flex items-center font-mono truncate ${nodeData.slaDuration.isPeremptory ? 'text-amber-400 font-semibold' : 'text-theme-text-muted'}`}>
-                  <Clock className="w-3 h-3 mr-1.5 shrink-0 text-amber-400" />
-                  <span className="text-[10px] truncate">
-                    {nodeData.slaDuration.value} {nodeData.slaDuration.unit === 'BUSINESS_DAYS' ? 'días hábiles' : nodeData.slaDuration.unit === 'CALENDAR_DAYS' ? 'días corr.' : 'hrs'}
-                  </span>
-                </div>
-              )}
-            </div>
+            {!isTitleOnly && nodeData.description && (
+              <p
+                style={{ fontSize: descFontSize }}
+                className="text-[11px] text-theme-text-muted line-clamp-2 leading-relaxed mb-2 break-words overflow-hidden text-ellipsis"
+              >
+                {nodeData.description}
+              </p>
+            )}
+          </div>
 
-            {/* Quality & Risk Status Flags */}
-            <div className="flex items-center justify-between mt-1.5 pt-1.5 border-t border-theme-border overflow-hidden">
-              <div className="flex items-center space-x-1.5 truncate">
-                {hasQuality && (
-                  <span className="flex items-center text-[9px] font-medium bg-emerald-500/10 text-emerald-400 px-1.5 py-0.5 rounded border border-emerald-500/25 shrink-0">
-                    <ShieldCheck className="w-2.5 h-2.5 mr-0.5" />
-                    ISO 9001
-                  </span>
+          {/* Detailed Metadata & Badges only shown in Full mode */}
+          {!isTitleOnly && (
+            <div className="overflow-hidden">
+              <div className="space-y-1 pt-1.5 border-t border-theme-border text-[10px] overflow-hidden">
+                {nodeData.itSystem && (
+                  <div className="flex items-center text-theme-text-muted truncate">
+                    <Server className="w-3 h-3 text-sky-400 mr-1.5 shrink-0" />
+                    <span className="truncate font-mono text-[10px]">{nodeData.itSystem}</span>
+                  </div>
+                )}
+
+                {nodeData.slaDuration && (
+                  <div className={`flex items-center font-mono truncate ${nodeData.slaDuration.isPeremptory ? 'text-amber-400 font-semibold' : 'text-theme-text-muted'}`}>
+                    <Clock className="w-3 h-3 mr-1.5 shrink-0 text-amber-400" />
+                    <span className="text-[10px] truncate">
+                      {nodeData.slaDuration.value} {nodeData.slaDuration.unit === 'BUSINESS_DAYS' ? 'días hábiles' : nodeData.slaDuration.unit === 'CALENDAR_DAYS' ? 'días corr.' : 'hrs'}
+                    </span>
+                  </div>
                 )}
               </div>
 
-              {hasRisks && (
-                <div className="flex items-center text-[9px] font-medium text-rose-400 bg-rose-500/10 px-1.5 py-0.5 rounded border border-rose-500/25 shrink-0">
-                  <AlertTriangle className="w-2.5 h-2.5 mr-1" />
-                  <span>{nodeData.operationalRisks?.length} Riesgo</span>
+              {/* Quality & Risk Status Flags */}
+              <div className="flex items-center justify-between mt-1.5 pt-1.5 border-t border-theme-border overflow-hidden">
+                <div className="flex items-center space-x-1.5 truncate">
+                  {hasQuality && (
+                    <span className="flex items-center text-[9px] font-medium bg-emerald-500/10 text-emerald-400 px-1.5 py-0.5 rounded border border-emerald-500/25 shrink-0">
+                      <ShieldCheck className="w-2.5 h-2.5 mr-0.5" />
+                      ISO 9001
+                    </span>
+                  )}
                 </div>
-              )}
+
+                {hasRisks && (
+                  <div className="flex items-center text-[9px] font-medium text-rose-400 bg-rose-500/10 px-1.5 py-0.5 rounded border border-rose-500/25 shrink-0">
+                    <AlertTriangle className="w-2.5 h-2.5 mr-1" />
+                    <span>{nodeData.operationalRisks?.length} Riesgo</span>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
+      {/* Source Handle (Right) */}
       <Handle
         type="source"
         position={Position.Right}
-        className="w-2.5 h-2.5 bg-sky-400 border-2 border-theme-surface !right-[-5px]"
+        className="!w-3.5 !h-3.5 !bg-sky-400 !border-2 !border-slate-900 !rounded-full shadow-md !right-[-7px] hover:scale-125 transition-transform z-40"
       />
     </div>
   );

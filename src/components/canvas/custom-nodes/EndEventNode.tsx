@@ -24,19 +24,19 @@ export const EndEventNode = memo(({ data, selected }: NodeProps<any>) => {
   return (
     <div
       style={customContainerStyle}
-      className={`group relative flex flex-col items-center justify-center w-24 h-24 rounded-full bg-theme-surface/95 backdrop-blur-sm border-[3px] transition-all duration-150 shadow-md overflow-hidden ${
+      className={`group relative flex flex-col items-center justify-center w-24 h-24 rounded-full bg-theme-surface/95 backdrop-blur-sm border-[3px] transition-all duration-150 shadow-md ${
         selected
-          ? 'border-rose-400 ring-2 ring-rose-400/30 shadow-lg scale-[1.02]'
+          ? '!border-rose-400 !ring-2 !ring-rose-400 shadow-2xl scale-[1.03]'
           : 'border-rose-500/80 hover:border-rose-400 hover:shadow-lg'
       }`}
     >
       <Handle
         type="target"
         position={Position.Left}
-        className="w-2.5 h-2.5 bg-rose-400 border-2 border-theme-surface !left-[-5px]"
+        className="!w-3.5 !h-3.5 !bg-rose-400 !border-2 !border-slate-900 !rounded-full shadow-md !left-[-7px] hover:scale-125 transition-transform z-40"
       />
 
-      <div style={customHeaderStyle} className="flex flex-col items-center justify-center p-2 text-center rounded-full overflow-hidden w-full">
+      <div style={customHeaderStyle} className="flex flex-col items-center justify-center p-2 text-center rounded-full overflow-hidden w-full h-full">
         <div className="w-6 h-6 rounded-full bg-rose-500/15 text-rose-400 flex items-center justify-center mb-0.5 shrink-0">
           <Square className="w-2.5 h-2.5 fill-rose-400" />
         </div>

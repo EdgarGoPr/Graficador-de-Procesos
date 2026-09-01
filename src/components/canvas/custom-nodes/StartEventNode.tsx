@@ -24,13 +24,13 @@ export const StartEventNode = memo(({ data, selected }: NodeProps<any>) => {
   return (
     <div
       style={customContainerStyle}
-      className={`group relative flex flex-col items-center justify-center w-24 h-24 rounded-full bg-theme-surface/95 backdrop-blur-sm border-2 transition-all duration-150 shadow-md overflow-hidden ${
+      className={`group relative flex flex-col items-center justify-center w-24 h-24 rounded-full bg-theme-surface/95 backdrop-blur-sm border-2 transition-all duration-150 shadow-md ${
         selected
-          ? 'border-teal-400 ring-2 ring-teal-400/30 shadow-lg scale-[1.02]'
+          ? '!border-teal-400 !ring-2 !ring-teal-400 shadow-2xl scale-[1.03]'
           : 'border-teal-500/80 hover:border-teal-400 hover:shadow-lg'
       }`}
     >
-      <div style={customHeaderStyle} className="flex flex-col items-center justify-center p-2 text-center rounded-full overflow-hidden w-full">
+      <div style={customHeaderStyle} className="flex flex-col items-center justify-center p-2 text-center rounded-full overflow-hidden w-full h-full">
         <div className="w-6 h-6 rounded-full bg-teal-500/15 text-teal-400 flex items-center justify-center mb-0.5 shrink-0">
           <Play className="w-3 h-3 fill-teal-400 ml-0.5" />
         </div>
@@ -50,7 +50,7 @@ export const StartEventNode = memo(({ data, selected }: NodeProps<any>) => {
       <Handle
         type="source"
         position={Position.Right}
-        className="w-2.5 h-2.5 bg-teal-400 border-2 border-theme-surface !right-[-5px]"
+        className="!w-3.5 !h-3.5 !bg-teal-400 !border-2 !border-slate-900 !rounded-full shadow-md !right-[-7px] hover:scale-125 transition-transform z-40"
       />
     </div>
   );

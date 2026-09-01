@@ -180,11 +180,14 @@ const ProcessCanvasInternal: React.FC = () => {
         edgeTypes={EDGE_TYPES}
         selectionMode={SelectionMode.Partial}
         multiSelectionKeyCode={['Shift']}
+        nodesDraggable={true}
+        nodesConnectable={true}
+        elementsSelectable={true}
+        panOnDrag={true}
         panOnScroll={true}
         panOnScrollMode={PanOnScrollMode.Free}
         zoomOnScroll={false}
         zoomActivationKeyCode="Control"
-        panOnDrag={[0, 1, 2]}
         zoomOnPinch={true}
         preventScrolling={true}
         fitView

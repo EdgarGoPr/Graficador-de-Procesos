@@ -25,19 +25,19 @@ export const TimerBoundaryNode = memo(({ data, selected }: NodeProps<any>) => {
   return (
     <div
       style={customContainerStyle}
-      className={`group relative flex flex-col items-center justify-center w-24 h-24 rounded-full bg-theme-surface/95 backdrop-blur-sm border-2 border-dashed transition-all duration-150 shadow-md border-amber-500/50 overflow-hidden ${
+      className={`group relative flex flex-col items-center justify-center w-24 h-24 rounded-full bg-theme-surface/95 backdrop-blur-sm border-2 border-dashed transition-all duration-150 shadow-md border-amber-500/50 ${
         selected
-          ? 'border-amber-400 ring-2 ring-amber-400/40 shadow-xl scale-105'
+          ? '!border-amber-400 !ring-2 !ring-amber-400 shadow-2xl scale-105'
           : 'hover:border-amber-400/80 hover:shadow-lg'
       }`}
     >
       <Handle
         type="target"
         position={Position.Left}
-        className="w-2.5 h-2.5 bg-amber-400 border-2 border-theme-surface !left-[-5px]"
+        className="!w-3.5 !h-3.5 !bg-amber-400 !border-2 !border-slate-900 !rounded-full shadow-md !left-[-7px] hover:scale-125 transition-transform z-40"
       />
 
-      <div style={customHeaderStyle} className="flex flex-col items-center justify-center p-2 text-center rounded-full overflow-hidden w-full">
+      <div style={customHeaderStyle} className="flex flex-col items-center justify-center p-2 text-center rounded-full overflow-hidden w-full h-full">
         <div className="w-6 h-6 rounded-full bg-amber-500/15 text-amber-400 flex items-center justify-center mb-0.5 shrink-0">
           <Clock className="w-3 h-3" />
         </div>
@@ -63,7 +63,7 @@ export const TimerBoundaryNode = memo(({ data, selected }: NodeProps<any>) => {
       <Handle
         type="source"
         position={Position.Right}
-        className="w-2.5 h-2.5 bg-amber-400 border-2 border-theme-surface !right-[-5px]"
+        className="!w-3.5 !h-3.5 !bg-amber-400 !border-2 !border-slate-900 !rounded-full shadow-md !right-[-7px] hover:scale-125 transition-transform z-40"
       />
     </div>
   );

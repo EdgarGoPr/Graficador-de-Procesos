@@ -1,6 +1,6 @@
 # MANUAL DE USO Y GUÍA TÉCNICA INTEGRAL
 ## ProcesStudio Portable — BPMN 2.0 (ISO 19510) & ISO 9001:2015
-**Versión del Manual:** 3.3 &bull; **Fecha de Emisión:** 2026-09-01 &bull; **Entorno:** Portable Windows Desktop (`ProcesStudio.exe`) / Web
+**Versión del Manual:** 3.4 &bull; **Fecha de Emisión:** 2026-09-01 &bull; **Entorno:** Portable Windows Desktop (`ProcesStudio.exe`) / Web
 
 ---
 
@@ -9,30 +9,31 @@
 **ProcesStudio Portable** (identificado con el isotipo **`PS`**) es una plataforma profesional concebida para el modelado, análisis, optimización, compresión jerárquica y documentación formal de procedimientos administrativos y flujos operativos institucionales. Integra de manera nativa:
 
 1. **Notación BPMN 2.0 (ISO/IEC 19510:2013)**: Diagramación formal de procesos, compresión y descompresión bidireccional de Subprocesos y Macroprocesos, redimensionamiento libre y proporcional de tarjetas.
-2. **Navegación Fluida del Lienzo y Control de Zoom:**
+2. **Selección Activa, Redimensionamiento y Conectores Laterales:**
+   * **Anillo de Selección Brillante:** Al hacer clic en una tarjeta, su borde se resalta con un halo luminoso nítido.
+   * **Esquinas de Redimensionamiento:** Puntos interactivos en las 4 esquinas para estirar o achicar la tarjeta de forma intuitiva.
+   * **Conectores Laterales (Handles):** Puntos de conexión visibles en los bordes para tirar flechas de flujo de secuencia hacia otras actividades.
+3. **Navegación Fluida del Lienzo y Control de Zoom:**
    * **Desplazamiento Vertical con la Rueda:** Al mover la rueda del ratón (scroll), el mapa se desplaza suavemente de arriba a abajo.
    * **Zoom Focalizado en el Puntero (`Ctrl + Rueda`):** Mantener presionada la tecla `Ctrl` mientras se gira la rueda del ratón realiza acercamiento o alejamiento enfocado con precisión en la ubicación del cursor.
    * **Arrastre desde Swimlanes:** Agarrar y arrastrar desde el área de carriles (swimlanes) o el fondo permite desplazar el lienzo con total libertad.
-3. **Personalización Granular de Tarjetas y Tipografía:**
+4. **Personalización Granular de Tarjetas y Tipografía:**
    * **Modo de Visualización de Contenido:** Alternancia entre `📋 Toda la info` (detallado con SLA, riesgos, calidad y sistemas) y `🏷️ Solo título` (vista panorámica limpia y compacta).
-   * **Tamaño de Letra Ajustable:** Pastillas rápidas (*10px Compacta, 12px Normal, 14px Mediana, 16px Grande*) y control deslizante de 9px a 20px.
-   * **Contención Estricta (Sin desbordamiento):** Nada de texto ni gráficos se renderiza fuera de los límites geométricos de la tarjeta.
-   * **Fondo y Opacidad:** Color de fondo con control deslizante de transparencia (de 10% translúcido a 100% sólido).
-   * **Borde y Recuadro del Título:** Selección cromática independiente para el marco exterior y la franja superior de la cabecera/título.
-   * **Ámbito de Aplicación:** Selector para aplicar el estilo a `[ 🎯 Esta tarjeta ]`, `[ 🏷️ Mismo tipo ]` o `[ 🌐 Todo el mapa ]`.
-   * **Temáticas de Tarjeta:** Catálogo de combos (*Pizarra Slate Pro, Midnight Acero, Salvia Forestal, Nebula Violeta, Ámbar Cálido, Vidrio Esmerilado, Nórdico Claro, Arena Suave*).
-4. **Catálogo Exclusivo de Temas de ProcesStudio:**
+   * **Tamaño de Letra Ajustable:** Pastillas rápidas (*10px Compacta, 12px Normal, 14px Mediana, 16px Grande*) y control deslizante de 9px a 20px con contención estricta sin desbordamiento.
+   * **Fondo, Opacidad, Borde y Recuadro del Título:** Selección cromática independiente y aplicación por ámbito (`Esta tarjeta`, `Mismo tipo`, `Todo el mapa`).
+   * **Temáticas de Tarjeta:** Catálogo preconfigurado (*Pizarra Slate Pro, Midnight Acero, Salvia Forestal, Nebula Violeta, Ámbar Cálido, Vidrio Esmerilado, Nórdico Claro, Arena Suave*).
+5. **Catálogo Exclusivo de Temas de ProcesStudio:**
    * 🌑 **ProcesStudio Slate Pro** (Grafito profundo y azul pizarra mate)
    * 🪐 **Midnight Executive** (Azul espacial y acero relajante)
    * 🌿 **Forest Sage ISO** (Gris bosque y verde salvia)
    * 🔮 **Nebula Modern** (Grafito violeta y lavanda suave)
    * ☀️ **Nordic Studio Light** (Fondo perla claro y azul cerúleo)
    * 🏖️ **Warm Sandpaper** (Arena cálida y ámbar mate)
-5. **Compresión y Descompresión con Geometría Relativa**:
+6. **Compresión y Descompresión con Geometría Relativa**:
    * Preservación inmutable de todos los tipos de nodos y estilos de conectores al comprimir y descomprimir.
    * Movimiento en bloque sincronizado de todas las tarjetas descomprimidas.
-6. **Portapapeles Integral de Procesos (`Ctrl + C` / `Ctrl + V`)**: Copiado y pegado de tarjetas individuales, selecciones múltiples y Subprocesos completos con todas sus tareas internas.
-7. **Persistencia Total y Autoguardado en Segundo Plano**: Disposiciones espaciales `(X, Y)`, dimensiones, colores de tarjetas y conexiones guardados en tiempo real en los archivos JSON de `../Proyectos/`.
+7. **Portapapeles Integral de Procesos (`Ctrl + C` / `Ctrl + V`)**: Copiado y pegado de tarjetas individuales, selecciones múltiples y Subprocesos completos con todas sus tareas internas.
+8. **Persistencia Total y Autoguardado en Segundo Plano**: Disposiciones espaciales `(X, Y)`, dimensiones, colores de tarjetas y conexiones guardados en tiempo real en los archivos JSON de `../Proyectos/`.
 
 ### 💾 Arquitectura Portable USB (Zero-AppData & Zero-Registry)
 * **Ejecutable Directo (`ProcesStudio.exe`)**: Inicia la aplicación con un solo clic.
@@ -41,9 +42,14 @@
 
 ---
 
-## 2. NAVEGACIÓN, PERSONALIZACIÓN VISUAL Y MODOS DE VISTA
+## 2. INTERACCIÓN CON TARJETAS, NAVEGACIÓN Y PERSONALIZACIÓN
 
-### 2.1. Atajos de Navegación del Lienzo
+### 2.1. Interacción con Tarjetas en el Lienzo
+1. **Selección y Resaltado:** Haga clic sobre cualquier tarjeta para seleccionarla; se iluminará con un borde brillante activo y abrirá el panel lateral de propiedades.
+2. **Redimensionamiento (Esquinas):** Al seleccionar la tarjeta, aparecen puntos en sus cuatro esquinas. Arrástrelos para expandir o contraer sus dimensiones libremente.
+3. **Conexiones (Puntos Laterales):** Pase el cursor sobre los laterales de la tarjeta; haga clic y arrastre desde el conector hacia la tarjeta de destino para crear un flujo de secuencia BPMN 2.0.
+
+### 2.2. Atajos de Navegación del Lienzo
 | Acción | Atajo / Movimiento | Resultado en el Lienzo |
 | :--- | :--- | :--- |
 | **Scroll Vertical** | `Rueda del ratón (arriba / abajo)` | Desplaza el mapa hacia arriba o hacia abajo. |
@@ -52,19 +58,11 @@
 | **Copiar y Pegar** | `Ctrl + C` / `Ctrl + V` | Duplica tarjetas, subprocesos o selecciones múltiples. |
 | **Eliminar** | `Supr` o `Retroceso` | Elimina nodos o conexiones seleccionadas. |
 
-### 2.2. Opciones de Personalización en el Panel Lateral
-Al seleccionar cualquier tarjeta del lienzo, el panel de propiedades ofrece la sección **"Estilo y Temática de Tarjeta"**:
-1. **Ámbito de Aplicación:**
-   * `🎯 Esta tarjeta`: Modifica únicamente el elemento seleccionado.
-   * `🏷️ Mismo tipo`: Actualiza todas las tarjetas de la misma clase (ej. todas las tareas de usuario o todas las compuertas).
-   * `🌐 Todo el mapa`: Aplica el estilo seleccionado a la totalidad de las tarjetas del diagrama.
-2. **Modo de Visualización:**
-   * `📋 Toda la info`: Despliega la descripción, SLA, sistema TI, puntos de calidad ISO 9001 y riesgos operativos.
-   * `🏷️ Solo título`: Modo compacto que oculta metadatos secundarios para diagramas ejecutivos o de alto nivel.
-3. **Tamaño de Letra:** Ajuste entre 9px y 20px con contención estricta que evita desbordamientos o textos superpuestos.
-4. **Temáticas Predefinidas de Tarjeta:** Aplica combinaciones armoniosas de fondo, transparencia, borde y cabecera con un solo clic.
-5. **Control de Fondo y Transparencia:** Selector RGB/Hex acompañado de un control deslizante de 10% a 100% de opacidad.
-6. **Borde y Recuadro de Título:** Colores configurables independientemente para resaltar hitos críticos o separar jerarquías.
+### 2.3. Opciones de Personalización en el Panel Lateral
+* **Ámbito de Aplicación:** `🎯 Esta tarjeta`, `🏷️ Mismo tipo`, `🌐 Todo el mapa`.
+* **Modo de Visualización:** `📋 Toda la info` vs `🏷️ Solo título`.
+* **Tamaño de Letra:** Ajuste entre 9px y 20px con contención estricta.
+* **Temáticas y Colores:** Combinaciones armoniosas para fondo, transparencia, borde y recuadro de cabecera.
 
 ---
 
@@ -110,13 +108,14 @@ Al seleccionar cualquier tarjeta del lienzo, el panel de propiedades ofrece la s
                                              [ FIN-01: Archivo ]
 ```
 
-### PASO 1: Modelado, Tipografía y Navegación
-1. Utilice la **rueda del ratón** para desplazarse verticalmente y **`Ctrl + Rueda`** para hacer zoom en el área de interés.
-2. Ajuste el tamaño de letra o active el modo *Solo título* en las actividades según el nivel de detalle requerido.
+### PASO 1: Modelado, Conexiones y Redimensionamiento
+1. Seleccione cualquier tarjeta para ver su borde brillante y ajustar su tamaño desde las esquinas.
+2. Arrastre desde sus conectores laterales para trazar conexiones fluidas hacia otras tarjetas.
+3. Utilice la rueda del ratón para desplazarse verticalmente y `Ctrl + Rueda` para hacer zoom focalizado.
 
 ### PASO 2: Compresión y Descompresión
 1. Seleccione las actividades y presione **`📦 Comprimir en Subproceso`**.
-2. Al trasladar el Subproceso y presionar **`Descomprimir`**, las tarjetas reaparecen en la nueva posición con sus tamaños, colores y transparencias intactos.
+2. Al trasladar el Subproceso y presionar **`Descomprimir`**, las tarjetas reaparecen en la nueva posición con sus tamaños, colores, conectores y transparencias intactos.
 
 ---
 
