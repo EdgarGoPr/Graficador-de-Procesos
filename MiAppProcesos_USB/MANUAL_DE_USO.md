@@ -1,6 +1,6 @@
 # MANUAL DE USO Y GUÍA TÉCNICA INTEGRAL
 ## ProcesStudio Portable — BPMN 2.0 (ISO 19510) & ISO 9001:2015
-**Versión del Manual:** 3.1 &bull; **Fecha de Emisión:** 2026-09-01 &bull; **Entorno:** Portable Windows Desktop (`ProcesStudio.exe`) / Web
+**Versión del Manual:** 3.2 &bull; **Fecha de Emisión:** 2026-09-01 &bull; **Entorno:** Portable Windows Desktop (`ProcesStudio.exe`) / Web
 
 ---
 
@@ -9,7 +9,10 @@
 **ProcesStudio Portable** (identificado con el isotipo **`PS`**) es una plataforma profesional concebida para el modelado, análisis, optimización, compresión jerárquica y documentación formal de procedimientos administrativos y flujos operativos institucionales. Integra de manera nativa:
 
 1. **Notación BPMN 2.0 (ISO/IEC 19510:2013)**: Diagramación formal de procesos, compresión y descompresión bidireccional de Subprocesos y Macroprocesos, redimensionamiento libre y proporcional de tarjetas.
-2. **Personalización Granular de Tarjetas y Temáticas:**
+2. **Personalización Granular de Tarjetas y Tipografía:**
+   * **Modo de Visualización de Contenido:** Alternancia entre `📋 Toda la info` (detallado con SLA, riesgos, calidad y sistemas) y `🏷️ Solo título` (vista panorámica limpia y compacta).
+   * **Tamaño de Letra Ajustable:** Pastillas rápidas (*10px Compacta, 12px Normal, 14px Mediana, 16px Grande*) y control deslizante de 9px a 20px.
+   * **Contención Estricta (Sin desbordamiento):** Nada de texto ni gráficos se renderiza fuera de los límites geométricos de la tarjeta.
    * **Fondo y Opacidad:** Color de fondo con control deslizante de transparencia (de 10% translúcido a 100% sólido).
    * **Borde y Recuadro del Título:** Selección cromática independiente para el marco exterior y la franja superior de la cabecera/título.
    * **Ámbito de Aplicación:** Selector para aplicar el estilo a `[ 🎯 Esta tarjeta ]`, `[ 🏷️ Mismo tipo ]` o `[ 🌐 Todo el mapa ]`.
@@ -34,7 +37,7 @@
 
 ---
 
-## 2. PERSONALIZACIÓN VISUAL Y TEMÁTICAS DE TARJETAS
+## 2. PERSONALIZACIÓN VISUAL, MODOS DE VISTA Y TIPOGRAFÍA
 
 ### 2.1. Opciones de Personalización en el Panel Lateral
 Al seleccionar cualquier tarjeta del lienzo, el panel de propiedades ofrece la sección **"Estilo y Temática de Tarjeta"**:
@@ -42,9 +45,13 @@ Al seleccionar cualquier tarjeta del lienzo, el panel de propiedades ofrece la s
    * `🎯 Esta tarjeta`: Modifica únicamente el elemento seleccionado.
    * `🏷️ Mismo tipo`: Actualiza todas las tarjetas de la misma clase (ej. todas las tareas de usuario o todas las compuertas).
    * `🌐 Todo el mapa`: Aplica el estilo seleccionado a la totalidad de las tarjetas del diagrama.
-2. **Temáticas Predefinidas de Tarjeta:** Aplica combinaciones armoniosas de fondo, transparencia, borde y cabecera con un solo clic.
-3. **Control de Fondo y Transparencia:** Selector RGB/Hex acompañado de un control deslizante de 10% a 100% de opacidad.
-4. **Borde y Recuadro de Título:** Colores configurables independientemente para resaltar hitos críticos o separar jerarquías.
+2. **Modo de Visualización:**
+   * `📋 Toda la info`: Despliega la descripción, SLA, sistema TI, puntos de calidad ISO 9001 y riesgos operativos.
+   * `🏷️ Solo título`: Modo compacto que oculta metadatos secundarios para diagramas ejecutivos o de alto nivel.
+3. **Tamaño de Letra:** Ajuste entre 9px y 20px con contención estricta que evita desbordamientos o textos superpuestos.
+4. **Temáticas Predefinidas de Tarjeta:** Aplica combinaciones armoniosas de fondo, transparencia, borde y cabecera con un solo clic.
+5. **Control de Fondo y Transparencia:** Selector RGB/Hex acompañado de un control deslizante de 10% a 100% de opacidad.
+6. **Borde y Recuadro de Título:** Colores configurables independientemente para resaltar hitos críticos o separar jerarquías.
 
 ---
 
@@ -90,13 +97,13 @@ Al seleccionar cualquier tarjeta del lienzo, el panel de propiedades ofrece la s
                                              [ FIN-01: Archivo ]
 ```
 
-### PASO 1: Modelado y Personalización Visual
-1. Dibuje las actividades en el lienzo y personalice sus colores de fondo, transparencia o aplique temáticas predefinidas.
-2. Si desea homogeneizar el diseño, seleccione una tarjeta y aplique el color con el alcance **"A todas las tarjetas del mismo tipo"** o **"A todas las tarjetas"**.
+### PASO 1: Modelado, Tipografía y Personalización Visual
+1. Dibuje las actividades en el lienzo y ajuste su tamaño de letra o modo de visualización (*Solo Título* o *Toda la info*).
+2. Si desea homogeneizar el diseño, seleccione una tarjeta y aplique el modo o color con el alcance **"A todas las tarjetas del mismo tipo"** o **"A todas las tarjetas"**.
 
 ### PASO 2: Compresión y Descompresión
-1. Seleccione las 3 tareas de regularización y presione **`📦 Comprimir en Subproceso`**.
-2. Al trasladar el Subproceso y presionar **`Descomprimir`**, las tarjetas reaparecen en la nueva posición con sus colores y transparencias intactos.
+1. Seleccione las actividades y presione **`📦 Comprimir en Subproceso`**.
+2. Al trasladar el Subproceso y presionar **`Descomprimir`**, las tarjetas reaparecen en la nueva posición con sus tamaños, colores y transparencias intactos.
 
 ---
 

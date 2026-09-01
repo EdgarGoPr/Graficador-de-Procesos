@@ -7,6 +7,7 @@ import { ShieldCheck, CheckCircle2, AlertOctagon } from 'lucide-react';
 export const QualityCheckpointNode = memo(({ data, selected }: NodeProps<any>) => {
   const nodeData = data as BpmnNodeData;
   const qc = nodeData.qualityCheckpoint;
+  const isTitleOnly = nodeData.displayMode === 'title_only';
 
   const opacity = nodeData.customBgOpacity ?? 95;
   const customContainerStyle: React.CSSProperties = {
@@ -20,17 +21,19 @@ export const QualityCheckpointNode = memo(({ data, selected }: NodeProps<any>) =
     color: nodeData.customHeaderTextColor || undefined,
   };
 
+  const titleFontSize = nodeData.customFontSize ? `${nodeData.customFontSize}px` : undefined;
+
   return (
     <div
       style={customContainerStyle}
-      className={`group relative w-full h-full min-w-[200px] min-h-[110px] flex flex-col justify-between rounded-xl bg-theme-surface/95 backdrop-blur-sm border-2 border-emerald-500/40 transition-all duration-150 shadow-md ${
+      className={`group relative w-full h-full ${isTitleOnly ? 'min-w-[170px] min-h-[70px]' : 'min-w-[200px] min-h-[110px]'} flex flex-col justify-between rounded-xl bg-theme-surface/95 backdrop-blur-sm border-2 border-emerald-500/40 transition-all duration-150 shadow-md overflow-hidden ${
         selected ? 'ring-2 ring-emerald-400/40 border-emerald-400 shadow-xl scale-[1.01]' : 'hover:border-emerald-400/80 hover:shadow-lg'
       }`}
     >
       <NodeResizer
         isVisible={selected}
-        minWidth={190}
-        minHeight={100}
+        minWidth={isTitleOnly ? 150 : 190}
+        minHeight={isTitleOnly ? 60 : 100}
         handleClassName="!w-2.5 !h-2.5 !bg-emerald-400 !border-2 !border-slate-900 !rounded-full shadow-md"
         lineClassName="!border-emerald-400 !border-dashed"
       />
@@ -44,41 +47,50 @@ export const QualityCheckpointNode = memo(({ data, selected }: NodeProps<any>) =
       {/* Header / Title Box */}
       <div
         style={customHeaderStyle}
-        className="flex items-center justify-between px-3 py-1.5 bg-gradient-to-r from-emerald-500/10 to-transparent rounded-t-lg border-b border-theme-border"
+        className="flex items-center justify-between px-2.5 py-1.5 bg-gradient-to-r from-emerald-500/10 to-transparent rounded-t-lg border-b border-theme-border overflow-hidden shrink-0"
       >
-        <div className="flex items-center space-x-1.5">
-          <div className="p-1 rounded-md bg-emerald-500/10 text-emerald-400">
+        <div className="flex items-center space-x-1.5 min-w-0">
+          <div className="p-1 rounded-md bg-emerald-500/10 text-emerald-400 shrink-0">
             <ShieldCheck className="w-3.5 h-3.5" />
           </div>
-          <span className="text-[10px] font-mono font-bold tracking-wider text-emerald-400">
+          <span className="text-[10px] font-mono font-bold tracking-wider text-emerald-400 truncate">
             {qc?.checkpointCode || nodeData.standardId || 'QC-01'}
           </span>
         </div>
-        <span className="text-[9px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/25 uppercase">
+        <span className="text-[9px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/25 uppercase shrink-0">
           ISO 9001
         </span>
       </div>
 
       {/* Body */}
-      <div className="p-3">
-        <h4 className="text-xs font-semibold text-theme-text leading-snug line-clamp-2 mb-1">
-          {nodeData.title}
-        </h4>
+      <div className="p-2.5 flex-1 flex flex-col justify-between overflow-hidden">
+        <div className="overflow-hidden">
+          <h4
+            style={{ fontSize: titleFontSize }}
+            className="text-xs font-semibold text-theme-text leading-snug line-clamp-2 mb-1 break-words overflow-hidden text-ellipsis"
+          >
+            {nodeData.title}
+          </h4>
+        </div>
         
-        {qc?.inspectionCriteria && (
-          <div className="mt-1.5 p-1.5 rounded bg-theme-surface-subtle border border-theme-border text-[10px] text-theme-text-muted leading-relaxed">
-            <div className="font-medium text-emerald-400 flex items-center mb-0.5">
-              <CheckCircle2 className="w-2.5 h-2.5 mr-1 shrink-0" />
-              Criterio de Aceptación:
-            </div>
-            <p className="line-clamp-2">{qc.inspectionCriteria}</p>
-          </div>
-        )}
+        {!isTitleOnly && (
+          <div className="overflow-hidden">
+            {qc?.inspectionCriteria && (
+              <div className="mt-1 p-1.5 rounded bg-theme-surface-subtle border border-theme-border text-[10px] text-theme-text-muted leading-relaxed overflow-hidden">
+                <div className="font-medium text-emerald-400 flex items-center mb-0.5 truncate">
+                  <CheckCircle2 className="w-2.5 h-2.5 mr-1 shrink-0" />
+                  <span className="truncate">Criterio de Aceptación:</span>
+                </div>
+                <p className="line-clamp-2 overflow-hidden text-ellipsis">{qc.inspectionCriteria}</p>
+              </div>
+            )}
 
-        {qc?.evidenceRequired && (
-          <div className="mt-1.5 flex items-center text-[9px] text-theme-text-muted">
-            <AlertOctagon className="w-2.5 h-2.5 text-emerald-400 mr-1 shrink-0" />
-            <span className="truncate font-mono">Reg: {qc.evidenceRequired}</span>
+            {qc?.evidenceRequired && (
+              <div className="mt-1 flex items-center text-[9px] text-theme-text-muted truncate">
+                <AlertOctagon className="w-2.5 h-2.5 text-emerald-400 mr-1 shrink-0" />
+                <span className="truncate font-mono">Reg: {qc.evidenceRequired}</span>
+              </div>
+            )}
           </div>
         )}
       </div>

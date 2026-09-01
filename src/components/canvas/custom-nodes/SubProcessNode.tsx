@@ -29,6 +29,7 @@ export const SubProcessNode = memo(({ id, data, selected }: NodeProps<any>) => {
   };
 
   const stepsCount = nodeData.subProcessSteps?.length || 0;
+  const isTitleOnly = nodeData.displayMode === 'title_only';
 
   const opacity = nodeData.customBgOpacity ?? 95;
   const customContainerStyle: React.CSSProperties = {
@@ -42,10 +43,13 @@ export const SubProcessNode = memo(({ id, data, selected }: NodeProps<any>) => {
     color: nodeData.customHeaderTextColor || undefined,
   };
 
+  const titleFontSize = nodeData.customFontSize ? `${nodeData.customFontSize}px` : undefined;
+  const descFontSize = nodeData.customFontSize ? `${Math.max(9, nodeData.customFontSize - 2)}px` : undefined;
+
   return (
     <div
       style={customContainerStyle}
-      className={`group relative w-full h-full min-w-[220px] min-h-[130px] flex flex-col justify-between rounded-xl bg-theme-surface/95 backdrop-blur-sm border-2 border-indigo-400/50 transition-all duration-150 shadow-md ${
+      className={`group relative w-full h-full ${isTitleOnly ? 'min-w-[180px] min-h-[75px]' : 'min-w-[220px] min-h-[130px]'} flex flex-col justify-between rounded-xl bg-theme-surface/95 backdrop-blur-sm border-2 border-indigo-400/50 transition-all duration-150 shadow-md overflow-hidden ${
         selected
           ? 'ring-2 ring-indigo-400/40 border-indigo-400 shadow-xl scale-[1.01]'
           : 'hover:border-indigo-400/80 hover:shadow-lg'
@@ -53,8 +57,8 @@ export const SubProcessNode = memo(({ id, data, selected }: NodeProps<any>) => {
     >
       <NodeResizer
         isVisible={selected}
-        minWidth={210}
-        minHeight={120}
+        minWidth={isTitleOnly ? 160 : 210}
+        minHeight={isTitleOnly ? 65 : 120}
         handleClassName="!w-2.5 !h-2.5 !bg-indigo-400 !border-2 !border-slate-900 !rounded-full shadow-md"
         lineClassName="!border-indigo-400 !border-dashed"
       />
@@ -68,17 +72,17 @@ export const SubProcessNode = memo(({ id, data, selected }: NodeProps<any>) => {
       {/* Header / Title Box */}
       <div
         style={customHeaderStyle}
-        className="flex items-center justify-between px-3 py-1.5 bg-gradient-to-r from-indigo-500/10 to-transparent rounded-t-lg border-b border-theme-border"
+        className="flex items-center justify-between px-2.5 py-1.5 bg-gradient-to-r from-indigo-500/10 to-transparent rounded-t-lg border-b border-theme-border overflow-hidden shrink-0"
       >
-        <div className="flex items-center space-x-1.5">
-          <div className="p-1 rounded bg-indigo-500/10 text-indigo-400">
+        <div className="flex items-center space-x-1.5 min-w-0">
+          <div className="p-1 rounded bg-indigo-500/10 text-indigo-400 shrink-0">
             <Layers className="w-3 h-3" />
           </div>
-          <span className="text-[10px] font-mono font-bold tracking-wider text-indigo-400">
+          <span className="text-[10px] font-mono font-bold tracking-wider text-indigo-400 truncate">
             {nodeData.standardId || 'SUB-01'}
           </span>
         </div>
-        <div className="flex items-center space-x-1">
+        <div className="flex items-center space-x-1 shrink-0">
           <span className="text-[9px] font-medium px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-300 border border-indigo-500/25">
             Subproceso
           </span>
@@ -86,26 +90,36 @@ export const SubProcessNode = memo(({ id, data, selected }: NodeProps<any>) => {
       </div>
 
       {/* Body */}
-      <div className="p-3">
-        <h4 className="text-xs font-semibold text-theme-text leading-snug line-clamp-2 mb-1 group-hover:text-indigo-300 transition-colors">
-          {nodeData.title}
-        </h4>
-        <p className="text-[11px] text-theme-text-muted line-clamp-2 leading-relaxed mb-2.5">
-          {nodeData.description}
-        </p>
+      <div className="p-2.5 flex-1 flex flex-col justify-between overflow-hidden">
+        <div className="overflow-hidden">
+          <h4
+            style={{ fontSize: titleFontSize }}
+            className="text-xs font-semibold text-theme-text leading-snug line-clamp-2 mb-1 group-hover:text-indigo-300 transition-colors break-words overflow-hidden text-ellipsis"
+          >
+            {nodeData.title}
+          </h4>
+          {!isTitleOnly && nodeData.description && (
+            <p
+              style={{ fontSize: descFontSize }}
+              className="text-[11px] text-theme-text-muted line-clamp-2 leading-relaxed mb-2 break-words overflow-hidden text-ellipsis"
+            >
+              {nodeData.description}
+            </p>
+          )}
+        </div>
 
         {/* Steps indicator and Expand / Decompress Buttons */}
-        <div className="flex items-center justify-between pt-2 border-t border-theme-border text-[10px]">
-          <div className="flex items-center text-theme-text-muted">
-            <ListOrdered className="w-3 h-3 mr-1 text-indigo-400" />
-            <span>{stepsCount > 0 ? `${stepsCount} etapas` : 'Detalle configurable'}</span>
+        <div className="flex items-center justify-between pt-1.5 border-t border-theme-border text-[10px] overflow-hidden">
+          <div className="flex items-center text-theme-text-muted truncate">
+            <ListOrdered className="w-3 h-3 mr-1 text-indigo-400 shrink-0" />
+            <span className="truncate">{stepsCount > 0 ? `${stepsCount} etapas` : 'Detalle'}</span>
           </div>
 
-          <div className="flex items-center space-x-1.5">
+          <div className="flex items-center space-x-1 shrink-0">
             {stepsCount > 0 && (
               <button
                 onClick={handleDecompress}
-                className="flex items-center space-x-1 px-2 py-0.5 rounded-md bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/25 text-[10px] font-medium transition-all"
+                className="flex items-center space-x-0.5 px-1.5 py-0.5 rounded bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/25 text-[9px] font-medium transition-all"
                 title="Descomprimir y desplegar actividades en el lienzo"
               >
                 <FolderOpen className="w-2.5 h-2.5" />
@@ -115,7 +129,7 @@ export const SubProcessNode = memo(({ id, data, selected }: NodeProps<any>) => {
 
             <button
               onClick={handleExpand}
-              className="flex items-center space-x-1 px-2.5 py-0.5 rounded-md bg-indigo-500/15 hover:bg-indigo-500/30 text-indigo-300 hover:text-white border border-indigo-500/30 text-[10px] font-semibold transition-all shadow-sm"
+              className="flex items-center space-x-0.5 px-2 py-0.5 rounded bg-indigo-500/15 hover:bg-indigo-500/30 text-indigo-300 hover:text-white border border-indigo-500/30 text-[9px] font-semibold transition-all shadow-sm"
               title="Ampliar y ver el flujo detallado de este subproceso"
             >
               <Maximize2 className="w-2.5 h-2.5" />

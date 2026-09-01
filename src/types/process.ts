@@ -135,6 +135,8 @@ export interface BpmnNodeData {
   customHeaderBgColor?: string; // Color personalizado del recuadro del título / cabecera
   customHeaderTextColor?: string; // Color personalizado del texto del título / cabecera
   customTextColor?: string; // Color personalizado del texto de la tarjeta
+  customFontSize?: number; // Tamaño de letra personalizado en px (ej: 10, 12, 14, 16, 18)
+  displayMode?: 'full' | 'title_only'; // Modo de visualización: 'full' (completo) o 'title_only' (solo título)
   tags: string[];
   [key: string]: unknown;
 }

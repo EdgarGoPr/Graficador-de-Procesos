@@ -20,7 +20,10 @@ import {
   RotateCcw,
   Sparkles,
   Activity,
-  FolderOpen
+  FolderOpen,
+  Type,
+  Eye,
+  Layout
 } from 'lucide-react';
 import {
   BpmnNodeData,
@@ -641,6 +644,95 @@ export const PropertiesPanel: React.FC = () => {
                   className="w-24 px-1.5 py-0.5 rounded bg-theme-surface-subtle border border-theme-border text-[10px] font-mono text-theme-text uppercase"
                 />
               </div>
+            </div>
+          </div>
+
+          {/* Modo de Visualización (Solo Título vs Completo) */}
+          <div className="space-y-1.5 p-2.5 rounded-xl bg-theme-surface border border-theme-border">
+            <span className="text-[10px] text-theme-text font-semibold flex items-center">
+              <Layout className="w-3.5 h-3.5 mr-1 text-theme-accent" />
+              <span>Contenido Visible en Tarjeta:</span>
+            </span>
+            <div className="grid grid-cols-2 gap-1.5 pt-0.5">
+              <button
+                onClick={() => {
+                  applyCardStyleToScope(node.id, cardStyleScope, { displayMode: 'full' });
+                  showNotification('Modo detallado aplicado (Toda la información)');
+                }}
+                className={`py-1.5 px-2 rounded-lg border text-[10px] font-semibold flex items-center justify-center space-x-1.5 transition-all ${
+                  (data.displayMode || 'full') === 'full'
+                    ? 'bg-theme-accent/20 border-theme-accent text-theme-accent shadow-sm'
+                    : 'bg-theme-surface-subtle border-theme-border text-theme-text-muted hover:text-theme-text'
+                }`}
+              >
+                <Eye className="w-3.5 h-3.5 shrink-0" />
+                <span>📋 Toda la info</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  applyCardStyleToScope(node.id, cardStyleScope, { displayMode: 'title_only' });
+                  showNotification('Modo compacto aplicado (Solo título)');
+                }}
+                className={`py-1.5 px-2 rounded-lg border text-[10px] font-semibold flex items-center justify-center space-x-1.5 transition-all ${
+                  data.displayMode === 'title_only'
+                    ? 'bg-theme-accent/20 border-theme-accent text-theme-accent shadow-sm'
+                    : 'bg-theme-surface-subtle border-theme-border text-theme-text-muted hover:text-theme-text'
+                }`}
+              >
+                <Type className="w-3.5 h-3.5 shrink-0" />
+                <span>🏷️ Solo título</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Tamaño de Letra / Tipografía */}
+          <div className="space-y-2 p-2.5 rounded-xl bg-theme-surface border border-theme-border">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] text-theme-text font-semibold flex items-center">
+                <Type className="w-3.5 h-3.5 mr-1 text-theme-accent" />
+                <span>Tamaño de Letra:</span>
+              </span>
+              <span className="text-[10px] font-mono font-bold text-theme-accent bg-theme-surface-subtle px-2 py-0.5 rounded border border-theme-border">
+                {data.customFontSize ?? 12}px
+              </span>
+            </div>
+
+            {/* Pastillas de tamaño rápido */}
+            <div className="grid grid-cols-4 gap-1">
+              {[
+                { label: 'Compacta', size: 10 },
+                { label: 'Normal', size: 12 },
+                { label: 'Mediana', size: 14 },
+                { label: 'Grande', size: 16 }
+              ].map((item) => (
+                <button
+                  key={item.size}
+                  onClick={() => applyCardStyleToScope(node.id, cardStyleScope, { customFontSize: item.size })}
+                  className={`py-1 px-1 rounded-md text-[9px] font-semibold transition-all text-center truncate border ${
+                    (data.customFontSize ?? 12) === item.size
+                      ? 'bg-theme-accent text-white border-theme-accent shadow-sm'
+                      : 'bg-theme-surface-subtle border-theme-border text-theme-text-muted hover:text-theme-text'
+                  }`}
+                >
+                  {item.label} ({item.size}px)
+                </button>
+              ))}
+            </div>
+
+            {/* Slider de ajuste fino */}
+            <input
+              type="range"
+              min="9"
+              max="20"
+              step="1"
+              value={data.customFontSize ?? 12}
+              onChange={(e) => applyCardStyleToScope(node.id, cardStyleScope, { customFontSize: Number(e.target.value) })}
+              className="w-full h-1.5 bg-theme-surface-subtle rounded-lg appearance-none cursor-pointer accent-sky-400 mt-1"
+            />
+            <div className="flex justify-between text-[8px] text-theme-text-muted font-mono">
+              <span>9px (Mínimo)</span>
+              <span>20px (Máximo)</span>
             </div>
           </div>
         </div>

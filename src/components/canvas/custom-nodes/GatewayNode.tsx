@@ -7,6 +7,7 @@ import { X, Plus, GitBranch } from 'lucide-react';
 export const GatewayNode = memo(({ data, selected }: NodeProps<any>) => {
   const nodeData = data as BpmnNodeData;
   const isExclusive = nodeData.nodeType === BPMN_NODE_TYPES.EXCLUSIVE_GATEWAY;
+  const isTitleOnly = nodeData.displayMode === 'title_only';
 
   const opacity = nodeData.customBgOpacity ?? 95;
   const customContainerStyle: React.CSSProperties = {
@@ -19,11 +20,13 @@ export const GatewayNode = memo(({ data, selected }: NodeProps<any>) => {
     color: nodeData.customHeaderTextColor || undefined,
   };
 
+  const titleFontSize = nodeData.customFontSize ? `${nodeData.customFontSize}px` : undefined;
+
   return (
     <div className="relative group flex flex-col items-center">
       <div
         style={customContainerStyle}
-        className={`relative w-16 h-16 rotate-45 rounded-lg bg-theme-surface/95 backdrop-blur-sm border-2 transition-all duration-150 shadow-md flex items-center justify-center border-amber-500/50 bg-amber-500/10 ${
+        className={`relative w-16 h-16 rotate-45 rounded-lg bg-theme-surface/95 backdrop-blur-sm border-2 transition-all duration-150 shadow-md flex items-center justify-center border-amber-500/50 bg-amber-500/10 overflow-hidden ${
           selected
             ? 'ring-2 ring-amber-400/40 border-amber-400 shadow-xl scale-105'
             : 'hover:border-amber-400/80 hover:shadow-lg'
@@ -70,15 +73,20 @@ export const GatewayNode = memo(({ data, selected }: NodeProps<any>) => {
       {/* Label / Title Box under the diamond */}
       <div
         style={customHeaderStyle}
-        className="mt-2.5 text-center max-w-[130px] bg-theme-surface/95 backdrop-blur-sm px-2 py-1 rounded-md border border-theme-border shadow-sm"
+        className="mt-2.5 text-center max-w-[130px] bg-theme-surface/95 backdrop-blur-sm px-2 py-1 rounded-md border border-theme-border shadow-sm overflow-hidden"
       >
-        <div className="flex items-center justify-center space-x-1">
-          <GitBranch className="w-2.5 h-2.5 text-amber-400" />
-          <span className="text-[9px] font-mono font-bold text-amber-400">
-            {nodeData.standardId || 'GTW'}
-          </span>
-        </div>
-        <p className="text-[10px] font-medium text-theme-text line-clamp-2 leading-tight mt-0.5">
+        {!isTitleOnly && (
+          <div className="flex items-center justify-center space-x-1 truncate">
+            <GitBranch className="w-2.5 h-2.5 text-amber-400 shrink-0" />
+            <span className="text-[9px] font-mono font-bold text-amber-400 truncate">
+              {nodeData.standardId || 'GTW'}
+            </span>
+          </div>
+        )}
+        <p
+          style={{ fontSize: titleFontSize }}
+          className="text-[10px] font-medium text-theme-text line-clamp-2 leading-tight mt-0.5 break-words overflow-hidden text-ellipsis"
+        >
           {nodeData.title}
         </p>
       </div>
