@@ -174,7 +174,7 @@
       <h1>Manual de Uso y Guía Técnica Integral</h1>
       <div class="subtitle">ProcesosStudio Portable &bull; BPMN 2.0 (ISO/IEC 19510) & Sistemas de Calidad ISO 9001:2015</div>
       <div style="font-size: 8.5pt; color: #64748B; margin-top: 6px; font-family: monospace;">
-        Versión: 2.7 | Formato Oficial: PDF / Windows Desktop (.EXE) | Persistencia: JSON Abierto
+        Versión: 2.8 | Formato Oficial: PDF / Windows Desktop (.EXE) | Persistencia: JSON Abierto
       </div>
     </div>
 
@@ -183,12 +183,12 @@
     
     <p><strong>Arquitectura Zero-AppData:</strong> La aplicación es 100% portable. No requiere instalación, privilegios administrativos ni conexión a Internet. Todos los proyectos se guardan en formato <code>.json</code> transparente en la carpeta <code>../Proyectos/</code>.</p>
 
-    <h2>2. Compresión, Descompresión y Disposición Relativa</h2>
+    <h2>2. Conservación de Tipos de Tarjetas y Conectores</h2>
     <ul>
-      <li><strong>Preservación de Geometría Relativa:</strong> Al comprimir actividades en un Subproceso, se guarda el snapshot espacial relativo exacto. Si traslada la tarjeta del Subproceso y la descomprime, las actividades reaparecen con la misma forma y disposición espacial original pero en la nueva ubicación.</li>
-      <li><strong>Movimiento Sincronizado en Bloque:</strong> Tras descomprimir, todas las tarjetas se mantienen seleccionadas de forma conjunta, permitiéndole arrastrarlas en bloque hasta que haga clic en un espacio vacío del lienzo.</li>
+      <li><strong>Inmutabilidad de Tarjetas:</strong> Todos los componentes (Eventos de Inicio, Eventos de Fin, Compuertas XOR/AND, Puntos de Control QC y Tareas) conservan íntegramente su tipo de nodo, íconos, formas y propiedades tras ser comprimidos y descomprimidos.</li>
+      <li><strong>Inmutabilidad Cromática de Conectores:</strong> Los colores asignados a las conexiones, sus grosores y animaciones de flujo se mantienen 100% inalterables antes, durante y después de la compresión y descompresión.</li>
+      <li><strong>Disposición Relativa y Movimiento en Bloque:</strong> Las actividades reaparecen respetando su geometría original en la posición actual del Subproceso y se desplazan en bloque hasta hacer clic fuera.</li>
       <li><strong>Portapapeles Integral (<code>Ctrl + C</code> / <code>Ctrl + V</code>):</strong> Copie y pegue cualquier elemento o selección múltiple con sus conexiones relativas y tareas internas.</li>
-      <li><strong>Autoguardado Continuo:</strong> Todas las posiciones, dimensiones y colores de tarjetas y conexiones se guardan automáticamente en tiempo real.</li>
     </ul>
 
     <h2>3. Glosario de Componentes y Notación BPMN 2.0</h2>
@@ -254,7 +254,7 @@
       </tbody>
     </table>
 
-    <h2>4. Tutorial Práctico: Compresión, Traslado y Descompresión</h2>
+    <h2>4. Tutorial Práctico: Compresión y Descompresión</h2>
     <p><strong>Caso de Estudio:</strong> <em>"Procedimiento Sancionatorio por Obras Clandestinas" (Código: PRC-OBR-001)</em></p>
     
     <div class="diagram-box">
@@ -277,18 +277,13 @@
     </div>
 
     <div class="card-step">
-      <h4>Paso 1: Modelado y Compresión en Subproceso</h4>
-      <p>Seleccione las actividades de regularización con el ratón y presione <strong>📦 Comprimir en Subproceso</strong>. El sistema guardará la distribución geométrica relativa y creará el nodo <code>SUB-01</code>.</p>
+      <h4>Paso 1: Modelado y Compresión</h4>
+      <p>Seleccione las actividades con el ratón y presione <strong>📦 Comprimir en Subproceso</strong>. El sistema preservará todos los tipos de nodos y colores de flechas.</p>
     </div>
 
     <div class="card-step">
-      <h4>Paso 2: Traslado y Descompresión en Bloque</h4>
-      <p>Mueva la tarjeta del Subproceso a cualquier otra parte del lienzo y presione <strong>Descomprimir</strong>: las actividades reaparecerán conservando su disposición original y se moverán en bloque hasta hacer clic fuera.</p>
-    </div>
-
-    <div class="card-step">
-      <h4>Paso 3: Copiar y Pegar</h4>
-      <p>Presione <code>Ctrl + C</code> y <code>Ctrl + V</code> para duplicar cualquier tarjeta o subproceso conservando todas sus propiedades internas.</p>
+      <h4>Paso 2: Descompresión en Bloque</h4>
+      <p>Al hacer clic en <strong>Descomprimir</strong>, todos los tipos de nodos (incluyendo Inicio y Fin) reaparecerán con sus aspectos y conexiones originales.</p>
     </div>
 
     <h2>5. Ubicación de Archivos y Backups USB</h2>

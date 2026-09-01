@@ -1,6 +1,6 @@
 # MANUAL DE USO Y GUÍA TÉCNICA INTEGRAL
 ## ProcesosStudio Portable — BPMN 2.0 (ISO 19510) & ISO 9001:2015
-**Versión del Manual:** 2.7 &bull; **Fecha de Emisión:** 2026-09-01 &bull; **Entorno:** Portable Windows Desktop (`.EXE`) / Web
+**Versión del Manual:** 2.8 &bull; **Fecha de Emisión:** 2026-09-01 &bull; **Entorno:** Portable Windows Desktop (`.EXE`) / Web
 
 ---
 
@@ -9,10 +9,11 @@
 **ProcesosStudio Portable** es una plataforma profesional concebida para el modelado, análisis, optimización, personalización cromática y documentación formal de procedimientos administrativos y flujos operativos institucionales. Integra de manera nativa:
 
 1. **Notación BPMN 2.0 (ISO/IEC 19510:2013)**: Diagramación formal de procesos, compresión y descompresión bidireccional de Subprocesos y Macroprocesos, redimensionamiento libre y proporcional de tarjetas.
-2. **Compresión y Descompresión con Geometría Relativa**:
-   * **Compresión (Encapsular):** Captura un snapshot de las distancias espaciales relativas y conexiones internas de los nodos seleccionados.
-   * **Descompresión en Posición Actual:** Si mueve el nodo del Subproceso y lo descomprime, **las tarjetas reaparecen conservando exactamente la misma disposición original**, posicionadas en el nuevo lugar del Subproceso.
-   * **Movimiento en Bloque Sincronizado:** Tras descomprimir, **todas las tarjetas se mantienen seleccionadas como un solo bloque**, permitiendo moverlas juntas hasta hacer clic fuera de la selección en el lienzo.
+2. **Conservación Total de Tipos de Nodos y Colores de Conectores**:
+   * **Inmutabilidad de Tarjetas:** Todos los tipos de componentes (`StartEvent`, `EndEvent`, `ExclusiveGateway`, `ParallelGateway`, `QualityCheckpointEvent`, `TimerBoundaryEvent`, `UserTask`, `ServiceTask`, `ManualTask`) conservan íntegramente su tipo de nodo, íconos, formas y propiedades tras ser comprimidos y descomprimidos.
+   * **Inmutabilidad de Conectores:** Los colores personalizados (`strokeColor`), grosores (`strokeWidth`) y animaciones (`isAnimated`) de todas las conexiones (externas e internas) se preservan inalterables.
+   * **Descompresión en Posición Actual:** Las tarjetas reaparecen conservando su geometría relativa original en la nueva ubicación del Subproceso.
+   * **Movimiento en Bloque Sincronizado:** Tras descomprimir, todas las tarjetas permanecen seleccionadas permitiendo moverlas en bloque hasta hacer clic fuera.
 3. **Portapapeles Integral de Procesos (`Ctrl + C` / `Ctrl + V`)**: Copiado y pegado de tarjetas individuales, selecciones múltiples y Subprocesos completos con todas sus tareas internas.
 4. **Persistencia Total y Autoguardado en Segundo Plano**: Disposiciones espaciales `(X, Y)`, dimensiones, colores de tarjetas y conexiones guardados en tiempo real en los archivos JSON de `../Proyectos/`.
 5. **Personalización Cromática Integral y Herencia de Temáticas**: Fondos de pizarra personalizables sin bloqueos blancos y catálogo de temáticas Antigravity IDE.
@@ -24,28 +25,28 @@
 
 ---
 
-## 2. COMPRESIÓN, DESCOMPRESIÓN Y DISPOSICIÓN RELATIVA
+## 2. REGLAS DE COMPRESIÓN, DESCOMPRESIÓN Y CONECTORES
 
-### 2.1. Compresión de Actividades en un Subproceso (Agrupar)
-1. **Selección Múltiple:** Arrastre un recuadro de selección sobre las tarjetas deseadas o mantenga presionado `Shift` y haga clic en cada nodo.
-2. **Barra de Acciones Flotante:** Aparecerá el botón **`📦 Comprimir en Subproceso`**.
-3. **Validación BPMN 2.0 (Entrada y Salida Única):** El sistema verificará que el conjunto seleccionado tenga una sola flecha entrante desde el exterior y una sola flecha saliente hacia el exterior.
-4. **Snapshot Geométrico:** El sistema guarda la posición relativa de cada tarjeta con respecto al centro del bloque.
-
----
-
-### 2.2. Descompresión con Disposición Relativa y Movimiento en Bloque
-* **Descompresión en el Lienzo (`📂 Descomprimir`):** Al hacer clic en el botón de descompresión:
-  1. El sistema recupera la **geometría espacial relativa exacta** de las tarjetas originales.
-  2. Despliega todas las tarjetas en la **posición actual donde se encuentra el Subproceso**.
-  3. Reconstruye las conexiones internas y reconecta las flechas exteriores de entrada y salida.
-  4. **Selección Activa en Bloque:** Todas las tarjetas quedan seleccionadas simultáneamente. Al arrastrar cualquiera de ellas, **todo el bloque se desplaza de forma sincronizada**, manteniéndose agrupado hasta que haga clic en un espacio vacío del lienzo.
+### 2.1. Conservación de Todos los Tipos de Nodos
+Al comprimir una selección de elementos que incluya un **Evento de Inicio (Start Event)**, un **Evento de Fin (End Event)**, una **Compuerta de Decisión (Gateway)** o un **Punto de Control (QC)**:
+* El sistema guarda el tipo exacto de cada componente en el snapshot espacial.
+* Al presionar **`📂 Descomprimir`**, cada tarjeta se restaura con su tipo original:
+  * 🟢 **Eventos de Inicio:** Círculo verde con ícono de Play y salida de flujo.
+  * 🔴 **Eventos de Fin:** Círculo rojo con ícono de Stop y entrada de flujo.
+  * 🟡 **Compuertas XOR / AND:** Rombos de decisión con etiquetas de condición.
+  * 🟢 **Puntos de Control QC:** Escudo de verificación y datos ISO 9001.
+  * 🔵 **Tareas de Usuario / Servicio:** Tarjetas operativas con roles y sistemas.
 
 ---
 
-### 2.3. Copiar y Pegar Nodos y Subprocesos (`Ctrl + C` / `Ctrl + V`)
-* **Atajos de Teclado:** Seleccione uno o varios nodos y presione `Ctrl + C` para copiar y `Ctrl + V` para pegar.
-* **Preservación Integral:** Al copiar un Subproceso, se duplican todas sus etapas internas, roles y sistemas informáticos asociados, asignando nuevos identificadores correlativos.
+### 2.2. Inmutabilidad Cromática en Conectores
+* Los colores asignados a las conexiones (*cian, azul eléctrico, esmeralda, ámbar, rojo, púrpura o tonos personalizados*), sus grosores de línea y estados de animación de flujo se mantienen **100% inalterables** antes, durante y después del proceso de compresión y descompresión.
+
+---
+
+### 2.3. Descompresión con Disposición Relativa y Movimiento en Bloque
+* Las tarjetas reaparecen respetando la **distribución geométrica relativa original** en el lugar exacto donde se encuentra el Subproceso.
+* Todas las tarjetas quedan seleccionadas de forma conjunta para **desplazarlas en bloque** por el lienzo hasta hacer clic en el fondo de la pizarra.
 
 ---
 
@@ -92,13 +93,10 @@
 ```
 
 ### PASO 1: Selección y Compresión
-1. Dibuje las 3 tareas de regularización (*Plano*, *Liquidación*, *Pago*).
-2. Selecciónelas arrastrando el ratón y presione **`📦 Comprimir en Subproceso`**. El sistema guardará la distribución geométrica relativa y creará el nodo `SUB-01`.
+1. Seleccione las actividades deseadas (incluso si incluye Evento de Inicio o Fin) y presione **`📦 Comprimir en Subproceso`**. El sistema preservará todos los tipos de nodos y colores de flechas.
 
-### PASO 2: Traslado y Descompresión en Bloque
-1. Mueva la tarjeta del Subproceso `SUB-01` a cualquier otro sector del lienzo.
-2. Haga clic en **`Descomprimir`**: las 3 tarjetas reaparecerán en la nueva ubicación conservando exactamente la misma disposición espacial original.
-3. Todas las tarjetas estarán seleccionadas para que pueda moverlas en bloque hasta hacer clic fuera del conjunto.
+### PASO 2: Descompresión
+1. Al hacer clic en **`Descomprimir`**, todos los tipos de nodos reaparecen con su aspecto, colores y conexiones originales en la ubicación actual del Subproceso.
 
 ---
 

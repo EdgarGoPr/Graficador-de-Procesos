@@ -4,6 +4,7 @@ import {
   SequenceFlowData,
   SubProcessStep,
   BPMN_NODE_TYPES,
+  BpmnNodeType,
   CompressedNodeSnapshot,
   CompressedSubProcessSnapshot
 } from '../types/process';
@@ -81,7 +82,7 @@ export function validateSubProcessCompression(
 
 /**
  * Compresses multiple nodes into a single encapsulated SubProcess node,
- * storing a snapshot of exact relative coordinates and internal flows for reversible decompression.
+ * storing a snapshot of exact node types, custom colors, relative coordinates, and internal flows.
  */
 export function compressNodesToSubProcess(
   nodeIds: string[],
@@ -105,22 +106,35 @@ export function compressNodesToSubProcess(
   const avgX = Math.round(sortedNodes.reduce((acc, n) => acc + n.position.x, 0) / sortedNodes.length);
   const avgY = Math.round(sortedNodes.reduce((acc, n) => acc + n.position.y, 0) / sortedNodes.length);
 
-  // Capture spatial snapshot with relative offsets: (node.x - avgX, node.y - avgY)
-  const snapshotNodes: CompressedNodeSnapshot[] = sortedNodes.map((n) => ({
-    id: n.id,
-    type: n.type,
-    relativeX: Math.round(n.position.x - avgX),
-    relativeY: Math.round(n.position.y - avgY),
-    width: (n as any).width || (n.style as any)?.width,
-    height: (n as any).height || (n.style as any)?.height,
-    data: JSON.parse(JSON.stringify(n.data))
-  }));
+  // Capture spatial snapshot preserving exact component types (StartEvent, EndEvent, Gateways, Tasks, etc.)
+  const snapshotNodes: CompressedNodeSnapshot[] = sortedNodes.map((n) => {
+    const resolvedType = (n.type || n.data?.nodeType || 'UserTask') as string;
+    return {
+      id: n.id,
+      type: resolvedType,
+      relativeX: Math.round(n.position.x - avgX),
+      relativeY: Math.round(n.position.y - avgY),
+      width: (n as any).width || (n.style as any)?.width,
+      height: (n as any).height || (n.style as any)?.height,
+      data: JSON.parse(JSON.stringify({ ...n.data, nodeType: n.data?.nodeType || resolvedType }))
+    };
+  });
 
+  // Preserve internal edges with exact colors, width and animations
   const snapshotEdges = validation.internalEdges.map((e) => ({
     id: e.id,
     source: e.source,
     target: e.target,
-    data: JSON.parse(JSON.stringify(e.data || { id: e.id, source: e.source, target: e.target }))
+    data: {
+      conditionText: e.data?.conditionText || '',
+      strokeColor: e.data?.strokeColor,
+      strokeWidth: e.data?.strokeWidth,
+      isAnimated: e.data?.isAnimated,
+      ...e.data,
+      id: e.data?.id || e.id,
+      source: e.source,
+      target: e.target
+    }
   }));
 
   const compressedSnapshot: CompressedSubProcessSnapshot = {
@@ -175,7 +189,7 @@ export function compressNodesToSubProcess(
     }
   };
 
-  // Rewire external connections
+  // Rewire external connections preserving stroke colors and styles
   const remainingEdges: Edge<SequenceFlowData>[] = [];
 
   for (const edge of project.edges) {
@@ -193,10 +207,13 @@ export function compressNodesToSubProcess(
         ...edge,
         target: newSubProcessId,
         data: {
+          conditionText: edge.data?.conditionText || '',
+          strokeColor: edge.data?.strokeColor,
+          strokeWidth: edge.data?.strokeWidth,
+          isAnimated: edge.data?.isAnimated,
+          ...edge.data,
           id: edge.data?.id || edge.id,
           source: edge.data?.source || edge.source,
-          conditionText: edge.data?.conditionText || '',
-          ...edge.data,
           target: newSubProcessId
         }
       });
@@ -209,10 +226,13 @@ export function compressNodesToSubProcess(
         ...edge,
         source: newSubProcessId,
         data: {
+          conditionText: edge.data?.conditionText || '',
+          strokeColor: edge.data?.strokeColor,
+          strokeWidth: edge.data?.strokeWidth,
+          isAnimated: edge.data?.isAnimated,
+          ...edge.data,
           id: edge.data?.id || edge.id,
           target: edge.data?.target || edge.target,
-          conditionText: edge.data?.conditionText || '',
-          ...edge.data,
           source: newSubProcessId
         }
       });
@@ -239,7 +259,8 @@ export function compressNodesToSubProcess(
 
 /**
  * Decompresses an existing SubProcess node back into the canvas, restoring the EXACT original spatial layout
- * relative to the current position of the subprocess, and selecting all unpacked nodes for synchronized block movement.
+ * and node types (StartEvent, EndEvent, Gateways, etc.) relative to the current position of the subprocess,
+ * and selecting all unpacked nodes for synchronized block movement.
  */
 export function decompressSubProcessToCanvas(
   subProcessNodeId: string,
@@ -260,19 +281,22 @@ export function decompressSubProcessToCanvas(
   let exitNodeId: string = '';
 
   if (snapshot && snapshot.nodes && snapshot.nodes.length > 0) {
-    // RECONSTRUCT EXACT SPATIAL LAYOUT RELATIVE TO SUBPROCESS CURRENT POSITION
-    unpackedNodes = snapshot.nodes.map((sn) => ({
-      id: sn.id,
-      type: sn.type || 'UserTask',
-      position: {
-        x: currentX + sn.relativeX,
-        y: currentY + sn.relativeY
-      },
-      selected: true, // Marked selected for group dragging in block
-      width: sn.width,
-      height: sn.height,
-      data: JSON.parse(JSON.stringify(sn.data))
-    }));
+    // RECONSTRUCT EXACT SPATIAL LAYOUT AND NODE TYPES RELATIVE TO SUBPROCESS CURRENT POSITION
+    unpackedNodes = snapshot.nodes.map((sn) => {
+      const nodeType = (sn.type || sn.data?.nodeType || 'UserTask') as string;
+      return {
+        id: sn.id,
+        type: nodeType,
+        position: {
+          x: currentX + sn.relativeX,
+          y: currentY + sn.relativeY
+        },
+        selected: true, // Marked selected for group dragging in block
+        width: sn.width,
+        height: sn.height,
+        data: JSON.parse(JSON.stringify({ ...sn.data, nodeType: (sn.data?.nodeType || nodeType) as BpmnNodeType }))
+      };
+    });
 
     internalEdges = snapshot.internalEdges.map((se) => ({
       id: se.id,
@@ -281,6 +305,9 @@ export function decompressSubProcessToCanvas(
       type: 'sequenceFlow',
       data: {
         conditionText: se.data?.conditionText || '',
+        strokeColor: se.data?.strokeColor,
+        strokeWidth: se.data?.strokeWidth,
+        isAnimated: se.data?.isAnimated,
         ...se.data,
         id: se.data?.id || se.id,
         source: se.source,
@@ -288,16 +315,18 @@ export function decompressSubProcessToCanvas(
       }
     }));
 
-    // Find entry and exit nodes based on internal edges
+    // Find entry and exit nodes based on internal edges and node types
     const targetSet = new Set(internalEdges.map((e) => e.target));
     const sourceSet = new Set(internalEdges.map((e) => e.source));
 
-    // Entry is node without incoming internal edge (or leftmost)
-    const entryCandidate = unpackedNodes.find((n) => !targetSet.has(n.id)) || unpackedNodes[0];
+    // Entry is StartEvent or node without incoming internal edge (or leftmost)
+    const startEventNode = unpackedNodes.find((n) => n.type === 'StartEvent' || n.data?.nodeType === 'StartEvent');
+    const entryCandidate = startEventNode || unpackedNodes.find((n) => !targetSet.has(n.id)) || unpackedNodes[0];
     entryNodeId = entryCandidate.id;
 
-    // Exit is node without outgoing internal edge (or rightmost)
-    const exitCandidate = unpackedNodes.find((n) => !sourceSet.has(n.id)) || unpackedNodes[unpackedNodes.length - 1];
+    // Exit is EndEvent or node without outgoing internal edge (or rightmost)
+    const endEventNode = unpackedNodes.find((n) => n.type === 'EndEvent' || n.data?.nodeType === 'EndEvent');
+    const exitCandidate = endEventNode || unpackedNodes.find((n) => !sourceSet.has(n.id)) || unpackedNodes[unpackedNodes.length - 1];
     exitNodeId = exitCandidate.id;
   } else {
     // FALLBACK: Decompress from subProcessSteps
@@ -367,7 +396,7 @@ export function decompressSubProcessToCanvas(
     exitNodeId = unpackedNodes[unpackedNodes.length - 1].id;
   }
 
-  // Rewire outer edges
+  // Rewire outer edges preserving stroke colors and styles
   const updatedEdges: Edge<SequenceFlowData>[] = [];
 
   for (const edge of project.edges) {
@@ -377,10 +406,13 @@ export function decompressSubProcessToCanvas(
         ...edge,
         target: entryNodeId,
         data: {
+          conditionText: edge.data?.conditionText || '',
+          strokeColor: edge.data?.strokeColor,
+          strokeWidth: edge.data?.strokeWidth,
+          isAnimated: edge.data?.isAnimated,
+          ...edge.data,
           id: edge.data?.id || edge.id,
           source: edge.data?.source || edge.source,
-          conditionText: edge.data?.conditionText || '',
-          ...edge.data,
           target: entryNodeId
         }
       });
@@ -390,10 +422,13 @@ export function decompressSubProcessToCanvas(
         ...edge,
         source: exitNodeId,
         data: {
+          conditionText: edge.data?.conditionText || '',
+          strokeColor: edge.data?.strokeColor,
+          strokeWidth: edge.data?.strokeWidth,
+          isAnimated: edge.data?.isAnimated,
+          ...edge.data,
           id: edge.data?.id || edge.id,
           target: edge.data?.target || edge.target,
-          conditionText: edge.data?.conditionText || '',
-          ...edge.data,
           source: exitNodeId
         }
       });
@@ -485,11 +520,14 @@ export function pasteClipboardPayload(
         target: newTarget,
         selected: false,
         data: {
+          ...oldEdge.data,
           id: newEdgeId,
           source: newSource,
           target: newTarget,
-          conditionText: oldEdge.data?.conditionText || '',
-          ...oldEdge.data
+          strokeColor: oldEdge.data?.strokeColor,
+          strokeWidth: oldEdge.data?.strokeWidth,
+          isAnimated: oldEdge.data?.isAnimated,
+          conditionText: oldEdge.data?.conditionText || ''
         }
       });
     }

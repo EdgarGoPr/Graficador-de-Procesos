@@ -8,7 +8,7 @@
     "organizationUnit": "Tribunal Administrativo de Faltas - Municipalidad de Córdoba",
     "processObjective": "Estandarizar el circuito unificado de justicia administrativa municipal: desde la detección e ingreso multicanal (Inspectores, CMU, App Ciudadana), digitalización y apertura automática de expediente en SIGEF, enriquecimiento registral, distribución equitativa de causas (Sede Central y CPCs), gestión de medidas cautelares y acarreos, hasta el régimen de notificaciones (CiDi/OCEP), instancias de descargo, sentencias de rebeldía, cámara de apelaciones y pase a Procuración Fiscal.",
     "createdAt": "2026-09-01T09:00:00Z",
-    "updatedAt": "2026-09-01T16:09:23.468Z",
+    "updatedAt": "2026-09-01T16:20:08.669Z",
     "status": "APPROVED",
     "legalNormativeBasis": [
       "Código de Convivencia Ciudadana de la Ciudad de Córdoba (Ord. 12.468 y modif.)",
@@ -157,7 +157,8 @@
       "measured": {
         "width": 710,
         "height": 174
-      }
+      },
+      "selected": false
     },
     {
       "id": "n-qc-auditoria-datos",
@@ -197,7 +198,8 @@
       "measured": {
         "width": 374,
         "height": 177
-      }
+      },
+      "selected": false
     },
     {
       "id": "n-end-desestimado",
@@ -229,7 +231,8 @@
       "measured": {
         "width": 112,
         "height": 112
-      }
+      },
+      "selected": false
     },
     {
       "id": "n-task-oficio-liberacion",
@@ -302,7 +305,8 @@
       "measured": {
         "width": 594,
         "height": 195
-      }
+      },
+      "selected": false
     },
     {
       "id": "n-task-notificacion-correo",
@@ -343,7 +347,8 @@
       "measured": {
         "width": 606,
         "height": 180
-      }
+      },
+      "selected": false
     },
     {
       "id": "n-end-imposibilidad-comparendo",
@@ -375,7 +380,8 @@
       "measured": {
         "width": 112,
         "height": 112
-      }
+      },
+      "selected": false
     },
     {
       "id": "n-task-pago-voluntario",
@@ -408,7 +414,8 @@
       "measured": {
         "width": 605,
         "height": 174
-      }
+      },
+      "selected": false
     },
     {
       "id": "n-task-descargo",
@@ -441,7 +448,8 @@
       "measured": {
         "width": 764,
         "height": 192
-      }
+      },
+      "selected": false
     },
     {
       "id": "n-task-sentencia-rebeldia",
@@ -479,7 +487,8 @@
       "measured": {
         "width": 764,
         "height": 213
-      }
+      },
+      "selected": false
     },
     {
       "id": "n-task-camara-apelacion",
@@ -517,7 +526,8 @@
       "measured": {
         "width": 608,
         "height": 195
-      }
+      },
+      "selected": false
     },
     {
       "id": "n-task-procuracion-fiscal",
@@ -558,7 +568,8 @@
       "measured": {
         "width": 762,
         "height": 180
-      }
+      },
+      "selected": false
     },
     {
       "id": "n-end-multa-pagada",
@@ -590,15 +601,17 @@
       "measured": {
         "width": 112,
         "height": 112
-      }
+      },
+      "selected": false
     },
     {
       "id": "node_step_1788278962658_0",
       "type": "UserTask",
       "position": {
-        "x": -30,
-        "y": -71
+        "x": -132.5000000000003,
+        "y": 1191.4999999999986
       },
+      "selected": false,
       "data": {
         "standardId": "TSK-65",
         "title": "Detección de Presunta Infracción",
@@ -624,15 +637,17 @@
       "measured": {
         "width": 529,
         "height": 174
-      }
+      },
+      "dragging": false
     },
     {
       "id": "node_step_1788278962658_1",
       "type": "UserTask",
       "position": {
-        "x": 230,
-        "y": -71
+        "x": -82.49999999999945,
+        "y": 446.49999999999983
       },
+      "selected": false,
       "data": {
         "standardId": "TSK-77",
         "title": "Labrado de Acta (Móvil / Papel / CMU)",
@@ -668,15 +683,17 @@
       "measured": {
         "width": 582,
         "height": 180
-      }
+      },
+      "dragging": false
     },
     {
       "id": "node_step_1788278962658_2",
       "type": "UserTask",
       "position": {
-        "x": 490,
-        "y": -71
+        "x": 290,
+        "y": 443.9999999999993
       },
+      "selected": false,
       "data": {
         "standardId": "TSK-22",
         "title": "Ingreso de Denuncia Ciudadana",
@@ -714,27 +731,28 @@
       }
     },
     {
-      "id": "node_step_1788278962658_3",
+      "id": "node_step_1788278962658_5",
       "type": "UserTask",
       "position": {
-        "x": 750,
-        "y": -71
+        "x": 663,
+        "y": 899.9999999999993
       },
+      "selected": false,
       "data": {
-        "standardId": "TSK-87",
-        "title": "Tratamiento de Medidas Preferenciales y Acarreos",
-        "description": "Gestión urgente de medidas cautelares: Clausura de locales, Decomisos de mercadería y Secuestros de vehículos por grúa.",
+        "standardId": "TSK-52",
+        "title": "Generación de Acta Digital y Apertura de Expediente en SIGEF",
+        "description": "Creación automática del identificador único de causa digital e integración de evidencias multimedia.",
         "nodeType": "UserTask",
         "laneId": "lane-operativa-captura",
         "laneName": "Fiscalización y Vía Pública",
         "roleName": "Responsable",
-        "itSystem": "App Móvil / Sistema de Grúas y Depósitos",
+        "itSystem": "SIGEF",
         "legalFramework": "Código de Convivencia Ciudadana",
         "inputs": [
-          "Acta con medida accesoria"
+          "Acta transmitida"
         ],
         "outputs": [
-          "Faja de clausura / Acta de secuestro / Remisión a depósito"
+          "Expediente digital caratulado"
         ],
         "operationalRisks": [],
         "tags": [
@@ -742,7 +760,7 @@
         ]
       },
       "measured": {
-        "width": 670,
+        "width": 546,
         "height": 174
       }
     },
@@ -750,9 +768,10 @@
       "id": "node_step_1788278962658_4",
       "type": "UserTask",
       "position": {
-        "x": 1010,
-        "y": -71
+        "x": 690,
+        "y": 718.9999999999993
       },
+      "selected": false,
       "data": {
         "standardId": "TSK-72",
         "title": "Emplazamiento Previo (Medio Ambiente)",
@@ -780,27 +799,28 @@
       }
     },
     {
-      "id": "node_step_1788278962658_5",
+      "id": "node_step_1788278962658_3",
       "type": "UserTask",
       "position": {
-        "x": 1270,
-        "y": -71
+        "x": 750,
+        "y": 467.9999999999993
       },
+      "selected": false,
       "data": {
-        "standardId": "TSK-52",
-        "title": "Generación de Acta Digital y Apertura de Expediente en SIGEF",
-        "description": "Creación automática del identificador único de causa digital e integración de evidencias multimedia.",
+        "standardId": "TSK-87",
+        "title": "Tratamiento de Medidas Preferenciales y Acarreos",
+        "description": "Gestión urgente de medidas cautelares: Clausura de locales, Decomisos de mercadería y Secuestros de vehículos por grúa.",
         "nodeType": "UserTask",
         "laneId": "lane-operativa-captura",
         "laneName": "Fiscalización y Vía Pública",
         "roleName": "Responsable",
-        "itSystem": "SIGEF",
+        "itSystem": "App Móvil / Sistema de Grúas y Depósitos",
         "legalFramework": "Código de Convivencia Ciudadana",
         "inputs": [
-          "Acta transmitida"
+          "Acta con medida accesoria"
         ],
         "outputs": [
-          "Expediente digital caratulado"
+          "Faja de clausura / Acta de secuestro / Remisión a depósito"
         ],
         "operationalRisks": [],
         "tags": [
@@ -808,9 +828,38 @@
         ]
       },
       "measured": {
-        "width": 546,
+        "width": 670,
         "height": 174
       }
+    },
+    {
+      "id": "node_1788279595643",
+      "type": "UserTask",
+      "position": {
+        "x": 1300.0014851925039,
+        "y": 1137.860767126481
+      },
+      "data": {
+        "standardId": "TSK-15",
+        "title": "Nueva Tarea de Usuario",
+        "description": "Descripción operativa de la actividad...",
+        "nodeType": "UserTask",
+        "laneId": "lane-ciudadano",
+        "laneName": "Ciudadanía y Administrados",
+        "roleName": "Vecino / Presunto Infractor",
+        "itSystem": "App Ciudadana / Portal VeDi / Portal de Infracciones / Atención Presencial",
+        "legalFramework": "Marco normativo general",
+        "inputs": [],
+        "outputs": [],
+        "operationalRisks": [],
+        "tags": []
+      },
+      "measured": {
+        "width": 488,
+        "height": 174
+      },
+      "selected": false,
+      "dragging": false
     }
   ],
   "edges": [
@@ -821,9 +870,9 @@
       "type": "sequenceFlow",
       "data": {
         "id": "e-09",
+        "source": "node_step_1788278962658_5",
         "target": "n-task-enriquecido-computos",
         "conditionText": "",
-        "source": "node_step_1788278962658_5",
         "strokeColor": "#64748B",
         "strokeWidth": 2,
         "isAnimated": false
@@ -1106,8 +1155,12 @@
         "id": "e_node_step_1788278962658_0_node_step_1788278962658_1",
         "source": "node_step_1788278962658_0",
         "target": "node_step_1788278962658_1",
-        "conditionText": ""
-      }
+        "conditionText": "",
+        "strokeColor": "#64748B",
+        "strokeWidth": 2,
+        "isAnimated": false
+      },
+      "selected": false
     },
     {
       "id": "e_node_step_1788278962658_1_node_step_1788278962658_2",
@@ -1118,7 +1171,10 @@
         "id": "e_node_step_1788278962658_1_node_step_1788278962658_2",
         "source": "node_step_1788278962658_1",
         "target": "node_step_1788278962658_2",
-        "conditionText": ""
+        "conditionText": "",
+        "strokeColor": "#64748B",
+        "strokeWidth": 2,
+        "isAnimated": false
       }
     },
     {
@@ -1130,7 +1186,10 @@
         "id": "e_node_step_1788278962658_2_node_step_1788278962658_3",
         "source": "node_step_1788278962658_2",
         "target": "node_step_1788278962658_3",
-        "conditionText": ""
+        "conditionText": "",
+        "strokeColor": "#64748B",
+        "strokeWidth": 2,
+        "isAnimated": false
       }
     },
     {
@@ -1142,7 +1201,10 @@
         "id": "e_node_step_1788278962658_3_node_step_1788278962658_4",
         "source": "node_step_1788278962658_3",
         "target": "node_step_1788278962658_4",
-        "conditionText": ""
+        "conditionText": "",
+        "strokeColor": "#64748B",
+        "strokeWidth": 2,
+        "isAnimated": false
       }
     },
     {
@@ -1154,8 +1216,25 @@
         "id": "e_node_step_1788278962658_4_node_step_1788278962658_5",
         "source": "node_step_1788278962658_4",
         "target": "node_step_1788278962658_5",
-        "conditionText": ""
+        "conditionText": "",
+        "strokeColor": "#64748B",
+        "strokeWidth": 2,
+        "isAnimated": false
       }
+    },
+    {
+      "id": "e_node_step_1788278962658_0_node_1788279595643_1788279603495",
+      "source": "node_step_1788278962658_0",
+      "target": "node_1788279595643",
+      "type": "sequenceFlow",
+      "data": {
+        "id": "e_node_step_1788278962658_0_node_1788279595643",
+        "source": "node_step_1788278962658_0",
+        "target": "node_1788279595643",
+        "conditionText": "",
+        "strokeColor": "#64748B"
+      },
+      "selected": false
     }
   ],
   "fileName": "2026-09-01_proc-macroproceso-sigef-completo.json"
