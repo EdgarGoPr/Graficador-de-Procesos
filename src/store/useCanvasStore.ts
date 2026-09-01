@@ -58,8 +58,9 @@ interface CanvasStoreState {
   deleteSelected: () => void;
   
   // Lane & Pool management
-  addLane: (poolId: string, name: string, role: string, system: string) => void;
+  addLane: (poolId?: string, name?: string, role?: string, system?: string, colorHex?: string) => void;
   updateLane: (laneId: string, updates: { name?: string; role?: string; system?: string; colorHex?: string }) => void;
+  moveLane: (laneId: string, direction: 'up' | 'down') => void;
   deleteLane: (laneId: string) => void;
 }
 
@@ -503,7 +504,7 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
     }
   },
 
-  addLane: (poolId: string, name: string, role: string, system: string) => {
+  addLane: (poolId?: string, name?: string, role?: string, system?: string, colorHex?: string) => {
     const projectStore = useProjectStore.getState();
     const currentProject = projectStore.currentProject;
     if (!currentProject) return;
@@ -512,12 +513,15 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
     if (!pool) return;
 
     const newLaneId = `lane-${Date.now()}`;
+    const defaultColors = ['#38bdf8', '#818cf8', '#34d399', '#f59e0b', '#ec4899', '#06b6d4', '#a855f7', '#64748b'];
+    const chosenColor = colorHex || defaultColors[pool.lanes.length % defaultColors.length];
+
     const newLane = {
       id: newLaneId,
-      name: name || `Carril ${pool.lanes.length + 1}`,
-      role: role || 'Rol Asignado',
+      name: name || `Nuevo Carril ${pool.lanes.length + 1}`,
+      role: role || 'Responsable de Área',
       system: system || 'Sistema Informático',
-      colorHex: '#3b82f6',
+      colorHex: chosenColor,
       order: pool.lanes.length
     };
 
@@ -553,19 +557,122 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
     });
   },
 
-  deleteLane: (laneId: string) => {
+  moveLane: (laneId: string, direction: 'up' | 'down') => {
     const projectStore = useProjectStore.getState();
     const currentProject = projectStore.currentProject;
-    if (!currentProject) return;
+    if (!currentProject || !currentProject.pools[0]?.lanes) return;
 
-    const nextPools = currentProject.pools.map(p => ({
-      ...p,
-      lanes: p.lanes.filter(l => l.id !== laneId)
-    }));
+    const pool = currentProject.pools[0];
+    const lanes = [...pool.lanes];
+    const index = lanes.findIndex(l => l.id === laneId);
+    if (index === -1) return;
+
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= lanes.length) return;
+
+    const laneA = lanes[index];
+    const laneB = lanes[targetIndex];
+
+    // Swap lanes in array
+    lanes[index] = laneB;
+    lanes[targetIndex] = laneA;
+    lanes.forEach((l, i) => { l.order = i; });
+
+    const deltaYA = (targetIndex - index) * 140;
+    const deltaYB = (index - targetIndex) * 140;
+
+    // Shift nodes belonging to laneA and laneB
+    const nextNodes = currentProject.nodes.map(node => {
+      if (node.data?.laneId === laneA.id) {
+        return {
+          ...node,
+          position: {
+            ...node.position,
+            y: node.position.y + deltaYA
+          }
+        };
+      } else if (node.data?.laneId === laneB.id) {
+        return {
+          ...node,
+          position: {
+            ...node.position,
+            y: node.position.y + deltaYB
+          }
+        };
+      }
+      return node;
+    });
+
+    const nextPools = currentProject.pools.map(p => {
+      if (p.id === pool.id) {
+        return { ...p, lanes };
+      }
+      return p;
+    });
 
     projectStore.setProjectData({
       ...currentProject,
-      pools: nextPools
+      pools: nextPools,
+      nodes: nextNodes
+    });
+  },
+
+  deleteLane: (laneId: string) => {
+    const projectStore = useProjectStore.getState();
+    const currentProject = projectStore.currentProject;
+    if (!currentProject || !currentProject.pools[0]?.lanes) return;
+
+    const pool = currentProject.pools[0];
+    if (pool.lanes.length <= 1) {
+      alert('El proceso debe tener al menos un carril operativo.');
+      return;
+    }
+
+    const deletedIndex = pool.lanes.findIndex(l => l.id === laneId);
+    if (deletedIndex === -1) return;
+
+    const remainingLanes = pool.lanes.filter(l => l.id !== laneId);
+    remainingLanes.forEach((l, i) => { l.order = i; });
+
+    // Target lane for reassignment
+    const targetLane = remainingLanes[Math.min(deletedIndex, remainingLanes.length - 1)];
+
+    // Shift up all nodes in subsequent lanes and reassign nodes in deleted lane
+    const nextNodes = currentProject.nodes.map(node => {
+      if (node.data?.laneId === laneId) {
+        return {
+          ...node,
+          data: {
+            ...node.data,
+            laneId: targetLane.id
+          }
+        };
+      }
+
+      const originalLaneIndex = pool.lanes.findIndex(l => l.id === node.data?.laneId);
+      if (originalLaneIndex > deletedIndex) {
+        return {
+          ...node,
+          position: {
+            ...node.position,
+            y: node.position.y - 140
+          }
+        };
+      }
+      return node;
+    });
+
+    const nextPools = currentProject.pools.map(p => {
+      if (p.id === pool.id) {
+        return { ...p, lanes: remainingLanes };
+      }
+      return p;
+    });
+
+    projectStore.setProjectData({
+      ...currentProject,
+      pools: nextPools,
+      nodes: nextNodes
     });
   }
 }));

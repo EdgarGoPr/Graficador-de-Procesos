@@ -203,17 +203,18 @@
         </div>
       </div>
       <div style="font-size: 8.5pt; color: #64748B; font-family: monospace; text-align: right;">
-        Versión: 3.6<br />Win: <code>ProcesStudio.exe</code><br />Mac: <code>ProcesStudio_Mac.command</code>
+        Versión: 3.7<br />Win: <code>ProcesStudio.exe</code><br />Mac: <code>ProcesStudio_Mac.command</code>
       </div>
     </div>
 
-    <h2>1. Ejecución Multiplataforma y Persistencia Autocontenida</h2>
-    <p><strong>ProcesStudio Portable</strong> (identificado con el isotipo <strong>PS</strong>) está diseñado para ejecutarse en cualquier computadora con Windows o Apple Mac sin instalaciones, dependencias externas ni privilegios de administrador:</p>
+    <h2>1. Gestión Dinámica de Carriles (Swimlanes)</h2>
+    <p><strong>ProcesStudio Portable</strong> (identificado con el isotipo <strong>PS</strong>) cuenta con un motor geométrico sincronizado para la administración integral de carriles:</p>
     
     <ul>
-      <li><strong>En Windows:</strong> Doble clic en <code>ProcesStudio.exe</code> (o <code>App/ProcesStudio.bat</code>).</li>
-      <li><strong>En macOS (Apple Mac):</strong> Doble clic en <code>ProcesStudio_Mac.command</code> (compatible con Mac Intel y chips M1/M2/M3/M4).</li>
-      <li><strong>Persistencia Autocontenida (Zero-AppData):</strong> Todos los proyectos nuevos y modificados se guardan de forma permanente dentro de la subcarpeta local <code>MiAppProcesos_USB/Proyectos/</code>, sin escribir en carpetas del sistema.</li>
+      <li><strong>Agregar Múltiples Carriles:</strong> Botón <code>+ Agregar Carril</code> en la cabecera del pool y al pie de la tabla.</li>
+      <li><strong>Reordenar Carriles Arriba/Abajo:</strong> Mediante los botones <code>[ ▲ ]</code> y <code>[ ▼ ]</code> en cada carril. <em>Todas las actividades asignadas se mueven automáticamente en bloque manteniendo su posición relativa.</em></li>
+      <li><strong>Edición Completa:</strong> Modal emergente para actualizar el nombre de la unidad funcional, rol responsable, sistema informático TI y color de acento lateral.</li>
+      <li><strong>Persistencia Inmune al Zoom y Paneo:</strong> Carriles y tarjetas comparten el mismo espacio universal de coordenadas de React Flow, garantizando alineación exacta a cualquier nivel de escala (zoom) o traslación espacial.</li>
     </ul>
 
     <h2>2. Interacciones Principales en el Lienzo</h2>
@@ -237,7 +238,7 @@
         <tr>
           <td><strong>Evento de Inicio</strong></td>
           <td><span class="badge badge-green">#2DD4BF</span> Salvia</td>
-          <td>Disparador inicial del trámite o expediente (ej: <em>Recepción de Acta</em>).</td>
+          <td>Disparador inicial del trámite o expediente.</td>
         </tr>
         <tr>
           <td><strong>Tarea de Usuario</strong></td>
@@ -247,7 +248,7 @@
         <tr>
           <td><strong>Tarea de Servicio</strong></td>
           <td><span class="badge badge-blue">#22D3EE</span> Cian</td>
-          <td>Procesamiento automatizado por software (ej: <em>Cálculo de liquidación</em>).</td>
+          <td>Procesamiento automatizado por software.</td>
         </tr>
         <tr>
           <td><strong>Tarea Manual</strong></td>
@@ -277,7 +278,7 @@
         <tr>
           <td><strong>Evento de Fin</strong></td>
           <td><span class="badge badge-red">#F87171</span> Coral</td>
-          <td>Estado terminal formal del flujo (ej: <em>Expediente Archivado</em>).</td>
+          <td>Estado terminal formal del flujo.</td>
         </tr>
         <tr>
           <td><strong>Conector de Flujo</strong></td>
