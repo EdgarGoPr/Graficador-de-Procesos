@@ -19,7 +19,8 @@ import {
   Palette,
   RotateCcw,
   Sparkles,
-  Activity
+  Activity,
+  FolderOpen
 } from 'lucide-react';
 import {
   BpmnNodeData,
@@ -62,6 +63,7 @@ export const PropertiesPanel: React.FC = () => {
     updateEdgeData,
     bulkUpdateNodeColors,
     bulkUpdateEdgeColors,
+    decompressSubProcess,
     deleteSelected
   } = useCanvasStore();
 
@@ -389,7 +391,7 @@ export const PropertiesPanel: React.FC = () => {
       <div className="p-4 space-y-4 text-xs">
         {/* Subprocess Expansion Card if SubProcess */}
         {isSubProcess && (
-          <div className="p-3.5 bg-[#3B82F6]/10 border border-[#3B82F6]/30 rounded-xl space-y-2">
+          <div className="p-3.5 bg-[#3B82F6]/10 border border-[#3B82F6]/30 rounded-xl space-y-2.5">
             <div className="flex items-center justify-between">
               <span className="text-[10px] font-bold uppercase tracking-wider text-[#3B82F6] font-mono flex items-center space-x-1">
                 <Layers className="w-3.5 h-3.5 mr-1" />
@@ -402,13 +404,34 @@ export const PropertiesPanel: React.FC = () => {
             <p className="text-[11px] text-theme-text-muted leading-relaxed">
               Desglose de tareas internas y secuenciación detallada para este subproceso.
             </p>
-            <button
-              onClick={() => openSubProcessDetail(node.id)}
-              className="w-full py-2 bg-gradient-to-r from-[#0284C7] to-[#3B82F6] hover:brightness-110 text-white rounded-lg font-bold text-xs shadow-md flex items-center justify-center space-x-1.5 transition-all"
-            >
-              <Maximize2 className="w-3.5 h-3.5" />
-              <span>Ampliar y Editar Detalle del Subproceso</span>
-            </button>
+            <div className="flex flex-col gap-1.5 pt-1">
+              <button
+                onClick={() => openSubProcessDetail(node.id)}
+                className="w-full py-2 bg-gradient-to-r from-[#0284C7] to-[#3B82F6] hover:brightness-110 text-white rounded-lg font-bold text-xs shadow-md flex items-center justify-center space-x-1.5 transition-all"
+              >
+                <Maximize2 className="w-3.5 h-3.5" />
+                <span>Ampliar y Editar Detalle</span>
+              </button>
+
+              {(data.subProcessSteps?.length || 0) > 0 && (
+                <button
+                  onClick={() => {
+                    if (window.confirm(`¿Desea descomprimir "${data.title}" y desplegar sus ${data.subProcessSteps?.length} etapas individuales en el lienzo?`)) {
+                      const result = decompressSubProcess(node.id);
+                      if (result.success) {
+                        showNotification('Subproceso descomprimido en el lienzo', 'success');
+                      } else {
+                        showNotification(result.error || 'Error al descomprimir', 'error');
+                      }
+                    }
+                  }}
+                  className="w-full py-1.5 bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-amber-400 rounded-lg font-semibold text-xs flex items-center justify-center space-x-1.5 transition-all"
+                >
+                  <FolderOpen className="w-3.5 h-3.5" />
+                  <span>Descomprimir en el Lienzo</span>
+                </button>
+              )}
+            </div>
           </div>
         )}
 

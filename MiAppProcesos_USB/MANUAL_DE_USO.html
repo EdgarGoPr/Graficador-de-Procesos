@@ -174,7 +174,7 @@
       <h1>Manual de Uso y Guía Técnica Integral</h1>
       <div class="subtitle">ProcesosStudio Portable &bull; BPMN 2.0 (ISO/IEC 19510) & Sistemas de Calidad ISO 9001:2015</div>
       <div style="font-size: 8.5pt; color: #64748B; margin-top: 6px; font-family: monospace;">
-        Versión: 2.5 | Formato Oficial: PDF / Windows Desktop (.EXE) | Persistencia: JSON Abierto
+        Versión: 2.6 | Formato Oficial: PDF / Windows Desktop (.EXE) | Persistencia: JSON Abierto
       </div>
     </div>
 
@@ -183,13 +183,12 @@
     
     <p><strong>Arquitectura Zero-AppData:</strong> La aplicación es 100% portable. No requiere instalación, privilegios administrativos ni conexión a Internet. Todos los proyectos se guardan en formato <code>.json</code> transparente en la carpeta <code>../Proyectos/</code>.</p>
 
-    <h2>2. Persistencia Total, Conectores y Autoguardado</h2>
+    <h2>2. Compresión, Descompresión y Copiado de Procesos</h2>
     <ul>
-      <li><strong>Disposición Espacial de Tarjetas:</strong> Las posiciones <code>(X, Y)</code>, anchos y altos de las tarjetas se guardan automáticamente en tiempo real en los archivos JSON de proyectos.</li>
-      <li><strong>Estilos y Colores de Conectores:</strong> Los colores asignados a las conexiones, grosores de línea y animaciones persisten fielmente entre sesiones.</li>
-      <li><strong>Inicio en el Gestor de Proyectos:</strong> La aplicación inicia en el Dashboard para permitirle seleccionar de forma limpia con qué proyecto desea trabajar.</li>
-      <li><strong>Fondo de Pizarra y Carriles:</strong> Las bandas de los carriles organizativos (swimlanes) y el fondo del lienzo adoptan el color elegido sin bloqueos blancos.</li>
-      <li><strong>Herencia de Temática:</strong> Al personalizar cualquier color individual, el resto de los elementos conservan los estilos de la temática base seleccionada.</li>
+      <li><strong>Compresión en Subproceso:</strong> Seleccione múltiples nodos (área de selección o <code>Shift + Clic</code>) y presione <strong>"Comprimir en Subproceso"</strong>. El sistema valida la regla BPMN de entrada y salida única, encapsulando las actividades en un único item con título.</li>
+      <li><strong>Visualización y Descompresión:</strong> Presione <strong>"Ampliar ↗"</strong> para ver el detalle jerárquico o <strong>"Descomprimir en el Lienzo"</strong> para volver a desplegar todas las tarjetas individuales con sus conexiones secuenciales automáticas.</li>
+      <li><strong>Portapapeles Integral (<code>Ctrl + C</code> / <code>Ctrl + V</code>):</strong> Copie y pegue cualquier elemento o selección múltiple (incluyendo subprocesos completos con todas sus tareas internas).</li>
+      <li><strong>Autoguardado Continuo:</strong> Las disposiciones espaciales, dimensiones y colores de tarjetas y conexiones se guardan automáticamente en segundo plano.</li>
     </ul>
 
     <h2>3. Glosario de Componentes y Notación BPMN 2.0</h2>
@@ -210,7 +209,7 @@
         <tr>
           <td><strong>Tarea de Usuario</strong></td>
           <td><span class="badge badge-blue">#3B82F6</span></td>
-          <td>Actividad operativa realizada por un operador asistido por software.</td>
+          <td>Actividad operativa realizada por un agente asistido por software.</td>
         </tr>
         <tr>
           <td><strong>Tarea de Servicio</strong></td>
@@ -230,7 +229,7 @@
         <tr>
           <td><strong>Subproceso</strong></td>
           <td><span class="badge badge-blue">#3B82F6</span></td>
-          <td><strong>Actividad compuesta que agrupa un procedimiento secundario.</strong> Cuenta con botón para ampliar en un proceso más detallado.</td>
+          <td><strong>Actividad compuesta que encapsula un procedimiento secundario.</strong> Permite compresión y descompresión bidireccional.</td>
         </tr>
         <tr>
           <td><strong>Temporizador SLA</strong></td>
@@ -255,54 +254,41 @@
       </tbody>
     </table>
 
-    <h2>4. Tutorial Práctico: Modelado y Personalización Cromática</h2>
+    <h2>4. Tutorial Práctico: Compresión y Descompresión</h2>
     <p><strong>Caso de Estudio:</strong> <em>"Procedimiento Sancionatorio por Obras Clandestinas" (Código: PRC-OBR-001)</em></p>
     
     <div class="diagram-box">
-[ INI-01: Acta de Infracción ]
-       │
-       ▼
-[ ACT-01: Cotejo Catastral ] (Sistema SAM)
-       │
-       ▼
-[ QC-01: Validación de Firma y Plano ] (Inspección ISO 9001)
-       │
-       ▼
-[ ACT-02: Notificación de Emplazamiento ] ──> [ TMR-01: Plazo Fatal 5 Días Hábiles ]
+[ INI-01: Acta de Infracción ] ──> [ ACT-01: Cotejo Catastral ] ──> [ QC-01: Verificación ]
+                                                                             │
+                                                                             ▼
+                                                                [ DEC-01: ¿Subsanación? ]
+                                                                             │
+                                              ┌──────────────────────────────┴──────────────────────────────┐
+                                              ▼ (Rama A: Regulariza)                                        ▼ (Rama B: Rebelde)
+                        ┌─────────────────────────────────────────────────────────────┐           [ ACT-03: Clausura ]
+                        │ [ SUB-01: Subproceso de Regularización de Obras ]           │                     │
+                        │  ├── Paso 1: Presentación de Plano Conforme a Obra          │                     ▼
+                        │  ├── Paso 2: Liquidación de Derechos y Multas               │             [ FIN-02: Clausura ]
+                        │  └── Paso 3: Pago en Caja Municipal y Certificado           │
+                        └─────────────────────────────┬───────────────────────────────┘
                                                       │
                                                       ▼
-                              [ DEC-01: ¿Presentó Descargo o Subsanación? ]
-                                     ├── (Rama A: Regulariza) ──> [ SUB-01: Subproceso Regularización ] ──> [ FIN-01: Archivo ]
-                                     │                                 │
-                                     │                                 └──> [Paso 1: Plano Conforme a Obra]
-                                     │                                      [Paso 2: Liquidación Derechos]
-                                     │                                      [Paso 3: Pago en Caja y Libre Deuda]
-                                     │
-                                     └── (Rama B: Rebelde) ────> [ ACT-03: Sentencia de Clausura ] (Riesgo RSK-01) ──> [ FIN-02: Clausura ]
+                                             [ FIN-01: Archivo ]
     </div>
 
     <div class="card-step">
-      <h4>Paso 1: Abrir el Proyecto desde el Gestor</h4>
-      <p>En el Dashboard haga clic en la tarjeta del proyecto. El diagrama cargará con sus posiciones exactas y estilos de conectores.</p>
+      <h4>Paso 1: Modelado y Compresión en Subproceso</h4>
+      <p>Seleccione las actividades de regularización con el ratón y presione <strong>📦 Comprimir en Subproceso</strong>. El sistema creará el nodo unificado <code>SUB-01</code>.</p>
     </div>
 
     <div class="card-step">
-      <h4>Paso 2: Modelado, Colores y Redimensionamiento</h4>
-      <ol>
-        <li>Arrastre los elementos desde la paleta izquierda. Mueva y redimensione tarjetas: se guardarán de forma automática.</li>
-        <li>Personalice el color de fondo de las tarjetas y conectores según la jerarquía visual requerida.</li>
-        <li>En el nodo <code>SUB-01</code>, presione <strong>Ampliar</strong> para desglosar sus 3 etapas internas (Plano, Liquidación, Pago).</li>
-      </ol>
+      <h4>Paso 2: Visualización y Descompresión Bidireccional</h4>
+      <p>Haga clic en <strong>Ampliar ↗</strong> para editar el detalle interno, o presione <strong>Descomprimir</strong> para volver a desplegar las 3 tarjetas en el lienzo.</p>
     </div>
 
     <div class="card-step">
-      <h4>Paso 3: Navegación y Centrado Automático</h4>
-      <p>En el menú lateral derecho (pestaña <strong>Navegador</strong>), haga clic sobre <code>SUB-01</code>: el sistema centrará suavemente el lienzo en el subproceso.</p>
-    </div>
-
-    <div class="card-step">
-      <h4>Paso 4: Guardar y Generar Ficha Técnica Oficial</h4>
-      <p>Presione <code>Ctrl + S</code>. Vaya a <strong>Ficha Técnica ISO 9001</strong> para exportar el reporte formal en PDF.</p>
+      <h4>Paso 3: Copiar y Pegar</h4>
+      <p>Presione <code>Ctrl + C</code> y <code>Ctrl + V</code> para duplicar cualquier tarjeta o subproceso conservando todas sus propiedades internas.</p>
     </div>
 
     <h2>5. Ubicación de Archivos y Backups USB</h2>

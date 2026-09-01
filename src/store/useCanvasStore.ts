@@ -12,11 +12,21 @@ import {
 } from '@xyflow/react';
 import { BpmnNodeData, BpmnNodeType, SequenceFlowData, BPMN_NODE_TYPES } from '../types/process';
 import { useProjectStore } from './useProjectStore';
+import {
+  validateSubProcessCompression,
+  compressNodesToSubProcess,
+  decompressSubProcessToCanvas,
+  createClipboardPayload,
+  pasteClipboardPayload,
+  ValidationResult
+} from '../services/subprocessService';
 
 interface CanvasStoreState {
   selectedNodeId: string | null;
+  selectedNodeIds: string[];
   selectedEdgeId: string | null;
-  clipboardNode: Node<BpmnNodeData> | null;
+  clipboardPayload: { nodes: Node<BpmnNodeData>[]; edges: Edge<SequenceFlowData>[] } | null;
+  isCompressModalOpen: boolean;
 
   // React Flow Handlers
   onNodesChange: OnNodesChange<Node<BpmnNodeData>>;
@@ -25,7 +35,18 @@ interface CanvasStoreState {
   
   // Custom Selection
   selectNode: (nodeId: string | null) => void;
+  setSelectedNodeIds: (ids: string[]) => void;
   selectEdge: (edgeId: string | null) => void;
+  setCompressModalOpen: (open: boolean) => void;
+
+  // Clipboard (Copy / Paste)
+  copySelection: () => boolean;
+  pasteSelection: () => boolean;
+
+  // SubProcess Compression & Decompression
+  validateSelectionForCompression: () => ValidationResult;
+  compressSelection: (title: string, standardId: string, description: string) => { success: boolean; error?: string };
+  decompressSubProcess: (subProcessNodeId: string) => { success: boolean; error?: string };
 
   // Node Manipulation
   addNode: (nodeType: BpmnNodeType, position: { x: number; y: number }, laneId?: string) => void;
@@ -43,8 +64,10 @@ interface CanvasStoreState {
 
 export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
   selectedNodeId: null,
+  selectedNodeIds: [],
   selectedEdgeId: null,
-  clipboardNode: null,
+  clipboardPayload: null,
+  isCompressModalOpen: false,
 
   onNodesChange: (changes) => {
     const projectStore = useProjectStore.getState();
@@ -52,6 +75,16 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
     if (!currentProject) return;
 
     const nextNodes = applyNodeChanges(changes, currentProject.nodes);
+    
+    // Update selectedNodeIds based on node selection status
+    const selected = nextNodes.filter((n) => n.selected).map((n) => n.id);
+    const singleSelected = selected.length === 1 ? selected[0] : (selected.length > 1 ? selected[0] : null);
+
+    set({
+      selectedNodeIds: selected,
+      selectedNodeId: singleSelected
+    });
+
     projectStore.setProjectData({
       ...currentProject,
       nodes: nextNodes
@@ -96,11 +129,139 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
   },
 
   selectNode: (nodeId: string | null) => {
-    set({ selectedNodeId: nodeId, selectedEdgeId: null });
+    set({
+      selectedNodeId: nodeId,
+      selectedNodeIds: nodeId ? [nodeId] : [],
+      selectedEdgeId: null
+    });
+  },
+
+  setSelectedNodeIds: (ids: string[]) => {
+    set({
+      selectedNodeIds: ids,
+      selectedNodeId: ids.length > 0 ? ids[0] : null,
+      selectedEdgeId: null
+    });
   },
 
   selectEdge: (edgeId: string | null) => {
-    set({ selectedEdgeId: edgeId, selectedNodeId: null });
+    set({
+      selectedEdgeId: edgeId,
+      selectedNodeId: null,
+      selectedNodeIds: []
+    });
+  },
+
+  setCompressModalOpen: (open: boolean) => set({ isCompressModalOpen: open }),
+
+  // CLIPBOARD OPERATIONS
+  copySelection: () => {
+    const { selectedNodeIds, selectedNodeId } = get();
+    const project = useProjectStore.getState().currentProject;
+    if (!project) return false;
+
+    const targetIds = selectedNodeIds.length > 0 ? selectedNodeIds : (selectedNodeId ? [selectedNodeId] : []);
+    if (targetIds.length === 0) return false;
+
+    const payload = createClipboardPayload(targetIds, project.nodes, project.edges);
+    set({ clipboardPayload: payload });
+    return true;
+  },
+
+  pasteSelection: () => {
+    const { clipboardPayload } = get();
+    const projectStore = useProjectStore.getState();
+    const currentProject = projectStore.currentProject;
+    if (!clipboardPayload || !currentProject || clipboardPayload.nodes.length === 0) return false;
+
+    const { newNodes, newEdges } = pasteClipboardPayload(clipboardPayload, { x: 40, y: 40 });
+
+    // Deselect current and select newly pasted items
+    const updatedExistingNodes = currentProject.nodes.map((n) => ({ ...n, selected: false }));
+    const finalNodes = [...updatedExistingNodes, ...newNodes];
+    const finalEdges = [...currentProject.edges, ...newEdges];
+
+    projectStore.setProjectData({
+      ...currentProject,
+      nodes: finalNodes,
+      edges: finalEdges
+    });
+
+    const newIds = newNodes.map((n) => n.id);
+    set({
+      selectedNodeIds: newIds,
+      selectedNodeId: newIds[0] || null
+    });
+
+    return true;
+  },
+
+  // SUBPROCESS COMPRESSION & DECOMPRESSION
+  validateSelectionForCompression: () => {
+    const { selectedNodeIds } = get();
+    const project = useProjectStore.getState().currentProject;
+    if (!project) {
+      return {
+        isValid: false,
+        incomingEdges: [],
+        outgoingEdges: [],
+        internalEdges: [],
+        error: 'No hay ningún proyecto activo.'
+      };
+    }
+
+    return validateSubProcessCompression(selectedNodeIds, project.nodes, project.edges);
+  },
+
+  compressSelection: (title: string, standardId: string, description: string) => {
+    const { selectedNodeIds } = get();
+    const projectStore = useProjectStore.getState();
+    const currentProject = projectStore.currentProject;
+    if (!currentProject) {
+      return { success: false, error: 'No hay un proyecto activo.' };
+    }
+
+    const result = compressNodesToSubProcess(
+      selectedNodeIds,
+      title,
+      standardId,
+      description,
+      currentProject
+    );
+
+    if ('error' in result) {
+      return { success: false, error: result.error };
+    }
+
+    projectStore.setProjectData(result.project);
+    set({
+      selectedNodeId: result.newSubProcessId,
+      selectedNodeIds: [result.newSubProcessId],
+      isCompressModalOpen: false
+    });
+
+    return { success: true };
+  },
+
+  decompressSubProcess: (subProcessNodeId: string) => {
+    const projectStore = useProjectStore.getState();
+    const currentProject = projectStore.currentProject;
+    if (!currentProject) {
+      return { success: false, error: 'No hay un proyecto activo.' };
+    }
+
+    const result = decompressSubProcessToCanvas(subProcessNodeId, currentProject);
+    if ('error' in result) {
+      return { success: false, error: result.error };
+    }
+
+    projectStore.setProjectData(result.project);
+    set({
+      selectedNodeIds: result.unpackedNodeIds,
+      selectedNodeId: result.unpackedNodeIds[0] || null
+    });
+
+    return { success: true };
   },
 
   addNode: (nodeType: BpmnNodeType, position: { x: number; y: number }, laneId?: string) => {
@@ -145,13 +306,13 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
       data: {
         standardId,
         title: defaultTitle,
-        description: 'Descripción operativa del nodo...',
+        description: 'Descripción operativa de la actividad...',
         nodeType,
         laneId: targetLaneId,
         laneName: targetLane?.name,
         roleName: targetLane?.role,
-        itSystem: targetLane?.system || 'Sistema de Gestión',
-        legalFramework: 'Art. aplicable',
+        itSystem: targetLane?.system || 'SAM / VUPRA',
+        legalFramework: 'Marco normativo general',
         inputs: [],
         outputs: [],
         operationalRisks: [],
@@ -164,7 +325,7 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
       nodes: [...currentProject.nodes, newNode]
     });
 
-    set({ selectedNodeId: newNodeId });
+    set({ selectedNodeId: newNodeId, selectedNodeIds: [newNodeId], selectedEdgeId: null });
   },
 
   updateNodeData: (nodeId: string, updates: Partial<BpmnNodeData>) => {
@@ -172,7 +333,7 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
     const currentProject = projectStore.currentProject;
     if (!currentProject) return;
 
-    const nextNodes = currentProject.nodes.map(node => {
+    const nextNodes = currentProject.nodes.map((node) => {
       if (node.id === nodeId) {
         return {
           ...node,
@@ -196,7 +357,7 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
     const currentProject = projectStore.currentProject;
     if (!currentProject) return;
 
-    const nextEdges: Edge<SequenceFlowData>[] = currentProject.edges.map(edge => {
+    const nextEdges = currentProject.edges.map((edge) => {
       if (edge.id === edgeId) {
         return {
           ...edge,
@@ -224,15 +385,16 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
     if (!currentProject) return;
 
     const nextNodes = currentProject.nodes.map((node) => {
-      let match = false;
+      let matches = false;
       if (filter === 'ALL') {
-        match = true;
-      } else if (typeof filter === 'object') {
-        if (filter.nodeType && node.data.nodeType === filter.nodeType) match = true;
-        if (filter.laneId && node.data.laneId === filter.laneId) match = true;
+        matches = true;
+      } else if (filter.nodeType && node.data.nodeType === filter.nodeType) {
+        matches = true;
+      } else if (filter.laneId && node.data.laneId === filter.laneId) {
+        matches = true;
       }
 
-      if (match) {
+      if (matches) {
         return {
           ...node,
           data: {
@@ -273,22 +435,25 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
   },
 
   deleteSelected: () => {
-    const { selectedNodeId, selectedEdgeId } = get();
+    const { selectedNodeIds, selectedNodeId, selectedEdgeId } = get();
     const projectStore = useProjectStore.getState();
     const currentProject = projectStore.currentProject;
     if (!currentProject) return;
 
-    if (selectedNodeId) {
-      const nextNodes = currentProject.nodes.filter(n => n.id !== selectedNodeId);
+    const targetNodeIds = selectedNodeIds.length > 0 ? selectedNodeIds : (selectedNodeId ? [selectedNodeId] : []);
+
+    if (targetNodeIds.length > 0) {
+      const deleteSet = new Set(targetNodeIds);
+      const nextNodes = currentProject.nodes.filter(n => !deleteSet.has(n.id));
       const nextEdges = currentProject.edges.filter(
-        e => e.source !== selectedNodeId && e.target !== selectedNodeId
+        e => !deleteSet.has(e.source) && !deleteSet.has(e.target)
       );
       projectStore.setProjectData({
         ...currentProject,
         nodes: nextNodes,
         edges: nextEdges
       });
-      set({ selectedNodeId: null });
+      set({ selectedNodeId: null, selectedNodeIds: [] });
     } else if (selectedEdgeId) {
       const nextEdges = currentProject.edges.filter(e => e.id !== selectedEdgeId);
       projectStore.setProjectData({

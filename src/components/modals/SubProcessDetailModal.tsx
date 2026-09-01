@@ -16,7 +16,8 @@ import {
   UserCheck,
   FileSpreadsheet,
   AlertTriangle,
-  ArrowRight
+  ArrowRight,
+  FolderOpen
 } from 'lucide-react';
 
 interface SubProcessDetailModalProps {
@@ -31,7 +32,7 @@ export const SubProcessDetailModal: React.FC<SubProcessDetailModalProps> = ({
   onFocusNode
 }) => {
   const { currentProject } = useProjectStore();
-  const { updateNodeData } = useCanvasStore();
+  const { updateNodeData, decompressSubProcess } = useCanvasStore();
   const { showNotification } = useUiStore();
 
   const subProcessNode = currentProject?.nodes.find((n) => n.id === nodeId);
@@ -287,9 +288,33 @@ export const SubProcessDetailModal: React.FC<SubProcessDetailModalProps> = ({
 
         {/* Footer */}
         <div className="px-6 py-3 border-t border-theme-border bg-theme-surface-subtle flex items-center justify-between text-xs">
-          <div className="text-[11px] text-theme-text-muted font-mono">
-            Subproceso BPMN 2.0 (ISO 19510) &bull; Persistente en JSON
+          <div className="flex items-center space-x-2">
+            {steps.length > 0 && (
+              <button
+                type="button"
+                onClick={() => {
+                  if (window.confirm(`¿Desea descomprimir "${subProcessNode.data.title}" y desplegar sus ${steps.length} etapas individuales en el lienzo?`)) {
+                    const result = decompressSubProcess(nodeId);
+                    if (result.success) {
+                      showNotification('Subproceso descomprimido en el lienzo', 'success');
+                      onClose();
+                    } else {
+                      showNotification(result.error || 'Error al descomprimir', 'error');
+                    }
+                  }
+                }}
+                className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 text-amber-400 border border-amber-500/30 text-xs font-semibold transition-all"
+                title="Descomprimir y desplegar actividades en el lienzo"
+              >
+                <FolderOpen className="w-3.5 h-3.5" />
+                <span>Descomprimir en el Lienzo</span>
+              </button>
+            )}
+            <span className="text-[11px] text-theme-text-muted font-mono hidden sm:inline">
+              Subproceso BPMN 2.0 (ISO 19510)
+            </span>
           </div>
+
           <button
             onClick={onClose}
             className="px-4 py-1.5 bg-theme-surface hover:bg-theme-surface-hover text-theme-text border border-theme-border rounded-lg font-semibold transition-colors"

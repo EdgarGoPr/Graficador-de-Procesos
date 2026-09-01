@@ -1,0 +1,95 @@
+{
+  "schemaVersion": "1.0.0",
+  "documentControl": {
+    "documentTitle": "Procedimiento de Labrado de Actas",
+    "documentCode": "PRC-1511",
+    "version": "1.0",
+    "authorName": "Edgar Gonzalez de Prada",
+    "organizationUnit": "Justicia Administrativa Municipal de Faltas",
+    "processObjective": "Definir el objetivo y alcance operativo del proceso.",
+    "createdAt": "2026-09-01T15:50:30.507Z",
+    "updatedAt": "2026-09-01T15:50:31.351Z",
+    "status": "DRAFT",
+    "legalNormativeBasis": [
+      "Normativa aplicable general"
+    ],
+    "revisionHistory": [
+      {
+        "revisionDate": "2026-09-01T15:50:30.507Z",
+        "version": "1.0",
+        "author": "Edgar Gonzalez de Prada",
+        "changeDescription": "Creación inicial del proyecto"
+      }
+    ]
+  },
+  "pools": [
+    {
+      "id": "pool_1",
+      "name": "Procedimiento de Labrado de Actas",
+      "organization": "Justicia Administrativa Municipal de Faltas",
+      "lanes": [
+        {
+          "id": "lane_1",
+          "name": "Mesa de Entradas / Inspectoría",
+          "role": "Inspector / Operador",
+          "system": "SAM / VUPRA",
+          "colorHex": "#10B981",
+          "order": 0
+        },
+        {
+          "id": "lane_2",
+          "name": "Área Legal / Notificaciones",
+          "role": "Oficial Notificador / Asesor",
+          "system": "GDE / Notificaciones",
+          "colorHex": "#3B82F6",
+          "order": 1
+        },
+        {
+          "id": "lane_3",
+          "name": "Juzgado / Resolución Final",
+          "role": "Juez de Faltas / Resolutor",
+          "system": "Sistema de Sentencias",
+          "colorHex": "#8B5CF6",
+          "order": 2
+        }
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "id": "node_start",
+      "type": "StartEvent",
+      "position": {
+        "x": 320,
+        "y": 50
+      },
+      "data": {
+        "standardId": "INI-01",
+        "title": "Inicio del Proceso",
+        "description": "Disparador formal de ingreso del trámite o expediente.",
+        "nodeType": "StartEvent",
+        "laneId": "lane_1",
+        "laneName": "Mesa de Entradas / Inspectoría",
+        "roleName": "Inspector / Operador",
+        "itSystem": "SAM / VUPRA",
+        "legalFramework": "Reglamento General",
+        "inputs": [
+          "Formulario de Solicitud / Acta"
+        ],
+        "outputs": [
+          "Expediente Iniciado"
+        ],
+        "operationalRisks": [],
+        "tags": [
+          "Inicio"
+        ]
+      },
+      "measured": {
+        "width": 112,
+        "height": 112
+      }
+    }
+  ],
+  "edges": [],
+  "fileName": "2026-09-01_proc-procedimiento-de-labrado-de-actas-v1.0.json"
+}

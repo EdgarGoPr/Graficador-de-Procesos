@@ -6,7 +6,7 @@ import {
   MiniMap,
   BackgroundVariant,
   useReactFlow,
-  ReactFlowProvider
+  SelectionMode
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
@@ -23,6 +23,7 @@ import { TimerBoundaryNode } from './custom-nodes/TimerBoundaryNode';
 import { SubProcessNode } from './custom-nodes/SubProcessNode';
 import { SequenceFlowEdge } from './custom-edges/SequenceFlowEdge';
 import { SwimlaneBackground } from './SwimlaneBackground';
+import { SelectionToolbar } from './SelectionToolbar';
 import { BpmnNodeType } from '../../types/process';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -56,9 +57,13 @@ const ProcessCanvasInternal: React.FC = () => {
     selectNode,
     selectEdge,
     addNode,
-    deleteSelected
+    deleteSelected,
+    copySelection,
+    pasteSelection,
+    selectedNodeIds
   } = useCanvasStore();
-  const { setPropertiesPanelOpen, theme } = useUiStore();
+
+  const { setPropertiesPanelOpen, theme, showNotification } = useUiStore();
 
   const onDragOver = useCallback((event: React.DragEvent) => {
     event.preventDefault();
@@ -91,8 +96,12 @@ const ProcessCanvasInternal: React.FC = () => {
   );
 
   const onNodeClick = useCallback(
-    (_: React.MouseEvent, node: any) => {
-      selectNode(node.id);
+    (event: React.MouseEvent, node: any) => {
+      if (event.shiftKey || event.ctrlKey || event.metaKey) {
+        // Multi-selection is handled automatically by ReactFlow onNodesChange
+      } else {
+        selectNode(node.id);
+      }
       setPropertiesPanelOpen(true);
     },
     [selectNode, setPropertiesPanelOpen]
@@ -111,17 +120,31 @@ const ProcessCanvasInternal: React.FC = () => {
     selectEdge(null);
   }, [selectNode, selectEdge]);
 
-  // Keydown delete handler
+  // Keydown global shortcuts (Delete, Ctrl+C, Ctrl+V)
   const onKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
+        return;
+      }
+
       if (e.key === 'Delete' || e.key === 'Backspace') {
-        const target = e.target as HTMLElement;
-        if (target.tagName !== 'INPUT' && target.tagName !== 'TEXTAREA') {
-          deleteSelected();
+        deleteSelected();
+      } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'c') {
+        e.preventDefault();
+        const ok = copySelection();
+        if (ok) {
+          showNotification(`Copiado al portapapeles (${selectedNodeIds.length || 1} elemento${(selectedNodeIds.length || 1) > 1 ? 's' : ''})`, 'info');
+        }
+      } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'v') {
+        e.preventDefault();
+        const ok = pasteSelection();
+        if (ok) {
+          showNotification('Elementos pegados en el lienzo', 'success');
         }
       }
     },
-    [deleteSelected]
+    [deleteSelected, copySelection, pasteSelection, selectedNodeIds, showNotification]
   );
 
   if (!currentProject) {
@@ -135,10 +158,12 @@ const ProcessCanvasInternal: React.FC = () => {
   return (
     <div
       ref={reactFlowWrapper}
-      className="flex-1 h-full relative bg-theme-canvas transition-colors"
+      className="flex-1 h-full relative bg-theme-canvas transition-colors outline-none"
       onKeyDown={onKeyDown}
       tabIndex={0}
     >
+      <SelectionToolbar />
+
       <ReactFlow
         nodes={currentProject.nodes}
         edges={currentProject.edges}
@@ -152,6 +177,8 @@ const ProcessCanvasInternal: React.FC = () => {
         onDrop={onDrop}
         nodeTypes={NODE_TYPES}
         edgeTypes={EDGE_TYPES}
+        selectionMode={SelectionMode.Partial}
+        multiSelectionKeyCode={['Shift', 'Control', 'Meta']}
         fitView
         minZoom={0.2}
         maxZoom={2}
@@ -188,5 +215,3 @@ const ProcessCanvasInternal: React.FC = () => {
 export const ProcessCanvas: React.FC = () => {
   return <ProcessCanvasInternal />;
 };
-
-

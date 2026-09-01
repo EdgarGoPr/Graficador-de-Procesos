@@ -2,15 +2,29 @@ import React, { memo } from 'react';
 import { Handle, Position, NodeProps, NodeResizer } from '@xyflow/react';
 import { BpmnNodeData } from '../../../types/process';
 import { useUiStore } from '../../../store/useUiStore';
-import { Layers, Maximize2, ListOrdered } from 'lucide-react';
+import { useCanvasStore } from '../../../store/useCanvasStore';
+import { Layers, Maximize2, ListOrdered, FolderOpen } from 'lucide-react';
 
 export const SubProcessNode = memo(({ id, data, selected }: NodeProps<any>) => {
   const nodeData = data as BpmnNodeData;
-  const { openSubProcessDetail } = useUiStore();
+  const { openSubProcessDetail, showNotification } = useUiStore();
+  const { decompressSubProcess } = useCanvasStore();
 
   const handleExpand = (e: React.MouseEvent) => {
     e.stopPropagation();
     openSubProcessDetail(id);
+  };
+
+  const handleDecompress = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (window.confirm(`¿Desea descomprimir "${nodeData.title}" y desplegar sus etapas individuales en el lienzo?`)) {
+      const result = decompressSubProcess(id);
+      if (result.success) {
+        showNotification('Subproceso descomprimido en el lienzo', 'success');
+      } else {
+        showNotification(result.error || 'Error al descomprimir', 'error');
+      }
+    }
   };
 
   const stepsCount = nodeData.subProcessSteps?.length || 0;
@@ -69,21 +83,34 @@ export const SubProcessNode = memo(({ id, data, selected }: NodeProps<any>) => {
           {nodeData.description}
         </p>
 
-        {/* Steps indicator and Expand Button */}
+        {/* Steps indicator and Expand / Decompress Buttons */}
         <div className="flex items-center justify-between pt-2 border-t border-theme-border text-[10px]">
           <div className="flex items-center text-theme-text-muted">
             <ListOrdered className="w-3 h-3 mr-1 text-[#3B82F6]" />
-            <span>{stepsCount > 0 ? `${stepsCount} etapas internas` : 'Detalle configurable'}</span>
+            <span>{stepsCount > 0 ? `${stepsCount} etapas` : 'Detalle configurable'}</span>
           </div>
 
-          <button
-            onClick={handleExpand}
-            className="flex items-center space-x-1 px-2.5 py-1 rounded-md bg-[#3B82F6]/15 hover:bg-[#3B82F6] text-[#3B82F6] hover:text-white border border-[#3B82F6]/30 text-[10px] font-bold transition-all shadow-sm group-hover:animate-pulse"
-            title="Ampliar y ver el flujo detallado de este subproceso"
-          >
-            <Maximize2 className="w-2.5 h-2.5" />
-            <span>Ampliar</span>
-          </button>
+          <div className="flex items-center space-x-1.5">
+            {stepsCount > 0 && (
+              <button
+                onClick={handleDecompress}
+                className="flex items-center space-x-1 px-2 py-1 rounded-md bg-amber-500/10 hover:bg-amber-500/25 text-amber-400 border border-amber-500/30 text-[10px] font-medium transition-all"
+                title="Descomprimir y desplegar actividades en el lienzo"
+              >
+                <FolderOpen className="w-2.5 h-2.5" />
+                <span>Descomprimir</span>
+              </button>
+            )}
+
+            <button
+              onClick={handleExpand}
+              className="flex items-center space-x-1 px-2.5 py-1 rounded-md bg-[#3B82F6]/15 hover:bg-[#3B82F6] text-[#3B82F6] hover:text-white border border-[#3B82F6]/30 text-[10px] font-bold transition-all shadow-sm"
+              title="Ampliar y ver el flujo detallado de este subproceso"
+            >
+              <Maximize2 className="w-2.5 h-2.5" />
+              <span>Ampliar</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -97,5 +124,3 @@ export const SubProcessNode = memo(({ id, data, selected }: NodeProps<any>) => {
 });
 
 SubProcessNode.displayName = 'SubProcessNode';
-
-

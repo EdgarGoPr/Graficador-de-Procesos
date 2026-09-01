@@ -1,6 +1,6 @@
 # MANUAL DE USO Y GUÍA TÉCNICA INTEGRAL
 ## ProcesosStudio Portable — BPMN 2.0 (ISO 19510) & ISO 9001:2015
-**Versión del Manual:** 2.5 &bull; **Fecha de Emisión:** 2026-09-01 &bull; **Entorno:** Portable Windows Desktop (`.EXE`) / Web
+**Versión del Manual:** 2.6 &bull; **Fecha de Emisión:** 2026-09-01 &bull; **Entorno:** Portable Windows Desktop (`.EXE`) / Web
 
 ---
 
@@ -8,44 +8,46 @@
 
 **ProcesosStudio Portable** es una plataforma profesional concebida para el modelado, análisis, optimización, personalización cromática y documentación formal de procedimientos administrativos y flujos operativos institucionales. Integra de manera nativa:
 
-1. **Notación BPMN 2.0 (ISO/IEC 19510:2013)**: Estándar internacional para diagramación de flujos de procesos de negocio, soportando Macroprocesos y Subprocesos jerárquicos expandibles, con redimensionamiento dinámico y libre de tarjetas.
-2. **Persistencia Total y Autoguardado Continuo en Segundo Plano**:
-   * **Disposición Espacial de Tarjetas**: Todas las posiciones `(X, Y)`, anchos y altos personalizados de las tarjetas se guardan automáticamente en el archivo `.json` de `../Proyectos/`.
-   * **Colores y Estilos de Conectores**: Los colores (`strokeColor`), grosores de línea y flujos animados de las flechas persisten fielmente entre sesiones.
-   * **Inicio Limpio en el Gestor de Proyectos**: La aplicación inicia en el Dashboard para permitirle seleccionar en qué proyecto desea trabajar.
-3. **Personalización Cromática de Fondo y Mecánica de Herencia de Temáticas**: 
-   * **Fondo de la Pizarra y Carriles**: Personalización libre de la superficie completa del lienzo y de las franjas de los carriles (swimlanes), eliminando fondos fijos y permitiendo cualquier tonalidad (carbón, azul noche, pizarra, perla, etc.).
-   * **Herencia de Temática Base**: Primero se selecciona una temática base (Antigravity Dark, Cosmic, Emerald, Violet, Light Studio o Warm Solar) y, al modificar un color específico (como el fondo de pizarra o un acento), **todos los demás colores se mantienen basados fielmente en la temática inicial elegida**.
-4. **Sistemas de Gestión de la Calidad (ISO 9001:2015)**: Cumplimiento directo de los requisitos de enfoque en procesos (Cláusula 4.4), pensamiento basado en riesgos (Cláusula 6.1), información documentada (Cláusula 7.5) y control de salidas no conformes / liberación de servicios (Cláusula 8.6).
-5. **Cálculo de Tiempos SLA y Lead Time (ISO 8601)**: Cuantificación de plazos administrativos, tiempos de ciclo directo y límites perentorios de prescripción legal.
+1. **Notación BPMN 2.0 (ISO/IEC 19510:2013)**: Diagramación formal de procesos, compresión y descompresión bidireccional de Subprocesos y Macroprocesos, redimensionamiento libre y proporcional de tarjetas.
+2. **Compresión y Descompresión Bidireccional de Subprocesos**:
+   * **Compresión (Encapsular):** Permite seleccionar múltiples tarjetas y comprimirlas en un único Subproceso con título personalizado, validando la regla BPMN de **una sola entrada y una sola salida**.
+   * **Descompresión (Desagrupar):** Permite presionar *"Descomprimir en el Lienzo"* para volver a desplegar todas las etapas individuales secuenciadas en el macroproceso.
+3. **Portapapeles Integral de Procesos (`Ctrl + C` / `Ctrl + V`)**: Copiado y pegado de tarjetas individuales, selecciones múltiples y Subprocesos completos con todas sus tareas internas.
+4. **Persistencia Total y Autoguardado en Segundo Plano**: Disposiciones espaciales `(X, Y)`, dimensiones, colores de tarjetas y conexiones guardados en tiempo real en los archivos JSON de `../Proyectos/`.
+5. **Personalización Cromática Integral y Herencia de Temáticas**: Fondos de pizarra personalizables sin bloqueos blancos y catálogo de temáticas Antigravity IDE.
 
 ### 💾 Arquitectura Portable USB (Zero-AppData & Zero-Registry)
-A diferencia de los programas tradicionales, **ProcesosStudio Portable** no requiere instaladores, privilegios de administrador ni runtime de Node.js instalado en el equipo del usuario:
 * **Ejecutable Directo (`ProcesosStudio.exe`)**: Inicia la aplicación con un solo clic.
 * **Persistencia Abierta en JSON**: Cada proyecto se guarda como un archivo de texto estructurado en la subcarpeta `../Proyectos/`.
-* **Portabilidad Total**: Permite copiar la carpeta completa a cualquier memoria USB (Pendrive) y trabajar en cualquier computadora con Windows 10/11 manteniendo todos los proyectos sincronizados.
+* **Portabilidad Total**: Funciona en cualquier pendrive o PC con Windows 10/11 sin instalaciones ni permisos de administrador.
 
 ---
 
-## 2. MECÁNICA DE COLORES, CONECTORES Y AUTOGUARDADO
+## 2. COMPRESIÓN, DESCOMPRESIÓN Y COPIADO DE PROCESOS
 
-### 2.1. Persistencia y Autoguardado en Segundo Plano
-* **Movimiento y Redimensionamiento:** Cada vez que mueva una tarjeta a una nueva posición `(X, Y)` o la redimensione desde las esquinas, el sistema realiza un **autoguardado inteligente en segundo plano** directamente en el archivo JSON.
-* **Estilos de Flechas y Conectores:** Cualquier cambio de color, grosor o animación de flujo en las conexiones queda registrado de forma permanente.
-* **Apertura de Proyectos:** Al iniciar la app, accederá al Gestor de Proyectos donde podrá seleccionar el archivo deseado con la certeza de que todos los nodos, conectores y estilos estarán exactamente como los dejó.
-
----
-
-### 2.2. Selección de Temática Base y Fondo de Pizarra
-En la barra superior, haga clic en el botón **`Temas y Colores`** (ícono de paleta):
-1. **Temática Base:** Elija entre *Antigravity Dark*, *Antigravity Cosmic*, *Antigravity Cyber Emerald*, *Antigravity Nebula Violet*, *Antigravity Light Studio* o *Antigravity Warm Solar*.
-2. **Fondo de Pizarra:** Cambie el color de la parte de atrás de la pizarra (carbón, azul noche o color libre HEX). Las bandas de los carriles swimlanes adoptarán el color sin alterar el resto de la temática elegida.
+### 2.1. Compresión de Actividades en un Subproceso (Agrupar)
+1. **Selección Múltiple:** Arrastre un recuadro de selección sobre las tarjetas deseadas o mantenga presionado `Shift` y haga clic en cada nodo.
+2. **Barra de Acciones Flotante:** Aparecerá el botón **`📦 Comprimir en Subproceso`**.
+3. **Validación BPMN 2.0 (Entrada y Salida Única):** El sistema verificará que el conjunto seleccionado tenga una sola flecha entrante desde el exterior y una sola flecha saliente hacia el exterior. Si existen múltiples ramificaciones externas, el sistema le indicará cómo regularizar el flujo.
+4. **Creación del Subproceso:** Ingrese el Título y Código del Subproceso. Las actividades se retirarán del macroproceso y se guardarán ordenadas como etapas internas (`subProcessSteps`), reconectando automáticamente las flechas exteriores al nuevo nodo.
 
 ---
 
-### 2.3. Personalización de Tarjetas y Conexiones
-* **Tarjetas:** Paleta rápida o selector libre en el panel de propiedades, con botones para aplicar el color a todas las tarjetas del mismo tipo, al carril o a todo el diagrama.
-* **Conexiones:** Color de flecha, grosor de línea (1.5px a 4px), flujo animado y aplicación a todas las conexiones del proyecto.
+### 2.2. Visualización y Descompresión en el Lienzo (Desagrupar)
+* **Modo Ampliación (`Ampliar ↗`):** Permite ver y editar la lista secuencial de tareas internas del subproceso con sus roles, sistemas y tiempos sin desarmar el mapa general.
+* **Descompresión en el Lienzo (`📂 Descomprimir`):** Al hacer clic en el botón de descompresión (disponible en la tarjeta del subproceso, en el panel lateral o en el modal de detalle), el sistema:
+  1. Extrae todas las etapas internas.
+  2. Genera nuevamente las tarjetas individuales en el carril.
+  3. Reconstruye automáticamente las conexiones secuenciales entre ellas (`Paso 1 -> Paso 2 -> Paso 3...`).
+  4. Reconecta la flecha entrante al primer paso y la saliente al último paso.
+  5. Elimina la tarjeta contenedora del subproceso.
+
+---
+
+### 2.3. Copiar y Pegar Nodos y Subprocesos (`Ctrl + C` / `Ctrl + V`)
+* **Atajos de Teclado:** Seleccione uno o varios nodos y presione `Ctrl + C` para copiar y `Ctrl + V` para pegar.
+* **Preservación Integral:** Al copiar un Subproceso, se duplican todas sus etapas internas, roles y sistemas informáticos asociados, asignando nuevos identificadores correlativos.
+* **Conexiones Internas:** Si copia un grupo de actividades interconectadas, las flechas internas entre ellas se duplican conservando su disposición relativa.
 
 ---
 
@@ -59,7 +61,7 @@ En la barra superior, haga clic en el botón **`Temas y Colores`** (ícono de pa
 | 🟡 | **Tarea Manual (Manual Task)** | `#F59E0B` | Actividad física o de inspección en campo sin intervención de software. |
 | 🟡 | **Compuerta Exclusiva (Exclusive Gateway - XOR)** | `#F59E0B` | Bifurcación condicional donde el flujo toma una única rama. |
 | 🟡 | **Compuerta Paralela (Parallel Gateway - AND)** | `#F59E0B` | Bifurcación simultánea donde se inician múltiples tareas concurrentes. |
-| 🔵 | **Subproceso (Sub-Process)** | `#3B82F6` | **Actividad compuesta que agrupa un procedimiento secundario.** Incluye botón **"Ampliar"** para desglosar sus etapas internas. |
+| 🔵 | **Subproceso (Sub-Process)** | `#3B82F6` | **Actividad compuesta que encapsula un procedimiento secundario.** Permite compresión y descompresión bidireccional. |
 | 🟡 | **Evento de Temporización (Timer Event)** | `#F59E0B` | Límite temporal reglamentario que fija plazos perentorios (ISO 8601). |
 | 🟢 | **Punto de Control de Calidad (Quality Checkpoint QC)** | `#10B981` | Hito de verificación formal bajo norma ISO 9001 con evidencia obligatoria. |
 | 🔴 | **Evento de Fin (End Event)** | `#EF4444` | Culminación o estado terminal del flujo (ej: *Expediente Archivado*). |
@@ -68,15 +70,7 @@ En la barra superior, haga clic en el botón **`Temas y Colores`** (ícono de pa
 
 ---
 
-## 4. REDIMENSIONAMIENTO Y CONTROL DE PANELES
-
-* **Redimensionamiento de Tarjetas/Nodos**: Al seleccionar cualquier nodo en el lienzo, arrastre los bordes o **arrastre desde cualquiera de las 4 esquinas circulares para redimensionar de forma proporcional**.
-* **Ajuste de Paneles con Ratón**: Arrastre los bordes divisorios de la Paleta izquierda y del Navegador derecho para calibrar su ancho libremente.
-* **Botones de Colapso**: Permiten contraer la paleta a un dock compacto de iconos o cerrar el panel derecho para maximizar la superficie del lienzo.
-
----
-
-## 5. TUTORIAL PRÁCTICO INTEGRAL PASO A PASO
+## 4. TUTORIAL PRÁCTICO: COMPRESIÓN, MODELADO Y COPIADO
 
 ### 🏢 Caso de Estudio: *"Procedimiento Sancionatorio por Obras Clandestinas"* (Código: `PRC-OBR-001`)
 
@@ -90,43 +84,39 @@ En la barra superior, haga clic en el botón **`Temas y Colores`** (ícono de pa
 [ QC-01: Verificación de Firma y Plano ] (Inspección ISO 9001)
               │
               ▼
-[ ACT-02: Notificación de Emplazamiento Legal ] ──> [ TMR-01: Plazo Fatal 5 Días ]
-                                                             │
-                                                             ▼
-                                     [ DEC-01: ¿Presenta Descargo o Subsanación? ]
-                                            ├── (Rama A: Regulariza) ──> [ SUB-01: Subproceso Regularización ] ──> [ FIN-01: Archivo ]
-                                            │                                 │
-                                            │                                 └──> [Paso 1: Plano Conforme a Obra]
-                                            │                                      [Paso 2: Liquidación Derechos]
-                                            │                                      [Paso 3: Pago en Caja y Libre Deuda]
-                                            │
-                                            └── (Rama B: Rebelde) ────> [ ACT-03: Sentencia de Clausura ] (Riesgo RSK-01) ──> [ FIN-02: Clausura ]
+[ ACT-02: Emplazamiento Legal ] ──> [ TMR-01: Plazo 5 Días ] ──> [ DEC-01: ¿Subsanación? ]
+                                                                        │
+                                       ┌────────────────────────────────┴────────────────────────────────┐
+                                       ▼ (Rama A: Regulariza)                                             ▼ (Rama B: Rebelde)
+                 ┌───────────────────────────────────────────────┐                             [ ACT-03: Sentencia Clausura ]
+                 │  [ SUB-01: Subproceso Regularización ]       │                                             │
+                 │   ├── Paso 1: Plano Conforme a Obra           │                                             ▼
+                 │   ├── Paso 2: Liquidación de Derechos         │                                     [ FIN-02: Clausura ]
+                 │   └── Paso 3: Pago en Caja y Libre Deuda      │
+                 └───────────────────────┬───────────────────────┘
+                                         │
+                                         ▼
+                                  [ FIN-01: Archivo ]
 ```
 
-### PASO 1: Alta del Proyecto y Elección de Temática Base
-1. En el Dashboard haga clic en **`Nuevo Proyecto`**. Complete el título, autor y unidad organizativa.
-2. En la barra superior, haga clic en **`Temas y Colores`** y elija su temática base (ej: *Antigravity Cosmic*).
+### PASO 1: Selección y Compresión
+1. Dibuje las 3 tareas de regularización (*Plano*, *Liquidación*, *Pago*).
+2. Selecciónelas arrastrando el ratón y presione **`📦 Comprimir en Subproceso`**.
+3. asígneles el título *"Subproceso de Regularización de Obras"*. El sistema creará el nodo `SUB-01` unificado.
 
-### PASO 2: Modelado, Personalización Cromática y Redimensionamiento
-1. Arrastre los nodos desde la paleta izquierda.
-2. Mueva y redimensione las tarjetas libremente; el sistema guardará su posición automáticamente.
-3. Personalice el color de fondo de las tarjetas y conectores según la jerarquía visual requerida.
-4. En el nodo `SUB-01`, presione **`Ampliar`** para cargar las tareas internas.
-
-### PASO 3: Navegación y Reporte Oficial ISO 9001
-1. En el menú derecho (`Navegador`), haga clic en `SUB-01` para comprobar el **zoom y centrado automático**.
-2. Presione `Ctrl + S` para guardar en `Proyectos/`.
-3. Acceda a la **Ficha Técnica ISO 9001** y descargue el PDF oficial.
+### PASO 2: Descompresión o Copiado
+1. Si desea duplicar el subproceso en otra rama, selecciónelo y presione `Ctrl + C` y `Ctrl + V`.
+2. Si desea volver a ver las 3 tarjetas sueltas en el lienzo principal, haga clic en el botón **`Descomprimir`**.
 
 ---
 
-## 6. MANTENIMIENTO, COPIAS DE SEGURIDAD Y RESPALDOS USB
+## 5. MANTENIMIENTO, COPIAS DE SEGURIDAD Y RESPALDOS USB
 
 * Todos los proyectos residen en:
   ```text
   MiAppProcesos_USB/Proyectos/
   ```
-* Para realizar copias de seguridad, copie la carpeta `Proyectos/` a cualquier unidad externa o almacenamiento en la nube.
+* Para respaldar su trabajo, copie la carpeta `Proyectos/` a cualquier unidad externa.
 
 ---
 *ProcesosStudio Portable &bull; Conforme a las normas ISO/IEC 19510:2013 y Sistemas de Gestión de la Calidad ISO 9001:2015.*

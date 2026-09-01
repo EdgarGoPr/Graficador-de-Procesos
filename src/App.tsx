@@ -12,6 +12,7 @@ import { TechnicalReportView } from './components/report/TechnicalReportView';
 import { NewProjectModal } from './components/modals/NewProjectModal';
 import { SubProcessDetailModal } from './components/modals/SubProcessDetailModal';
 import { ThemeCustomizationModal } from './components/modals/ThemeCustomizationModal';
+import { CompressSubProcessModal } from './components/modals/CompressSubProcessModal';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
 import { CheckCircle2, Info, AlertCircle, X } from 'lucide-react';
 
@@ -111,6 +112,9 @@ export const App: React.FC = () => {
 
         {/* Theme & Palette Customization Modal */}
         <ThemeCustomizationModal />
+
+        {/* Compress Selection to SubProcess Modal */}
+        <CompressSubProcessModal />
       </div>
     </ErrorBoundary>
   );
