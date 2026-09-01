@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { ReactFlowProvider } from '@xyflow/react';
 import { useProjectStore } from './store/useProjectStore';
 import { useUiStore } from './store/useUiStore';
 import { Header } from './components/layout/Header';
@@ -10,6 +11,7 @@ import { SipocMatrixView } from './components/sipoc/SipocMatrixView';
 import { TechnicalReportView } from './components/report/TechnicalReportView';
 import { NewProjectModal } from './components/modals/NewProjectModal';
 import { SubProcessDetailModal } from './components/modals/SubProcessDetailModal';
+import { ErrorBoundary } from './components/common/ErrorBoundary';
 import { CheckCircle2, Info, AlertCircle, X } from 'lucide-react';
 
 export const App: React.FC = () => {
@@ -44,36 +46,39 @@ export const App: React.FC = () => {
   }
 
   return (
-    <div className="h-screen w-screen flex flex-col bg-theme-bg text-theme-text overflow-hidden select-none transition-colors">
-      {/* Top Header */}
-      <Header onOpenNewProjectModal={() => setIsNewProjectModalOpen(true)} />
+    <ErrorBoundary>
+      <div className="h-screen w-screen flex flex-col bg-theme-bg text-theme-text overflow-hidden select-none transition-colors">
+        {/* Top Header */}
+        <Header onOpenNewProjectModal={() => setIsNewProjectModalOpen(true)} />
 
-      {/* Main Workspace Area */}
-      <main className="flex-1 flex overflow-hidden relative">
-        {activeView === 'DASHBOARD' && (
-          <ProjectDashboard onOpenNewModal={() => setIsNewProjectModalOpen(true)} />
+        {/* Main Workspace Area */}
+        <main className="flex-1 flex overflow-hidden relative">
+          {activeView === 'DASHBOARD' && (
+            <ProjectDashboard onOpenNewModal={() => setIsNewProjectModalOpen(true)} />
+          )}
+
+          {activeView === 'CANVAS' && (
+            <ReactFlowProvider>
+              <div className="flex-1 flex w-full h-full overflow-hidden">
+                <SidebarPalette />
+                <ProcessCanvas />
+                {isPropertiesPanelOpen && <RightSidebar />}
+              </div>
+            </ReactFlowProvider>
+          )}
+
+          {activeView === 'SIPOC' && <SipocMatrixView />}
+
+          {activeView === 'REPORT' && <TechnicalReportView />}
+        </main>
+
+        {/* SubProcess Detail Expansion Modal */}
+        {activeSubProcessNodeId && (
+          <SubProcessDetailModal
+            nodeId={activeSubProcessNodeId}
+            onClose={closeSubProcessDetail}
+          />
         )}
-
-        {activeView === 'CANVAS' && (
-          <div className="flex-1 flex w-full h-full overflow-hidden">
-            <SidebarPalette />
-            <ProcessCanvas />
-            {isPropertiesPanelOpen && <RightSidebar />}
-          </div>
-        )}
-
-        {activeView === 'SIPOC' && <SipocMatrixView />}
-
-        {activeView === 'REPORT' && <TechnicalReportView />}
-      </main>
-
-      {/* SubProcess Detail Expansion Modal */}
-      {activeSubProcessNodeId && (
-        <SubProcessDetailModal
-          nodeId={activeSubProcessNodeId}
-          onClose={closeSubProcessDetail}
-        />
-      )}
 
       {/* Notification Toast */}
       {activeNotification && (
@@ -97,12 +102,13 @@ export const App: React.FC = () => {
         </div>
       )}
 
-      {/* New Project Modal */}
-      <NewProjectModal
-        isOpen={isNewProjectModalOpen}
-        onClose={() => setIsNewProjectModalOpen(false)}
-      />
-    </div>
+        {/* New Project Modal */}
+        <NewProjectModal
+          isOpen={isNewProjectModalOpen}
+          onClose={() => setIsNewProjectModalOpen(false)}
+        />
+      </div>
+    </ErrorBoundary>
   );
 };
 export default App;

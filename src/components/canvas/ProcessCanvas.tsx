@@ -186,10 +186,7 @@ const ProcessCanvasInternal: React.FC = () => {
 };
 
 export const ProcessCanvas: React.FC = () => {
-  return (
-    <ReactFlowProvider>
-      <ProcessCanvasInternal />
-    </ReactFlowProvider>
-  );
+  return <ProcessCanvasInternal />;
 };
+
 
