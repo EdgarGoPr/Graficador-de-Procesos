@@ -8,7 +8,7 @@
     "organizationUnit": "Justicia Administrativa Municipal de Faltas",
     "processObjective": "Definir el objetivo y alcance operativo del proceso.",
     "createdAt": "2026-09-01T15:50:30.507Z",
-    "updatedAt": "2026-09-01T18:12:02.832Z",
+    "updatedAt": "2026-09-01T18:32:52.070Z",
     "status": "DRAFT",
     "legalNormativeBasis": [
       "Normativa aplicable general"
@@ -60,8 +60,8 @@
       "id": "node_start",
       "type": "StartEvent",
       "position": {
-        "x": 132.03723871635816,
-        "y": -151.06315761177945
+        "x": -196.87565253018624,
+        "y": -610.3759384745317
       },
       "data": {
         "standardId": "INI-01",
@@ -87,6 +87,37 @@
       "measured": {
         "width": 96,
         "height": 96
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "node_1788287508761",
+      "type": "UserTask",
+      "position": {
+        "x": -46.307026435047874,
+        "y": -602.6397994586907
+      },
+      "data": {
+        "standardId": "TSK-01",
+        "title": "Identificación de Infracción",
+        "description": "El inspector visualiza la infracción y labra el acta",
+        "nodeType": "UserTask",
+        "laneId": "lane_1",
+        "laneName": "Mesa de Entradas / Inspectoría",
+        "roleName": "Inspector / Operador",
+        "itSystem": "Sin Sistema",
+        "legalFramework": "Marco normativo general",
+        "inputs": [],
+        "outputs": [],
+        "operationalRisks": [],
+        "tags": [],
+        "displayMode": "title_only",
+        "customFontSize": 12
+      },
+      "measured": {
+        "width": 181,
+        "height": 76
       },
       "selected": true,
       "dragging": false

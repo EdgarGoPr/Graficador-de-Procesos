@@ -51,7 +51,8 @@ export const SwimlaneBackground: React.FC<SwimlaneBackgroundProps> = ({
     colorHex: '#38bdf8'
   });
 
-  const handleOpenEdit = (lane: LaneDefinition) => {
+  const handleOpenEdit = (lane: LaneDefinition, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
     setEditingLane(lane);
     setIsCreatingLane(false);
     setFormData({
@@ -62,7 +63,8 @@ export const SwimlaneBackground: React.FC<SwimlaneBackgroundProps> = ({
     });
   };
 
-  const handleOpenCreate = (poolId: string) => {
+  const handleOpenCreate = (poolId: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
     setActivePoolId(poolId);
     setEditingLane(null);
     setIsCreatingLane(true);
@@ -96,7 +98,8 @@ export const SwimlaneBackground: React.FC<SwimlaneBackgroundProps> = ({
     }
   };
 
-  const handleDelete = (lane: LaneDefinition, totalLanes: number) => {
+  const handleDelete = (lane: LaneDefinition, totalLanes: number, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
     if (totalLanes <= 1) {
       alert('El proceso debe conservar al menos un carril operativo.');
       return;
@@ -109,166 +112,196 @@ export const SwimlaneBackground: React.FC<SwimlaneBackgroundProps> = ({
   if (!pools || pools.length === 0) return null;
 
   return (
-    <div
-      className="absolute top-0 left-0 pointer-events-none select-none z-0 transition-colors"
-      style={{ width: `${totalWidth}px` }}
-    >
-      {pools.map((pool) => {
-        return (
-          <div key={pool.id} className="relative mb-8">
-            {/* Pool Header Bar */}
-            <div className="flex items-center justify-between px-4 py-2 bg-theme-surface border-b border-theme-border text-theme-text shadow-md pointer-events-auto">
-              <div className="flex items-center space-x-2">
-                <Layers className="w-4 h-4 text-theme-accent shrink-0" />
-                <span className="font-bold text-sm tracking-wide text-theme-accent">
-                  {pool.name}
-                </span>
-                <span className="text-xs text-theme-text-muted font-mono">
-                  [{pool.organization}]
-                </span>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-theme-surface-subtle text-theme-text-muted border border-theme-border">
-                  {pool.lanes.length} {pool.lanes.length === 1 ? 'Carril' : 'Carriles'}
-                </span>
+    <>
+      <div
+        className="absolute top-0 left-0 pointer-events-none select-none z-0 transition-colors"
+        style={{ width: `${totalWidth}px` }}
+      >
+        {pools.map((pool) => {
+          return (
+            <div key={pool.id} className="relative mb-8">
+              {/* Pool Header Bar */}
+              <div className="nodrag nopan pointer-events-auto flex items-center justify-between px-4 py-2 bg-theme-surface border-b border-theme-border text-theme-text shadow-md relative z-20">
+                <div className="flex items-center space-x-2">
+                  <Layers className="w-4 h-4 text-theme-accent shrink-0" />
+                  <span className="font-bold text-sm tracking-wide text-theme-accent">
+                    {pool.name}
+                  </span>
+                  <span className="text-xs text-theme-text-muted font-mono">
+                    [{pool.organization}]
+                  </span>
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-theme-surface-subtle text-theme-text-muted border border-theme-border">
+                    {pool.lanes.length} {pool.lanes.length === 1 ? 'Carril' : 'Carriles'}
+                  </span>
+                </div>
+
+                {/* Add Lane Button on Pool Header */}
+                <button
+                  type="button"
+                  onClick={(e) => handleOpenCreate(pool.id, e)}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  className="nodrag nopan pointer-events-auto flex items-center space-x-1 px-3 py-1 bg-sky-500 hover:bg-sky-600 text-white rounded-md text-xs font-bold transition-all shadow-md active:scale-95 cursor-pointer"
+                  title="Agregar nuevo carril funcional"
+                >
+                  <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                  <span>+ Agregar Carril</span>
+                </button>
               </div>
 
-              {/* Add Lane Button on Pool Header */}
-              <button
-                onClick={() => handleOpenCreate(pool.id)}
-                className="flex items-center space-x-1 px-2.5 py-1 bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 border border-sky-500/30 rounded-md text-xs font-semibold transition-all shadow-sm hover:scale-[1.02] active:scale-95"
-                title="Agregar nuevo carril funcional"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                <span>+ Agregar Carril</span>
-              </button>
-            </div>
+              {/* Swimlanes */}
+              {pool.lanes.map((lane, idx) => {
+                const isEven = idx % 2 === 0;
+                const isFirst = idx === 0;
+                const isLast = idx === pool.lanes.length - 1;
 
-            {/* Swimlanes */}
-            {pool.lanes.map((lane, idx) => {
-              const isEven = idx % 2 === 0;
-              const isFirst = idx === 0;
-              const isLast = idx === pool.lanes.length - 1;
-
-              return (
-                <div
-                  key={lane.id}
-                  style={{
-                    height: `${laneHeight}px`,
-                    width: '100%',
-                    backgroundColor: isEven ? 'transparent' : 'rgba(128, 128, 128, 0.04)'
-                  }}
-                  className="relative flex border-b border-r border-theme-border/60 transition-colors"
-                >
-                  {/* Lane Header Banner (Left Side) */}
+                return (
                   <div
-                    className="w-64 shrink-0 border-r border-theme-border/80 p-2.5 flex flex-col justify-between bg-theme-surface/95 backdrop-blur-md transition-colors shadow-sm pointer-events-auto z-10"
+                    key={lane.id}
                     style={{
-                      borderLeft: `5px solid ${lane.colorHex || '#38bdf8'}`
+                      height: `${laneHeight}px`,
+                      width: '100%',
+                      backgroundColor: isEven ? 'transparent' : 'rgba(128, 128, 128, 0.04)'
                     }}
+                    className="relative flex border-b border-r border-theme-border/60 transition-colors"
                   >
-                    {/* Top Row: Order Badge & Action Toolbar */}
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-1.5">
-                        <span
-                          className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded text-white shadow-sm"
-                          style={{ backgroundColor: lane.colorHex || '#38bdf8' }}
-                        >
-                          #{idx + 1}
-                        </span>
-                        <span className="text-[10px] text-theme-text-muted font-mono uppercase truncate max-w-[90px]">
-                          Carril
-                        </span>
+                    {/* Lane Header Banner (Left Side) */}
+                    <div
+                      className="nodrag nopan pointer-events-auto w-64 shrink-0 border-r border-theme-border/80 p-2.5 flex flex-col justify-between bg-theme-surface/95 backdrop-blur-md transition-colors shadow-sm relative z-20"
+                      style={{
+                        borderLeft: `5px solid ${lane.colorHex || '#38bdf8'}`
+                      }}
+                    >
+                      {/* Top Row: Order Badge & Action Toolbar */}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-1.5">
+                          <span
+                            className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded text-white shadow-sm"
+                            style={{ backgroundColor: lane.colorHex || '#38bdf8' }}
+                          >
+                            #{idx + 1}
+                          </span>
+                          <span className="text-[10px] text-theme-text-muted font-mono uppercase truncate max-w-[90px]">
+                            Carril
+                          </span>
+                        </div>
+
+                        {/* Lane Actions: Up, Down, Edit, Delete */}
+                        <div className="nodrag nopan pointer-events-auto flex items-center space-x-1 bg-theme-surface-subtle p-0.5 rounded border border-theme-border">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              moveLane(lane.id, 'up');
+                            }}
+                            onMouseDown={(e) => e.stopPropagation()}
+                            disabled={isFirst}
+                            className={`p-1 rounded transition-colors cursor-pointer ${
+                              isFirst ? 'text-theme-text-muted/30 cursor-not-allowed' : 'text-theme-text-muted hover:text-sky-400 hover:bg-theme-surface'
+                            }`}
+                            title="Mover carril hacia arriba"
+                          >
+                            <ChevronUp className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              moveLane(lane.id, 'down');
+                            }}
+                            onMouseDown={(e) => e.stopPropagation()}
+                            disabled={isLast}
+                            className={`p-1 rounded transition-colors cursor-pointer ${
+                              isLast ? 'text-theme-text-muted/30 cursor-not-allowed' : 'text-theme-text-muted hover:text-sky-400 hover:bg-theme-surface'
+                            }`}
+                            title="Mover carril hacia abajo"
+                          >
+                            <ChevronDown className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => handleOpenEdit(lane, e)}
+                            onMouseDown={(e) => e.stopPropagation()}
+                            className="p-1 rounded text-theme-text-muted hover:text-amber-400 hover:bg-theme-surface transition-colors cursor-pointer"
+                            title="Editar nombre, rol o sistema del carril"
+                          >
+                            <Edit2 className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => handleDelete(lane, pool.lanes.length, e)}
+                            onMouseDown={(e) => e.stopPropagation()}
+                            disabled={pool.lanes.length <= 1}
+                            className={`p-1 rounded transition-colors cursor-pointer ${
+                              pool.lanes.length <= 1 ? 'text-theme-text-muted/30 cursor-not-allowed' : 'text-theme-text-muted hover:text-rose-400 hover:bg-theme-surface'
+                            }`}
+                            title="Eliminar carril"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       </div>
 
-                      {/* Lane Actions: Up, Down, Edit, Delete */}
-                      <div className="flex items-center space-x-1 bg-theme-surface-subtle p-0.5 rounded border border-theme-border">
-                        <button
-                          onClick={() => moveLane(lane.id, 'up')}
-                          disabled={isFirst}
-                          className={`p-1 rounded transition-colors ${
-                            isFirst ? 'text-theme-text-muted/30 cursor-not-allowed' : 'text-theme-text-muted hover:text-sky-400 hover:bg-theme-surface'
-                          }`}
-                          title="Mover carril hacia arriba"
+                      {/* Middle: Lane Title */}
+                      <div>
+                        <div
+                          className="text-xs font-bold text-theme-text line-clamp-2 leading-tight cursor-pointer hover:text-theme-accent transition-colors"
+                          onClick={(e) => handleOpenEdit(lane, e)}
+                          title="Clic para editar carril"
                         >
-                          <ChevronUp className="w-3 h-3" />
-                        </button>
-                        <button
-                          onClick={() => moveLane(lane.id, 'down')}
-                          disabled={isLast}
-                          className={`p-1 rounded transition-colors ${
-                            isLast ? 'text-theme-text-muted/30 cursor-not-allowed' : 'text-theme-text-muted hover:text-sky-400 hover:bg-theme-surface'
-                          }`}
-                          title="Mover carril hacia abajo"
-                        >
-                          <ChevronDown className="w-3 h-3" />
-                        </button>
-                        <button
-                          onClick={() => handleOpenEdit(lane)}
-                          className="p-1 rounded text-theme-text-muted hover:text-amber-400 hover:bg-theme-surface transition-colors"
-                          title="Editar nombre, rol o sistema del carril"
-                        >
-                          <Edit2 className="w-3 h-3" />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(lane, pool.lanes.length)}
-                          disabled={pool.lanes.length <= 1}
-                          className={`p-1 rounded transition-colors ${
-                            pool.lanes.length <= 1 ? 'text-theme-text-muted/30 cursor-not-allowed' : 'text-theme-text-muted hover:text-rose-400 hover:bg-theme-surface'
-                          }`}
-                          title="Eliminar carril"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                        </button>
+                          {lane.name}
+                        </div>
+                        <div className="flex items-center text-[10px] text-theme-text-muted mt-1 truncate">
+                          <UserCheck className="w-3 h-3 mr-1 text-theme-text-muted shrink-0" />
+                          <span className="truncate">{lane.role}</span>
+                        </div>
+                      </div>
+
+                      {/* Bottom: IT System tag */}
+                      <div className="flex items-center text-[9px] font-mono text-theme-accent bg-theme-surface-subtle px-1.5 py-0.5 rounded border border-theme-border truncate">
+                        <Server className="w-2.5 h-2.5 mr-1 shrink-0" />
+                        <span className="truncate">{lane.system}</span>
                       </div>
                     </div>
 
-                    {/* Middle: Lane Title */}
-                    <div>
-                      <div
-                        className="text-xs font-bold text-theme-text line-clamp-2 leading-tight cursor-pointer hover:text-theme-accent transition-colors"
-                        onClick={() => handleOpenEdit(lane)}
-                        title="Clic para editar carril"
-                      >
-                        {lane.name}
-                      </div>
-                      <div className="flex items-center text-[10px] text-theme-text-muted mt-1 truncate">
-                        <UserCheck className="w-3 h-3 mr-1 text-theme-text-muted shrink-0" />
-                        <span className="truncate">{lane.role}</span>
-                      </div>
-                    </div>
-
-                    {/* Bottom: IT System tag */}
-                    <div className="flex items-center text-[9px] font-mono text-theme-accent bg-theme-surface-subtle px-1.5 py-0.5 rounded border border-theme-border truncate">
-                      <Server className="w-2.5 h-2.5 mr-1 shrink-0" />
-                      <span className="truncate">{lane.system}</span>
+                    {/* Lane Body Grid area */}
+                    <div className="flex-1 relative">
+                      <div className="absolute inset-0 bg-[linear-gradient(to_right,var(--theme-border)_1px,transparent_1px),linear-gradient(to_bottom,var(--theme-border)_1px,transparent_1px)] bg-[size:40px_40px] opacity-15" />
                     </div>
                   </div>
+                );
+              })}
 
-                  {/* Lane Body Grid area */}
-                  <div className="flex-1 relative">
-                    <div className="absolute inset-0 bg-[linear-gradient(to_right,var(--theme-border)_1px,transparent_1px),linear-gradient(to_bottom,var(--theme-border)_1px,transparent_1px)] bg-[size:40px_40px] opacity-15" />
-                  </div>
-                </div>
-              );
-            })}
-
-            {/* Bottom Add Lane Bar */}
-            <div className="w-64 p-2 bg-theme-surface/70 border-r border-b border-theme-border/60 pointer-events-auto">
-              <button
-                onClick={() => handleOpenCreate(pool.id)}
-                className="w-full py-1.5 flex items-center justify-center space-x-1.5 rounded-lg border border-dashed border-theme-border hover:border-sky-400 hover:bg-sky-500/10 text-theme-text-muted hover:text-sky-400 text-xs font-medium transition-all"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                <span>+ Agregar Carril</span>
-              </button>
+              {/* Bottom Add Lane Bar */}
+              <div className="nodrag nopan pointer-events-auto w-64 p-2 bg-theme-surface/90 border-r border-b border-theme-border/60 relative z-20">
+                <button
+                  type="button"
+                  onClick={(e) => handleOpenCreate(pool.id, e)}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  className="w-full py-1.5 flex items-center justify-center space-x-1.5 rounded-lg border border-dashed border-sky-400/60 hover:border-sky-400 bg-sky-500/5 hover:bg-sky-500/15 text-sky-400 text-xs font-semibold transition-all cursor-pointer shadow-sm active:scale-98"
+                >
+                  <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                  <span>+ Agregar Carril</span>
+                </button>
+              </div>
             </div>
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
 
       {/* Edit / Create Lane Modal */}
       {(editingLane || isCreatingLane) && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm pointer-events-auto">
-          <div className="w-full max-w-md bg-theme-surface border border-theme-border rounded-xl shadow-2xl p-5 text-theme-text animate-in fade-in zoom-in duration-150">
+        <div
+          className="nodrag nopan pointer-events-auto fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+          onMouseDown={(e) => e.stopPropagation()}
+          onClick={() => {
+            setEditingLane(null);
+            setIsCreatingLane(false);
+          }}
+        >
+          <div
+            className="w-full max-w-md bg-theme-surface border border-theme-border rounded-xl shadow-2xl p-5 text-theme-text animate-in fade-in zoom-in duration-150 relative z-50"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center justify-between pb-3 border-b border-theme-border">
               <div className="flex items-center space-x-2">
                 <div className="p-1.5 rounded-lg bg-sky-500/10 text-sky-400">
@@ -279,11 +312,12 @@ export const SwimlaneBackground: React.FC<SwimlaneBackgroundProps> = ({
                 </h3>
               </div>
               <button
+                type="button"
                 onClick={() => {
                   setEditingLane(null);
                   setIsCreatingLane(false);
                 }}
-                className="p-1 rounded-md text-theme-text-muted hover:text-theme-text hover:bg-theme-surface-subtle"
+                className="p-1 rounded-md text-theme-text-muted hover:text-theme-text hover:bg-theme-surface-subtle cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -343,7 +377,7 @@ export const SwimlaneBackground: React.FC<SwimlaneBackgroundProps> = ({
                       key={color.hex}
                       type="button"
                       onClick={() => setFormData({ ...formData, colorHex: color.hex })}
-                      className={`flex items-center space-x-1.5 p-1.5 rounded-lg border text-[11px] transition-all ${
+                      className={`flex items-center space-x-1.5 p-1.5 rounded-lg border text-[11px] transition-all cursor-pointer ${
                         formData.colorHex === color.hex
                           ? 'border-sky-400 bg-theme-surface-subtle font-bold text-sky-400 ring-1 ring-sky-400'
                           : 'border-theme-border hover:border-theme-text-muted/60 text-theme-text-muted'
@@ -366,13 +400,13 @@ export const SwimlaneBackground: React.FC<SwimlaneBackgroundProps> = ({
                     setEditingLane(null);
                     setIsCreatingLane(false);
                   }}
-                  className="px-3 py-1.5 rounded-lg border border-theme-border text-xs font-medium text-theme-text-muted hover:bg-theme-surface-subtle transition-colors"
+                  className="px-3 py-1.5 rounded-lg border border-theme-border text-xs font-medium text-theme-text-muted hover:bg-theme-surface-subtle transition-colors cursor-pointer"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="flex items-center space-x-1 px-4 py-1.5 rounded-lg bg-sky-500 hover:bg-sky-600 text-white text-xs font-bold transition-all shadow-md active:scale-95"
+                  className="flex items-center space-x-1 px-4 py-1.5 rounded-lg bg-sky-500 hover:bg-sky-600 text-white text-xs font-bold transition-all shadow-md active:scale-95 cursor-pointer"
                 >
                   <Check className="w-3.5 h-3.5" />
                   <span>{editingLane ? 'Guardar Cambios' : 'Crear Carril'}</span>
@@ -382,6 +416,6 @@ export const SwimlaneBackground: React.FC<SwimlaneBackgroundProps> = ({
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 };
