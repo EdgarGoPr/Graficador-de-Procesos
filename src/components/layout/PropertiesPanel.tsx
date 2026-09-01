@@ -29,6 +29,7 @@ import {
   TimeUnitType,
   GatewayResolutionType
 } from '../../types/process';
+import { CARD_THEME_PRESETS, hexToRgba } from '../../types/theme';
 import { buildIsoDurationString } from '../../services/leadTimeCalculator';
 
 const CARD_BG_SWATCHES = [
@@ -36,10 +37,9 @@ const CARD_BG_SWATCHES = [
   { label: 'Carbón', color: '#18181B' },
   { label: 'Pizarra', color: '#1E293B' },
   { label: 'Azul Noche', color: '#1E3A8A' },
-  { label: 'Verde Esmeralda', color: '#064E3B' },
-  { label: 'Ámbar Cálido', color: '#78350F' },
-  { label: 'Rojo Carmesí', color: '#7F1D1D' },
-  { label: 'Púrpura', color: '#4C1D95' },
+  { label: 'Verde Salvia', color: '#162522' },
+  { label: 'Ámbar Cálido', color: '#231B15' },
+  { label: 'Púrpura', color: '#1A162D' },
   { label: 'Gris Perla', color: '#F1F5F9' },
   { label: 'Blanco', color: '#FFFFFF' }
 ];
@@ -60,6 +60,7 @@ export const PropertiesPanel: React.FC = () => {
     selectedNodeId,
     selectedEdgeId,
     updateNodeData,
+    applyCardStyleToScope,
     updateEdgeData,
     bulkUpdateNodeColors,
     bulkUpdateEdgeColors,
@@ -70,6 +71,7 @@ export const PropertiesPanel: React.FC = () => {
   const { currentProject } = useProjectStore();
   const { setPropertiesPanelOpen, setActiveRightTab, openSubProcessDetail, showNotification } = useUiStore();
 
+  const [cardStyleScope, setCardStyleScope] = useState<'single' | 'same_type' | 'all'>('single');
   const [newInputText, setNewInputText] = useState('');
   const [newOutputText, setNewOutputText] = useState('');
   const [newRiskDesc, setNewRiskDesc] = useState('');
@@ -435,18 +437,28 @@ export const PropertiesPanel: React.FC = () => {
           </div>
         )}
 
-        {/* 🎨 SECCIÓN DE PERSONALIZACIÓN VISUAL DE LA TARJETA (INDIVIDUAL Y GRUPAL) */}
-        <div className="p-3.5 bg-theme-surface-subtle/70 border border-theme-border rounded-xl space-y-3">
+        {/* 🎨 SECCIÓN DE PERSONALIZACIÓN VISUAL Y TEMÁTICA DE LA TARJETA */}
+        <div className="p-3.5 bg-theme-surface-subtle/70 border border-theme-border rounded-xl space-y-3.5">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-bold uppercase tracking-wider text-theme-text font-mono flex items-center">
               <Palette className="w-3.5 h-3.5 text-theme-accent mr-1.5" />
-              <span>Color de la Tarjeta</span>
+              <span>Estilo y Temática de Tarjeta</span>
             </span>
-            {(customBg || customBorder) && (
+            {(data.customBgColor || data.customBorderColor || data.customHeaderBgColor || data.customBgOpacity !== undefined) && (
               <button
-                onClick={() => handleUpdate({ customBgColor: undefined, customBorderColor: undefined })}
+                onClick={() => {
+                  applyCardStyleToScope(node.id, cardStyleScope, {
+                    customBgColor: undefined,
+                    customBgOpacity: undefined,
+                    customBorderColor: undefined,
+                    customHeaderBgColor: undefined,
+                    customHeaderTextColor: undefined,
+                    customTextColor: undefined
+                  });
+                  showNotification('Estilo de tarjeta restablecido', 'info');
+                }}
                 className="text-[10px] text-theme-text-muted hover:text-theme-text flex items-center space-x-1"
-                title="Restablecer colores originales"
+                title="Restablecer estilos predeterminados"
               >
                 <RotateCcw className="w-3 h-3" />
                 <span>Restablecer</span>
@@ -454,88 +466,183 @@ export const PropertiesPanel: React.FC = () => {
             )}
           </div>
 
-          {/* Muestras rápidas de fondo */}
-          <div>
-            <span className="text-[10px] text-theme-text-muted block mb-1">Color de Fondo:</span>
-            <div className="grid grid-cols-5 gap-1">
-              {CARD_BG_SWATCHES.map((swatch) => (
+          {/* Selector de Ámbito / Alcance */}
+          <div className="space-y-1 bg-theme-surface p-2 rounded-lg border border-theme-border/60">
+            <span className="text-[9px] font-mono text-theme-text-muted font-bold block uppercase">
+              Aplicar cambios en:
+            </span>
+            <div className="grid grid-cols-3 gap-1">
+              <button
+                onClick={() => setCardStyleScope('single')}
+                className={`py-1 px-1 rounded-md text-[10px] font-semibold transition-all text-center truncate ${
+                  cardStyleScope === 'single'
+                    ? 'bg-theme-accent text-white shadow-sm'
+                    : 'bg-theme-surface-subtle text-theme-text-muted hover:text-theme-text'
+                }`}
+                title="Afecta solo a la tarjeta seleccionada"
+              >
+                🎯 Esta tarjeta
+              </button>
+              <button
+                onClick={() => setCardStyleScope('same_type')}
+                className={`py-1 px-1 rounded-md text-[10px] font-semibold transition-all text-center truncate ${
+                  cardStyleScope === 'same_type'
+                    ? 'bg-theme-accent text-white shadow-sm'
+                    : 'bg-theme-surface-subtle text-theme-text-muted hover:text-theme-text'
+                }`}
+                title={`Afecta a todas las tarjetas de tipo ${data.nodeType}`}
+              >
+                🏷️ Mismo tipo
+              </button>
+              <button
+                onClick={() => setCardStyleScope('all')}
+                className={`py-1 px-1 rounded-md text-[10px] font-semibold transition-all text-center truncate ${
+                  cardStyleScope === 'all'
+                    ? 'bg-theme-accent text-white shadow-sm'
+                    : 'bg-theme-surface-subtle text-theme-text-muted hover:text-theme-text'
+                }`}
+                title="Afecta a todas las tarjetas del diagrama"
+              >
+                🌐 Todo el mapa
+              </button>
+            </div>
+          </div>
+
+          {/* Temáticas Predefinidas de Tarjeta */}
+          <div className="space-y-1.5">
+            <span className="text-[10px] text-theme-text-muted font-semibold block">Temáticas de Tarjeta:</span>
+            <div className="grid grid-cols-2 gap-1.5">
+              {CARD_THEME_PRESETS.map((preset) => (
                 <button
-                  key={swatch.label}
-                  onClick={() => handleUpdate({ customBgColor: swatch.color || undefined })}
-                  className={`p-1 rounded-md border text-[9px] text-center truncate transition-all ${
-                    customBg.toLowerCase() === swatch.color.toLowerCase()
-                      ? 'border-theme-accent ring-1 ring-theme-accent font-bold'
-                      : 'border-theme-border hover:border-theme-border/80'
-                  }`}
-                  style={{ backgroundColor: swatch.color || 'var(--theme-surface)' }}
+                  key={preset.id}
+                  onClick={() => {
+                    applyCardStyleToScope(node.id, cardStyleScope, {
+                      customBgColor: preset.bgColor,
+                      customBgOpacity: preset.bgOpacity,
+                      customBorderColor: preset.borderColor,
+                      customHeaderBgColor: preset.headerBgColor,
+                      customHeaderTextColor: preset.headerTextColor
+                    });
+                    showNotification(`Temática "${preset.name}" aplicada`);
+                  }}
+                  className="p-1.5 rounded-lg border border-theme-border hover:border-theme-accent bg-theme-surface hover:bg-theme-surface-subtle text-left transition-all group shadow-sm"
                 >
-                  <span className="drop-shadow-sm text-theme-text">{swatch.label}</span>
+                  <div className="flex items-center space-x-1.5 mb-0.5">
+                    <div
+                      className="w-3 h-3 rounded-full border border-white/20 shrink-0"
+                      style={{ backgroundColor: preset.borderColor }}
+                    />
+                    <span className="text-[10px] font-bold text-theme-text truncate group-hover:text-theme-accent">
+                      {preset.name}
+                    </span>
+                  </div>
+                  <p className="text-[8.5px] text-theme-text-muted line-clamp-1">
+                    {preset.description}
+                  </p>
                 </button>
               ))}
             </div>
           </div>
 
-          {/* Color picker libre */}
-          <div className="flex items-center justify-between pt-1">
-            <span className="text-[10px] text-theme-text-muted">Color Libre:</span>
-            <div className="flex items-center space-x-2">
+          {/* Color de Fondo y Slider de Transparencia */}
+          <div className="space-y-2.5 p-2.5 rounded-xl bg-theme-surface border border-theme-border">
+            {/* Color de Fondo */}
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[10px] text-theme-text-muted font-semibold">Color de Fondo:</span>
+                <div className="flex items-center space-x-1.5">
+                  <input
+                    type="color"
+                    value={data.customBgColor || '#1E293B'}
+                    onChange={(e) => applyCardStyleToScope(node.id, cardStyleScope, { customBgColor: e.target.value })}
+                    className="w-5 h-5 rounded cursor-pointer border-0 bg-transparent"
+                  />
+                  <input
+                    type="text"
+                    value={data.customBgColor || ''}
+                    placeholder="Predeterminado"
+                    onChange={(e) => applyCardStyleToScope(node.id, cardStyleScope, { customBgColor: e.target.value })}
+                    className="w-24 px-1.5 py-0.5 rounded bg-theme-surface-subtle border border-theme-border text-[10px] font-mono text-theme-text uppercase"
+                  />
+                </div>
+              </div>
+
+              {/* Muestras rápidas de fondo */}
+              <div className="grid grid-cols-5 gap-1 pt-1">
+                {CARD_BG_SWATCHES.map((swatch) => (
+                  <button
+                    key={swatch.label}
+                    onClick={() => applyCardStyleToScope(node.id, cardStyleScope, { customBgColor: swatch.color || undefined })}
+                    className="p-0.5 rounded border border-theme-border hover:border-theme-accent text-[8px] text-center truncate bg-theme-surface-subtle transition-all"
+                    style={{ backgroundColor: swatch.color || undefined }}
+                  >
+                    <span className="drop-shadow text-theme-text truncate block">{swatch.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Slider de Transparencia / Opacidad */}
+            <div className="pt-2 border-t border-theme-border/60">
+              <div className="flex items-center justify-between text-[10px] mb-1">
+                <span className="text-theme-text-muted font-semibold">Opacidad / Transparencia:</span>
+                <span className="font-mono font-bold text-theme-accent">{data.customBgOpacity ?? 95}%</span>
+              </div>
               <input
-                type="color"
-                value={customBg || '#1E293B'}
-                onChange={(e) => handleUpdate({ customBgColor: e.target.value })}
-                className="w-6 h-6 rounded cursor-pointer border-0 bg-transparent"
+                type="range"
+                min="10"
+                max="100"
+                step="5"
+                value={data.customBgOpacity ?? 95}
+                onChange={(e) => applyCardStyleToScope(node.id, cardStyleScope, { customBgOpacity: Number(e.target.value) })}
+                className="w-full h-1.5 bg-theme-surface-subtle rounded-lg appearance-none cursor-pointer accent-sky-400"
               />
-              <input
-                type="text"
-                value={customBg}
-                placeholder="#HEX..."
-                onChange={(e) => handleUpdate({ customBgColor: e.target.value })}
-                className="w-20 px-2 py-0.5 rounded bg-theme-surface border border-theme-border text-xs font-mono text-theme-text"
-              />
+              <div className="flex justify-between text-[8px] text-theme-text-muted font-mono mt-0.5">
+                <span>Translúcido (10%)</span>
+                <span>Sólido (100%)</span>
+              </div>
+            </div>
+
+            {/* Color de Borde */}
+            <div className="flex items-center justify-between pt-2 border-t border-theme-border/60">
+              <span className="text-[10px] text-theme-text-muted font-semibold">Color de Borde:</span>
+              <div className="flex items-center space-x-1.5">
+                <input
+                  type="color"
+                  value={data.customBorderColor || '#38BDF8'}
+                  onChange={(e) => applyCardStyleToScope(node.id, cardStyleScope, { customBorderColor: e.target.value })}
+                  className="w-5 h-5 rounded cursor-pointer border-0 bg-transparent"
+                />
+                <input
+                  type="text"
+                  value={data.customBorderColor || ''}
+                  placeholder="Predeterminado"
+                  onChange={(e) => applyCardStyleToScope(node.id, cardStyleScope, { customBorderColor: e.target.value })}
+                  className="w-24 px-1.5 py-0.5 rounded bg-theme-surface-subtle border border-theme-border text-[10px] font-mono text-theme-text uppercase"
+                />
+              </div>
+            </div>
+
+            {/* Recuadro del Título / Cabecera */}
+            <div className="flex items-center justify-between pt-2 border-t border-theme-border/60">
+              <span className="text-[10px] text-theme-text-muted font-semibold">Recuadro del Título:</span>
+              <div className="flex items-center space-x-1.5">
+                <input
+                  type="color"
+                  value={data.customHeaderBgColor || '#38BDF8'}
+                  onChange={(e) => applyCardStyleToScope(node.id, cardStyleScope, { customHeaderBgColor: e.target.value })}
+                  className="w-5 h-5 rounded cursor-pointer border-0 bg-transparent"
+                />
+                <input
+                  type="text"
+                  value={data.customHeaderBgColor || ''}
+                  placeholder="Predeterminado"
+                  onChange={(e) => applyCardStyleToScope(node.id, cardStyleScope, { customHeaderBgColor: e.target.value })}
+                  className="w-24 px-1.5 py-0.5 rounded bg-theme-surface-subtle border border-theme-border text-[10px] font-mono text-theme-text uppercase"
+                />
+              </div>
             </div>
           </div>
-
-          {/* ACCIONES GRUPALES / MASIVAS */}
-          {customBg && (
-            <div className="space-y-1.5 pt-2 border-t border-theme-border">
-              <span className="text-[10px] font-semibold text-theme-text block">Aplicación Grupal:</span>
-
-              <button
-                onClick={() => {
-                  bulkUpdateNodeColors({ nodeType: data.nodeType }, { customBgColor: customBg });
-                  showNotification(`Fondo aplicado a todas las tarjetas de tipo: ${data.nodeType}`);
-                }}
-                className="w-full py-1 px-2 rounded bg-theme-surface hover:bg-theme-surface-hover border border-theme-border text-[10px] text-theme-accent font-semibold transition-colors text-left flex items-center justify-between"
-              >
-                <span>Aplicar a todas de tipo <strong>{data.nodeType}</strong></span>
-                <Sparkles className="w-3 h-3 shrink-0 ml-1" />
-              </button>
-
-              {data.laneId && (
-                <button
-                  onClick={() => {
-                    bulkUpdateNodeColors({ laneId: data.laneId }, { customBgColor: customBg });
-                    showNotification('Fondo aplicado a todas las tarjetas del carril seleccionado');
-                  }}
-                  className="w-full py-1 px-2 rounded bg-theme-surface hover:bg-theme-surface-hover border border-theme-border text-[10px] text-[#3B82F6] font-semibold transition-colors text-left flex items-center justify-between"
-                >
-                  <span>Aplicar a todo el carril actual</span>
-                  <Sparkles className="w-3 h-3 shrink-0 ml-1" />
-                </button>
-              )}
-
-              <button
-                onClick={() => {
-                  bulkUpdateNodeColors('ALL', { customBgColor: customBg });
-                  showNotification('Fondo aplicado a todas las tarjetas del diagrama');
-                }}
-                className="w-full py-1 px-2 rounded bg-theme-surface hover:bg-theme-surface-hover border border-theme-border text-[10px] text-theme-text font-semibold transition-colors text-left flex items-center justify-between"
-              >
-                <span>Aplicar a todas las tarjetas del diagrama</span>
-                <Sparkles className="w-3 h-3 shrink-0 ml-1" />
-              </button>
-            </div>
-          )}
         </div>
 
         {/* Standard ID & Title */}

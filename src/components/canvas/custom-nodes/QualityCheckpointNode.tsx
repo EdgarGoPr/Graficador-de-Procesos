@@ -1,15 +1,23 @@
 import React, { memo } from 'react';
 import { Handle, Position, NodeProps, NodeResizer } from '@xyflow/react';
 import { BpmnNodeData } from '../../../types/process';
+import { hexToRgba } from '../../../types/theme';
 import { ShieldCheck, CheckCircle2, AlertOctagon } from 'lucide-react';
 
 export const QualityCheckpointNode = memo(({ data, selected }: NodeProps<any>) => {
   const nodeData = data as BpmnNodeData;
   const qc = nodeData.qualityCheckpoint;
 
+  const opacity = nodeData.customBgOpacity ?? 95;
   const customContainerStyle: React.CSSProperties = {
-    backgroundColor: nodeData.customBgColor || undefined,
+    backgroundColor: nodeData.customBgColor ? hexToRgba(nodeData.customBgColor, opacity) : undefined,
     borderColor: nodeData.customBorderColor || undefined,
+    color: nodeData.customTextColor || undefined,
+  };
+
+  const customHeaderStyle: React.CSSProperties = {
+    backgroundColor: nodeData.customHeaderBgColor || undefined,
+    color: nodeData.customHeaderTextColor || undefined,
   };
 
   return (
@@ -33,8 +41,11 @@ export const QualityCheckpointNode = memo(({ data, selected }: NodeProps<any>) =
         className="w-2.5 h-2.5 bg-emerald-400 border-2 border-theme-surface !left-[-5px]"
       />
 
-      {/* Header */}
-      <div className="flex items-center justify-between px-3 py-1.5 bg-gradient-to-r from-emerald-500/10 to-transparent rounded-t-lg border-b border-theme-border">
+      {/* Header / Title Box */}
+      <div
+        style={customHeaderStyle}
+        className="flex items-center justify-between px-3 py-1.5 bg-gradient-to-r from-emerald-500/10 to-transparent rounded-t-lg border-b border-theme-border"
+      >
         <div className="flex items-center space-x-1.5">
           <div className="p-1 rounded-md bg-emerald-500/10 text-emerald-400">
             <ShieldCheck className="w-3.5 h-3.5" />

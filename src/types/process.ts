@@ -129,9 +129,11 @@ export interface BpmnNodeData {
   qualityCheckpoint?: QualityCheckpointConfig;
   operationalRisks: OperationalRiskConfig[];
   subProcessSteps?: SubProcessStep[]; // Pasos internos detallados del subproceso
-  compressedSnapshot?: CompressedSubProcessSnapshot; // Snapshot de geometría relativa y nodos para descompresión exacta
-  customBgColor?: string; // Color personalizado de fondo de la tarjeta
+  customBgColor?: string; // Color personalizado de fondo de la tarjeta (HEX/RGB)
+  customBgOpacity?: number; // Nivel de opacidad / transparencia (0 a 100)
   customBorderColor?: string; // Color personalizado de borde de la tarjeta
+  customHeaderBgColor?: string; // Color personalizado del recuadro del título / cabecera
+  customHeaderTextColor?: string; // Color personalizado del texto del título / cabecera
   customTextColor?: string; // Color personalizado del texto de la tarjeta
   tags: string[];
   [key: string]: unknown;

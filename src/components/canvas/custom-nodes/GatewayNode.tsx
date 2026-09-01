@@ -1,15 +1,22 @@
 import React, { memo } from 'react';
 import { Handle, Position, NodeProps } from '@xyflow/react';
 import { BpmnNodeData, BPMN_NODE_TYPES } from '../../../types/process';
+import { hexToRgba } from '../../../types/theme';
 import { X, Plus, GitBranch } from 'lucide-react';
 
 export const GatewayNode = memo(({ data, selected }: NodeProps<any>) => {
   const nodeData = data as BpmnNodeData;
   const isExclusive = nodeData.nodeType === BPMN_NODE_TYPES.EXCLUSIVE_GATEWAY;
 
+  const opacity = nodeData.customBgOpacity ?? 95;
   const customContainerStyle: React.CSSProperties = {
-    backgroundColor: nodeData.customBgColor || undefined,
+    backgroundColor: nodeData.customBgColor ? hexToRgba(nodeData.customBgColor, opacity) : undefined,
     borderColor: nodeData.customBorderColor || undefined,
+  };
+
+  const customHeaderStyle: React.CSSProperties = {
+    backgroundColor: nodeData.customHeaderBgColor || undefined,
+    color: nodeData.customHeaderTextColor || undefined,
   };
 
   return (
@@ -60,8 +67,11 @@ export const GatewayNode = memo(({ data, selected }: NodeProps<any>) => {
         </div>
       </div>
 
-      {/* Label under the diamond */}
-      <div className="mt-2.5 text-center max-w-[130px] bg-theme-surface/95 backdrop-blur-sm px-2 py-1 rounded-md border border-theme-border shadow-sm">
+      {/* Label / Title Box under the diamond */}
+      <div
+        style={customHeaderStyle}
+        className="mt-2.5 text-center max-w-[130px] bg-theme-surface/95 backdrop-blur-sm px-2 py-1 rounded-md border border-theme-border shadow-sm"
+      >
         <div className="flex items-center justify-center space-x-1">
           <GitBranch className="w-2.5 h-2.5 text-amber-400" />
           <span className="text-[9px] font-mono font-bold text-amber-400">

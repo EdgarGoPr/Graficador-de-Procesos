@@ -1,14 +1,21 @@
 import React, { memo } from 'react';
 import { Handle, Position, NodeProps } from '@xyflow/react';
 import { BpmnNodeData } from '../../../types/process';
+import { hexToRgba } from '../../../types/theme';
 import { Square } from 'lucide-react';
 
 export const EndEventNode = memo(({ data, selected }: NodeProps<any>) => {
   const nodeData = data as BpmnNodeData;
 
+  const opacity = nodeData.customBgOpacity ?? 95;
   const customContainerStyle: React.CSSProperties = {
-    backgroundColor: nodeData.customBgColor || undefined,
+    backgroundColor: nodeData.customBgColor ? hexToRgba(nodeData.customBgColor, opacity) : undefined,
     borderColor: nodeData.customBorderColor || undefined,
+  };
+
+  const customHeaderStyle: React.CSSProperties = {
+    backgroundColor: nodeData.customHeaderBgColor || undefined,
+    color: nodeData.customHeaderTextColor || undefined,
   };
 
   return (
@@ -26,7 +33,7 @@ export const EndEventNode = memo(({ data, selected }: NodeProps<any>) => {
         className="w-2.5 h-2.5 bg-rose-400 border-2 border-theme-surface !left-[-5px]"
       />
 
-      <div className="flex flex-col items-center justify-center p-2 text-center">
+      <div style={customHeaderStyle} className="flex flex-col items-center justify-center p-2 text-center rounded-full">
         <div className="w-6 h-6 rounded-full bg-rose-500/15 text-rose-400 flex items-center justify-center mb-0.5">
           <Square className="w-2.5 h-2.5 fill-rose-400" />
         </div>

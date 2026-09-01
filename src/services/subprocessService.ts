@@ -273,7 +273,7 @@ export function decompressSubProcessToCanvas(
 
   const currentX = subProcessNode.position.x;
   const currentY = subProcessNode.position.y;
-  const snapshot = subProcessNode.data?.compressedSnapshot;
+  const snapshot = subProcessNode.data?.compressedSnapshot as CompressedSubProcessSnapshot | undefined;
 
   let unpackedNodes: Node<BpmnNodeData>[] = [];
   let internalEdges: Edge<SequenceFlowData>[] = [];

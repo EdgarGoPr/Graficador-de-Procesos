@@ -1,6 +1,7 @@
 import React, { memo } from 'react';
 import { Handle, Position, NodeProps, NodeResizer } from '@xyflow/react';
 import { BpmnNodeData, BPMN_NODE_TYPES } from '../../../types/process';
+import { hexToRgba } from '../../../types/theme';
 import { User, Cpu, Wrench, Clock, AlertTriangle, ShieldCheck, Server } from 'lucide-react';
 
 export const TaskNode = memo(({ data, selected }: NodeProps<any>) => {
@@ -20,9 +21,16 @@ export const TaskNode = memo(({ data, selected }: NodeProps<any>) => {
   const hasRisks = nodeData.operationalRisks && nodeData.operationalRisks.length > 0;
   const hasQuality = !!nodeData.qualityCheckpoint;
 
+  const opacity = nodeData.customBgOpacity ?? 95;
   const customContainerStyle: React.CSSProperties = {
-    backgroundColor: nodeData.customBgColor || undefined,
+    backgroundColor: nodeData.customBgColor ? hexToRgba(nodeData.customBgColor, opacity) : undefined,
     borderColor: nodeData.customBorderColor || undefined,
+    color: nodeData.customTextColor || undefined,
+  };
+
+  const customHeaderStyle: React.CSSProperties = {
+    backgroundColor: nodeData.customHeaderBgColor || undefined,
+    color: nodeData.customHeaderTextColor || undefined,
   };
 
   return (
@@ -46,8 +54,11 @@ export const TaskNode = memo(({ data, selected }: NodeProps<any>) => {
         className="w-2.5 h-2.5 bg-sky-400 border-2 border-theme-surface !left-[-5px]"
       />
 
-      {/* Card Header */}
-      <div className={`flex items-center justify-between px-3 py-1.5 bg-gradient-to-r ${typeConfig.headerBg} to-transparent rounded-t-xl border-b border-theme-border`}>
+      {/* Card Header / Title Box */}
+      <div
+        style={customHeaderStyle}
+        className={`flex items-center justify-between px-3 py-1.5 bg-gradient-to-r ${typeConfig.headerBg} to-transparent rounded-t-xl border-b border-theme-border`}
+      >
         <div className="flex items-center space-x-1.5">
           <div className="p-1 rounded-md bg-theme-surface-subtle text-theme-text-muted">
             <Icon className="w-3 h-3" />

@@ -34,10 +34,105 @@ export interface AppThemeDefinition {
   colors: ThemeColors;
 }
 
+export interface CardThemePreset {
+  id: string;
+  name: string;
+  description: string;
+  bgColor: string;
+  bgOpacity: number;
+  borderColor: string;
+  headerBgColor: string;
+  headerTextColor?: string;
+  badgeBg: string;
+}
+
+export const CARD_THEME_PRESETS: CardThemePreset[] = [
+  {
+    id: 'slate-pro',
+    name: 'Pizarra Slate Pro',
+    description: 'Fondo grafito mate, borde azul cielo y cabecera tenue.',
+    bgColor: '#1E293B',
+    bgOpacity: 95,
+    borderColor: '#38BDF8',
+    headerBgColor: 'rgba(56, 189, 248, 0.15)',
+    badgeBg: 'bg-sky-500/20 text-sky-300'
+  },
+  {
+    id: 'midnight-steel',
+    name: 'Midnight Acero',
+    description: 'Azul espacial con ribete acero y cabecera relajante.',
+    bgColor: '#151D2E',
+    bgOpacity: 95,
+    borderColor: '#60A5FA',
+    headerBgColor: 'rgba(96, 165, 250, 0.15)',
+    badgeBg: 'bg-blue-500/20 text-blue-300'
+  },
+  {
+    id: 'forest-sage',
+    name: 'Salvia Forestal',
+    description: 'Verde salvia institucional para procesos ISO 9001.',
+    bgColor: '#162522',
+    bgOpacity: 95,
+    borderColor: '#34D399',
+    headerBgColor: 'rgba(52, 211, 153, 0.15)',
+    badgeBg: 'bg-emerald-500/20 text-emerald-300'
+  },
+  {
+    id: 'nebula-modern',
+    name: 'Nebula Violeta',
+    description: 'Grafito con acento lavanda suave y cabecera violeta.',
+    bgColor: '#1A162D',
+    bgOpacity: 95,
+    borderColor: '#A78BFA',
+    headerBgColor: 'rgba(167, 139, 250, 0.15)',
+    badgeBg: 'bg-purple-500/20 text-purple-300'
+  },
+  {
+    id: 'warm-amber',
+    name: 'Ámbar Cálido',
+    description: 'Tono ocre y madera para hitos normativos y auditorías.',
+    bgColor: '#231B15',
+    bgOpacity: 95,
+    borderColor: '#F59E0B',
+    headerBgColor: 'rgba(245, 158, 11, 0.15)',
+    badgeBg: 'bg-amber-500/20 text-amber-300'
+  },
+  {
+    id: 'glass-frost',
+    name: 'Vidrio Esmerilado',
+    description: 'Transparencia alta (55%) para integración con el lienzo.',
+    bgColor: '#1E293B',
+    bgOpacity: 55,
+    borderColor: '#94A3B8',
+    headerBgColor: 'rgba(255, 255, 255, 0.08)',
+    badgeBg: 'bg-slate-500/20 text-slate-300'
+  },
+  {
+    id: 'nordic-light',
+    name: 'Nórdico Studio Claro',
+    description: 'Fondo blanco níveo con borde cian y cabecera fresca.',
+    bgColor: '#FFFFFF',
+    bgOpacity: 100,
+    borderColor: '#0284C7',
+    headerBgColor: 'rgba(2, 132, 199, 0.10)',
+    badgeBg: 'bg-sky-100 text-sky-800'
+  },
+  {
+    id: 'sand-warm',
+    name: 'Arena Suave',
+    description: 'Fondo cálido papiro con borde ámbar y cabecera suave.',
+    bgColor: '#FFFDF9',
+    bgOpacity: 100,
+    borderColor: '#D97706',
+    headerBgColor: 'rgba(217, 119, 6, 0.10)',
+    badgeBg: 'bg-amber-100 text-amber-900'
+  }
+];
+
 export const PRESET_THEMES: Record<AppThemeId, AppThemeDefinition> = {
   'antigravity-dark': {
     id: 'antigravity-dark',
-    name: 'Antigravity Slate Dark (Mate)',
+    name: 'ProcesStudio Slate Pro (Mate)',
     description: 'Grafito profundo y azul pizarra mate para máxima comodidad visual.',
     badge: '🌑 Slate Pro',
     category: 'dark',
@@ -61,7 +156,7 @@ export const PRESET_THEMES: Record<AppThemeId, AppThemeDefinition> = {
   },
   'antigravity-cosmic': {
     id: 'antigravity-cosmic',
-    name: 'Antigravity Cosmic (Midnight)',
+    name: 'Midnight Executive',
     description: 'Azul espacial suave con acento acero equilibrado.',
     badge: '🪐 Midnight',
     category: 'dark',
@@ -85,9 +180,9 @@ export const PRESET_THEMES: Record<AppThemeId, AppThemeDefinition> = {
   },
   'antigravity-emerald': {
     id: 'antigravity-emerald',
-    name: 'Antigravity Forest Sage',
+    name: 'Forest Sage ISO',
     description: 'Gris bosque con acento salvia y esmeralda mate relajante.',
-    badge: '🌿 Salvia',
+    badge: '🌿 Salvia ISO',
     category: 'dark',
     colors: {
       appBg: '#0D1514',
@@ -109,9 +204,9 @@ export const PRESET_THEMES: Record<AppThemeId, AppThemeDefinition> = {
   },
   'antigravity-purple': {
     id: 'antigravity-purple',
-    name: 'Antigravity Nebula Violet',
+    name: 'Nebula Modern',
     description: 'Púrpura espacial profundo y lavanda suave mate.',
-    badge: '🔮 Lavanda',
+    badge: '🔮 Nebula',
     category: 'dark',
     colors: {
       appBg: '#100E1C',
@@ -133,7 +228,7 @@ export const PRESET_THEMES: Record<AppThemeId, AppThemeDefinition> = {
   },
   'antigravity-light': {
     id: 'antigravity-light',
-    name: 'Antigravity Light Studio',
+    name: 'Nordic Studio Light',
     description: 'Fondo perla claro ultra nítido con acentos cerúleos refinados.',
     badge: '☀️ Studio',
     category: 'light',
@@ -157,9 +252,9 @@ export const PRESET_THEMES: Record<AppThemeId, AppThemeDefinition> = {
   },
   'antigravity-solar': {
     id: 'antigravity-solar',
-    name: 'Antigravity Warm Solar',
+    name: 'Warm Sandpaper',
     description: 'Tonalidad cálida arena y ámbar suave para lectura prolongada.',
-    badge: '🏖️ Cálido',
+    badge: '🏖️ Sandpaper',
     category: 'light',
     colors: {
       appBg: '#FAF7F2',
@@ -181,7 +276,7 @@ export const PRESET_THEMES: Record<AppThemeId, AppThemeDefinition> = {
   },
   'custom': {
     id: 'custom',
-    name: 'Tema Personalizado',
+    name: 'Tema Personalizado (Custom Studio)',
     description: 'Paleta cromática configurada a medida por el usuario.',
     badge: '🎨 Custom',
     category: 'custom',
@@ -204,6 +299,30 @@ export const PRESET_THEMES: Record<AppThemeId, AppThemeDefinition> = {
     }
   }
 };
+
+/**
+ * Converts a hex or rgb string with an opacity percentage (0-100) into a valid rgba() CSS color
+ */
+export function hexToRgba(colorStr?: string, opacityPercent: number = 100): string {
+  if (!colorStr) return 'transparent';
+  if (colorStr.startsWith('rgba')) {
+    if (opacityPercent === 100) return colorStr;
+    return colorStr.replace(/[\d\.]+\)$/, `${Math.max(0, Math.min(1, opacityPercent / 100))})`);
+  }
+  if (colorStr.startsWith('rgb(')) {
+    const rgbValues = colorStr.replace('rgb(', '').replace(')', '');
+    return `rgba(${rgbValues}, ${Math.max(0, Math.min(1, opacityPercent / 100))})`;
+  }
+  let hex = colorStr.replace('#', '');
+  if (hex.length === 3) hex = hex.split('').map((x) => x + x).join('');
+  if (hex.length !== 6) return colorStr;
+  const num = parseInt(hex, 16);
+  const r = (num >> 16) & 255;
+  const g = (num >> 8) & 255;
+  const b = num & 255;
+  const a = Math.max(0, Math.min(1, opacityPercent / 100));
+  return `rgba(${r}, ${g}, ${b}, ${a})`;
+}
 
 /**
  * Injects CSS Custom Variables into document.documentElement for dynamic real-time theme application

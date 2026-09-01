@@ -1,15 +1,22 @@
 import React, { memo } from 'react';
 import { Handle, Position, NodeProps } from '@xyflow/react';
 import { BpmnNodeData } from '../../../types/process';
+import { hexToRgba } from '../../../types/theme';
 import { Clock, AlertCircle } from 'lucide-react';
 
 export const TimerBoundaryNode = memo(({ data, selected }: NodeProps<any>) => {
   const nodeData = data as BpmnNodeData;
   const sla = nodeData.slaDuration;
 
+  const opacity = nodeData.customBgOpacity ?? 95;
   const customContainerStyle: React.CSSProperties = {
-    backgroundColor: nodeData.customBgColor || undefined,
+    backgroundColor: nodeData.customBgColor ? hexToRgba(nodeData.customBgColor, opacity) : undefined,
     borderColor: nodeData.customBorderColor || undefined,
+  };
+
+  const customHeaderStyle: React.CSSProperties = {
+    backgroundColor: nodeData.customHeaderBgColor || undefined,
+    color: nodeData.customHeaderTextColor || undefined,
   };
 
   return (
@@ -27,7 +34,7 @@ export const TimerBoundaryNode = memo(({ data, selected }: NodeProps<any>) => {
         className="w-2.5 h-2.5 bg-amber-400 border-2 border-theme-surface !left-[-5px]"
       />
 
-      <div className="flex flex-col items-center justify-center p-2 text-center">
+      <div style={customHeaderStyle} className="flex flex-col items-center justify-center p-2 text-center rounded-full">
         <div className="w-6 h-6 rounded-full bg-amber-500/15 text-amber-400 flex items-center justify-center mb-0.5">
           <Clock className="w-3 h-3" />
         </div>

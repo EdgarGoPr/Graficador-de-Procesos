@@ -51,6 +51,7 @@ interface CanvasStoreState {
   // Node Manipulation
   addNode: (nodeType: BpmnNodeType, position: { x: number; y: number }, laneId?: string) => void;
   updateNodeData: (nodeId: string, updates: Partial<BpmnNodeData>) => void;
+  applyCardStyleToScope: (targetNodeId: string, scope: 'single' | 'same_type' | 'all', styleChanges: Partial<BpmnNodeData>) => void;
   updateEdgeData: (edgeId: string, updates: Partial<SequenceFlowData>) => void;
   bulkUpdateNodeColors: (filter: { nodeType?: BpmnNodeType; laneId?: string } | 'ALL', colors: { customBgColor?: string; customBorderColor?: string; customTextColor?: string }) => void;
   bulkUpdateEdgeColors: (colors: { strokeColor?: string; strokeWidth?: number; isAnimated?: boolean }) => void;
@@ -340,6 +341,44 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
           data: {
             ...node.data,
             ...updates
+          }
+        };
+      }
+      return node;
+    });
+
+    projectStore.setProjectData({
+      ...currentProject,
+      nodes: nextNodes
+    });
+  },
+
+  applyCardStyleToScope: (targetNodeId: string, scope: 'single' | 'same_type' | 'all', styleChanges: Partial<BpmnNodeData>) => {
+    const projectStore = useProjectStore.getState();
+    const currentProject = projectStore.currentProject;
+    if (!currentProject) return;
+
+    const targetNode = currentProject.nodes.find((n) => n.id === targetNodeId);
+    if (!targetNode && scope !== 'all') return;
+
+    const targetType = targetNode?.data?.nodeType;
+
+    const nextNodes = currentProject.nodes.map((node) => {
+      let shouldApply = false;
+      if (scope === 'single') {
+        shouldApply = node.id === targetNodeId;
+      } else if (scope === 'same_type') {
+        shouldApply = node.data.nodeType === targetType;
+      } else if (scope === 'all') {
+        shouldApply = true;
+      }
+
+      if (shouldApply) {
+        return {
+          ...node,
+          data: {
+            ...node.data,
+            ...styleChanges
           }
         };
       }

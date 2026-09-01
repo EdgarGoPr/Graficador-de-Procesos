@@ -1,14 +1,21 @@
 import React, { memo } from 'react';
 import { Handle, Position, NodeProps } from '@xyflow/react';
 import { BpmnNodeData } from '../../../types/process';
+import { hexToRgba } from '../../../types/theme';
 import { Play } from 'lucide-react';
 
 export const StartEventNode = memo(({ data, selected }: NodeProps<any>) => {
   const nodeData = data as BpmnNodeData;
 
+  const opacity = nodeData.customBgOpacity ?? 95;
   const customContainerStyle: React.CSSProperties = {
-    backgroundColor: nodeData.customBgColor || undefined,
+    backgroundColor: nodeData.customBgColor ? hexToRgba(nodeData.customBgColor, opacity) : undefined,
     borderColor: nodeData.customBorderColor || undefined,
+  };
+
+  const customHeaderStyle: React.CSSProperties = {
+    backgroundColor: nodeData.customHeaderBgColor || undefined,
+    color: nodeData.customHeaderTextColor || undefined,
   };
 
   return (
@@ -20,7 +27,7 @@ export const StartEventNode = memo(({ data, selected }: NodeProps<any>) => {
           : 'border-teal-500/80 hover:border-teal-400 hover:shadow-lg'
       }`}
     >
-      <div className="flex flex-col items-center justify-center p-2 text-center">
+      <div style={customHeaderStyle} className="flex flex-col items-center justify-center p-2 text-center rounded-full">
         <div className="w-6 h-6 rounded-full bg-teal-500/15 text-teal-400 flex items-center justify-center mb-0.5">
           <Play className="w-3 h-3 fill-teal-400 ml-0.5" />
         </div>
