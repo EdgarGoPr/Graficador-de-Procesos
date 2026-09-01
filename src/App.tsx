@@ -11,6 +11,7 @@ import { SipocMatrixView } from './components/sipoc/SipocMatrixView';
 import { TechnicalReportView } from './components/report/TechnicalReportView';
 import { NewProjectModal } from './components/modals/NewProjectModal';
 import { SubProcessDetailModal } from './components/modals/SubProcessDetailModal';
+import { ThemeCustomizationModal } from './components/modals/ThemeCustomizationModal';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
 import { CheckCircle2, Info, AlertCircle, X } from 'lucide-react';
 
@@ -107,6 +108,9 @@ export const App: React.FC = () => {
           isOpen={isNewProjectModalOpen}
           onClose={() => setIsNewProjectModalOpen(false)}
         />
+
+        {/* Theme & Palette Customization Modal */}
+        <ThemeCustomizationModal />
       </div>
     </ErrorBoundary>
   );

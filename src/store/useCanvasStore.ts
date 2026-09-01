@@ -31,6 +31,8 @@ interface CanvasStoreState {
   addNode: (nodeType: BpmnNodeType, position: { x: number; y: number }, laneId?: string) => void;
   updateNodeData: (nodeId: string, updates: Partial<BpmnNodeData>) => void;
   updateEdgeData: (edgeId: string, updates: Partial<SequenceFlowData>) => void;
+  bulkUpdateNodeColors: (filter: { nodeType?: BpmnNodeType; laneId?: string } | 'ALL', colors: { customBgColor?: string; customBorderColor?: string; customTextColor?: string }) => void;
+  bulkUpdateEdgeColors: (colors: { strokeColor?: string; strokeWidth?: number; isAnimated?: boolean }) => void;
   deleteSelected: () => void;
   
   // Lane & Pool management
@@ -209,6 +211,60 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
       }
       return edge;
     });
+
+    projectStore.setProjectData({
+      ...currentProject,
+      edges: nextEdges
+    });
+  },
+
+  bulkUpdateNodeColors: (filter, colors) => {
+    const projectStore = useProjectStore.getState();
+    const currentProject = projectStore.currentProject;
+    if (!currentProject) return;
+
+    const nextNodes = currentProject.nodes.map((node) => {
+      let match = false;
+      if (filter === 'ALL') {
+        match = true;
+      } else if (typeof filter === 'object') {
+        if (filter.nodeType && node.data.nodeType === filter.nodeType) match = true;
+        if (filter.laneId && node.data.laneId === filter.laneId) match = true;
+      }
+
+      if (match) {
+        return {
+          ...node,
+          data: {
+            ...node.data,
+            ...colors
+          }
+        };
+      }
+      return node;
+    });
+
+    projectStore.setProjectData({
+      ...currentProject,
+      nodes: nextNodes
+    });
+  },
+
+  bulkUpdateEdgeColors: (colors) => {
+    const projectStore = useProjectStore.getState();
+    const currentProject = projectStore.currentProject;
+    if (!currentProject) return;
+
+    const nextEdges = currentProject.edges.map((edge) => ({
+      ...edge,
+      data: {
+        id: edge.data?.id || edge.id,
+        source: edge.data?.source || edge.source,
+        target: edge.data?.target || edge.target,
+        ...edge.data,
+        ...colors
+      }
+    }));
 
     projectStore.setProjectData({
       ...currentProject,

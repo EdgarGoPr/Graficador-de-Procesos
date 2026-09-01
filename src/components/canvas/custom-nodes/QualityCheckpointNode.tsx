@@ -7,8 +7,14 @@ export const QualityCheckpointNode = memo(({ data, selected }: NodeProps<any>) =
   const nodeData = data as BpmnNodeData;
   const qc = nodeData.qualityCheckpoint;
 
+  const customContainerStyle: React.CSSProperties = {
+    backgroundColor: nodeData.customBgColor || undefined,
+    borderColor: nodeData.customBorderColor || undefined,
+  };
+
   return (
     <div
+      style={customContainerStyle}
       className={`group relative w-full h-full min-w-[200px] min-h-[110px] flex flex-col justify-between rounded-xl bg-theme-surface backdrop-blur-md border-2 border-[#10B981] transition-all duration-150 shadow-xl ${
         selected ? 'ring-4 ring-[#10B981]/40 border-[#10B981] shadow-[#10B981]/20 shadow-2xl scale-[1.01]' : 'hover:border-[#10B981]/80'
       }`}

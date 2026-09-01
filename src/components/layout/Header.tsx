@@ -14,7 +14,8 @@ import {
   Sun,
   Moon,
   FolderOpen,
-  Compass
+  Compass,
+  Palette
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -33,6 +34,8 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
     activeView,
     setActiveView,
     theme,
+    currentThemeId,
+    setThemeModalOpen,
     toggleTheme,
     showNotification,
     isPropertiesPanelOpen,
@@ -167,22 +170,27 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
           <span className="hidden md:inline">Ver Carpeta</span>
         </button>
 
-        {/* Dark/Light Mode Toggle Button */}
+        {/* Antigravity IDE Themes & Custom Colors Button */}
+        <button
+          onClick={() => setThemeModalOpen(true)}
+          className="flex items-center space-x-1.5 px-2.5 py-1.5 bg-theme-surface-subtle hover:bg-theme-surface text-theme-text rounded-lg text-xs font-medium border border-theme-border transition-colors group"
+          title="Personalizar Temas de Antigravity IDE, Fondo de Pizarra y Paleta"
+        >
+          <Palette className="w-3.5 h-3.5 text-theme-accent group-hover:rotate-12 transition-transform" />
+          <span className="hidden xl:inline text-[11px] text-theme-text">Temas y Colores</span>
+          <span className="w-1.5 h-1.5 rounded-full bg-theme-accent shrink-0" />
+        </button>
+
+        {/* Quick Dark/Light Mode Toggle Button */}
         <button
           onClick={toggleTheme}
-          className="flex items-center space-x-1.5 px-2.5 py-1.5 bg-theme-surface-subtle hover:bg-theme-surface text-theme-text rounded-lg text-xs font-medium border border-theme-border transition-colors"
-          title={theme === 'dark' ? 'Cambiar a Modo Claro (#F8F9FA / #FFFFFF)' : 'Cambiar a Modo Oscuro (#0F172A / #1E293B)'}
+          className="flex items-center space-x-1.5 px-2 py-1.5 bg-theme-surface-subtle hover:bg-theme-surface text-theme-text rounded-lg text-xs font-medium border border-theme-border transition-colors"
+          title={theme === 'dark' ? 'Cambiar a Modo Claro' : 'Cambiar a Modo Oscuro'}
         >
           {theme === 'dark' ? (
-            <>
-              <Sun className="w-3.5 h-3.5 text-[#F59E0B]" />
-              <span className="hidden xl:inline text-[11px] text-theme-text-muted">Modo Claro</span>
-            </>
+            <Sun className="w-3.5 h-3.5 text-[#F59E0B]" />
           ) : (
-            <>
-              <Moon className="w-3.5 h-3.5 text-theme-accent" />
-              <span className="hidden xl:inline text-[11px] text-theme-text-muted">Modo Oscuro</span>
-            </>
+            <Moon className="w-3.5 h-3.5 text-theme-accent" />
           )}
         </button>
 

@@ -109,6 +109,9 @@ export interface BpmnNodeData {
   qualityCheckpoint?: QualityCheckpointConfig;
   operationalRisks: OperationalRiskConfig[];
   subProcessSteps?: SubProcessStep[]; // Pasos internos detallados del subproceso
+  customBgColor?: string; // Color personalizado de fondo de la tarjeta
+  customBorderColor?: string; // Color personalizado de borde de la tarjeta
+  customTextColor?: string; // Color personalizado del texto de la tarjeta
   tags: string[];
   [key: string]: unknown;
 }
@@ -118,6 +121,9 @@ export interface SequenceFlowData {
   source: string;
   target: string;
   conditionText?: string;
+  strokeColor?: string; // Color personalizado de la conexión
+  strokeWidth?: number; // Grosor de línea
+  isAnimated?: boolean; // Animación de flujo
   isDefault?: boolean;
   isProbationOrAppeal?: boolean;
   [key: string]: unknown;

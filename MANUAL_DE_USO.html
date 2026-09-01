@@ -174,28 +174,39 @@
       <h1>Manual de Uso y Guía Técnica Integral</h1>
       <div class="subtitle">ProcesosStudio Portable &bull; BPMN 2.0 (ISO/IEC 19510) & Sistemas de Calidad ISO 9001:2015</div>
       <div style="font-size: 8.5pt; color: #64748B; margin-top: 6px; font-family: monospace;">
-        Versión: 2.2 | Formato Oficial: PDF / Windows Desktop (.EXE) | Persistencia: JSON Abierto
+        Versión: 2.3 | Formato Oficial: PDF / Windows Desktop (.EXE) | Persistencia: JSON Abierto
       </div>
     </div>
 
     <h2>1. Introducción y Arquitectura Portable</h2>
-    <p><strong>ProcesosStudio Portable</strong> es una solución integral para el modelado visual, trazabilidad y documentación estandarizada de procedimientos administrativos y flujos de procesos. Cumple estrictamente con la notación internacional <strong>BPMN 2.0 (ISO/IEC 19510:2013)</strong> y los requisitos normativos de <strong>ISO 9001:2015</strong> (Cláusulas 4.4, 6.1, 7.5 y 8.6).</p>
+    <p><strong>ProcesosStudio Portable</strong> es una solución integral para el modelado visual, personalización cromática, trazabilidad y documentación estandarizada de procedimientos administrativos y flujos de procesos. Cumple estrictamente con la notación internacional <strong>BPMN 2.0 (ISO/IEC 19510:2013)</strong> y los requisitos normativos de <strong>ISO 9001:2015</strong>.</p>
     
     <p><strong>Arquitectura Zero-AppData:</strong> La aplicación es 100% portable. No requiere instalación, privilegios administrativos ni conexión a Internet. Todos los proyectos se guardan en formato <code>.json</code> transparente en la carpeta <code>../Proyectos/</code>.</p>
 
-    <h2>2. Novedades: Redimensionamiento y Control de Paneles</h2>
+    <h2>2. Temáticas Antigravity IDE y Personalización de Colores</h2>
     <ul>
-      <li><strong>Redimensionamiento de Tarjetas/Nodos:</strong> Al seleccionar cualquier nodo en el lienzo, aparecen tiradores interactivos. Arrastre los bordes para cambiar alto o ancho, o <strong>arrastre desde cualquiera de las 4 esquinas para redimensionar de forma proporcional</strong>.</li>
-      <li><strong>Ajuste de Paneles con Ratón:</strong> Arrastre los bordes divisorios de la Paleta de Modelado (izquierda) y del Navegador de Procesos (derecha) para calibrar el ancho deseado con total libertad.</li>
-      <li><strong>Botones de Colapso:</strong> Permiten contraer la paleta a un dock compacto de iconos o cerrar el panel derecho para maximizar la superficie del lienzo.</li>
+      <li><strong>Temáticas Integradas:</strong> Acceda al modal <strong>"Temas y Colores"</strong> en el Header para elegir entre:
+        <ul>
+          <li><em>Antigravity Dark (Clásico)</em>: Gris carbón profundo con acentos cian.</li>
+          <li><em>Antigravity Cosmic (Midnight)</em>: Azul espacial profundo con acento azul eléctrico.</li>
+          <li><em>Antigravity Cyber Emerald</em>: Obsidiana oscuro con acento esmeralda.</li>
+          <li><em>Antigravity Nebula Violet</em>: Púrpura cósmico con violeta neón.</li>
+          <li><em>Antigravity Light Studio</em>: Interfaz clara ultra nítida con azul cerúleo.</li>
+          <li><em>Antigravity Warm Solar</em>: Tonos cálidos arena y ámbar.</li>
+          <li><em>Tema Personalizado Libre</em>: Permite ajustar todas las variables con selectores de color.</li>
+        </ul>
+      </li>
+      <li><strong>Fondo de la Pizarra:</strong> Selección rápida de fondos para el lienzo BPMN (Carbón, Obsidiana, Cosmic, Cyber, Púrpura, Gris Perla, Crema, Blanco o Color Hex libre).</li>
+      <li><strong>Color de Tarjetas (Individual y Masivo):</strong> Muestras de color rápido y selector libre en el panel de propiedades, con botones para aplicar el color a todas las tarjetas del mismo tipo, a todo el carril o a todo el diagrama.</li>
+      <li><strong>Personalización de Conexiones:</strong> Elección de color de flechas, grosor de línea (1.5px a 4px), flujo animado y aplicación a todas las conexiones del proyecto.</li>
     </ul>
 
-    <h2>3. Glosario de Componentes y Notación</h2>
+    <h2>3. Glosario de Componentes y Notación BPMN 2.0</h2>
     <table>
       <thead>
         <tr>
           <th style="width: 18%;">Componente</th>
-          <th style="width: 14%;">Color</th>
+          <th style="width: 14%;">Color Base</th>
           <th>Función y Aplicación en el Procedimiento</th>
         </tr>
       </thead>
@@ -208,7 +219,7 @@
         <tr>
           <td><strong>Tarea de Usuario</strong></td>
           <td><span class="badge badge-blue">#3B82F6</span></td>
-          <td>Actividad operativa realizada por un agente asistido por un sistema informático.</td>
+          <td>Actividad operativa realizada por un agente asistido por software.</td>
         </tr>
         <tr>
           <td><strong>Tarea de Servicio</strong></td>
@@ -228,7 +239,7 @@
         <tr>
           <td><strong>Subproceso</strong></td>
           <td><span class="badge badge-blue">#3B82F6</span></td>
-          <td><strong>Actividad compuesta que agrupa un procedimiento secundario.</strong> Cuenta con botón para ampliar en un proceso más detallado con tareas internas.</td>
+          <td><strong>Actividad compuesta que agrupa un procedimiento secundario.</strong> Cuenta con botón para ampliar en un proceso más detallado.</td>
         </tr>
         <tr>
           <td><strong>Temporizador SLA</strong></td>
@@ -247,21 +258,13 @@
         </tr>
         <tr>
           <td><strong>Carriles (Swimlanes)</strong></td>
-          <td>Gris / Azul</td>
-          <td>Bandas horizontales que delimitan roles, dependencias y sistemas TI intervinientes.</td>
+          <td>Configurable</td>
+          <td>Bandas horizontales que delimitan roles, dependencias y sistemas TI.</td>
         </tr>
       </tbody>
     </table>
 
-    <h2>4. Navegador de Macroprocesos y Subprocesos (Menú Derecho)</h2>
-    <p>A la derecha de la aplicación, el usuario dispone del <strong>Navegador Jerárquico</strong> con dos pestañas intercambiables:</p>
-    <ul>
-      <li><strong>🧭 Navegador:</strong> Muestra la tarjeta del Macroproceso y el listado de todos los Subprocesos. Al seleccionar cualquier Macroproceso o Subproceso, <strong>el sistema realiza un acercamiento y centrado automático (smooth zoom)</strong> en el lienzo.</li>
-      <li><strong>🔍 Ampliar Subproceso:</strong> Al presionar el botón <strong>"Ampliar"</strong> en el nodo o en el menú derecho, se abre el visualizador detallado para gestionar las tareas internas del subproceso (Paso 1, Paso 2, Paso 3...).</li>
-      <li><strong>⚙️ Propiedades:</strong> Formulario de edición de IDs, normativas, duraciones y matriz de riesgos.</li>
-    </ul>
-
-    <h2>5. Tutorial Práctico: Modelado Integral con Subprocesos</h2>
+    <h2>4. Tutorial Práctico: Modelado y Personalización Cromática</h2>
     <p><strong>Caso de Estudio:</strong> <em>"Procedimiento Sancionatorio por Obras Clandestinas" (Código: PRC-OBR-001)</em></p>
     
     <div class="diagram-box">
@@ -288,31 +291,31 @@
     </div>
 
     <div class="card-step">
-      <h4>Paso 1: Crear el Proyecto</h4>
-      <p>En el Dashboard haga clic en <strong>Nuevo Proyecto</strong>. Ingrese el Título <em>Procedimiento Sancionatorio por Obras Clandestinas</em>, Autor <em>Ing. Carlos Mendoza</em> y Dependencia <em>Dirección de Obras Privadas / Tribunal de Faltas</em>.</p>
+      <h4>Paso 1: Crear el Proyecto y Seleccionar Tema</h4>
+      <p>En el Dashboard haga clic en <strong>Nuevo Proyecto</strong>. En el botón <strong>Temas y Colores</strong> elija su tema favorito (ej: <em>Antigravity Cosmic</em> o <em>Dark</em>).</p>
     </div>
 
     <div class="card-step">
-      <h4>Paso 2: Modelar Nodos y Redimensionar Tarjetas</h4>
+      <h4>Paso 2: Modelado, Colores y Redimensionamiento</h4>
       <ol>
         <li>Arrastre los elementos desde la paleta izquierda.</li>
-        <li>Seleccione cualquier tarjeta para **redimensionarla desde las 4 esquinas** según la longitud de su texto.</li>
-        <li>Arrastre un **Subproceso** (<code>SUB-01</code>: <em>Trámite de Regularización y Pago</em>). Presione <strong>Ampliar</strong> para desglosar sus 3 etapas internas (Plano, Liquidación, Pago). Conecte la salida a <code>FIN-01</code>.</li>
-        <li>Conecte la otra rama a <code>ACT-03</code> (<em>Sentencia de Clausura</em>) con riesgo mitigado <code>RSK-01</code> y fin en <code>FIN-02</code>.</li>
+        <li>Seleccione cualquier tarjeta para **redimensionarla desde las 4 esquinas** o personalizar su color de fondo. Use <em>Aplicar a todas de tipo</em> para unificar estilos.</li>
+        <li>Conecte los flujos y configure el color de las flechas y la animación de flujo.</li>
+        <li>En el nodo <code>SUB-01</code>, presione <strong>Ampliar</strong> para desglosar sus 3 etapas internas (Plano, Liquidación, Pago).</li>
       </ol>
     </div>
 
     <div class="card-step">
       <h4>Paso 3: Navegación y Centrado Automático</h4>
-      <p>En el menú lateral derecho (pestaña <strong>Navegador</strong>), haga clic sobre <code>SUB-01</code>: el sistema centrará suavemente el lienzo en el subproceso. Haga clic en <strong>Macroproceso</strong> para volver al panorama general.</p>
+      <p>En el menú lateral derecho (pestaña <strong>Navegador</strong>), haga clic sobre <code>SUB-01</code>: el sistema centrará suavemente el lienzo en el subproceso.</p>
     </div>
 
     <div class="card-step">
       <h4>Paso 4: Guardar y Generar Ficha Técnica Oficial</h4>
-      <p>Presione <code>Ctrl + S</code>. Vaya a <strong>Matriz SIPOC</strong> para auditar entradas/salidas y luego a <strong>Ficha Técnica ISO 9001</strong> para exportar el reporte formal en PDF.</p>
+      <p>Presione <code>Ctrl + S</code>. Vaya a <strong>Ficha Técnica ISO 9001</strong> para exportar el reporte formal en PDF.</p>
     </div>
 
-    <h2>6. Ubicación de Archivos y Backups USB</h2>
+    <h2>5. Ubicación de Archivos y Backups USB</h2>
     <p>Los proyectos se guardan en formato estándar en la carpeta:</p>
     <pre>MiAppProcesos_USB/Proyectos/2026-09-01_proc-procedimiento-sancionatorio-por-obras-clandestinas-v1.0.json</pre>
 

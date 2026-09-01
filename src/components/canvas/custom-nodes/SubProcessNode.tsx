@@ -15,8 +15,14 @@ export const SubProcessNode = memo(({ id, data, selected }: NodeProps<any>) => {
 
   const stepsCount = nodeData.subProcessSteps?.length || 0;
 
+  const customContainerStyle: React.CSSProperties = {
+    backgroundColor: nodeData.customBgColor || undefined,
+    borderColor: nodeData.customBorderColor || undefined,
+  };
+
   return (
     <div
+      style={customContainerStyle}
       className={`group relative w-full h-full min-w-[220px] min-h-[130px] flex flex-col justify-between rounded-xl bg-theme-surface/95 backdrop-blur-md border-2 border-[#3B82F6] transition-all duration-150 shadow-xl ${
         selected
           ? 'ring-4 ring-[#3B82F6]/30 border-[#3B82F6] shadow-[#3B82F6]/20 shadow-2xl scale-[1.01]'

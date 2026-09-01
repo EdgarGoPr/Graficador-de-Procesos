@@ -20,9 +20,15 @@ export const TaskNode = memo(({ data, selected }: NodeProps<any>) => {
   const hasRisks = nodeData.operationalRisks && nodeData.operationalRisks.length > 0;
   const hasQuality = !!nodeData.qualityCheckpoint;
 
+  const customContainerStyle: React.CSSProperties = {
+    backgroundColor: nodeData.customBgColor || undefined,
+    borderColor: nodeData.customBorderColor || undefined,
+  };
+
   return (
     <div
-      className={`group relative w-full h-full min-w-[210px] min-h-[120px] flex flex-col justify-between rounded-xl bg-theme-surface backdrop-blur-md border transition-all duration-150 shadow-xl ${typeConfig.color} ${
+      style={customContainerStyle}
+      className={`group relative w-full h-full min-w-[210px] min-h-[120px] flex flex-col justify-between rounded-xl bg-theme-surface backdrop-blur-md border transition-all duration-150 shadow-xl ${!nodeData.customBorderColor ? typeConfig.color : ''} ${
         selected ? 'ring-4 ring-[#3B82F6]/30 border-[#3B82F6] shadow-2xl scale-[1.01]' : 'hover:border-theme-accent'
       }`}
     >

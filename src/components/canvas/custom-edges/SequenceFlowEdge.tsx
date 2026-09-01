@@ -24,6 +24,11 @@ export const SequenceFlowEdge = memo(({
   });
 
   const conditionText = data?.conditionText;
+  const customStroke = data?.strokeColor;
+  const customWidth = data?.strokeWidth || (selected ? 3 : 2);
+  const isAnimated = data?.isAnimated;
+
+  const defaultStroke = selected ? 'var(--theme-accent)' : (customStroke || 'var(--theme-border)');
 
   return (
     <>
@@ -33,8 +38,10 @@ export const SequenceFlowEdge = memo(({
         markerEnd={markerEnd}
         style={{
           ...style,
-          strokeWidth: selected ? 3 : 2,
-          stroke: selected ? 'var(--theme-accent)' : 'var(--theme-border)',
+          strokeWidth: customWidth,
+          stroke: defaultStroke,
+          strokeDasharray: isAnimated ? '5,5' : style.strokeDasharray,
+          animation: isAnimated ? 'flowAnimation 1s linear infinite' : undefined,
           transition: 'stroke 0.2s, stroke-width 0.2s',
         }}
       />
@@ -46,7 +53,7 @@ export const SequenceFlowEdge = memo(({
               transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
               pointerEvents: 'all',
             }}
-            className="nodrag nopan px-2 py-0.5 rounded-md bg-theme-surface border border-theme-border text-[10px] font-mono text-theme-accent shadow-md backdrop-blur-sm"
+            className="nodrag nopan px-2.5 py-1 rounded-md bg-theme-surface border border-theme-border text-[10px] font-mono text-theme-accent shadow-md backdrop-blur-sm"
           >
             {conditionText}
           </div>
@@ -57,4 +64,3 @@ export const SequenceFlowEdge = memo(({
 });
 
 SequenceFlowEdge.displayName = 'SequenceFlowEdge';
-

@@ -15,7 +15,11 @@ import {
   Layers,
   FileText,
   Maximize2,
-  Compass
+  Compass,
+  Palette,
+  RotateCcw,
+  Sparkles,
+  Activity
 } from 'lucide-react';
 import {
   BpmnNodeData,
@@ -26,10 +30,43 @@ import {
 } from '../../types/process';
 import { buildIsoDurationString } from '../../services/leadTimeCalculator';
 
+const CARD_BG_SWATCHES = [
+  { label: 'Original', color: '' },
+  { label: 'Carbón', color: '#18181B' },
+  { label: 'Pizarra', color: '#1E293B' },
+  { label: 'Azul Noche', color: '#1E3A8A' },
+  { label: 'Verde Esmeralda', color: '#064E3B' },
+  { label: 'Ámbar Cálido', color: '#78350F' },
+  { label: 'Rojo Carmesí', color: '#7F1D1D' },
+  { label: 'Púrpura', color: '#4C1D95' },
+  { label: 'Gris Perla', color: '#F1F5F9' },
+  { label: 'Blanco', color: '#FFFFFF' }
+];
+
+const EDGE_COLOR_SWATCHES = [
+  { label: 'Cian Acento', color: '#38BDF8' },
+  { label: 'Azul Eléctrico', color: '#3B82F6' },
+  { label: 'Verde Esmeralda', color: '#10B981' },
+  { label: 'Ámbar Alerta', color: '#F59E0B' },
+  { label: 'Rojo Peligro', color: '#EF4444' },
+  { label: 'Púrpura Neón', color: '#A855F7' },
+  { label: 'Gris Pizarra', color: '#64748B' },
+  { label: 'Blanco Nítido', color: '#FFFFFF' }
+];
+
 export const PropertiesPanel: React.FC = () => {
-  const { selectedNodeId, selectedEdgeId, updateNodeData, updateEdgeData, deleteSelected } = useCanvasStore();
+  const {
+    selectedNodeId,
+    selectedEdgeId,
+    updateNodeData,
+    updateEdgeData,
+    bulkUpdateNodeColors,
+    bulkUpdateEdgeColors,
+    deleteSelected
+  } = useCanvasStore();
+
   const { currentProject } = useProjectStore();
-  const { setPropertiesPanelOpen, setActiveRightTab, openSubProcessDetail } = useUiStore();
+  const { setPropertiesPanelOpen, setActiveRightTab, openSubProcessDetail, showNotification } = useUiStore();
 
   const [newInputText, setNewInputText] = useState('');
   const [newOutputText, setNewOutputText] = useState('');
@@ -69,6 +106,10 @@ export const PropertiesPanel: React.FC = () => {
 
     const sourceNode = currentProject.nodes.find((n) => n.id === edge.source);
     const targetNode = currentProject.nodes.find((n) => n.id === edge.target);
+
+    const currentStroke = edge.data?.strokeColor || '#38BDF8';
+    const currentWidth = edge.data?.strokeWidth || 2;
+    const isAnimated = edge.data?.isAnimated || false;
 
     return (
       <div className="flex-1 h-full bg-theme-surface flex flex-col select-none overflow-y-auto transition-colors">
@@ -130,6 +171,112 @@ export const PropertiesPanel: React.FC = () => {
             <p className="text-[10px] text-theme-text-muted leading-relaxed">
               Este texto se mostrará sobre la flecha en el lienzo BPMN y se exportará en la Ficha Técnica ISO 9001.
             </p>
+          </div>
+
+          {/* Personalización Cromática de la Conexión */}
+          <div className="space-y-3 pt-3 border-t border-theme-border">
+            <div className="flex items-center justify-between">
+              <label className="text-[10px] font-bold uppercase tracking-wider text-theme-text font-mono flex items-center space-x-1">
+                <Palette className="w-3.5 h-3.5 text-theme-accent mr-1" />
+                <span>Color de la Conexión</span>
+              </label>
+              <button
+                onClick={() => updateEdgeData(edge.id, { strokeColor: undefined, strokeWidth: 2, isAnimated: false })}
+                className="text-[10px] text-theme-text-muted hover:text-theme-text flex items-center space-x-1"
+                title="Restablecer color predeterminado"
+              >
+                <RotateCcw className="w-3 h-3" />
+                <span>Por Defecto</span>
+              </button>
+            </div>
+
+            {/* Muestras rápidas de color */}
+            <div className="grid grid-cols-4 gap-1.5">
+              {EDGE_COLOR_SWATCHES.map((swatch) => (
+                <button
+                  key={swatch.color}
+                  onClick={() => updateEdgeData(edge.id, { strokeColor: swatch.color })}
+                  className={`flex items-center space-x-1 p-1.5 rounded-lg border text-[10px] transition-all ${
+                    currentStroke.toLowerCase() === swatch.color.toLowerCase()
+                      ? 'border-theme-accent bg-theme-surface-subtle font-bold shadow-sm'
+                      : 'border-theme-border hover:border-theme-border/80 bg-theme-surface'
+                  }`}
+                >
+                  <span
+                    className="w-3 h-3 rounded-full border border-white/20 shrink-0"
+                    style={{ backgroundColor: swatch.color }}
+                  />
+                  <span className="truncate text-theme-text">{swatch.label}</span>
+                </button>
+              ))}
+            </div>
+
+            {/* Selector Hexadecimal de Color */}
+            <div className="flex items-center justify-between p-2 rounded-lg bg-theme-surface-subtle border border-theme-border">
+              <span className="text-[11px] text-theme-text-muted">Color Libre:</span>
+              <div className="flex items-center space-x-2">
+                <input
+                  type="color"
+                  value={currentStroke}
+                  onChange={(e) => updateEdgeData(edge.id, { strokeColor: e.target.value })}
+                  className="w-6 h-6 rounded cursor-pointer border-0 bg-transparent"
+                />
+                <input
+                  type="text"
+                  value={currentStroke}
+                  onChange={(e) => updateEdgeData(edge.id, { strokeColor: e.target.value })}
+                  className="w-20 px-2 py-0.5 rounded bg-theme-surface border border-theme-border text-xs font-mono text-theme-text uppercase"
+                />
+              </div>
+            </div>
+
+            {/* Grosor de Línea y Animación */}
+            <div className="grid grid-cols-2 gap-2 pt-1">
+              <div>
+                <span className="text-[10px] text-theme-text-muted block mb-1">Grosor:</span>
+                <select
+                  value={currentWidth}
+                  onChange={(e) => updateEdgeData(edge.id, { strokeWidth: Number(e.target.value) })}
+                  className="w-full bg-theme-surface-subtle border border-theme-border rounded px-2 py-1 text-xs text-theme-text outline-none"
+                >
+                  <option value={1.5}>Fino (1.5px)</option>
+                  <option value={2}>Normal (2px)</option>
+                  <option value={3}>Grueso (3px)</option>
+                  <option value={4}>Énfasis (4px)</option>
+                </select>
+              </div>
+
+              <div>
+                <span className="text-[10px] text-theme-text-muted block mb-1">Flujo Animado:</span>
+                <button
+                  onClick={() => updateEdgeData(edge.id, { isAnimated: !isAnimated })}
+                  className={`w-full py-1 px-2 rounded border text-xs font-semibold flex items-center justify-center space-x-1 transition-colors ${
+                    isAnimated
+                      ? 'bg-theme-accent/20 border-theme-accent text-theme-accent'
+                      : 'bg-theme-surface-subtle border-theme-border text-theme-text-muted'
+                  }`}
+                >
+                  <Activity className="w-3.5 h-3.5" />
+                  <span>{isAnimated ? 'Animado' : 'Estático'}</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Botón Masivo Grupal para Conexiones */}
+            <button
+              onClick={() => {
+                bulkUpdateEdgeColors({
+                  strokeColor: currentStroke,
+                  strokeWidth: currentWidth,
+                  isAnimated
+                });
+                showNotification('Color aplicado a todas las conexiones del proyecto', 'success');
+              }}
+              className="w-full py-1.5 px-2.5 rounded-lg bg-theme-surface-subtle hover:bg-theme-surface text-theme-accent border border-theme-border hover:border-theme-accent text-xs font-semibold transition-all flex items-center justify-center space-x-1.5"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Aplicar a todas las conexiones</span>
+            </button>
           </div>
         </div>
       </div>
@@ -211,6 +358,9 @@ export const PropertiesPanel: React.FC = () => {
   const isCheckpoint = data.nodeType === 'QualityCheckpointEvent' || !!data.qualityCheckpoint;
   const isSubProcess = data.nodeType === 'SubProcess';
 
+  const customBg = data.customBgColor || '';
+  const customBorder = data.customBorderColor || '';
+
   return (
     <div className="flex-1 h-full bg-theme-surface flex flex-col select-none overflow-y-auto transition-colors">
       {/* Header */}
@@ -250,224 +400,343 @@ export const PropertiesPanel: React.FC = () => {
               </span>
             </div>
             <p className="text-[11px] text-theme-text-muted leading-relaxed">
-              Desglose el flujo interno con tareas detalladas, roles, duraciones y sistemas subordinados.
+              Desglose de tareas internas y secuenciación detallada para este subproceso.
             </p>
             <button
               onClick={() => openSubProcessDetail(node.id)}
-              className="w-full flex items-center justify-center space-x-1.5 py-2 px-3 rounded-lg bg-gradient-to-r from-[#0284C7] to-[#3B82F6] hover:brightness-110 text-white font-bold text-xs shadow-md transition-all hover:scale-[1.01]"
+              className="w-full py-2 bg-gradient-to-r from-[#0284C7] to-[#3B82F6] hover:brightness-110 text-white rounded-lg font-bold text-xs shadow-md flex items-center justify-center space-x-1.5 transition-all"
             >
               <Maximize2 className="w-3.5 h-3.5" />
-              <span>Ampliar y Editar Detalle Interno</span>
+              <span>Ampliar y Editar Detalle del Subproceso</span>
             </button>
           </div>
         )}
-        {/* Identificación */}
-        <div className="space-y-2">
-          <label className="text-[10px] font-bold uppercase tracking-wider text-theme-text-muted font-mono">
-            Identificación y Taxonomía
-          </label>
-          <div className="grid grid-cols-3 gap-2">
-            <div className="col-span-1">
-              <label className="text-[10px] text-theme-text-muted">ID Estándar</label>
-              <input
-                type="text"
-                value={data.standardId || ''}
-                onChange={(e) => handleUpdate({ standardId: e.target.value })}
-                className="w-full bg-theme-surface-subtle border border-theme-border rounded px-2 py-1.5 font-mono text-theme-accent focus:border-theme-accent outline-none"
-              />
-            </div>
-            <div className="col-span-2">
-              <label className="text-[10px] text-theme-text-muted">Tipo de Nodo</label>
-              <div className="bg-theme-surface-subtle border border-theme-border rounded px-2 py-1.5 text-theme-text font-mono text-[10px] truncate">
-                {data.nodeType}
-              </div>
+
+        {/* 🎨 SECCIÓN DE PERSONALIZACIÓN VISUAL DE LA TARJETA (INDIVIDUAL Y GRUPAL) */}
+        <div className="p-3.5 bg-theme-surface-subtle/70 border border-theme-border rounded-xl space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-theme-text font-mono flex items-center">
+              <Palette className="w-3.5 h-3.5 text-theme-accent mr-1.5" />
+              <span>Color de la Tarjeta</span>
+            </span>
+            {(customBg || customBorder) && (
+              <button
+                onClick={() => handleUpdate({ customBgColor: undefined, customBorderColor: undefined })}
+                className="text-[10px] text-theme-text-muted hover:text-theme-text flex items-center space-x-1"
+                title="Restablecer colores originales"
+              >
+                <RotateCcw className="w-3 h-3" />
+                <span>Restablecer</span>
+              </button>
+            )}
+          </div>
+
+          {/* Muestras rápidas de fondo */}
+          <div>
+            <span className="text-[10px] text-theme-text-muted block mb-1">Color de Fondo:</span>
+            <div className="grid grid-cols-5 gap-1">
+              {CARD_BG_SWATCHES.map((swatch) => (
+                <button
+                  key={swatch.label}
+                  onClick={() => handleUpdate({ customBgColor: swatch.color || undefined })}
+                  className={`p-1 rounded-md border text-[9px] text-center truncate transition-all ${
+                    customBg.toLowerCase() === swatch.color.toLowerCase()
+                      ? 'border-theme-accent ring-1 ring-theme-accent font-bold'
+                      : 'border-theme-border hover:border-theme-border/80'
+                  }`}
+                  style={{ backgroundColor: swatch.color || 'var(--theme-surface)' }}
+                >
+                  <span className="drop-shadow-sm text-theme-text">{swatch.label}</span>
+                </button>
+              ))}
             </div>
           </div>
 
+          {/* Color picker libre */}
+          <div className="flex items-center justify-between pt-1">
+            <span className="text-[10px] text-theme-text-muted">Color Libre:</span>
+            <div className="flex items-center space-x-2">
+              <input
+                type="color"
+                value={customBg || '#1E293B'}
+                onChange={(e) => handleUpdate({ customBgColor: e.target.value })}
+                className="w-6 h-6 rounded cursor-pointer border-0 bg-transparent"
+              />
+              <input
+                type="text"
+                value={customBg}
+                placeholder="#HEX..."
+                onChange={(e) => handleUpdate({ customBgColor: e.target.value })}
+                className="w-20 px-2 py-0.5 rounded bg-theme-surface border border-theme-border text-xs font-mono text-theme-text"
+              />
+            </div>
+          </div>
+
+          {/* ACCIONES GRUPALES / MASIVAS */}
+          {customBg && (
+            <div className="space-y-1.5 pt-2 border-t border-theme-border">
+              <span className="text-[10px] font-semibold text-theme-text block">Aplicación Grupal:</span>
+
+              <button
+                onClick={() => {
+                  bulkUpdateNodeColors({ nodeType: data.nodeType }, { customBgColor: customBg });
+                  showNotification(`Fondo aplicado a todas las tarjetas de tipo: ${data.nodeType}`);
+                }}
+                className="w-full py-1 px-2 rounded bg-theme-surface hover:bg-theme-surface-hover border border-theme-border text-[10px] text-theme-accent font-semibold transition-colors text-left flex items-center justify-between"
+              >
+                <span>Aplicar a todas de tipo <strong>{data.nodeType}</strong></span>
+                <Sparkles className="w-3 h-3 shrink-0 ml-1" />
+              </button>
+
+              {data.laneId && (
+                <button
+                  onClick={() => {
+                    bulkUpdateNodeColors({ laneId: data.laneId }, { customBgColor: customBg });
+                    showNotification('Fondo aplicado a todas las tarjetas del carril seleccionado');
+                  }}
+                  className="w-full py-1 px-2 rounded bg-theme-surface hover:bg-theme-surface-hover border border-theme-border text-[10px] text-[#3B82F6] font-semibold transition-colors text-left flex items-center justify-between"
+                >
+                  <span>Aplicar a todo el carril actual</span>
+                  <Sparkles className="w-3 h-3 shrink-0 ml-1" />
+                </button>
+              )}
+
+              <button
+                onClick={() => {
+                  bulkUpdateNodeColors('ALL', { customBgColor: customBg });
+                  showNotification('Fondo aplicado a todas las tarjetas del diagrama');
+                }}
+                className="w-full py-1 px-2 rounded bg-theme-surface hover:bg-theme-surface-hover border border-theme-border text-[10px] text-theme-text font-semibold transition-colors text-left flex items-center justify-between"
+              >
+                <span>Aplicar a todas las tarjetas del diagrama</span>
+                <Sparkles className="w-3 h-3 shrink-0 ml-1" />
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Standard ID & Title */}
+        <div className="grid grid-cols-3 gap-2">
           <div>
-            <label className="text-[10px] text-theme-text-muted">Título / Nombre Operativo</label>
+            <label className="text-[10px] font-bold uppercase tracking-wider text-theme-text-muted font-mono">
+              ID Estándar
+            </label>
+            <input
+              type="text"
+              value={data.standardId || ''}
+              onChange={(e) => handleUpdate({ standardId: e.target.value })}
+              className="w-full bg-theme-surface-subtle border border-theme-border rounded px-2 py-1.5 text-theme-text font-mono text-xs focus:border-theme-accent outline-none mt-0.5"
+            />
+          </div>
+          <div className="col-span-2">
+            <label className="text-[10px] font-bold uppercase tracking-wider text-theme-text-muted font-mono">
+              Título de la Actividad
+            </label>
             <input
               type="text"
               value={data.title || ''}
               onChange={(e) => handleUpdate({ title: e.target.value })}
-              className="w-full bg-theme-surface-subtle border border-theme-border rounded px-2 py-1.5 text-theme-text font-medium focus:border-[#3B82F6] outline-none mt-0.5"
-            />
-          </div>
-
-          <div>
-            <label className="text-[10px] text-theme-text-muted">Descripción Procedimental</label>
-            <textarea
-              rows={2}
-              value={data.description || ''}
-              onChange={(e) => handleUpdate({ description: e.target.value })}
-              className="w-full bg-theme-surface-subtle border border-theme-border rounded p-2 text-theme-text text-xs focus:border-[#3B82F6] outline-none mt-0.5"
+              className="w-full bg-theme-surface-subtle border border-theme-border rounded px-2 py-1.5 text-theme-text text-xs focus:border-theme-accent outline-none mt-0.5 font-medium"
             />
           </div>
         </div>
 
-        {/* Carril y Responsable */}
-        <div className="space-y-2 pt-3 border-t border-theme-border">
-          <label className="flex items-center text-[10px] font-bold uppercase tracking-wider text-theme-text-muted font-mono">
-            <Layers className="w-3.5 h-3.5 mr-1 text-[#3B82F6]" />
-            Carril (Swimlane) y Rol
+        {/* Description */}
+        <div>
+          <label className="text-[10px] font-bold uppercase tracking-wider text-theme-text-muted font-mono">
+            Descripción Detallada (ISO 9001)
+          </label>
+          <textarea
+            rows={3}
+            value={data.description || ''}
+            onChange={(e) => handleUpdate({ description: e.target.value })}
+            className="w-full bg-theme-surface-subtle border border-theme-border rounded px-2 py-1.5 text-theme-text text-xs focus:border-theme-accent outline-none mt-0.5 resize-none leading-relaxed"
+          />
+        </div>
+
+        {/* Carril / Swimlane Asignado */}
+        <div>
+          <label className="text-[10px] font-bold uppercase tracking-wider text-theme-text-muted font-mono">
+            Carril Organizativo (Swimlane)
           </label>
           <select
             value={data.laneId || ''}
             onChange={(e) => {
-              const selectedLane = lanes.find((l) => l.id === e.target.value);
+              const lane = lanes.find((l) => l.id === e.target.value);
               handleUpdate({
                 laneId: e.target.value,
-                laneName: selectedLane?.name,
-                roleName: selectedLane?.role,
-                itSystem: data.itSystem || selectedLane?.system
+                laneName: lane?.name,
+                roleName: lane?.role
               });
             }}
-            className="w-full bg-theme-surface-subtle border border-theme-border rounded px-2 py-1.5 text-theme-text outline-none focus:border-[#3B82F6]"
+            className="w-full bg-theme-surface-subtle border border-theme-border rounded px-2 py-1.5 text-theme-text text-xs focus:border-theme-accent outline-none mt-0.5"
           >
-            {lanes.map((lane) => (
-              <option key={lane.id} value={lane.id}>
-                {lane.name} ({lane.role})
+            <option value="">-- Sin Carril Asignado --</option>
+            {lanes.map((l) => (
+              <option key={l.id} value={l.id}>
+                {l.name} ({l.role})
               </option>
             ))}
           </select>
         </div>
 
-        {/* Sistema TI y Normativa */}
-        <div className="space-y-2 pt-3 border-t border-theme-border">
-          <label className="flex items-center text-[10px] font-bold uppercase tracking-wider text-theme-text-muted font-mono">
-            <Server className="w-3.5 h-3.5 mr-1 text-theme-accent" />
-            Sistema Informático y Marco Legal
-          </label>
+        {/* IT System & Legal Framework */}
+        <div className="grid grid-cols-2 gap-2">
           <div>
-            <label className="text-[10px] text-theme-text-muted">Sistema Informático / TI</label>
+            <label className="text-[10px] font-bold uppercase tracking-wider text-theme-text-muted font-mono flex items-center space-x-1">
+              <Server className="w-3 h-3 text-theme-accent mr-1" />
+              <span>Sistema TI</span>
+            </label>
             <input
               type="text"
-              placeholder="ej: SAM, VUPRA, Expediente Electrónico"
+              placeholder="ej: SAM, VUPRA, GDE"
               value={data.itSystem || ''}
               onChange={(e) => handleUpdate({ itSystem: e.target.value })}
-              className="w-full bg-theme-surface-subtle border border-theme-border rounded px-2 py-1.5 text-theme-accent font-mono text-xs focus:border-theme-accent outline-none mt-0.5"
+              className="w-full bg-theme-surface-subtle border border-theme-border rounded px-2 py-1 text-theme-text text-xs focus:border-theme-accent outline-none mt-0.5 font-mono"
             />
           </div>
           <div>
-            <label className="flex items-center text-[10px] text-theme-text-muted">
-              <Scale className="w-3 h-3 mr-1 text-[#F59E0B]" />
-              Marco Normativo / Articulado
+            <label className="text-[10px] font-bold uppercase tracking-wider text-theme-text-muted font-mono flex items-center space-x-1">
+              <Scale className="w-3 h-3 text-[#F59E0B] mr-1" />
+              <span>Marco Legal</span>
             </label>
             <input
               type="text"
-              placeholder="ej: Ord. 12.850 Art. 24 / Ley 24.449"
+              placeholder="ej: Art. 45 Ord. 123"
               value={data.legalFramework || ''}
               onChange={(e) => handleUpdate({ legalFramework: e.target.value })}
-              className="w-full bg-theme-surface-subtle border border-theme-border rounded px-2 py-1.5 text-[#F59E0B] text-xs focus:border-[#F59E0B] outline-none mt-0.5"
+              className="w-full bg-theme-surface-subtle border border-theme-border rounded px-2 py-1 text-theme-text text-xs focus:border-theme-accent outline-none mt-0.5"
             />
           </div>
         </div>
 
-        {/* Plazos y SLA (ISO 8601) */}
-        <div className="space-y-2 pt-3 border-t border-theme-border">
-          <label className="flex items-center text-[10px] font-bold uppercase tracking-wider text-theme-text-muted font-mono">
-            <Clock className="w-3.5 h-3.5 mr-1 text-[#F59E0B]" />
-            Plazos y SLA (ISO 8601)
-          </label>
-          <div className="grid grid-cols-2 gap-2">
-            <div>
-              <label className="text-[10px] text-theme-text-muted">Duración</label>
+        {/* SLA Duration Configuration (ISO 8601) */}
+        {!isGateway && (
+          <div className="p-3 bg-theme-surface-subtle border border-theme-border rounded-xl space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="text-[10px] font-bold uppercase tracking-wider text-theme-text font-mono flex items-center space-x-1">
+                <Clock className="w-3.5 h-3.5 text-[#F59E0B] mr-1" />
+                <span>Tiempo de Ciclo / SLA (ISO 8601)</span>
+              </label>
+              {data.slaDuration?.iso8601String && (
+                <span className="text-[10px] font-mono text-[#F59E0B] font-bold">
+                  {data.slaDuration.iso8601String}
+                </span>
+              )}
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <span className="text-[10px] text-theme-text-muted block mb-0.5">Plazo Numérico:</span>
+                <input
+                  type="number"
+                  min="0"
+                  value={data.slaDuration?.value ?? 0}
+                  onChange={(e) =>
+                    handleSlaChange(
+                      Number(e.target.value),
+                      data.slaDuration?.unit || 'BUSINESS_DAYS',
+                      data.slaDuration?.isPeremptory || false
+                    )
+                  }
+                  className="w-full bg-theme-surface border border-theme-border rounded px-2 py-1 text-xs text-theme-text font-mono outline-none"
+                />
+              </div>
+
+              <div>
+                <span className="text-[10px] text-theme-text-muted block mb-0.5">Unidad de Cómputo:</span>
+                <select
+                  value={data.slaDuration?.unit || 'BUSINESS_DAYS'}
+                  onChange={(e) =>
+                    handleSlaChange(
+                      data.slaDuration?.value ?? 0,
+                      e.target.value as TimeUnitType,
+                      data.slaDuration?.isPeremptory || false
+                    )
+                  }
+                  className="w-full bg-theme-surface border border-theme-border rounded px-2 py-1 text-xs text-theme-text outline-none"
+                >
+                  <option value={TIME_UNIT_TYPES.BUSINESS_DAYS}>Días Hábiles</option>
+                  <option value={TIME_UNIT_TYPES.CALENDAR_DAYS}>Días Corridos</option>
+                  <option value={TIME_UNIT_TYPES.HOURS}>Horas Directas</option>
+                </select>
+              </div>
+            </div>
+
+            <label className="flex items-center space-x-2 pt-1 cursor-pointer">
               <input
-                type="number"
-                min="0"
-                value={data.slaDuration?.value ?? 0}
+                type="checkbox"
+                checked={data.slaDuration?.isPeremptory || false}
                 onChange={(e) =>
                   handleSlaChange(
-                    parseFloat(e.target.value) || 0,
-                    data.slaDuration?.unit || TIME_UNIT_TYPES.BUSINESS_DAYS,
-                    data.slaDuration?.isPeremptory || false
+                    data.slaDuration?.value ?? 0,
+                    data.slaDuration?.unit || 'BUSINESS_DAYS',
+                    e.target.checked
                   )
                 }
-                className="w-full bg-theme-surface-subtle border border-theme-border rounded px-2 py-1.5 text-theme-text outline-none focus:border-[#F59E0B]"
+                className="rounded text-[#F59E0B] focus:ring-0 bg-theme-surface border-theme-border"
               />
-            </div>
-            <div>
-              <label className="text-[10px] text-theme-text-muted">Unidad</label>
-              <select
-                value={data.slaDuration?.unit || TIME_UNIT_TYPES.BUSINESS_DAYS}
-                onChange={(e) =>
-                  handleSlaChange(
-                    data.slaDuration?.value || 0,
-                    e.target.value as TimeUnitType,
-                    data.slaDuration?.isPeremptory || false
-                  )
-                }
-                className="w-full bg-theme-surface-subtle border border-theme-border rounded px-2 py-1.5 text-theme-text outline-none focus:border-[#F59E0B]"
-              >
-                <option value={TIME_UNIT_TYPES.HOURS}>Horas (PT)</option>
-                <option value={TIME_UNIT_TYPES.BUSINESS_DAYS}>Días Hábiles (P)</option>
-                <option value={TIME_UNIT_TYPES.CALENDAR_DAYS}>Días Corridos (P)</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="flex items-center space-x-2 pt-1">
-            <input
-              type="checkbox"
-              id="chk-peremptory"
-              checked={data.slaDuration?.isPeremptory || false}
-              onChange={(e) =>
-                handleSlaChange(
-                  data.slaDuration?.value || 0,
-                  data.slaDuration?.unit || TIME_UNIT_TYPES.BUSINESS_DAYS,
-                  e.target.checked
-                )
-              }
-              className="rounded bg-theme-surface-subtle border-theme-border text-[#F59E0B] focus:ring-0"
-            />
-            <label htmlFor="chk-peremptory" className="text-xs text-[#F59E0B] font-semibold cursor-pointer">
-              Plazo Perentorio / Fatal
+              <span className="text-[11px] text-[#F59E0B] font-semibold">
+                Plazo Perentorio / Fatal (Prescripción legal)
+              </span>
             </label>
-          </div>
-        </div>
-
-        {/* Tipificación de Compuertas (Gateways) */}
-        {isGateway && (
-          <div className="space-y-2 pt-3 border-t border-theme-border">
-            <label className="flex items-center text-[10px] font-bold uppercase tracking-wider text-[#F59E0B] font-mono">
-              <GitBranch className="w-3.5 h-3.5 mr-1" />
-              Tipología de Resolución
-            </label>
-            <select
-              value={data.gatewayResolutionType || GATEWAY_RESOLUTION_TYPES.CUSTOM}
-              onChange={(e) => handleUpdate({ gatewayResolutionType: e.target.value as GatewayResolutionType })}
-              className="w-full bg-theme-surface-subtle border border-theme-border rounded px-2 py-1.5 text-[#F59E0B] outline-none focus:border-[#F59E0B]"
-            >
-              <option value={GATEWAY_RESOLUTION_TYPES.SENTENCE_FINE}>Sentencia / Multa Condenatoria</option>
-              <option value={GATEWAY_RESOLUTION_TYPES.VOLUNTARY_PAYMENT}>Pago Voluntario</option>
-              <option value={GATEWAY_RESOLUTION_TYPES.PROBATION}>Probation / Trabajo Comunitario</option>
-              <option value={GATEWAY_RESOLUTION_TYPES.DISMISSAL_ARCHIVE}>Sobreseimiento / Archivo</option>
-              <option value={GATEWAY_RESOLUTION_TYPES.CUSTOM}>Bifurcación General</option>
-            </select>
           </div>
         )}
 
-        {/* ISO 9001 - Insumos (Inputs) y Entregables (Outputs) */}
-        <div className="space-y-3 pt-3 border-t border-theme-border">
-          <label className="flex items-center text-[10px] font-bold uppercase tracking-wider text-[#10B981] font-mono">
-            <ShieldCheck className="w-3.5 h-3.5 mr-1" />
-            Gestión de Calidad (ISO 9001 - Insumos y Salidas)
+        {/* Quality Checkpoint (ISO 9001) */}
+        {isCheckpoint && (
+          <div className="p-3 bg-[#10B981]/10 border border-[#10B981]/30 rounded-xl space-y-2">
+            <div className="flex items-center justify-between text-[#10B981]">
+              <span className="text-[10px] font-bold uppercase tracking-wider font-mono flex items-center space-x-1">
+                <ShieldCheck className="w-3.5 h-3.5 mr-1" />
+                <span>Punto de Control de Calidad (ISO 9001)</span>
+              </span>
+            </div>
+
+            <div>
+              <label className="text-[10px] text-theme-text-muted block">Criterio de Inspección:</label>
+              <input
+                type="text"
+                placeholder="ej: Firma de auditor, sello de mesa de entradas..."
+                value={data.qualityCheckpoint?.inspectionCriteria || ''}
+                onChange={(e) =>
+                  handleUpdate({
+                    qualityCheckpoint: {
+                      checkpointCode: data.qualityCheckpoint?.checkpointCode || data.standardId || 'QC-01',
+                      inspectionCriteria: e.target.value,
+                      evidenceRequired: data.qualityCheckpoint?.evidenceRequired || 'Acta / Constancia de Inspección',
+                      responsibleRole: data.qualityCheckpoint?.responsibleRole || data.roleName || 'Auditor de Calidad',
+                      severity: data.qualityCheckpoint?.severity || 'MAJOR',
+                      sampleRatePercentage: data.qualityCheckpoint?.sampleRatePercentage ?? 100
+                    }
+                  })
+                }
+                className="w-full bg-theme-surface border border-theme-border rounded px-2 py-1 text-xs text-theme-text outline-none mt-0.5"
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Insumos & Entregables (SIPOC) */}
+        <div className="space-y-3 pt-2 border-t border-theme-border">
+          <label className="text-[10px] font-bold uppercase tracking-wider text-theme-text-muted font-mono block">
+            Matriz SIPOC (Insumos y Entregables)
           </label>
 
-          {/* Insumos */}
+          {/* Inputs */}
           <div>
-            <label className="text-[10px] text-theme-text-muted">Insumos / Requisitos Previos</label>
-            <div className="space-y-1 my-1">
+            <span className="text-[11px] font-semibold text-theme-text block mb-1">Insumos Requeridos (Inputs):</span>
+            <div className="space-y-1 mb-1.5">
               {(data.inputs || []).map((inp, idx) => (
-                <div key={idx} className="flex items-center justify-between bg-theme-surface-subtle px-2 py-1 rounded border border-theme-border text-[11px] text-theme-text">
+                <div key={idx} className="flex items-center justify-between bg-theme-surface-subtle px-2 py-1 rounded text-[11px] border border-theme-border">
                   <span className="truncate">{inp}</span>
-                  <button onClick={() => handleRemoveInput(idx)} className="text-theme-text-muted hover:text-[#EF4444] ml-1">
+                  <button onClick={() => handleRemoveInput(idx)} className="text-red-400 hover:text-red-300 ml-1">
                     <X className="w-3 h-3" />
                   </button>
                 </div>
               ))}
             </div>
-            <div className="flex space-x-1 mt-1">
+            <div className="flex space-x-1">
               <input
                 type="text"
                 placeholder="Agregar insumo..."
@@ -478,27 +747,27 @@ export const PropertiesPanel: React.FC = () => {
               />
               <button
                 onClick={handleAddInput}
-                className="px-2 py-1 bg-theme-surface hover:bg-theme-surface-hover border border-theme-border rounded text-theme-text"
+                className="px-2 bg-theme-surface-subtle hover:bg-theme-surface text-theme-accent border border-theme-border rounded text-xs"
               >
                 <Plus className="w-3.5 h-3.5" />
               </button>
             </div>
           </div>
 
-          {/* Salidas / Entregables */}
+          {/* Outputs */}
           <div>
-            <label className="text-[10px] text-theme-text-muted">Salidas / Entregables Formales</label>
-            <div className="space-y-1 my-1">
+            <span className="text-[11px] font-semibold text-theme-text block mb-1">Entregables Formales (Outputs):</span>
+            <div className="space-y-1 mb-1.5">
               {(data.outputs || []).map((out, idx) => (
-                <div key={idx} className="flex items-center justify-between bg-theme-surface-subtle px-2 py-1 rounded border border-theme-border text-[11px] text-theme-text">
+                <div key={idx} className="flex items-center justify-between bg-theme-surface-subtle px-2 py-1 rounded text-[11px] border border-theme-border">
                   <span className="truncate">{out}</span>
-                  <button onClick={() => handleRemoveOutput(idx)} className="text-theme-text-muted hover:text-[#EF4444] ml-1">
+                  <button onClick={() => handleRemoveOutput(idx)} className="text-red-400 hover:text-red-300 ml-1">
                     <X className="w-3 h-3" />
                   </button>
                 </div>
               ))}
             </div>
-            <div className="flex space-x-1 mt-1">
+            <div className="flex space-x-1">
               <input
                 type="text"
                 placeholder="Agregar entregable..."
@@ -509,7 +778,7 @@ export const PropertiesPanel: React.FC = () => {
               />
               <button
                 onClick={handleAddOutput}
-                className="px-2 py-1 bg-theme-surface hover:bg-theme-surface-hover border border-theme-border rounded text-theme-text"
+                className="px-2 bg-theme-surface-subtle hover:bg-theme-surface text-theme-accent border border-theme-border rounded text-xs"
               >
                 <Plus className="w-3.5 h-3.5" />
               </button>
@@ -517,65 +786,35 @@ export const PropertiesPanel: React.FC = () => {
           </div>
         </div>
 
-        {/* Punto de Control de Calidad (QC) */}
-        {isCheckpoint && (
-          <div className="space-y-2 pt-3 border-t border-theme-border bg-[#10B981]/10 p-2.5 rounded-lg border border-[#10B981]/30">
-            <label className="flex items-center text-[10px] font-bold uppercase tracking-wider text-[#10B981] font-mono">
-              <ShieldCheck className="w-3.5 h-3.5 mr-1" />
-              Punto de Inspección ISO 9001
-            </label>
-            <div>
-              <label className="text-[10px] text-theme-text-muted">Criterio de Inspección</label>
-              <textarea
-                rows={2}
-                value={data.qualityCheckpoint?.inspectionCriteria || ''}
-                onChange={(e) =>
-                  handleUpdate({
-                    qualityCheckpoint: {
-                      checkpointCode: data.qualityCheckpoint?.checkpointCode || 'QC-01',
-                      inspectionCriteria: e.target.value,
-                      severity: data.qualityCheckpoint?.severity || 'CRITICAL',
-                      sampleRatePercentage: data.qualityCheckpoint?.sampleRatePercentage ?? 100,
-                      responsibleRole: data.roleName || 'Inspector',
-                      evidenceRequired: data.qualityCheckpoint?.evidenceRequired || 'Acta formal'
-                    }
-                  })
-                }
-                className="w-full bg-theme-surface border border-theme-border rounded p-2 text-theme-text text-xs focus:border-[#10B981] outline-none mt-0.5"
-              />
-            </div>
-          </div>
-        )}
-
-        {/* Riesgos Operativos y Controles Mitigantes */}
-        <div className="space-y-3 pt-3 border-t border-theme-border">
-          <label className="flex items-center text-[10px] font-bold uppercase tracking-wider text-[#EF4444] font-mono">
+        {/* Operational Risks (ISO 9001 Clause 6.1) */}
+        <div className="space-y-2 pt-3 border-t border-theme-border">
+          <label className="text-[10px] font-bold uppercase tracking-wider text-[#EF4444] font-mono flex items-center space-x-1">
             <AlertTriangle className="w-3.5 h-3.5 mr-1" />
-            Matriz de Riesgos y Mitigaciones
+            <span>Gestión de Riesgos Operativos (ISO 9001:2015)</span>
           </label>
 
-          <div className="space-y-2">
-            {(data.operationalRisks || []).map((rsk, idx) => (
-              <div key={idx} className="p-2 rounded bg-[#EF4444]/10 border border-[#EF4444]/30 space-y-1">
+          <div className="space-y-1.5 mb-2">
+            {(data.operationalRisks || []).map((r, idx) => (
+              <div key={idx} className="p-2 bg-[#EF4444]/10 border border-[#EF4444]/20 rounded-lg space-y-1 text-[11px]">
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-bold font-mono text-[#EF4444]">{rsk.riskId}</span>
-                  <button onClick={() => handleRemoveRisk(idx)} className="text-theme-text-muted hover:text-[#EF4444]">
-                    <Trash2 className="w-3 h-3" />
+                  <span className="font-mono text-[#EF4444] font-bold">{r.riskId}</span>
+                  <button onClick={() => handleRemoveRisk(idx)} className="text-red-400 hover:text-red-300">
+                    <X className="w-3 h-3" />
                   </button>
                 </div>
-                <p className="text-[11px] text-theme-text font-medium leading-snug">{rsk.description}</p>
-                <div className="text-[10px] text-[#10B981] bg-theme-surface-subtle p-1.5 rounded border border-theme-border">
-                  <span className="font-semibold text-[#10B981]">Control: </span>
-                  {rsk.mitigatingControl}
+                <div className="text-theme-text font-medium">{r.description}</div>
+                <div className="text-[#10B981] text-[10px]">
+                  <strong>Control:</strong> {r.mitigatingControl}
                 </div>
               </div>
             ))}
           </div>
 
-          <div className="space-y-1.5 pt-2 border-t border-theme-border">
+          {/* Add Risk Form */}
+          <div className="space-y-1.5 p-2 bg-theme-surface-subtle border border-theme-border rounded-lg">
             <input
               type="text"
-              placeholder="Riesgo operativo identificado..."
+              placeholder="Descripción del riesgo operativo..."
               value={newRiskDesc}
               onChange={(e) => setNewRiskDesc(e.target.value)}
               className="w-full bg-theme-surface-subtle border border-theme-border rounded px-2 py-1 text-xs text-theme-text outline-none"
@@ -600,4 +839,3 @@ export const PropertiesPanel: React.FC = () => {
     </div>
   );
 };
-
