@@ -1,5 +1,5 @@
 import React, { memo } from 'react';
-import { Handle, Position, NodeProps } from '@xyflow/react';
+import { Handle, Position, NodeProps, NodeResizer } from '@xyflow/react';
 import { BpmnNodeData } from '../../../types/process';
 import { ShieldCheck, CheckCircle2, AlertOctagon } from 'lucide-react';
 
@@ -9,10 +9,18 @@ export const QualityCheckpointNode = memo(({ data, selected }: NodeProps<any>) =
 
   return (
     <div
-      className={`group relative w-60 rounded-xl bg-theme-surface backdrop-blur-md border-2 border-[#10B981] transition-all duration-200 shadow-xl ${
-        selected ? 'ring-4 ring-[#10B981]/40 border-[#10B981] shadow-[#10B981]/20 shadow-2xl scale-[1.02]' : 'hover:border-[#10B981]/80'
+      className={`group relative w-full h-full min-w-[200px] min-h-[110px] flex flex-col justify-between rounded-xl bg-theme-surface backdrop-blur-md border-2 border-[#10B981] transition-all duration-150 shadow-xl ${
+        selected ? 'ring-4 ring-[#10B981]/40 border-[#10B981] shadow-[#10B981]/20 shadow-2xl scale-[1.01]' : 'hover:border-[#10B981]/80'
       }`}
     >
+      <NodeResizer
+        isVisible={selected}
+        minWidth={190}
+        minHeight={100}
+        handleClassName="!w-3 !h-3 !bg-[#10B981] !border-2 !border-slate-900 !rounded-full shadow-lg"
+        lineClassName="!border-[#10B981] !border-dashed"
+      />
+
       <Handle
         type="target"
         position={Position.Left}

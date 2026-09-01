@@ -1,5 +1,5 @@
 import React, { memo } from 'react';
-import { Handle, Position, NodeProps } from '@xyflow/react';
+import { Handle, Position, NodeProps, NodeResizer } from '@xyflow/react';
 import { BpmnNodeData } from '../../../types/process';
 import { useUiStore } from '../../../store/useUiStore';
 import { Layers, Maximize2, ListOrdered } from 'lucide-react';
@@ -17,12 +17,20 @@ export const SubProcessNode = memo(({ id, data, selected }: NodeProps<any>) => {
 
   return (
     <div
-      className={`group relative w-68 rounded-xl bg-theme-surface/95 backdrop-blur-md border-2 border-[#3B82F6] transition-all duration-200 shadow-xl ${
+      className={`group relative w-full h-full min-w-[220px] min-h-[130px] flex flex-col justify-between rounded-xl bg-theme-surface/95 backdrop-blur-md border-2 border-[#3B82F6] transition-all duration-150 shadow-xl ${
         selected
-          ? 'ring-4 ring-[#3B82F6]/30 border-[#3B82F6] shadow-[#3B82F6]/20 shadow-2xl scale-[1.02]'
+          ? 'ring-4 ring-[#3B82F6]/30 border-[#3B82F6] shadow-[#3B82F6]/20 shadow-2xl scale-[1.01]'
           : 'hover:border-[#3B82F6] hover:shadow-2xl'
       }`}
     >
+      <NodeResizer
+        isVisible={selected}
+        minWidth={210}
+        minHeight={120}
+        handleClassName="!w-3 !h-3 !bg-[#3B82F6] !border-2 !border-slate-900 !rounded-full shadow-lg"
+        lineClassName="!border-[#3B82F6] !border-dashed"
+      />
+
       <Handle
         type="target"
         position={Position.Left}

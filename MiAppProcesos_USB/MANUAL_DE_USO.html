@@ -174,7 +174,7 @@
       <h1>Manual de Uso y Guía Técnica Integral</h1>
       <div class="subtitle">ProcesosStudio Portable &bull; BPMN 2.0 (ISO/IEC 19510) & Sistemas de Calidad ISO 9001:2015</div>
       <div style="font-size: 8.5pt; color: #64748B; margin-top: 6px; font-family: monospace;">
-        Versión: 2.1 | Formato Oficial: PDF / Windows Desktop (.EXE) | Persistencia: JSON Abierto
+        Versión: 2.2 | Formato Oficial: PDF / Windows Desktop (.EXE) | Persistencia: JSON Abierto
       </div>
     </div>
 
@@ -183,7 +183,14 @@
     
     <p><strong>Arquitectura Zero-AppData:</strong> La aplicación es 100% portable. No requiere instalación, privilegios administrativos ni conexión a Internet. Todos los proyectos se guardan en formato <code>.json</code> transparente en la carpeta <code>../Proyectos/</code>.</p>
 
-    <h2>2. Glosario de Componentes y Notación</h2>
+    <h2>2. Novedades: Redimensionamiento y Control de Paneles</h2>
+    <ul>
+      <li><strong>Redimensionamiento de Tarjetas/Nodos:</strong> Al seleccionar cualquier nodo en el lienzo, aparecen tiradores interactivos. Arrastre los bordes para cambiar alto o ancho, o <strong>arrastre desde cualquiera de las 4 esquinas para redimensionar de forma proporcional</strong>.</li>
+      <li><strong>Ajuste de Paneles con Ratón:</strong> Arrastre los bordes divisorios de la Paleta de Modelado (izquierda) y del Navegador de Procesos (derecha) para calibrar el ancho deseado con total libertad.</li>
+      <li><strong>Botones de Colapso:</strong> Permiten contraer la paleta a un dock compacto de iconos o cerrar el panel derecho para maximizar la superficie del lienzo.</li>
+    </ul>
+
+    <h2>3. Glosario de Componentes y Notación</h2>
     <table>
       <thead>
         <tr>
@@ -221,7 +228,7 @@
         <tr>
           <td><strong>Subproceso</strong></td>
           <td><span class="badge badge-blue">#3B82F6</span></td>
-          <td><strong>Actividad compuesta que agrupa un procedimiento secundario.</strong> Figura con icono y botón para ampliar en un proceso más detallado.</td>
+          <td><strong>Actividad compuesta que agrupa un procedimiento secundario.</strong> Cuenta con botón para ampliar en un proceso más detallado con tareas internas.</td>
         </tr>
         <tr>
           <td><strong>Temporizador SLA</strong></td>
@@ -246,7 +253,7 @@
       </tbody>
     </table>
 
-    <h2>3. Navegador de Macroprocesos y Subprocesos (Menú Derecho)</h2>
+    <h2>4. Navegador de Macroprocesos y Subprocesos (Menú Derecho)</h2>
     <p>A la derecha de la aplicación, el usuario dispone del <strong>Navegador Jerárquico</strong> con dos pestañas intercambiables:</p>
     <ul>
       <li><strong>🧭 Navegador:</strong> Muestra la tarjeta del Macroproceso y el listado de todos los Subprocesos. Al seleccionar cualquier Macroproceso o Subproceso, <strong>el sistema realiza un acercamiento y centrado automático (smooth zoom)</strong> en el lienzo.</li>
@@ -254,7 +261,7 @@
       <li><strong>⚙️ Propiedades:</strong> Formulario de edición de IDs, normativas, duraciones y matriz de riesgos.</li>
     </ul>
 
-    <h2>4. Tutorial Práctico: Modelado Integral con Subprocesos</h2>
+    <h2>5. Tutorial Práctico: Modelado Integral con Subprocesos</h2>
     <p><strong>Caso de Estudio:</strong> <em>"Procedimiento Sancionatorio por Obras Clandestinas" (Código: PRC-OBR-001)</em></p>
     
     <div class="diagram-box">
@@ -286,14 +293,11 @@
     </div>
 
     <div class="card-step">
-      <h4>Paso 2: Modelar Nodos y Subprocesos</h4>
+      <h4>Paso 2: Modelar Nodos y Redimensionar Tarjetas</h4>
       <ol>
-        <li>Arrastre un <strong>Evento de Inicio</strong> (<code>INI-01</code>: <em>Acta de Infracción</em>) al carril de Inspectoría.</li>
-        <li>Conecte una <strong>Tarea de Usuario</strong> (<code>ACT-01</code>: <em>Cotejo Catastral en SAM</em>, plazo 2 días hábiles).</li>
-        <li>Agregue un <strong>Punto de Control QC</strong> (<code>QC-01</code>: <em>Auditoría formal de firma y plano</em>).</li>
-        <li>Conecte una <strong>Tarea de Notificación</strong> (<code>ACT-02</code>: <em>Cédula legal con 5 días perentorios</em>) y un <strong>Timer</strong> (<code>TMR-01</code>).</li>
-        <li>Agregue una <strong>Compuerta Exclusiva</strong> (<code>DEC-01</code>).</li>
-        <li>Arrastre un <strong>Subproceso</strong> (<code>SUB-01</code>: <em>Trámite de Regularización y Pago</em>). Presione <strong>Ampliar</strong> para desglosar sus 3 etapas internas (Plano, Liquidación, Pago). Conecte la salida a <code>FIN-01</code>.</li>
+        <li>Arrastre los elementos desde la paleta izquierda.</li>
+        <li>Seleccione cualquier tarjeta para **redimensionarla desde las 4 esquinas** según la longitud de su texto.</li>
+        <li>Arrastre un **Subproceso** (<code>SUB-01</code>: <em>Trámite de Regularización y Pago</em>). Presione <strong>Ampliar</strong> para desglosar sus 3 etapas internas (Plano, Liquidación, Pago). Conecte la salida a <code>FIN-01</code>.</li>
         <li>Conecte la otra rama a <code>ACT-03</code> (<em>Sentencia de Clausura</em>) con riesgo mitigado <code>RSK-01</code> y fin en <code>FIN-02</code>.</li>
       </ol>
     </div>
@@ -308,7 +312,7 @@
       <p>Presione <code>Ctrl + S</code>. Vaya a <strong>Matriz SIPOC</strong> para auditar entradas/salidas y luego a <strong>Ficha Técnica ISO 9001</strong> para exportar el reporte formal en PDF.</p>
     </div>
 
-    <h2>5. Ubicación de Archivos y Backups USB</h2>
+    <h2>6. Ubicación de Archivos y Backups USB</h2>
     <p>Los proyectos se guardan en formato estándar en la carpeta:</p>
     <pre>MiAppProcesos_USB/Proyectos/2026-09-01_proc-procedimiento-sancionatorio-por-obras-clandestinas-v1.0.json</pre>
 

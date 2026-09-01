@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { BPMN_NODE_TYPES, BpmnNodeType } from '../../types/process';
 import {
   Play,
@@ -12,7 +12,11 @@ import {
   Clock,
   Layers,
   HelpCircle,
-  PlusCircle
+  PlusCircle,
+  ChevronLeft,
+  ChevronRight,
+  PanelLeftClose,
+  PanelLeftOpen
 } from 'lucide-react';
 import { useCanvasStore } from '../../store/useCanvasStore';
 import { useProjectStore } from '../../store/useProjectStore';
@@ -133,6 +137,10 @@ export const SidebarPalette: React.FC = () => {
   const { addNode, addLane } = useCanvasStore();
   const { currentProject } = useProjectStore();
 
+  const [width, setWidth] = useState<number>(260);
+  const [isCollapsed, setIsCollapsed] = useState<boolean>(false);
+  const isResizingRef = useRef<boolean>(false);
+
   const handleDragStart = (e: React.DragEvent, nodeType: BpmnNodeType) => {
     e.dataTransfer.setData('application/reactflow-nodetype', nodeType);
     e.dataTransfer.effectAllowed = 'move';
@@ -150,29 +158,101 @@ export const SidebarPalette: React.FC = () => {
     }
   };
 
+  // Mouse Drag Resizing Logic
+  const startResizing = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    isResizingRef.current = true;
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+
+    const onMouseMove = (moveEvent: MouseEvent) => {
+      if (!isResizingRef.current) return;
+      const newWidth = Math.max(180, Math.min(460, moveEvent.clientX));
+      setWidth(newWidth);
+    };
+
+    const onMouseUp = () => {
+      isResizingRef.current = false;
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseup', onMouseUp);
+    };
+
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onMouseUp);
+  }, []);
+
+  // Render Mini-Dock when collapsed
+  if (isCollapsed) {
+    return (
+      <aside className="w-14 h-full bg-theme-surface border-r border-theme-border flex flex-col items-center py-3 space-y-3 shrink-0 select-none transition-all shadow-lg z-20">
+        <button
+          onClick={() => setIsCollapsed(false)}
+          className="p-2 rounded-lg bg-theme-surface-subtle hover:bg-theme-surface-hover text-theme-accent border border-theme-border transition-colors shadow-sm"
+          title="Expandir Paleta de Modelado"
+        >
+          <PanelLeftOpen className="w-4 h-4" />
+        </button>
+
+        <div className="w-8 h-[1px] bg-theme-border my-1" />
+
+        <div className="flex-1 flex flex-col space-y-2 overflow-y-auto overflow-x-hidden px-1">
+          {PALETTE_GROUPS.flatMap((g) => g.items).map((item) => {
+            const Icon = item.icon;
+            return (
+              <div
+                key={item.type}
+                draggable
+                onDragStart={(e) => handleDragStart(e, item.type)}
+                onClick={() => addNode(item.type, { x: 350 + Math.random() * 40, y: 180 + Math.random() * 40 })}
+                className={`p-2 rounded-lg border cursor-grab active:cursor-grabbing ${item.bgClass} ${item.colorClass} transition-transform hover:scale-110`}
+                title={`${item.title} (${item.subtitle}) - Arrastrar al lienzo`}
+              >
+                <Icon className="w-4 h-4" />
+              </div>
+            );
+          })}
+        </div>
+      </aside>
+    );
+  }
+
   return (
-    <aside className="w-64 h-full bg-theme-surface border-r border-theme-border flex flex-col shrink-0 select-none overflow-y-auto transition-colors">
+    <aside
+      style={{ width: `${width}px` }}
+      className="relative h-full bg-theme-surface border-r border-theme-border flex flex-col shrink-0 select-none transition-colors shadow-lg z-20 group/sidebar"
+    >
       {/* Header */}
-      <div className="p-3 border-b border-theme-border flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          <div className="w-2 h-2 rounded-full bg-theme-accent animate-ping" />
-          <span className="text-xs font-bold text-theme-text uppercase tracking-wider">
+      <div className="p-3 border-b border-theme-border flex items-center justify-between bg-theme-surface-subtle/50">
+        <div className="flex items-center space-x-2 truncate">
+          <div className="w-2 h-2 rounded-full bg-theme-accent animate-ping shrink-0" />
+          <span className="text-xs font-bold text-theme-text uppercase tracking-wider truncate">
             Paleta de Modelado
           </span>
         </div>
-        <span className="text-[10px] text-theme-accent font-mono bg-theme-surface-subtle px-1.5 py-0.5 rounded border border-theme-border">
-          BPMN 2.0
-        </span>
+        <div className="flex items-center space-x-1 shrink-0">
+          <span className="text-[10px] text-theme-accent font-mono bg-theme-surface-subtle px-1.5 py-0.5 rounded border border-theme-border">
+            BPMN 2.0
+          </span>
+          <button
+            onClick={() => setIsCollapsed(true)}
+            className="p-1 rounded hover:bg-theme-surface text-theme-text-muted hover:text-theme-text transition-colors"
+            title="Contraer Paleta"
+          >
+            <PanelLeftClose className="w-3.5 h-3.5" />
+          </button>
+        </div>
       </div>
 
       {/* Instruction */}
       <div className="px-3 py-2 bg-theme-surface-subtle border-b border-theme-border text-[11px] text-theme-text-muted flex items-center">
         <HelpCircle className="w-3.5 h-3.5 text-theme-text-muted mr-1.5 shrink-0" />
-        <span>Arrastrá los elementos al lienzo o hacé clic para agregar.</span>
+        <span className="line-clamp-2">Arrastrá elementos al lienzo o hacé clic para agregar.</span>
       </div>
 
       {/* Groups */}
-      <div className="p-3 space-y-4 flex-1">
+      <div className="p-3 space-y-4 flex-1 overflow-y-auto">
         {PALETTE_GROUPS.map((group) => (
           <div key={group.groupName}>
             <h5 className="text-[10px] font-bold font-mono uppercase text-theme-text-muted tracking-wider mb-2">
@@ -186,8 +266,8 @@ export const SidebarPalette: React.FC = () => {
                     key={item.type}
                     draggable
                     onDragStart={(e) => handleDragStart(e, item.type)}
-                    onClick={() => addNode(item.type, { x: 300 + Math.random() * 50, y: 150 + Math.random() * 50 })}
-                    className={`flex items-center p-2 rounded-lg border transition-all cursor-grab active:cursor-grabbing ${item.bgClass} ${item.colorClass}`}
+                    onClick={() => addNode(item.type, { x: 320 + Math.random() * 50, y: 160 + Math.random() * 50 })}
+                    className={`flex items-center p-2 rounded-lg border transition-all cursor-grab active:cursor-grabbing shadow-sm hover:shadow-md ${item.bgClass} ${item.colorClass}`}
                   >
                     <div className="p-1.5 rounded-md bg-theme-surface mr-2.5 shrink-0 shadow-sm border border-theme-border/50">
                       <Icon className="w-4 h-4" />
@@ -211,14 +291,20 @@ export const SidebarPalette: React.FC = () => {
         <div className="pt-2 border-t border-theme-border">
           <button
             onClick={handleAddLaneClick}
-            className="w-full flex items-center justify-center space-x-2 py-2 px-3 rounded-lg bg-theme-surface-subtle hover:bg-theme-surface text-theme-accent text-xs font-medium border border-theme-border transition-colors"
+            className="w-full flex items-center justify-center space-x-2 py-2 px-3 rounded-lg bg-theme-surface-subtle hover:bg-theme-surface text-theme-accent text-xs font-medium border border-theme-border transition-colors shadow-sm"
           >
             <PlusCircle className="w-4 h-4" />
             <span>Agregar Carril (Swimlane)</span>
           </button>
         </div>
       </div>
+
+      {/* Manual Drag Resizer on Right Edge */}
+      <div
+        onMouseDown={startResizing}
+        className="absolute top-0 right-[-3px] w-2 h-full cursor-col-resize hover:bg-theme-accent/50 active:bg-theme-accent transition-colors z-30"
+        title="Arrastrar con el ratón para ajustar ancho de la paleta"
+      />
     </aside>
   );
 };
-

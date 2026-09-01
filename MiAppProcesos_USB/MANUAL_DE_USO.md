@@ -1,6 +1,6 @@
 # MANUAL DE USO Y GUÍA TÉCNICA INTEGRAL
 ## ProcesosStudio Portable — BPMN 2.0 (ISO 19510) & ISO 9001:2015
-**Versión del Manual:** 2.1 &bull; **Fecha de Emisión:** 2026-09-01 &bull; **Entorno:** Portable Windows Desktop (`.EXE`) / Web
+**Versión del Manual:** 2.2 &bull; **Fecha de Emisión:** 2026-09-01 &bull; **Entorno:** Portable Windows Desktop (`.EXE`) / Web
 
 ---
 
@@ -8,7 +8,7 @@
 
 **ProcesosStudio Portable** es una plataforma profesional concebida para el modelado, análisis, optimización y documentación formal de procedimientos administrativos y flujos operativos institucionales. Integra de manera nativa:
 
-1. **Notación BPMN 2.0 (ISO/IEC 19510:2013)**: Estándar internacional para diagramación de flujos de procesos de negocio, soportando Macroprocesos y Subprocesos jerárquicos expandibles.
+1. **Notación BPMN 2.0 (ISO/IEC 19510:2013)**: Estándar internacional para diagramación de flujos de procesos de negocio, soportando Macroprocesos y Subprocesos jerárquicos expandibles, con redimensionamiento dinámico y libre de tarjetas.
 2. **Sistemas de Gestión de la Calidad (ISO 9001:2015)**: Cumplimiento directo de los requisitos de enfoque en procesos (Cláusula 4.4), pensamiento basado en riesgos (Cláusula 6.1), información documentada (Cláusula 7.5) y control de salidas no conformes / liberación de servicios (Cláusula 8.6).
 3. **Cálculo de Tiempos SLA y Lead Time (ISO 8601)**: Cuantificación de plazos administrativos, tiempos de ciclo directo y límites perentorios de prescripción legal.
 
@@ -58,18 +58,26 @@ A diferencia de los programas tradicionales, **ProcesosStudio Portable** no requ
 
 ---
 
-### C. Parámetros de Plazos y SLA (ISO 8601)
-* **Lead Time**: Tiempo total transcurrido desde la recepción del trámite hasta su resolución final.
-* **Tiempo de Ciclo Directo**: Sumatoria neta del tiempo de trabajo efectivo de las tareas.
-* **Días Hábiles (`P`)**: Cómputo excluyendo sábados, domingos y feriados administrativos.
-* **Horas Administrativas (`PT`)**: Jornadas horarias aplicadas a tareas específicas (ej: `PT4H` = 4 horas).
-* **Plazo Perentorio / Fatal**: Término improrrogable cuyo vencimiento extingue de pleno derecho la potestad administrativa o el derecho del particular.
+## 3. NOVEDADES: REDIMENSIONAMIENTO Y CONTROL DE PANELES
+
+### 3.1. Redimensionamiento Libre y Proporcional de Tarjetas/Nodos
+* Al hacer clic sobre cualquier nodo (Tarea, Subproceso o Punto de Control QC), se activan los **tiradores interactivos de redimensionamiento**.
+* **Ajuste de Alto y Ancho**: Arrastre los bordes superior, inferior, izquierdo o derecho para ajustar el tamaño del bloque.
+* **Ajuste Proporcional por Esquinas**: Al hacer clic y arrastrar sobre cualquiera de las **4 esquinas circulares**, la tarjeta se amplía o reduce en alto y largo de forma suave y proporcional.
+
+### 3.2. Ajuste Manual con Ratón y Colapso de Paneles Laterales
+* **Paleta de Modelado (Panel Izquierdo)**:
+  * **Ajuste con Ratón**: Pase el cursor sobre el borde derecho de la paleta (cursor `↔`) y arrastre horizontalmente para ensanchar o reducir la barra (entre 180px y 460px).
+  * **Botón de Colapso**: Haga clic en el botón `Contraer` en el encabezado para convertir la paleta en un **dock compacto de iconos**, ganando el máximo espacio en pantalla para el lienzo.
+* **Navegador y Propiedades (Panel Derecho)**:
+  * **Ajuste con Ratón**: Pase el cursor sobre el borde izquierdo del panel (cursor `↔`) y arrastre horizontalmente para ajustar su ancho (entre 260px y 680px).
+  * **Botón de Colapso / Apertura**: Botón directo para cerrar o reabrir el panel, o conmutarlo desde el botón `Navegador` del Header.
 
 ---
 
-## 3. RECORRIDO INTEGRAL DE LA APLICACIÓN
+## 4. RECORRIDO INTEGRAL DE LA APLICACIÓN
 
-### 3.1. Barra Superior de Control (Header)
+### 4.1. Barra Superior de Control (Header)
 * **Identificador de Proyecto**: Muestra el título, código formal, versión y autor del proceso abierto.
 * **Pestañas de Navegación**:
   * `Proyectos USB`: Retorna al Dashboard de administración de archivos.
@@ -78,21 +86,21 @@ A diferencia de los programas tradicionales, **ProcesosStudio Portable** no requ
   * `Ficha Técnica ISO 9001`: Reporte ejecutivo estructurado con ordenamiento topológico y salida a PDF.
 * **Botones de Acción**:
   * 🧭 **`Navegador`**: Abre el menú lateral derecho de navegación jerárquica de Macroprocesos y Subprocesos.
-  * 📁 **`Ver Carpeta`**: Abre la carpeta `Proyectos/` directamente en el Explorador de Windows (o descarga el archivo en modo Web).
-  * ☀️/🌙 **`Modo Claro / Oscuro`**: Conmuta el tema visual de la interfaz. En modo oscuro, el lienzo adopta un fondo gris carbón (`#18181B`) de alto contraste.
-  * ➕ **`Nuevo`**: Abre el asistente de creación de nuevos procedimientos.
+  * 📁 **`Ver Carpeta`**: Abre la carpeta `Proyectos/` directamente en el Explorador de Windows.
+  * ☀️/🌙 **`Modo Claro / Oscuro`**: Conmuta el tema visual. En modo oscuro, el lienzo adopta un fondo gris carbón (`#18181B`).
+  * ➕ **`Nuevo`**: Asistente de creación de nuevos procedimientos.
   * ⬇️ **`JSON`**: Descarga el archivo de datos del proyecto a su disco.
   * 💾 **`Guardar (Ctrl+S)`**: Guarda los cambios físicos en el archivo JSON.
 
 ---
 
-### 3.2. Panel Lateral Derecho: Navegador Jerárquico & Propiedades
+### 4.2. Panel Lateral Derecho: Navegador Jerárquico & Propiedades
 Ubicado a la derecha del lienzo, cuenta con dos pestañas intercambiables:
 
 1. 🧭 **Pestaña "Navegador" (Estructura de Macroprocesos y Subprocesos)**:
-   * **Tarjeta del Macroproceso**: Muestra el título, código formal, cantidad total de nodos, subprocesos y carriles. Al hacer clic o pulsar **"Macroproceso"**, la cámara centra suavemente todo el diagrama global.
+   * **Tarjeta del Macroproceso**: Muestra el título, código formal y total de elementos. Al hacer clic o pulsar **"Macroproceso"**, la cámara centra suavemente todo el diagrama global.
    * **Sección de Subprocesos**: Lista todos los subprocesos modelados (ej: `SUB-01: Trámite de Subsanación`).
-     * **Al hacer clic en un subproceso:** El sistema realiza un **desplazamiento y acercamiento suave (zoom animado)** centrando la pantalla exactamente sobre el subproceso en el lienzo.
+     * **Al hacer clic en un subproceso:** El sistema realiza un **desplazamiento y acercamiento suave (smooth zoom animado)** centrando la pantalla exactamente sobre el subproceso en el lienzo.
      * **Botón "Ampliar":** Despliega el modal de detalle del subproceso para desglosar sus tareas internas paso a paso.
    * **Buscador y Filtros de Hitos**: Permite filtrar y localizar instantáneamente cualquier tarea, compuerta, control QC o evento del diagrama.
 2. ⚙️ **Pestaña "Propiedades"**:
@@ -100,7 +108,7 @@ Ubicado a la derecha del lienzo, cuenta con dos pestañas intercambiables:
 
 ---
 
-### 3.3. Subprocesos en el Macroproceso y Detalle Expandible
+### 4.3. Subprocesos en el Macroproceso y Detalle Expandible
 * **En el Macroproceso**:
   * El Subproceso se representa como un nodo azul con su icono característico de capas (`Layers`), su código identificador (`SUB-01`), el título y el conteo de etapas internas configuradas.
   * Incluye el botón interactivo **`Ampliar ↗`**.
@@ -112,36 +120,23 @@ Ubicado a la derecha del lienzo, cuenta con dos pestañas intercambiables:
 
 ---
 
-### 3.4. Matriz SIPOC Sincronizada
+### 4.4. Matriz SIPOC Sincronizada
 * Cruce automático en tiempo real de todos los nodos del lienzo.
 * Identifica Proveedores (S), Insumos (I), Etapa del Proceso (P), Entregables (O), Clientes (C), Sistemas TI y Controles.
 * Botón **`Exportar CSV`**: Genera un archivo `.csv` compatible con Excel para reportes gerenciales.
 
 ---
 
-### 3.5. Ficha Técnica Formal ISO 9001
+### 4.5. Ficha Técnica Formal ISO 9001
 * Aplica un algoritmo de **Ordenamiento Topológico (DAG)** para resolver dependencias y ordenar las tareas cronológicamente (Paso 1, Paso 2, Paso 3...).
-* Genera un documento técnico formal que consolida:
-  * Encabezado institucional y control documental.
-  * Objetivo declarativo y marco normativo consolidado.
-  * Resumen ejecutivo de tiempos de ciclo y plazos de prescripción extintiva.
-  * Matriz de responsabilidades y sistemas informáticos.
-  * Secuencia operativa cronológica paso a paso.
-  * Matriz de riesgos operativos y mitigaciones (Cláusula 6.1).
-  * Matriz de compuertas y reglas de decisión.
-  * Historial formal de revisiones y bloques de firma técnica.
+* Genera un documento técnico formal con encabezado, objetivo, tiempos de ciclo, matriz de riesgos, reglas de decisión y firmas técnicas.
 * Botón **`Imprimir / Guardar en PDF`**: Formatea el reporte para impresión o guardado como PDF vectorial oficial.
 
 ---
 
-## 4. TUTORIAL PRÁCTICO: MODELADO INTEGRAL DE UN PROCESO CON SUBPROCESOS
+## 5. TUTORIAL PRÁCTICO: MODELADO INTEGRAL PASO A PASO
 
-### 🏢 Caso de Estudio: *"Procedimiento de Fiscalización y Trámite Sancionatorio por Obras Clandestinas"*
-* **Código:** `PRC-OBR-001`
-* **Unidad Organizativa:** `Dirección de Obras Privadas / Tribunal Municipal de Faltas`
-* **Autor:** `Ing. Carlos Mendoza (Auditor de Procesos ISO 9001)`
-
-En este tutorial implementaremos **todos los componentes del sistema**, incluyendo la creación y navegación de subprocesos:
+### 🏢 Caso de Estudio: *"Procedimiento de Fiscalización y Trámite Sancionatorio por Obras Clandestinas"* (Código: `PRC-OBR-001`)
 
 ```
 [ INI-01: Acta de Infracción ]
@@ -169,89 +164,32 @@ En este tutorial implementaremos **todos los componentes del sistema**, incluyen
        └── (Rama B: No Subsanado / Rebelde) ────────> [ ACT-03: Dictamen y Sentencia de Clausura ] (Riesgo RSK-01) ──> [ FIN-02: Clausura y Ejecución ]
 ```
 
----
+### PASO 1: Alta del Proyecto
+En el Dashboard haga clic en **`Nuevo Proyecto`**. Complete el título, autor y unidad organizativa.
 
-### PASO 1: Creación del Proyecto
-1. En el Dashboard principal, haga clic en el botón **`Nuevo Proyecto`**.
-2. Ingrese los siguientes datos:
-   * **Título:** `Procedimiento Sancionatorio por Obras Clandestinas`
-   * **Responsable / Autor:** `Ing. Carlos Mendoza (Auditor de Procesos)`
-   * **Unidad Organizativa:** `Dirección de Obras Privadas / Tribunal de Faltas`
-3. Haga clic en **`Crear Proyecto`**. El sistema lo dirigirá automáticamente al Lienzo BPMN.
+### PASO 2: Modelado y Redimensionamiento
+1. Arrastre los nodos desde la paleta izquierda.
+2. Seleccione cualquier tarjeta para **redimensionarla desde las esquinas** o bordes según la extensión del texto o la jerarquía visual deseada.
+3. Conecte los flujos y configure plazos legales y checkpoints QC.
+4. En el nodo `SUB-01`, haga clic en **`Ampliar`** para cargar las tareas internas.
 
----
+### PASO 3: Navegación y Calibración de Paneles
+1. Ajuste el ancho de la paleta izquierda y del navegador derecho arrastrando los bordes divisorios.
+2. En el menú `Navegador`, haga clic en `SUB-01` para comprobar el **zoom y centrado automático**.
 
-### PASO 2: Modelado de Nodos y Configuración de Propiedades
-
-#### 1. Evento de Inicio (`INI-01`)
-* Arrastre un **Evento de Inicio** (verde) al primer carril (*Mesa de Entradas / Inspectoría*).
-* En el panel derecho configure:
-  * **ID Estándar:** `INI-01`
-  * **Título:** `Acta de Infracción por Obra Clandestina`
-  * **Descripción:** `Ingreso formal del acta labrada en operativo de fiscalización en vía pública.`
-
-#### 2. Tarea de Usuario (`ACT-01`) y Control QC (`QC-01`)
-* Arrastre una **Tarea de Usuario** (azul) y conéctela desde `INI-01`.
-  * **ID:** `ACT-01` | **Título:** `Cotejo Catastral y Verificación de Planos` | **Sistema:** `SAM / Catastro Web`
-* Arrastre un **Punto de Control QC** (rombo verde) y conéctelo desde `ACT-01`.
-  * **ID:** `QC-01` | **Criterio:** `Auditoría de firma de inspector y plano catastral aprobado`.
-
-#### 3. Notificación (`ACT-02`) y Timer (`TMR-01`)
-* Arrastre una **Tarea de Usuario** al carril de notificaciones:
-  * **ID:** `ACT-02` | **Título:** `Cédula de Emplazamiento Legal` | **Plazo:** `5 Días Hábiles (Perentorio)`.
-* Arrastre un **Evento de Temporización** (`TMR-01`) asociado a los 5 días.
-
-#### 4. Compuerta de Decisión (`DEC-01`)
-* Arrastre una **Compuerta Exclusiva** (`DEC-01`: *Evaluación de Presentación de Descargo*).
-
-#### 5. Creación y Desglose del Subproceso (`SUB-01`)
-* Arrastre un **Subproceso** (azul) al carril administrativo y conéctelo desde `DEC-01`.
-* En la flecha conectora escriba: `Admite trámite / Presenta plano de subsanación`.
-* En el nodo `SUB-01`:
-  * **ID:** `SUB-01` | **Título:** `Trámite de Subsanación y Pago Voluntario`.
-* Haga clic en el botón **`Ampliar`** en el nodo o en el menú derecho.
-* En el modal de detalle, agregue las etapas internas del subproceso:
-  1. `Paso 1: Presentación de Plano Conforme a Obra` (Rol: Profesional Matriculado, Sistema: Obras Web).
-  2. `Paso 2: Liquidación de Derechos de Construcción y Multa Voluntaria` (Rol: Liquidador, Sistema: SAM).
-  3. `Paso 3: Pago en Caja y Emisión de Libre Deuda Contravencional` (Rol: Cajero, Sistema: Tesorería).
-* Cierre el modal. El nodo ahora muestra `3 etapas internas`.
-* Conecte la salida de `SUB-01` hacia un **Evento de Fin** (`FIN-01`: *Expediente Regularizado y Archivado*).
-
-#### 6. Rama Sancionatoria (`ACT-03`), Riesgo (`RSK-01`) y Fin 2 (`FIN-02`)
-* Conecte la otra rama de `DEC-01` a `ACT-03` (*Emisión de Sentencia Condenatoria y Clausura*).
-* Registre el riesgo operativo `RSK-01` (*Ruptura indebida de faja de clausura*) con su control mitigante.
-* Conecte a `FIN-02` (*Clausura Efectiva y Liquidación de Multa*).
+### PASO 4: Guardado y Reportes
+1. Presione `Ctrl + S` para guardar en `Proyectos/`.
+2. Acceda a la **Ficha Técnica ISO 9001** y descargue el PDF oficial.
 
 ---
 
-### PASO 3: Uso del Navegador Jerárquico
-1. En el panel derecho, haga clic en la pestaña **`Navegador`** (o presione el botón `Navegador` en el Header).
-2. Observe la jerarquía:
-   * **Macroproceso:** Haga clic para centrar la vista global del diagrama.
-   * **Subprocesos:** Haga clic sobre `SUB-01: Trámite de Subsanación`. Notará que el sistema hace **smooth zoom** y centra la cámara sobre el subproceso.
-   * Haga clic en **`Ampliar`** para revisar sus etapas internas.
-   * Utilice los filtros rápidos (`Tareas`, `Decisiones`, `Calidad QC`) para navegar a cualquier nodo del flujo al instante.
+## 6. MANTENIMIENTO, COPIAS DE SEGURIDAD Y RESPALDOS USB
 
----
-
-### PASO 4: Guardado y Generación de Ficha Técnica Oficial
-1. Presione **`Ctrl + S`** para guardar el proyecto.
-2. Vaya a **`Matriz SIPOC`** para verificar la tabla cruzada de insumos y salidas.
-3. Vaya a **`Ficha Técnica ISO 9001`** para revisar el informe estructurado por ordenamiento topológico y haga clic en **`Imprimir / Guardar en PDF`** para obtener el documento formal de auditoría.
-
----
-
-## 5. MANTENIMIENTO, COPIAS DE SEGURIDAD Y PREGUNTAS FRECUENTES
-
-### ¿Dónde se almacenan mis proyectos?
-* En la aplicación de escritorio portable (`ProcesosStudio.exe`), se guardan físicamente en la carpeta:
+* Todos los proyectos residen en:
   ```text
   MiAppProcesos_USB/Proyectos/
   ```
-* En la versión web (`http://localhost:5173/`), se guardan en el `localStorage` del navegador y pueden descargarse individualmente con el botón **`JSON`**.
-
-### ¿Cómo hacer un backup completo?
-Simplemente copie la carpeta `Proyectos/` a otro dispositivo, disco externo o almacenamiento en la nube. Al restaurarla en cualquier otra copia de ProcesosStudio, todos los diagramas y fichas técnicas se cargarán de forma instantánea.
+* Para realizar copias de seguridad, copie la carpeta `Proyectos/` a cualquier unidad externa o nube.
 
 ---
 *ProcesosStudio Portable &bull; Conforme a las normas ISO/IEC 19510:2013 y Sistemas de Gestión de la Calidad ISO 9001:2015.*

@@ -1,5 +1,5 @@
 import React, { memo } from 'react';
-import { Handle, Position, NodeProps } from '@xyflow/react';
+import { Handle, Position, NodeProps, NodeResizer } from '@xyflow/react';
 import { BpmnNodeData, BPMN_NODE_TYPES } from '../../../types/process';
 import { User, Cpu, Wrench, Clock, AlertTriangle, ShieldCheck, Server } from 'lucide-react';
 
@@ -22,10 +22,18 @@ export const TaskNode = memo(({ data, selected }: NodeProps<any>) => {
 
   return (
     <div
-      className={`group relative w-64 rounded-xl bg-theme-surface backdrop-blur-md border transition-all duration-200 shadow-xl ${typeConfig.color} ${
-        selected ? 'ring-4 ring-[#3B82F6]/30 border-[#3B82F6] shadow-2xl scale-[1.02]' : 'hover:border-theme-accent'
+      className={`group relative w-full h-full min-w-[210px] min-h-[120px] flex flex-col justify-between rounded-xl bg-theme-surface backdrop-blur-md border transition-all duration-150 shadow-xl ${typeConfig.color} ${
+        selected ? 'ring-4 ring-[#3B82F6]/30 border-[#3B82F6] shadow-2xl scale-[1.01]' : 'hover:border-theme-accent'
       }`}
     >
+      <NodeResizer
+        isVisible={selected}
+        minWidth={200}
+        minHeight={110}
+        handleClassName="!w-3 !h-3 !bg-[#38BDF8] !border-2 !border-slate-900 !rounded-full shadow-lg"
+        lineClassName="!border-[#38BDF8] !border-dashed"
+      />
+
       <Handle
         type="target"
         position={Position.Left}
