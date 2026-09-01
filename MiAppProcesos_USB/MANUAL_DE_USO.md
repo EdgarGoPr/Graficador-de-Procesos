@@ -1,6 +1,6 @@
 # MANUAL DE USO Y GUÍA TÉCNICA INTEGRAL
 ## ProcesStudio Portable — BPMN 2.0 (ISO 19510) & ISO 9001:2015
-**Versión del Manual:** 3.2 &bull; **Fecha de Emisión:** 2026-09-01 &bull; **Entorno:** Portable Windows Desktop (`ProcesStudio.exe`) / Web
+**Versión del Manual:** 3.3 &bull; **Fecha de Emisión:** 2026-09-01 &bull; **Entorno:** Portable Windows Desktop (`ProcesStudio.exe`) / Web
 
 ---
 
@@ -9,7 +9,11 @@
 **ProcesStudio Portable** (identificado con el isotipo **`PS`**) es una plataforma profesional concebida para el modelado, análisis, optimización, compresión jerárquica y documentación formal de procedimientos administrativos y flujos operativos institucionales. Integra de manera nativa:
 
 1. **Notación BPMN 2.0 (ISO/IEC 19510:2013)**: Diagramación formal de procesos, compresión y descompresión bidireccional de Subprocesos y Macroprocesos, redimensionamiento libre y proporcional de tarjetas.
-2. **Personalización Granular de Tarjetas y Tipografía:**
+2. **Navegación Fluida del Lienzo y Control de Zoom:**
+   * **Desplazamiento Vertical con la Rueda:** Al mover la rueda del ratón (scroll), el mapa se desplaza suavemente de arriba a abajo.
+   * **Zoom Focalizado en el Puntero (`Ctrl + Rueda`):** Mantener presionada la tecla `Ctrl` mientras se gira la rueda del ratón realiza acercamiento o alejamiento enfocado con precisión en la ubicación del cursor.
+   * **Arrastre desde Swimlanes:** Agarrar y arrastrar desde el área de carriles (swimlanes) o el fondo permite desplazar el lienzo con total libertad.
+3. **Personalización Granular de Tarjetas y Tipografía:**
    * **Modo de Visualización de Contenido:** Alternancia entre `📋 Toda la info` (detallado con SLA, riesgos, calidad y sistemas) y `🏷️ Solo título` (vista panorámica limpia y compacta).
    * **Tamaño de Letra Ajustable:** Pastillas rápidas (*10px Compacta, 12px Normal, 14px Mediana, 16px Grande*) y control deslizante de 9px a 20px.
    * **Contención Estricta (Sin desbordamiento):** Nada de texto ni gráficos se renderiza fuera de los límites geométricos de la tarjeta.
@@ -17,18 +21,18 @@
    * **Borde y Recuadro del Título:** Selección cromática independiente para el marco exterior y la franja superior de la cabecera/título.
    * **Ámbito de Aplicación:** Selector para aplicar el estilo a `[ 🎯 Esta tarjeta ]`, `[ 🏷️ Mismo tipo ]` o `[ 🌐 Todo el mapa ]`.
    * **Temáticas de Tarjeta:** Catálogo de combos (*Pizarra Slate Pro, Midnight Acero, Salvia Forestal, Nebula Violeta, Ámbar Cálido, Vidrio Esmerilado, Nórdico Claro, Arena Suave*).
-3. **Catálogo Exclusivo de Temas de ProcesStudio:**
+4. **Catálogo Exclusivo de Temas de ProcesStudio:**
    * 🌑 **ProcesStudio Slate Pro** (Grafito profundo y azul pizarra mate)
    * 🪐 **Midnight Executive** (Azul espacial y acero relajante)
    * 🌿 **Forest Sage ISO** (Gris bosque y verde salvia)
    * 🔮 **Nebula Modern** (Grafito violeta y lavanda suave)
    * ☀️ **Nordic Studio Light** (Fondo perla claro y azul cerúleo)
    * 🏖️ **Warm Sandpaper** (Arena cálida y ámbar mate)
-4. **Compresión y Descompresión con Geometría Relativa**:
+5. **Compresión y Descompresión con Geometría Relativa**:
    * Preservación inmutable de todos los tipos de nodos y estilos de conectores al comprimir y descomprimir.
    * Movimiento en bloque sincronizado de todas las tarjetas descomprimidas.
-5. **Portapapeles Integral de Procesos (`Ctrl + C` / `Ctrl + V`)**: Copiado y pegado de tarjetas individuales, selecciones múltiples y Subprocesos completos con todas sus tareas internas.
-6. **Persistencia Total y Autoguardado en Segundo Plano**: Disposiciones espaciales `(X, Y)`, dimensiones, colores de tarjetas y conexiones guardados en tiempo real en los archivos JSON de `../Proyectos/`.
+6. **Portapapeles Integral de Procesos (`Ctrl + C` / `Ctrl + V`)**: Copiado y pegado de tarjetas individuales, selecciones múltiples y Subprocesos completos con todas sus tareas internas.
+7. **Persistencia Total y Autoguardado en Segundo Plano**: Disposiciones espaciales `(X, Y)`, dimensiones, colores de tarjetas y conexiones guardados en tiempo real en los archivos JSON de `../Proyectos/`.
 
 ### 💾 Arquitectura Portable USB (Zero-AppData & Zero-Registry)
 * **Ejecutable Directo (`ProcesStudio.exe`)**: Inicia la aplicación con un solo clic.
@@ -37,9 +41,18 @@
 
 ---
 
-## 2. PERSONALIZACIÓN VISUAL, MODOS DE VISTA Y TIPOGRAFÍA
+## 2. NAVEGACIÓN, PERSONALIZACIÓN VISUAL Y MODOS DE VISTA
 
-### 2.1. Opciones de Personalización en el Panel Lateral
+### 2.1. Atajos de Navegación del Lienzo
+| Acción | Atajo / Movimiento | Resultado en el Lienzo |
+| :--- | :--- | :--- |
+| **Scroll Vertical** | `Rueda del ratón (arriba / abajo)` | Desplaza el mapa hacia arriba o hacia abajo. |
+| **Zoom Focalizado** | `Ctrl + Rueda del ratón` | Hace zoom in/out centrado exactamente en el puntero del ratón. |
+| **Paneo Libre** | `Clic y arrastre en swimlanes / fondo` | Mueve el mapa en cualquier dirección. |
+| **Copiar y Pegar** | `Ctrl + C` / `Ctrl + V` | Duplica tarjetas, subprocesos o selecciones múltiples. |
+| **Eliminar** | `Supr` o `Retroceso` | Elimina nodos o conexiones seleccionadas. |
+
+### 2.2. Opciones de Personalización en el Panel Lateral
 Al seleccionar cualquier tarjeta del lienzo, el panel de propiedades ofrece la sección **"Estilo y Temática de Tarjeta"**:
 1. **Ámbito de Aplicación:**
    * `🎯 Esta tarjeta`: Modifica únicamente el elemento seleccionado.
@@ -97,9 +110,9 @@ Al seleccionar cualquier tarjeta del lienzo, el panel de propiedades ofrece la s
                                              [ FIN-01: Archivo ]
 ```
 
-### PASO 1: Modelado, Tipografía y Personalización Visual
-1. Dibuje las actividades en el lienzo y ajuste su tamaño de letra o modo de visualización (*Solo Título* o *Toda la info*).
-2. Si desea homogeneizar el diseño, seleccione una tarjeta y aplique el modo o color con el alcance **"A todas las tarjetas del mismo tipo"** o **"A todas las tarjetas"**.
+### PASO 1: Modelado, Tipografía y Navegación
+1. Utilice la **rueda del ratón** para desplazarse verticalmente y **`Ctrl + Rueda`** para hacer zoom en el área de interés.
+2. Ajuste el tamaño de letra o active el modo *Solo título* en las actividades según el nivel de detalle requerido.
 
 ### PASO 2: Compresión y Descompresión
 1. Seleccione las actividades y presione **`📦 Comprimir en Subproceso`**.

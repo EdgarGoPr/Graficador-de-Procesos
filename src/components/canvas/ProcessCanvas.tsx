@@ -6,7 +6,8 @@ import {
   MiniMap,
   BackgroundVariant,
   useReactFlow,
-  SelectionMode
+  SelectionMode,
+  PanOnScrollMode
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
@@ -178,10 +179,17 @@ const ProcessCanvasInternal: React.FC = () => {
         nodeTypes={NODE_TYPES}
         edgeTypes={EDGE_TYPES}
         selectionMode={SelectionMode.Partial}
-        multiSelectionKeyCode={['Shift', 'Control', 'Meta']}
+        multiSelectionKeyCode={['Shift']}
+        panOnScroll={true}
+        panOnScrollMode={PanOnScrollMode.Free}
+        zoomOnScroll={false}
+        zoomActivationKeyCode="Control"
+        panOnDrag={[0, 1, 2]}
+        zoomOnPinch={true}
+        preventScrolling={true}
         fitView
         minZoom={0.2}
-        maxZoom={2}
+        maxZoom={2.5}
         className="bg-theme-canvas"
         defaultEdgeOptions={{
           type: 'sequenceFlow',
