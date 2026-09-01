@@ -32,7 +32,7 @@ export const GatewayNode = memo(({ data, selected }: NodeProps<any>) => {
             : 'hover:border-amber-400/80 hover:shadow-lg'
         }`}
       >
-        {/* Handles on the diamond tips */}
+        {/* Handles on the diamond tips (Left & Right only) */}
         <Handle
           type="target"
           position={Position.Left}
@@ -44,20 +44,6 @@ export const GatewayNode = memo(({ data, selected }: NodeProps<any>) => {
           position={Position.Right}
           className="!w-3.5 !h-3.5 !bg-amber-400 !border-2 !border-slate-900 !rounded-full shadow-md -rotate-45 hover:scale-125 transition-transform z-40"
           style={{ top: '50%', right: '-7px' }}
-        />
-        <Handle
-          type="source"
-          id="bottom"
-          position={Position.Bottom}
-          className="!w-3.5 !h-3.5 !bg-amber-400 !border-2 !border-slate-900 !rounded-full shadow-md -rotate-45 hover:scale-125 transition-transform z-40"
-          style={{ bottom: '-7px', left: '50%' }}
-        />
-        <Handle
-          type="source"
-          id="top"
-          position={Position.Top}
-          className="!w-3.5 !h-3.5 !bg-amber-400 !border-2 !border-slate-900 !rounded-full shadow-md -rotate-45 hover:scale-125 transition-transform z-40"
-          style={{ top: '-7px', left: '50%' }}
         />
 
         {/* Center Icon */}

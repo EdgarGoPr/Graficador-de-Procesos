@@ -1,6 +1,6 @@
 # MANUAL DE USO Y GUÍA TÉCNICA INTEGRAL
 ## ProcesStudio Portable — BPMN 2.0 (ISO 19510) & ISO 9001:2015
-**Versión del Manual:** 3.4 &bull; **Fecha de Emisión:** 2026-09-01 &bull; **Entorno:** Portable Windows Desktop (`ProcesStudio.exe`) / Web
+**Versión del Manual:** 3.5 &bull; **Fecha de Emisión:** 2026-09-01 &bull; **Entorno:** Portable Windows Desktop (`ProcesStudio.exe`) / Web
 
 ---
 
@@ -9,10 +9,10 @@
 **ProcesStudio Portable** (identificado con el isotipo **`PS`**) es una plataforma profesional concebida para el modelado, análisis, optimización, compresión jerárquica y documentación formal de procedimientos administrativos y flujos operativos institucionales. Integra de manera nativa:
 
 1. **Notación BPMN 2.0 (ISO/IEC 19510:2013)**: Diagramación formal de procesos, compresión y descompresión bidireccional de Subprocesos y Macroprocesos, redimensionamiento libre y proporcional de tarjetas.
-2. **Selección Activa, Redimensionamiento y Conectores Laterales:**
+2. **Conectores Laterales Exclusivos y Redimensionamiento en Esquinas:**
+   * **Conexión Lateral Limpia:** Los puntos conectores se ubican exclusivamente en los costados (izquierdo para entradas, derecho para salidas), eliminando conectores superiores/inferiores para un flujo horizontal claro.
    * **Anillo de Selección Brillante:** Al hacer clic en una tarjeta, su borde se resalta con un halo luminoso nítido.
    * **Esquinas de Redimensionamiento:** Puntos interactivos en las 4 esquinas para estirar o achicar la tarjeta de forma intuitiva.
-   * **Conectores Laterales (Handles):** Puntos de conexión visibles en los bordes para tirar flechas de flujo de secuencia hacia otras actividades.
 3. **Navegación Fluida del Lienzo y Control de Zoom:**
    * **Desplazamiento Vertical con la Rueda:** Al mover la rueda del ratón (scroll), el mapa se desplaza suavemente de arriba a abajo.
    * **Zoom Focalizado en el Puntero (`Ctrl + Rueda`):** Mantener presionada la tecla `Ctrl` mientras se gira la rueda del ratón realiza acercamiento o alejamiento enfocado con precisión en la ubicación del cursor.
@@ -46,8 +46,8 @@
 
 ### 2.1. Interacción con Tarjetas en el Lienzo
 1. **Selección y Resaltado:** Haga clic sobre cualquier tarjeta para seleccionarla; se iluminará con un borde brillante activo y abrirá el panel lateral de propiedades.
-2. **Redimensionamiento (Esquinas):** Al seleccionar la tarjeta, aparecen puntos en sus cuatro esquinas. Arrástrelos para expandir o contraer sus dimensiones libremente.
-3. **Conexiones (Puntos Laterales):** Pase el cursor sobre los laterales de la tarjeta; haga clic y arrastre desde el conector hacia la tarjeta de destino para crear un flujo de secuencia BPMN 2.0.
+2. **Redimensionamiento (Esquinas):** Al seleccionar la tarjeta, aparecen puntos en sus cuatro esquinas para ajustar su tamaño libremente.
+3. **Conexiones Laterales:** Haga clic y arrastre desde el conector del costado derecho hacia el conector del costado izquierdo de la tarjeta de destino.
 
 ### 2.2. Atajos de Navegación del Lienzo
 | Acción | Atajo / Movimiento | Resultado en el Lienzo |
@@ -108,9 +108,9 @@
                                              [ FIN-01: Archivo ]
 ```
 
-### PASO 1: Modelado, Conexiones y Redimensionamiento
+### PASO 1: Modelado, Conexiones Laterales y Redimensionamiento
 1. Seleccione cualquier tarjeta para ver su borde brillante y ajustar su tamaño desde las esquinas.
-2. Arrastre desde sus conectores laterales para trazar conexiones fluidas hacia otras tarjetas.
+2. Arrastre desde el conector del lateral derecho hacia el conector del lateral izquierdo de la siguiente tarjeta.
 3. Utilice la rueda del ratón para desplazarse verticalmente y `Ctrl + Rueda` para hacer zoom focalizado.
 
 ### PASO 2: Compresión y Descompresión

@@ -61,22 +61,6 @@ export const TaskNode = memo(({ data, selected }: NodeProps<any>) => {
         className="!w-3.5 !h-3.5 !bg-sky-400 !border-2 !border-slate-900 !rounded-full shadow-md !left-[-7px] hover:scale-125 transition-transform z-40"
       />
 
-      {/* Top Handle */}
-      <Handle
-        type="source"
-        id="top"
-        position={Position.Top}
-        className="!w-3 !h-3 !bg-sky-400 !border-2 !border-slate-900 !rounded-full shadow-md !top-[-6px] hover:scale-125 transition-transform z-40 opacity-0 group-hover:opacity-100 transition-opacity"
-      />
-
-      {/* Bottom Handle */}
-      <Handle
-        type="source"
-        id="bottom"
-        position={Position.Bottom}
-        className="!w-3 !h-3 !bg-sky-400 !border-2 !border-slate-900 !rounded-full shadow-md !bottom-[-6px] hover:scale-125 transition-transform z-40 opacity-0 group-hover:opacity-100 transition-opacity"
-      />
-
       {/* Inner Clipped Content Container */}
       <div className="w-full h-full flex flex-col justify-between rounded-xl overflow-hidden">
         {/* Card Header / Title Box */}
