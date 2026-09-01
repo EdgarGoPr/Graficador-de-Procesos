@@ -203,18 +203,17 @@
         </div>
       </div>
       <div style="font-size: 8.5pt; color: #64748B; font-family: monospace; text-align: right;">
-        Versión: 3.7<br />Win: <code>ProcesStudio.exe</code><br />Mac: <code>ProcesStudio_Mac.command</code>
+        Versión: 4.0<br />Win: <code>ProcesStudio.exe</code><br />Mac: <code>ProcesStudio_Mac.command</code>
       </div>
     </div>
 
-    <h2>1. Gestión Dinámica de Carriles (Swimlanes)</h2>
-    <p><strong>ProcesStudio Portable</strong> (identificado con el isotipo <strong>PS</strong>) cuenta con un motor geométrico sincronizado para la administración integral de carriles:</p>
+    <h2>1. Carriles Redimensionables y Guías de Alineación Magnética</h2>
+    <p><strong>ProcesStudio Portable</strong> (identificado con el isotipo <strong>PS</strong>) incorpora un motor visual avanzado de diagramación:</p>
     
     <ul>
-      <li><strong>Agregar Múltiples Carriles:</strong> Botón <code>+ Agregar Carril</code> en la cabecera del pool y al pie de la tabla.</li>
-      <li><strong>Reordenar Carriles Arriba/Abajo:</strong> Mediante los botones <code>[ ▲ ]</code> y <code>[ ▼ ]</code> en cada carril. <em>Todas las actividades asignadas se mueven automáticamente en bloque manteniendo su posición relativa.</em></li>
-      <li><strong>Edición Completa:</strong> Modal emergente para actualizar el nombre de la unidad funcional, rol responsable, sistema informático TI y color de acento lateral.</li>
-      <li><strong>Persistencia Inmune al Zoom y Paneo:</strong> Carriles y tarjetas comparten el mismo espacio universal de coordenadas de React Flow, garantizando alineación exacta a cualquier nivel de escala (zoom) o traslación espacial.</li>
+      <li><strong>Carriles como Tarjetas Nativas:</strong> Los Swimlanes se insertan desde la paleta izquierda y se pueden estirar, agrandar y personalizar con manijas en las 4 esquinas (<code>NodeResizer</code>). Todo su contenido interno se escala y adapta automáticamente al tamaño fijado.</li>
+      <li><strong>Líneas Guía Inteligentes:</strong> Al mover cualquier tarjeta, se proyectan líneas guía continuas en el mapa que marcan la alineación exacta con las demás tarjetas.</li>
+      <li><strong>Imantación Magnética (Snap):</strong> Al ubicar tarjetas contiguas (en horizontal o vertical), las tarjetas se atraen y encajan automáticamente con un espaciado uniforme y prolijo.</li>
     </ul>
 
     <h2>2. Interacciones Principales en el Lienzo</h2>
@@ -243,7 +242,7 @@
         <tr>
           <td><strong>Tarea de Usuario</strong></td>
           <td><span class="badge badge-blue">#38BDF8</span> Acero</td>
-          <td>Actividad operativa realizada por un agente asistido por software.</td>
+          <td>Actividad operativa realizada por un operador asistido por software.</td>
         </tr>
         <tr>
           <td><strong>Tarea de Servicio</strong></td>
@@ -279,6 +278,11 @@
           <td><strong>Evento de Fin</strong></td>
           <td><span class="badge badge-red">#F87171</span> Coral</td>
           <td>Estado terminal formal del flujo.</td>
+        </tr>
+        <tr>
+          <td><strong>Carril Funcional</strong></td>
+          <td><span class="badge badge-blue">#0284C7</span> Azul</td>
+          <td>Banda contenedora redimensionable con escalado dinámico.</td>
         </tr>
         <tr>
           <td><strong>Conector de Flujo</strong></td>

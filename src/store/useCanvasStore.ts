@@ -282,6 +282,7 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
     else if (nodeType === BPMN_NODE_TYPES.QUALITY_CHECKPOINT_EVENT) prefix = 'QC';
     else if (nodeType === BPMN_NODE_TYPES.TIMER_BOUNDARY_EVENT) prefix = 'TMR';
     else if (nodeType === BPMN_NODE_TYPES.SUB_PROCESS) prefix = 'SUB';
+    else if (nodeType === BPMN_NODE_TYPES.POOL_LANE) prefix = 'LANE';
 
     const count = currentProject.nodes.filter(n => n.data.nodeType === nodeType).length + 1;
     const standardId = `${prefix}-${count < 10 ? '0' + count : count}`;
@@ -297,24 +298,28 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
       [BPMN_NODE_TYPES.QUALITY_CHECKPOINT_EVENT]: 'Punto de Control de Calidad',
       [BPMN_NODE_TYPES.TIMER_BOUNDARY_EVENT]: 'Control de Plazo Legal',
       [BPMN_NODE_TYPES.SUB_PROCESS]: 'Subproceso Procedimental',
-      [BPMN_NODE_TYPES.POOL_LANE]: 'Carril'
+      [BPMN_NODE_TYPES.POOL_LANE]: `Carril Funcional #${count}`
     }[nodeType] || 'Nuevo Elemento';
 
-    const newNodeId = `node_${Date.now()}`;
+    const isLane = nodeType === BPMN_NODE_TYPES.POOL_LANE;
+    const newNodeId = isLane ? `lane_node_${Date.now()}` : `node_${Date.now()}`;
     const newNode: Node<BpmnNodeData> = {
       id: newNodeId,
       type: nodeType,
       position,
+      style: isLane ? { width: 2200, height: 160, zIndex: -1 } : undefined,
+      zIndex: isLane ? -1 : 1,
       data: {
         standardId,
         title: defaultTitle,
-        description: 'Descripción operativa de la actividad...',
+        description: isLane ? 'Carril contenedor de actividades' : 'Descripción operativa de la actividad...',
         nodeType,
-        laneId: targetLaneId,
+        laneId: isLane ? newNodeId : targetLaneId,
         laneName: targetLane?.name,
-        roleName: targetLane?.role,
+        roleName: targetLane?.role || 'Responsable de Área',
         itSystem: targetLane?.system || 'SAM / VUPRA',
         legalFramework: 'Marco normativo general',
+        customBorderColor: isLane ? '#38bdf8' : undefined,
         inputs: [],
         outputs: [],
         operationalRisks: [],

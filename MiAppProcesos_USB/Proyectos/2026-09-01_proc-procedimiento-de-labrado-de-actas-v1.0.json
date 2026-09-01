@@ -8,7 +8,7 @@
     "organizationUnit": "Justicia Administrativa Municipal de Faltas",
     "processObjective": "Definir el objetivo y alcance operativo del proceso.",
     "createdAt": "2026-09-01T15:50:30.507Z",
-    "updatedAt": "2026-09-01T18:32:52.070Z",
+    "updatedAt": "2026-09-01T18:35:19.907Z",
     "status": "DRAFT",
     "legalNormativeBasis": [
       "Normativa aplicable general"
@@ -60,8 +60,8 @@
       "id": "node_start",
       "type": "StartEvent",
       "position": {
-        "x": -196.87565253018624,
-        "y": -610.3759384745317
+        "x": -206.9842398968674,
+        "y": -613.132825938172
       },
       "data": {
         "standardId": "INI-01",
@@ -119,10 +119,72 @@
         "width": 181,
         "height": 76
       },
-      "selected": true,
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "usertask_1788287596609_0",
+      "type": "UserTask",
+      "position": {
+        "x": 199.10555948991515,
+        "y": -602.5594271822373
+      },
+      "data": {
+        "standardId": "TSK-01-C",
+        "title": "Labrado del Acta",
+        "description": "El inspector toma nota del objeto y de la infracción",
+        "nodeType": "UserTask",
+        "laneId": "lane_1",
+        "laneName": "Mesa de Entradas / Inspectoría",
+        "roleName": "Inspector / Operador",
+        "itSystem": "APK / Talonario",
+        "legalFramework": "Marco normativo general",
+        "inputs": [
+          "Talonario",
+          "APK"
+        ],
+        "outputs": [
+          "Acta Papel",
+          "Acta Digital"
+        ],
+        "operationalRisks": [],
+        "tags": [],
+        "displayMode": "title_only",
+        "customFontSize": 12
+      },
+      "measured": {
+        "width": 170,
+        "height": 76
+      },
+      "selected": false,
       "dragging": false
     }
   ],
-  "edges": [],
+  "edges": [
+    {
+      "id": "e_node_start_node_1788287508761_1788287707320",
+      "source": "node_start",
+      "target": "node_1788287508761",
+      "type": "sequenceFlow",
+      "data": {
+        "id": "e_node_start_node_1788287508761",
+        "source": "node_start",
+        "target": "node_1788287508761",
+        "conditionText": ""
+      }
+    },
+    {
+      "id": "e_node_1788287508761_usertask_1788287596609_0_1788287711079",
+      "source": "node_1788287508761",
+      "target": "usertask_1788287596609_0",
+      "type": "sequenceFlow",
+      "data": {
+        "id": "e_node_1788287508761_usertask_1788287596609_0",
+        "source": "node_1788287508761",
+        "target": "usertask_1788287596609_0",
+        "conditionText": ""
+      }
+    }
+  ],
   "fileName": "2026-09-01_proc-procedimiento-de-labrado-de-actas-v1.0.json"
 }

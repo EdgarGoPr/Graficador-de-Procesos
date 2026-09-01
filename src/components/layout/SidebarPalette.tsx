@@ -130,6 +130,19 @@ const PALETTE_GROUPS: { groupName: string; items: PaletteItem[] }[] = [
         bgClass: 'bg-[#F59E0B]/10 hover:bg-[#F59E0B]/20'
       }
     ]
+  },
+  {
+    groupName: 'Carriles y Estructura',
+    items: [
+      {
+        type: BPMN_NODE_TYPES.POOL_LANE,
+        title: 'Carril (Swimlane)',
+        subtitle: 'Banda funcional redimensionable',
+        icon: Layers,
+        colorClass: 'text-[#38BDF8] border-[#38BDF8]/40',
+        bgClass: 'bg-[#38BDF8]/10 hover:bg-[#38BDF8]/20'
+      }
+    ]
   }
 ];
 
