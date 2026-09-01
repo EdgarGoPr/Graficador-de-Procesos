@@ -44,7 +44,7 @@ export class ErrorBoundary extends Component<Props, State> {
               </div>
               <div>
                 <h2 className="text-base font-bold text-white">Se detectó una incidencia en la vista</h2>
-                <p className="text-xs text-slate-400">ProcesosStudio Portable &bull; Recuperación Segura</p>
+                <p className="text-xs text-slate-400">ProcesStudio Portable &bull; Recuperación Segura</p>
               </div>
             </div>
 

@@ -1,17 +1,17 @@
 # MANUAL DE USO Y GUÍA TÉCNICA INTEGRAL
-## ProcesosStudio Portable — BPMN 2.0 (ISO 19510) & ISO 9001:2015
-**Versión del Manual:** 2.9 &bull; **Fecha de Emisión:** 2026-09-01 &bull; **Entorno:** Portable Windows Desktop (`.EXE`) / Web
+## ProcesStudio Portable — BPMN 2.0 (ISO 19510) & ISO 9001:2015
+**Versión del Manual:** 3.0 &bull; **Fecha de Emisión:** 2026-09-01 &bull; **Entorno:** Portable Windows Desktop (`ProcesStudio.exe`) / Web
 
 ---
 
 ## 1. INTRODUCCIÓN Y ARQUITECTURA DEL SISTEMA
 
-**ProcesosStudio Portable** es una plataforma profesional concebida para el modelado, análisis, optimización, personalización cromática y documentación formal de procedimientos administrativos y flujos operativos institucionales. Integra de manera nativa:
+**ProcesStudio Portable** (identificado con el isotipo **`PS`**) es una plataforma profesional concebida para el modelado, análisis, optimización, compresión jerárquica y documentación formal de procedimientos administrativos y flujos operativos institucionales. Integra de manera nativa:
 
 1. **Notación BPMN 2.0 (ISO/IEC 19510:2013)**: Diagramación formal de procesos, compresión y descompresión bidireccional de Subprocesos y Macroprocesos, redimensionamiento libre y proporcional de tarjetas.
 2. **Paleta Cromática Mate de Alto Confort Visual (Anti-Fatiga)**:
-   * **Tonos Desaturados Elegantes:** Sustitución de colores estridentes/neón por una paleta mate profesional (*Slate Dark, Forest Sage, Midnight Cosmic, Nebula Violet, Light Studio, Warm Solar*).
-   * **Identidad Visual Clara y Sutil:** Diferenciación nítida de cada elemento (Salvia para Inicio, Acero para Tareas, Índigo para Subprocesos, Ocre para Compuertas, Esmeralda para Calidad y Coral para Fin) con líneas finas y fondos suaves.
+   * **Tonos Desaturados Elegantes:** Sustitución de colores estridentes por una paleta mate profesional (*Slate Dark, Forest Sage, Midnight Cosmic, Nebula Violet, Light Studio, Warm Solar*).
+   * **Identidad Visual Clara:** Diferenciación nítida de cada elemento (Salvia para Inicio, Acero para Tareas, Índigo para Subprocesos, Ocre para Compuertas, Esmeralda para Calidad y Coral para Fin) con líneas finas y fondos suaves.
    * **Conectores Limpios:** Flechas en gris pizarra neutro de 1.5px que conducen el flujo con claridad sin sobrecargar la pantalla.
 3. **Compresión y Descompresión con Geometría Relativa**:
    * Preservación inmutable de todos los tipos de nodos y estilos de conectores al comprimir y descomprimir.
@@ -20,7 +20,7 @@
 5. **Persistencia Total y Autoguardado en Segundo Plano**: Disposiciones espaciales `(X, Y)`, dimensiones, colores de tarjetas y conexiones guardados en tiempo real en los archivos JSON de `../Proyectos/`.
 
 ### 💾 Arquitectura Portable USB (Zero-AppData & Zero-Registry)
-* **Ejecutable Directo (`ProcesosStudio.exe`)**: Inicia la aplicación con un solo clic.
+* **Ejecutable Directo (`ProcesStudio.exe`)**: Inicia la aplicación con un solo clic.
 * **Persistencia Abierta en JSON**: Cada proyecto se guarda como un archivo de texto estructurado en la subcarpeta `../Proyectos/`.
 * **Portabilidad Total**: Funciona en cualquier pendrive o PC con Windows 10/11 sin instalaciones ni permisos de administrador.
 
@@ -69,7 +69,7 @@
 ```
 
 ### PASO 1: Modelado y Compresión en Subproceso
-1. Dibuje las actividades en el lienzo con los colores mate descansados.
+1. Dibuje las actividades en el lienzo de **ProcesStudio**.
 2. Selecciónelas con el ratón y presione **`📦 Comprimir en Subproceso`**. El sistema creará el nodo unificado `SUB-01` en tono índigo mate preservando la disposición relativa.
 
 ### PASO 2: Traslado y Descompresión
@@ -87,4 +87,4 @@
 * Para respaldar su trabajo, copie la carpeta `Proyectos/` a cualquier unidad externa.
 
 ---
-*ProcesosStudio Portable &bull; Conforme a las normas ISO/IEC 19510:2013 y Sistemas de Gestión de la Calidad ISO 9001:2015.*
+*ProcesStudio Portable &bull; Conforme a las normas ISO/IEC 19510:2013 y Sistemas de Gestión de la Calidad ISO 9001:2015.*

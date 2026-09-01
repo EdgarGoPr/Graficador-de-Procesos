@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { useProjectStore } from '../../store/useProjectStore';
 import { useUiStore, ActiveView } from '../../store/useUiStore';
 import { StorageService } from '../../services/storageService';
+import { LogoPS } from '../common/LogoPS';
 import {
   LayoutDashboard,
   GitGraph,
@@ -100,22 +101,9 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
       <div className="flex items-center space-x-3">
         <div
           onClick={() => setActiveView('DASHBOARD')}
-          className="flex items-center space-x-2.5 cursor-pointer group"
+          className="cursor-pointer group hover:opacity-90 transition-opacity"
         >
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-[#0284C7] to-[#3B82F6] flex items-center justify-center shadow-md shadow-blue-500/20 group-hover:scale-105 transition-transform">
-            <Shield className="w-4 h-4 text-white" />
-          </div>
-          <div>
-            <div className="text-xs font-bold tracking-wider text-theme-text uppercase flex items-center">
-              <span>ProcesosStudio</span>
-              <span className="ml-1.5 text-[9px] font-mono font-semibold bg-[#38BDF8]/10 text-theme-accent px-1.5 py-0.5 rounded border border-theme-accent/30">
-                PORTABLE
-              </span>
-            </div>
-            <div className="text-[10px] text-theme-text-muted font-mono">
-              BPMN 2.0 &bull; ISO 9001:2015
-            </div>
-          </div>
+          <LogoPS size="sm" />
         </div>
 
         {currentProject && (

@@ -36,7 +36,7 @@ function createWindow() {
     minWidth: 1024,
     minHeight: 700,
     backgroundColor: '#020617',
-    title: 'ProcesosStudio Portable | BPMN 2.0 & ISO 9001:2015',
+    title: 'ProcesStudio | BPMN 2.0 & ISO 9001:2015',
     autoHideMenuBar: true,
     webPreferences: {
       preload: path.join(__dirname, 'preload.cjs'),

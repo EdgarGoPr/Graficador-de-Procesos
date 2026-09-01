@@ -1,8 +1,8 @@
 @echo off
 setlocal
-title ProcesosStudio Portable (Zero-AppData Mode)
+title ProcesStudio Portable (Zero-AppData Mode)
 echo ======================================================================
-echo    PROCESOSSTUDIO PORTABLE - BPMN 2.0 (ISO 19510) y ISO 9001:2015
+echo    PROCESSTUDIO PORTABLE - BPMN 2.0 (ISO 19510) y ISO 9001:2015
 echo ======================================================================
 echo  Iniciando entorno de escritorio portable...
 echo  Ruta de persistencia: ../Proyectos/

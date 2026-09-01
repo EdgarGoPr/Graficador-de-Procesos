@@ -1,6 +1,6 @@
-# ProcesosStudio Portable (BPMN 2.0 & ISO 9001:2015)
+# ProcesStudio Portable (BPMN 2.0 & ISO 9001:2015)
 
-Aplicación de escritorio **100% portable** para Windows (ejecutable desde pendrive USB sin instaladores ni privilegios de administrador ni escritura en `%APPDATA%` ni en el registro de Windows), diseñada para el modelado, diagnóstico, gestión de calidad y documentación técnica ("Ficha Técnica Procesal") de procesos administrativos, sancionatorios y legales complejos.
+Aplicación de escritorio **100% portable** para Windows (ejecutable desde pendrive USB mediante `ProcesStudio.exe` o `ProcesStudio.bat` sin instaladores ni privilegios de administrador ni escritura en `%APPDATA%` ni en el registro de Windows), diseñada para el modelado, diagnóstico, compresión jerárquica y documentación técnica de procesos administrativos, sancionatorios y legales complejos.
 
 ---
 
@@ -20,8 +20,9 @@ Aplicación de escritorio **100% portable** para Windows (ejecutable desde pendr
 
 ```text
 MiAppProcesos_USB/
+├── ProcesStudio.exe             <-- Lanzador portable directo para Windows (Isotipo PS)
 ├── App/
-│   ├── ProcesosStudio.bat       <-- Lanzador portable para Windows
+│   ├── ProcesStudio.bat         <-- Script de respaldo para Windows
 │   ├── main.cjs                 <-- Entrypoint Electron (Zero-AppData)
 │   ├── preload.cjs              <-- Bridge IPC seguro con FS local relativo
 │   └── dist/                    <-- Build estático optimizado de Vite

@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Windows.Forms;
 
-namespace ProcesosStudio
+namespace ProcesStudio
 {
     static class Program
     {
@@ -92,8 +92,8 @@ namespace ProcesosStudio
                 }
 
                 MessageBox.Show(
-                    "No se encontraron los componentes de inicio de ProcesosStudio.\nVerifique que la carpeta App/ contenga los archivos del programa.",
-                    "ProcesosStudio Portable",
+                    "No se encontraron los componentes de inicio de ProcesStudio.\nVerifique que la carpeta App/ contenga los archivos del programa.",
+                    "ProcesStudio Portable",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error
                 );
@@ -101,7 +101,7 @@ namespace ProcesosStudio
             catch (Exception ex)
             {
                 MessageBox.Show(
-                    "Error al iniciar ProcesosStudio Portable:\n" + ex.Message,
+                    "Error al iniciar ProcesStudio Portable:\n" + ex.Message,
                     "Error",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error

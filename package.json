@@ -1,5 +1,6 @@
 {
-  "name": "procesos-studio-portable",
+  "name": "proces-studio",
+  "productName": "ProcesStudio",
   "private": true,
   "version": "1.0.0",
   "description": "BPMN 2.0 (ISO 19510) and ISO 9001:2015 Quality Process Studio for Portable Windows Desktop",

@@ -38,7 +38,7 @@ export const App: React.FC = () => {
       <div className="h-screen w-screen bg-theme-bg flex flex-col items-center justify-center text-theme-text">
         <div className="w-10 h-10 border-4 border-theme-accent border-t-transparent rounded-full animate-spin mb-4" />
         <h2 className="text-sm font-bold tracking-wider font-mono">
-          CARGANDO PROCESOSSTUDIO PORTABLE...
+          CARGANDO PROCESSTUDIO PORTABLE...
         </h2>
         <p className="text-xs text-theme-text-muted mt-1 font-mono">
           Inicializando persistencia local en ../Proyectos/
