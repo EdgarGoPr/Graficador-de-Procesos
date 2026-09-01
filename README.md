@@ -21,6 +21,8 @@ Aplicación de escritorio **100% portable** para Windows (ejecutable desde pendr
 ```text
 MiAppProcesos_USB/
 ├── ProcesStudio.exe             <-- Lanzador portable directo para Windows (Isotipo PS)
+├── ProcesStudio_Mac.command     <-- Lanzador nativo 1-clic para macOS
+├── MANUAL_DE_USO.pdf            <-- Manual de uso y referencia técnica oficial
 ├── App/
 │   ├── ProcesStudio.bat         <-- Script de respaldo para Windows
 │   ├── main.cjs                 <-- Entrypoint Electron (Zero-AppData)

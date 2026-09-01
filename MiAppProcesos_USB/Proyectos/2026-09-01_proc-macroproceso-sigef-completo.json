@@ -8,7 +8,7 @@
     "organizationUnit": "Tribunal Administrativo de Faltas - Municipalidad de Córdoba",
     "processObjective": "Estandarizar el circuito unificado de justicia administrativa municipal: desde la detección e ingreso multicanal (Inspectores, CMU, App Ciudadana), digitalización y apertura automática de expediente en SIGEF, enriquecimiento registral, distribución equitativa de causas (Sede Central y CPCs), gestión de medidas cautelares y acarreos, hasta el régimen de notificaciones (CiDi/OCEP), instancias de descargo, sentencias de rebeldía, cámara de apelaciones y pase a Procuración Fiscal.",
     "createdAt": "2026-09-01T09:00:00Z",
-    "updatedAt": "2026-09-01T17:53:22.270Z",
+    "updatedAt": "2026-09-01T17:58:46.545Z",
     "status": "APPROVED",
     "legalNormativeBasis": [
       "Código de Convivencia Ciudadana de la Ciudad de Córdoba (Ord. 12.468 y modif.)",
@@ -957,8 +957,8 @@
       "id": "node_1788279595643",
       "type": "UserTask",
       "position": {
-        "x": -352.68827305948014,
-        "y": 653.9715850839806
+        "x": -44.25329891631627,
+        "y": 581.3986499914714
       },
       "data": {
         "standardId": "TSK-15",
@@ -1390,6 +1390,30 @@
         "strokeColor": "#64748B"
       },
       "selected": false
+    },
+    {
+      "id": "e_node_1788279595643_node_step_1788278962658_1_1788285513649",
+      "source": "node_1788279595643",
+      "target": "node_step_1788278962658_1",
+      "type": "sequenceFlow",
+      "data": {
+        "id": "e_node_1788279595643_node_step_1788278962658_1",
+        "source": "node_1788279595643",
+        "target": "node_step_1788278962658_1",
+        "conditionText": ""
+      }
+    },
+    {
+      "id": "e_node_step_1788278962658_1_node_1788279595643_1788285522946",
+      "source": "node_step_1788278962658_1",
+      "target": "node_1788279595643",
+      "type": "sequenceFlow",
+      "data": {
+        "id": "e_node_step_1788278962658_1_node_1788279595643",
+        "source": "node_step_1788278962658_1",
+        "target": "node_1788279595643",
+        "conditionText": ""
+      }
     }
   ],
   "fileName": "2026-09-01_proc-macroproceso-sigef-completo.json"

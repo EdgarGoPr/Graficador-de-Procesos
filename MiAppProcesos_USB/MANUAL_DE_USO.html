@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Manual de Uso y Referencia Técnica | ProcesStudio Portable BPMN 2.0 & ISO 9001:2015</title>
+  <title>Manual de Uso y Referencia Técnica | ProcesStudio Portable Multiplataforma (Windows & macOS)</title>
   <style>
     @page {
       margin: 1.2cm;
@@ -199,26 +199,32 @@
         <div class="logo-ps">PS</div>
         <div>
           <h1>ProcesStudio Portable</h1>
-          <div class="subtitle">BPMN 2.0 (ISO/IEC 19510) &bull; Sistemas de Calidad ISO 9001:2015</div>
+          <div class="subtitle">BPMN 2.0 (ISO/IEC 19510) &bull; Multiplataforma Windows & macOS</div>
         </div>
       </div>
       <div style="font-size: 8.5pt; color: #64748B; font-family: monospace; text-align: right;">
-        Versión: 3.5<br />Ejecutable: ProcesStudio.exe
+        Versión: 3.6<br />Win: <code>ProcesStudio.exe</code><br />Mac: <code>ProcesStudio_Mac.command</code>
       </div>
     </div>
 
-    <h2>1. Introducción e Interacción con Tarjetas</h2>
-    <p><strong>ProcesStudio Portable</strong> (identificado con el isotipo <strong>PS</strong>) es una solución integral para el modelado visual, personalización cromática, trazabilidad y documentación estandarizada de procedimientos administrativos y flujos de procesos. Cumple estrictamente con la notación internacional <strong>BPMN 2.0 (ISO/IEC 19510:2013)</strong> y los requisitos normativos de <strong>ISO 9001:2015</strong>.</p>
+    <h2>1. Ejecución Multiplataforma y Persistencia Autocontenida</h2>
+    <p><strong>ProcesStudio Portable</strong> (identificado con el isotipo <strong>PS</strong>) está diseñado para ejecutarse en cualquier computadora con Windows o Apple Mac sin instalaciones, dependencias externas ni privilegios de administrador:</p>
     
-    <p><strong>Interacciones Principales en el Lienzo:</strong></p>
     <ul>
-      <li><strong>Conectores Laterales Exclusivos:</strong> Los puntos de conexión se sitúan únicamente en los laterales (izquierdo para entradas y derecho para salidas), asegurando un trazado horizontal ordenado y sin saturación.</li>
-      <li><strong>Selección Nítida:</strong> Al hacer clic en una tarjeta, se resalta con un anillo luminoso brillante.</li>
-      <li><strong>Redimensionamiento:</strong> Puntos interactivos en las cuatro esquinas para ajustar ancho y alto libremente.</li>
-      <li><strong>Navegación:</strong> Rueda del ratón para scroll vertical y <code>Ctrl + Rueda</code> para zoom focalizado en el cursor.</li>
+      <li><strong>En Windows:</strong> Doble clic en <code>ProcesStudio.exe</code> (o <code>App/ProcesStudio.bat</code>).</li>
+      <li><strong>En macOS (Apple Mac):</strong> Doble clic en <code>ProcesStudio_Mac.command</code> (compatible con Mac Intel y chips M1/M2/M3/M4).</li>
+      <li><strong>Persistencia Autocontenida (Zero-AppData):</strong> Todos los proyectos nuevos y modificados se guardan de forma permanente dentro de la subcarpeta local <code>MiAppProcesos_USB/Proyectos/</code>, sin escribir en carpetas del sistema.</li>
     </ul>
 
-    <h2>2. Guía de Componentes y Notación BPMN 2.0</h2>
+    <h2>2. Interacciones Principales en el Lienzo</h2>
+    <ul>
+      <li><strong>Conectores Laterales Únicos:</strong> Los puntos conectores se ubican exclusivamente en los costados (izquierdo para entradas, derecho para salidas).</li>
+      <li><strong>Selección Nítida:</strong> Borde iluminado brillante que indica la tarjeta activa.</li>
+      <li><strong>Redimensionamiento:</strong> Puntos en las cuatro esquinas para ajustar ancho y alto.</li>
+      <li><strong>Navegación:</strong> Rueda del ratón para scroll vertical y <code>Ctrl + Rueda</code> (o <code>Cmd + Rueda</code> en Mac) para zoom focalizado en el cursor.</li>
+    </ul>
+
+    <h2>3. Guía de Componentes y Notación BPMN 2.0</h2>
     <table>
       <thead>
         <tr>
@@ -281,40 +287,8 @@
       </tbody>
     </table>
 
-    <h2>3. Tutorial Práctico: Compresión y Descompresión</h2>
-    <p><strong>Caso de Estudio:</strong> <em>"Procedimiento Sancionatorio por Obras Clandestinas" (Código: PRC-OBR-001)</em></p>
-    
-    <div class="diagram-box">
-[ INI-01: Acta de Infracción ] ──> [ ACT-01: Cotejo Catastral ] ──> [ QC-01: Verificación ]
-                                                                             │
-                                                                             ▼
-                                                                [ DEC-01: ¿Subsanación? ]
-                                                                             │
-                                              ┌──────────────────────────────┴──────────────────────────────┐
-                                              ▼ (Rama A: Regulariza)                                        ▼ (Rama B: Rebelde)
-                        ┌─────────────────────────────────────────────────────────────┐           [ ACT-03: Clausura ]
-                        │ [ SUB-01: Subproceso de Regularización de Obras ]           │                     │
-                        │  ├── Paso 1: Presentación de Plano Conforme a Obra          │                     ▼
-                        │  ├── Paso 2: Liquidación de Derechos y Multas               │             [ FIN-02: Clausura ]
-                        │  └── Paso 3: Pago en Caja Municipal y Certificado           │
-                        └─────────────────────────────┬───────────────────────────────┘
-                                                      │
-                                                      ▼
-                                             [ FIN-01: Archivo ]
-    </div>
-
-    <div class="card-step">
-      <h4>Paso 1: Modelado, Conexión Lateral y Redimensionamiento</h4>
-      <p>Seleccione las tarjetas para estirarlas desde sus esquinas y arrastre desde sus laterales (derecho e izquierdo) para trazar secuencias. Use <code>Ctrl + Rueda</code> para zoom.</p>
-    </div>
-
-    <div class="card-step">
-      <h4>Paso 2: Compresión y Descompresión</h4>
-      <p>Comprima actividades en un Subproceso y vuelva a desplegarlas en cualquier momento con el botón <strong>Descomprimir</strong> conservando su geometría y estilos.</p>
-    </div>
-
-    <h2>4. Ubicación de Archivos y Backups USB</h2>
-    <p>Los proyectos se guardan en formato estándar en la carpeta:</p>
+    <h2>4. Ubicación de Archivos y Proyectos</h2>
+    <p>Todos los modelos de procesos se guardan automáticamente en formato JSON estándar en:</p>
     <pre>MiAppProcesos_USB/Proyectos/2026-09-01_proc-procedimiento-sancionatorio-por-obras-clandestinas-v1.0.json</pre>
 
     <div class="footer">

@@ -1,6 +1,6 @@
 # MANUAL DE USO Y GUÍA TÉCNICA INTEGRAL
 ## ProcesStudio Portable — BPMN 2.0 (ISO 19510) & ISO 9001:2015
-**Versión del Manual:** 3.5 &bull; **Fecha de Emisión:** 2026-09-01 &bull; **Entorno:** Portable Windows Desktop (`ProcesStudio.exe`) / Web
+**Versión del Manual:** 3.6 &bull; **Fecha de Emisión:** 2026-09-01 &bull; **Entorno:** Multiplataforma Portable USB (Windows & macOS)
 
 ---
 
@@ -9,56 +9,78 @@
 **ProcesStudio Portable** (identificado con el isotipo **`PS`**) es una plataforma profesional concebida para el modelado, análisis, optimización, compresión jerárquica y documentación formal de procedimientos administrativos y flujos operativos institucionales. Integra de manera nativa:
 
 1. **Notación BPMN 2.0 (ISO/IEC 19510:2013)**: Diagramación formal de procesos, compresión y descompresión bidireccional de Subprocesos y Macroprocesos, redimensionamiento libre y proporcional de tarjetas.
-2. **Conectores Laterales Exclusivos y Redimensionamiento en Esquinas:**
+2. **Ejecución Multiplataforma 1-Clic (Windows & macOS)**:
+   * 🖥️ **Windows:** Inicio instantáneo mediante `ProcesStudio.exe` (o `ProcesStudio.bat` en `App/`).
+   * 🍎 **macOS (Apple Mac):** Inicio instantáneo mediante `ProcesStudio_Mac.command` en cualquier Mac (Intel y procesadores M1/M2/M3/M4).
+3. **Persistencia 100% Autocontenida (Zero-AppData & Zero-Registry)**:
+   * Todo proyecto nuevo, modificación o exportación se guarda de forma permanente y automática dentro de la subcarpeta local:
+     ```text
+     MiAppProcesos_USB/Proyectos/
+     ```
+   * **Cero residuos externos:** La aplicación no escribe en `%APPDATA%`, ni en el registro de Windows, ni en librerías del sistema de Mac (`~/Library/`). Ya sea que la carpeta resida en un pendrive USB o se copie al disco duro de una PC o Mac, todo el trabajo permanece autocontenido en esa misma carpeta.
+4. **Conectores Laterales Exclusivos y Redimensionamiento en Esquinas:**
    * **Conexión Lateral Limpia:** Los puntos conectores se ubican exclusivamente en los costados (izquierdo para entradas, derecho para salidas), eliminando conectores superiores/inferiores para un flujo horizontal claro.
    * **Anillo de Selección Brillante:** Al hacer clic en una tarjeta, su borde se resalta con un halo luminoso nítido.
    * **Esquinas de Redimensionamiento:** Puntos interactivos en las 4 esquinas para estirar o achicar la tarjeta de forma intuitiva.
-3. **Navegación Fluida del Lienzo y Control de Zoom:**
+5. **Navegación Fluida del Lienzo y Control de Zoom:**
    * **Desplazamiento Vertical con la Rueda:** Al mover la rueda del ratón (scroll), el mapa se desplaza suavemente de arriba a abajo.
-   * **Zoom Focalizado en el Puntero (`Ctrl + Rueda`):** Mantener presionada la tecla `Ctrl` mientras se gira la rueda del ratón realiza acercamiento o alejamiento enfocado con precisión en la ubicación del cursor.
+   * **Zoom Focalizado en el Puntero (`Ctrl + Rueda` / `Cmd + Rueda`):** Zoom in/out enfocado exactamente en las coordenadas del cursor.
    * **Arrastre desde Swimlanes:** Agarrar y arrastrar desde el área de carriles (swimlanes) o el fondo permite desplazar el lienzo con total libertad.
-4. **Personalización Granular de Tarjetas y Tipografía:**
-   * **Modo de Visualización de Contenido:** Alternancia entre `📋 Toda la info` (detallado con SLA, riesgos, calidad y sistemas) y `🏷️ Solo título` (vista panorámica limpia y compacta).
-   * **Tamaño de Letra Ajustable:** Pastillas rápidas (*10px Compacta, 12px Normal, 14px Mediana, 16px Grande*) y control deslizante de 9px a 20px con contención estricta sin desbordamiento.
+6. **Personalización Granular de Tarjetas y Tipografía:**
+   * **Modo de Visualización:** Alternancia entre `📋 Toda la info` y `🏷️ Solo título` (vista panorámica limpia y compacta).
+   * **Tamaño de Letra Ajustable:** Pastillas rápidas (10px, 12px, 14px, 16px) y slider de 9px a 20px con contención estricta sin desbordamiento.
    * **Fondo, Opacidad, Borde y Recuadro del Título:** Selección cromática independiente y aplicación por ámbito (`Esta tarjeta`, `Mismo tipo`, `Todo el mapa`).
    * **Temáticas de Tarjeta:** Catálogo preconfigurado (*Pizarra Slate Pro, Midnight Acero, Salvia Forestal, Nebula Violeta, Ámbar Cálido, Vidrio Esmerilado, Nórdico Claro, Arena Suave*).
-5. **Catálogo Exclusivo de Temas de ProcesStudio:**
+7. **Catálogo Exclusivo de Temas de ProcesStudio:**
    * 🌑 **ProcesStudio Slate Pro** (Grafito profundo y azul pizarra mate)
    * 🪐 **Midnight Executive** (Azul espacial y acero relajante)
    * 🌿 **Forest Sage ISO** (Gris bosque y verde salvia)
    * 🔮 **Nebula Modern** (Grafito violeta y lavanda suave)
    * ☀️ **Nordic Studio Light** (Fondo perla claro y azul cerúleo)
    * 🏖️ **Warm Sandpaper** (Arena cálida y ámbar mate)
-6. **Compresión y Descompresión con Geometría Relativa**:
+8. **Compresión y Descompresión con Geometría Relativa**:
    * Preservación inmutable de todos los tipos de nodos y estilos de conectores al comprimir y descomprimir.
    * Movimiento en bloque sincronizado de todas las tarjetas descomprimidas.
-7. **Portapapeles Integral de Procesos (`Ctrl + C` / `Ctrl + V`)**: Copiado y pegado de tarjetas individuales, selecciones múltiples y Subprocesos completos con todas sus tareas internas.
-8. **Persistencia Total y Autoguardado en Segundo Plano**: Disposiciones espaciales `(X, Y)`, dimensiones, colores de tarjetas y conexiones guardados en tiempo real en los archivos JSON de `../Proyectos/`.
-
-### 💾 Arquitectura Portable USB (Zero-AppData & Zero-Registry)
-* **Ejecutable Directo (`ProcesStudio.exe`)**: Inicia la aplicación con un solo clic.
-* **Persistencia Abierta en JSON**: Cada proyecto se guarda como un archivo de texto estructurado en la subcarpeta `../Proyectos/`.
-* **Portabilidad Total**: Funciona en cualquier pendrive o PC con Windows 10/11 sin instalaciones ni permisos de administrador.
+9. **Portapapeles Integral de Procesos (`Ctrl + C` / `Ctrl + V`)**: Copiado y pegado de tarjetas individuales, selecciones múltiples y Subprocesos completos con todas sus tareas internas.
 
 ---
 
-## 2. INTERACCIÓN CON TARJETAS, NAVEGACIÓN Y PERSONALIZACIÓN
+## 2. ESTRUCTURA DE ARCHIVOS Y MULTIPLATAFORMA
 
-### 2.1. Interacción con Tarjetas en el Lienzo
+```text
+MiAppProcesos_USB/
+├── ProcesStudio.exe             <-- Doble clic para iniciar en Windows
+├── ProcesStudio_Mac.command     <-- Doble clic para iniciar en macOS (Mac)
+├── MANUAL_DE_USO.pdf            <-- Manual técnico integral
+├── App/
+│   ├── ProcesStudio.bat         <-- Lanzador de respaldo Windows
+│   ├── main.cjs                 <-- Entrypoint Electron
+│   ├── preload.cjs              <-- Bridge IPC seguro con FS local
+│   └── dist/                    <-- Paquete web compilado
+└── Proyectos/                   <-- Carpeta local donde se guardan TODOS los proyectos
+    ├── 2026-09-01_proc-descargos-transito-v1.json
+    └── 2026-09-01_proc-tribunal-faltas-v1.json
+```
+
+---
+
+## 3. INTERACCIÓN CON TARJETAS, NAVEGACIÓN Y PERSONALIZACIÓN
+
+### 3.1. Interacción con Tarjetas en el Lienzo
 1. **Selección y Resaltado:** Haga clic sobre cualquier tarjeta para seleccionarla; se iluminará con un borde brillante activo y abrirá el panel lateral de propiedades.
 2. **Redimensionamiento (Esquinas):** Al seleccionar la tarjeta, aparecen puntos en sus cuatro esquinas para ajustar su tamaño libremente.
 3. **Conexiones Laterales:** Haga clic y arrastre desde el conector del costado derecho hacia el conector del costado izquierdo de la tarjeta de destino.
 
-### 2.2. Atajos de Navegación del Lienzo
+### 3.2. Atajos de Navegación del Lienzo
 | Acción | Atajo / Movimiento | Resultado en el Lienzo |
 | :--- | :--- | :--- |
 | **Scroll Vertical** | `Rueda del ratón (arriba / abajo)` | Desplaza el mapa hacia arriba o hacia abajo. |
-| **Zoom Focalizado** | `Ctrl + Rueda del ratón` | Hace zoom in/out centrado exactamente en el puntero del ratón. |
+| **Zoom Focalizado** | `Ctrl + Rueda` (Win) / `Cmd + Rueda` (Mac) | Hace zoom in/out centrado exactamente en el puntero del ratón. |
 | **Paneo Libre** | `Clic y arrastre en swimlanes / fondo` | Mueve el mapa en cualquier dirección. |
-| **Copiar y Pegar** | `Ctrl + C` / `Ctrl + V` | Duplica tarjetas, subprocesos o selecciones múltiples. |
+| **Copiar y Pegar** | `Ctrl + C` / `Ctrl + V` (o `Cmd + C`/`V`) | Duplica tarjetas, subprocesos o selecciones múltiples. |
 | **Eliminar** | `Supr` o `Retroceso` | Elimina nodos o conexiones seleccionadas. |
 
-### 2.3. Opciones de Personalización en el Panel Lateral
+### 3.3. Opciones de Personalización en el Panel Lateral
 * **Ámbito de Aplicación:** `🎯 Esta tarjeta`, `🏷️ Mismo tipo`, `🌐 Todo el mapa`.
 * **Modo de Visualización:** `📋 Toda la info` vs `🏷️ Solo título`.
 * **Tamaño de Letra:** Ajuste entre 9px y 20px con contención estricta.
@@ -66,7 +88,7 @@
 
 ---
 
-## 3. GUÍA DE COMPONENTES Y NOTACIÓN BPMN 2.0
+## 4. GUÍA DE COMPONENTES Y NOTACIÓN BPMN 2.0
 
 | Símbolo | Nombre Técnico | Acento Mate | Significado y Aplicación en el Proceso |
 | :--- | :--- | :--- | :--- |
@@ -85,7 +107,7 @@
 
 ---
 
-## 4. TUTORIAL PRÁCTICO: MODELADO, COMPRESIÓN Y DESCOMPRESIÓN
+## 5. TUTORIAL PRÁCTICO: MODELADO, COMPRESIÓN Y DESCOMPRESIÓN
 
 ### 🏢 Caso de Estudio: *"Procedimiento Sancionatorio por Obras Clandestinas"* (Código: `PRC-OBR-001`)
 
@@ -111,7 +133,7 @@
 ### PASO 1: Modelado, Conexiones Laterales y Redimensionamiento
 1. Seleccione cualquier tarjeta para ver su borde brillante y ajustar su tamaño desde las esquinas.
 2. Arrastre desde el conector del lateral derecho hacia el conector del lateral izquierdo de la siguiente tarjeta.
-3. Utilice la rueda del ratón para desplazarse verticalmente y `Ctrl + Rueda` para hacer zoom focalizado.
+3. Utilice la rueda del ratón para desplazarse verticalmente y `Ctrl + Rueda` / `Cmd + Rueda` para hacer zoom focalizado.
 
 ### PASO 2: Compresión y Descompresión
 1. Seleccione las actividades y presione **`📦 Comprimir en Subproceso`**.
@@ -119,13 +141,13 @@
 
 ---
 
-## 5. MANTENIMIENTO, COPIAS DE SEGURIDAD Y RESPALDOS USB
+## 6. MANTENIMIENTO, COPIAS DE SEGURIDAD Y RESPALDOS USB
 
-* Todos los proyectos residen en:
+* Todos los proyectos residen en la subcarpeta local:
   ```text
   MiAppProcesos_USB/Proyectos/
   ```
-* Para respaldar su trabajo, copie la carpeta `Proyectos/` a cualquier unidad externa.
+* Para respaldar su trabajo o transferirlo a otra computadora (PC o Mac), simplemente copie la carpeta `MiAppProcesos_USB` o su subcarpeta `Proyectos/`.
 
 ---
 *ProcesStudio Portable &bull; Conforme a las normas ISO/IEC 19510:2013 y Sistemas de Gestión de la Calidad ISO 9001:2015.*
