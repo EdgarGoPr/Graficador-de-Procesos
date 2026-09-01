@@ -174,7 +174,7 @@
       <h1>Manual de Uso y Guía Técnica Integral</h1>
       <div class="subtitle">ProcesosStudio Portable &bull; BPMN 2.0 (ISO/IEC 19510) & Sistemas de Calidad ISO 9001:2015</div>
       <div style="font-size: 8.5pt; color: #64748B; margin-top: 6px; font-family: monospace;">
-        Versión: 2.4 | Formato Oficial: PDF / Windows Desktop (.EXE) | Persistencia: JSON Abierto
+        Versión: 2.5 | Formato Oficial: PDF / Windows Desktop (.EXE) | Persistencia: JSON Abierto
       </div>
     </div>
 
@@ -183,13 +183,13 @@
     
     <p><strong>Arquitectura Zero-AppData:</strong> La aplicación es 100% portable. No requiere instalación, privilegios administrativos ni conexión a Internet. Todos los proyectos se guardan en formato <code>.json</code> transparente en la carpeta <code>../Proyectos/</code>.</p>
 
-    <h2>2. Herencia de Temáticas y Fondo de la Pizarra</h2>
+    <h2>2. Persistencia Total, Conectores y Autoguardado</h2>
     <ul>
-      <li><strong>1. Selección de Temática Base:</strong> Elija entre <em>Antigravity Dark</em>, <em>Antigravity Cosmic</em>, <em>Antigravity Cyber Emerald</em>, <em>Antigravity Nebula Violet</em>, <em>Antigravity Light Studio</em> o <em>Antigravity Warm Solar</em> como punto de partida cromático.</li>
-      <li><strong>2. Fondo de la Pizarra y Carriles:</strong> Al modificar el color de la parte de atrás de la pizarra (fondo de lienzo), <strong>todas las bandas de los carriles organizativos (swimlanes) adoptan ese color inmediatamente</strong>.</li>
-      <li><strong>3. Herencia y Preservación:</strong> Cuando cambie cualquier color individual (fondo de pizarra, acento o tarjetas), <strong>el resto de los colores de la aplicación se mantendrán intactos basándose en la temática base inicial</strong>.</li>
-      <li><strong>4. Color de Tarjetas (Individual y Masivo):</strong> Muestras de color rápido y selector libre en el panel de propiedades, con botones para aplicar el color a todas las tarjetas del mismo tipo, a todo el carril o a todo el diagrama.</li>
-      <li><strong>5. Conexiones Personalizables:</strong> Elección de color de flechas, grosor de línea (1.5px a 4px) y animación de flujo continuo.</li>
+      <li><strong>Disposición Espacial de Tarjetas:</strong> Las posiciones <code>(X, Y)</code>, anchos y altos de las tarjetas se guardan automáticamente en tiempo real en los archivos JSON de proyectos.</li>
+      <li><strong>Estilos y Colores de Conectores:</strong> Los colores asignados a las conexiones, grosores de línea y animaciones persisten fielmente entre sesiones.</li>
+      <li><strong>Inicio en el Gestor de Proyectos:</strong> La aplicación inicia en el Dashboard para permitirle seleccionar de forma limpia con qué proyecto desea trabajar.</li>
+      <li><strong>Fondo de Pizarra y Carriles:</strong> Las bandas de los carriles organizativos (swimlanes) y el fondo del lienzo adoptan el color elegido sin bloqueos blancos.</li>
+      <li><strong>Herencia de Temática:</strong> Al personalizar cualquier color individual, el resto de los elementos conservan los estilos de la temática base seleccionada.</li>
     </ul>
 
     <h2>3. Glosario de Componentes y Notación BPMN 2.0</h2>
@@ -210,7 +210,7 @@
         <tr>
           <td><strong>Tarea de Usuario</strong></td>
           <td><span class="badge badge-blue">#3B82F6</span></td>
-          <td>Actividad operativa realizada por un agente asistido por software.</td>
+          <td>Actividad operativa realizada por un operador asistido por software.</td>
         </tr>
         <tr>
           <td><strong>Tarea de Servicio</strong></td>
@@ -282,16 +282,15 @@
     </div>
 
     <div class="card-step">
-      <h4>Paso 1: Crear el Proyecto y Seleccionar Temática Base</h4>
-      <p>En el Dashboard haga clic en <strong>Nuevo Proyecto</strong>. En el botón <strong>Temas y Colores</strong> elija su temática base (ej: <em>Antigravity Cosmic</em>) y luego seleccione el color de fondo para la pizarra.</p>
+      <h4>Paso 1: Abrir el Proyecto desde el Gestor</h4>
+      <p>En el Dashboard haga clic en la tarjeta del proyecto. El diagrama cargará con sus posiciones exactas y estilos de conectores.</p>
     </div>
 
     <div class="card-step">
       <h4>Paso 2: Modelado, Colores y Redimensionamiento</h4>
       <ol>
-        <li>Arrastre los elementos desde la paleta izquierda.</li>
-        <li>Seleccione cualquier tarjeta para **redimensionarla desde las 4 esquinas** o personalizar su color de fondo. Use <em>Aplicar a todas de tipo</em> para unificar estilos.</li>
-        <li>Conecte los flujos y configure el color de las flechas y la animación de flujo.</li>
+        <li>Arrastre los elementos desde la paleta izquierda. Mueva y redimensione tarjetas: se guardarán de forma automática.</li>
+        <li>Personalice el color de fondo de las tarjetas y conectores según la jerarquía visual requerida.</li>
         <li>En el nodo <code>SUB-01</code>, presione <strong>Ampliar</strong> para desglosar sus 3 etapas internas (Plano, Liquidación, Pago).</li>
       </ol>
     </div>

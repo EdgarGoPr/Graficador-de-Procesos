@@ -25,6 +25,8 @@ interface ProjectStoreState {
   markUnsavedChanges: () => void;
 }
 
+let autoSaveTimeout: ReturnType<typeof setTimeout> | null = null;
+
 export const useProjectStore = create<ProjectStoreState>((set, get) => ({
   currentProject: null,
   projectList: [],
@@ -38,12 +40,7 @@ export const useProjectStore = create<ProjectStoreState>((set, get) => ({
     set({ isLoading: true });
     await StorageService.initializeStorage();
     await get().refreshProjectList();
-
-    // Auto-open first project if available
-    const list = get().projectList;
-    if (list.length > 0) {
-      await get().openProject(list[0].fileName);
-    }
+    // Do NOT automatically force open any project; user lands cleanly on the Dashboard
     set({ isLoading: false });
   },
 
@@ -120,32 +117,32 @@ export const useProjectStore = create<ProjectStoreState>((set, get) => ({
       },
       pools: [
         {
-          id: 'pool-1',
-          name: 'Proceso Principal',
-          organization: orgUnit || 'Organización',
+          id: 'pool_1',
+          name: title,
+          organization: orgUnit || 'Unidad Organizativa',
           lanes: [
             {
-              id: 'lane-1',
-              name: 'Mesa de Entrada / Solicitante',
-              role: 'Receptor / Administrado',
-              system: 'Portal Web / Mesa de Entrada',
-              colorHex: '#3b82f6',
+              id: 'lane_1',
+              name: 'Mesa de Entradas / Inspectoría',
+              role: 'Inspector / Operador',
+              system: 'SAM / VUPRA',
+              colorHex: '#10B981',
               order: 0
             },
             {
-              id: 'lane-2',
-              name: 'Área Técnica / Despacho',
-              role: 'Responsable Operativo',
-              system: 'Expediente Electrónico',
-              colorHex: '#10b981',
+              id: 'lane_2',
+              name: 'Área Legal / Notificaciones',
+              role: 'Oficial Notificador / Asesor',
+              system: 'GDE / Notificaciones',
+              colorHex: '#3B82F6',
               order: 1
             },
             {
-              id: 'lane-3',
-              name: 'Autoridad Resolutoria',
-              role: 'Director / Juez',
-              system: 'Sistema Judicial / Resolutivo',
-              colorHex: '#8b5cf6',
+              id: 'lane_3',
+              name: 'Juzgado / Resolución Final',
+              role: 'Juez de Faltas / Resolutor',
+              system: 'Sistema de Sentencias',
+              colorHex: '#8B5CF6',
               order: 2
             }
           ]
@@ -153,19 +150,21 @@ export const useProjectStore = create<ProjectStoreState>((set, get) => ({
       ],
       nodes: [
         {
-          id: 'start-1',
+          id: 'node_start',
           type: 'StartEvent',
-          position: { x: 50, y: 80 },
+          position: { x: 320, y: 50 },
           data: {
-            standardId: 'EVT-01',
-            title: 'Inicio del Trámite',
-            description: 'Ingreso formal de solicitud o notificación.',
+            standardId: 'INI-01',
+            title: 'Inicio del Proceso',
+            description: 'Disparador formal de ingreso del trámite o expediente.',
             nodeType: 'StartEvent',
-            laneId: 'lane-1',
-            itSystem: 'Mesa de Entrada',
-            legalFramework: 'Art. 1 Ley de Procedimientos',
-            inputs: ['Formulario de solicitud'],
-            outputs: ['Número de expediente asignado'],
+            laneId: 'lane_1',
+            laneName: 'Mesa de Entradas / Inspectoría',
+            roleName: 'Inspector / Operador',
+            itSystem: 'SAM / VUPRA',
+            legalFramework: 'Reglamento General',
+            inputs: ['Formulario de Solicitud / Acta'],
+            outputs: ['Expediente Iniciado'],
             operationalRisks: [],
             tags: ['Inicio']
           }
@@ -217,8 +216,23 @@ export const useProjectStore = create<ProjectStoreState>((set, get) => ({
     return success;
   },
 
+  /**
+   * Updates in-memory project data and automatically triggers a debounced save to disk
+   */
   setProjectData: (project: ProcessProjectFile) => {
     set({ currentProject: project, hasUnsavedChanges: true });
+
+    // Debounced automatic background persistence (800ms)
+    if (autoSaveTimeout) {
+      clearTimeout(autoSaveTimeout);
+    }
+    autoSaveTimeout = setTimeout(async () => {
+      const current = get().currentProject;
+      if (current && current.fileName) {
+        await StorageService.saveProject(current);
+        set({ lastSavedAt: new Date().toISOString(), hasUnsavedChanges: false });
+      }
+    }, 800);
   },
 
   updateDocumentControl: (updates: Partial<ProcessProjectFile['documentControl']>) => {
@@ -231,13 +245,12 @@ export const useProjectStore = create<ProjectStoreState>((set, get) => ({
       updatedAt: new Date().toISOString(),
     };
 
-    set({
-      currentProject: {
-        ...currentProject,
-        documentControl: updatedDocControl
-      },
-      hasUnsavedChanges: true
-    });
+    const updatedProject = {
+      ...currentProject,
+      documentControl: updatedDocControl
+    };
+
+    get().setProjectData(updatedProject);
   },
 
   markUnsavedChanges: () => {

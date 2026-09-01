@@ -1,6 +1,6 @@
 # MANUAL DE USO Y GUÍA TÉCNICA INTEGRAL
 ## ProcesosStudio Portable — BPMN 2.0 (ISO 19510) & ISO 9001:2015
-**Versión del Manual:** 2.4 &bull; **Fecha de Emisión:** 2026-09-01 &bull; **Entorno:** Portable Windows Desktop (`.EXE`) / Web
+**Versión del Manual:** 2.5 &bull; **Fecha de Emisión:** 2026-09-01 &bull; **Entorno:** Portable Windows Desktop (`.EXE`) / Web
 
 ---
 
@@ -9,11 +9,15 @@
 **ProcesosStudio Portable** es una plataforma profesional concebida para el modelado, análisis, optimización, personalización cromática y documentación formal de procedimientos administrativos y flujos operativos institucionales. Integra de manera nativa:
 
 1. **Notación BPMN 2.0 (ISO/IEC 19510:2013)**: Estándar internacional para diagramación de flujos de procesos de negocio, soportando Macroprocesos y Subprocesos jerárquicos expandibles, con redimensionamiento dinámico y libre de tarjetas.
-2. **Personalización Cromática de Fondo y Mecánica de Herencia de Temáticas**: 
+2. **Persistencia Total y Autoguardado Continuo en Segundo Plano**:
+   * **Disposición Espacial de Tarjetas**: Todas las posiciones `(X, Y)`, anchos y altos personalizados de las tarjetas se guardan automáticamente en el archivo `.json` de `../Proyectos/`.
+   * **Colores y Estilos de Conectores**: Los colores (`strokeColor`), grosores de línea y flujos animados de las flechas persisten fielmente entre sesiones.
+   * **Inicio Limpio en el Gestor de Proyectos**: La aplicación inicia en el Dashboard para permitirle seleccionar en qué proyecto desea trabajar.
+3. **Personalización Cromática de Fondo y Mecánica de Herencia de Temáticas**: 
    * **Fondo de la Pizarra y Carriles**: Personalización libre de la superficie completa del lienzo y de las franjas de los carriles (swimlanes), eliminando fondos fijos y permitiendo cualquier tonalidad (carbón, azul noche, pizarra, perla, etc.).
    * **Herencia de Temática Base**: Primero se selecciona una temática base (Antigravity Dark, Cosmic, Emerald, Violet, Light Studio o Warm Solar) y, al modificar un color específico (como el fondo de pizarra o un acento), **todos los demás colores se mantienen basados fielmente en la temática inicial elegida**.
-3. **Sistemas de Gestión de la Calidad (ISO 9001:2015)**: Cumplimiento directo de los requisitos de enfoque en procesos (Cláusula 4.4), pensamiento basado en riesgos (Cláusula 6.1), información documentada (Cláusula 7.5) y control de salidas no conformes / liberación de servicios (Cláusula 8.6).
-4. **Cálculo de Tiempos SLA y Lead Time (ISO 8601)**: Cuantificación de plazos administrativos, tiempos de ciclo directo y límites perentorios de prescripción legal.
+4. **Sistemas de Gestión de la Calidad (ISO 9001:2015)**: Cumplimiento directo de los requisitos de enfoque en procesos (Cláusula 4.4), pensamiento basado en riesgos (Cláusula 6.1), información documentada (Cláusula 7.5) y control de salidas no conformes / liberación de servicios (Cláusula 8.6).
+5. **Cálculo de Tiempos SLA y Lead Time (ISO 8601)**: Cuantificación de plazos administrativos, tiempos de ciclo directo y límites perentorios de prescripción legal.
 
 ### 💾 Arquitectura Portable USB (Zero-AppData & Zero-Registry)
 A diferencia de los programas tradicionales, **ProcesosStudio Portable** no requiere instaladores, privilegios de administrador ni runtime de Node.js instalado en el equipo del usuario:
@@ -23,43 +27,25 @@ A diferencia de los programas tradicionales, **ProcesosStudio Portable** no requ
 
 ---
 
-## 2. MECÁNICA DE COLORES Y HERENCIA DE TEMÁTICAS
+## 2. MECÁNICA DE COLORES, CONECTORES Y AUTOGUARDADO
 
-### 2.1. Selección de Temática Base Inicial
-En la barra superior, haga clic en el botón **`Temas y Colores`** (ícono de paleta). En la pestaña **`1. Seleccionar Temática Base`**, elija su estilo preferido:
-* 🌑 **Antigravity Dark (Clásico)**: Gris carbón profundo (`#18181B`) con cian (`#38BDF8`).
-* 🪐 **Antigravity Cosmic (Midnight)**: Azul espacial (`#0B0F19`) con azul eléctrico (`#3B82F6`).
-* 🌲 **Antigravity Cyber Emerald**: Gris obsidiana (`#0C1712`) con esmeralda ISO 9001 (`#10B981`).
-* 🔮 **Antigravity Nebula Violet**: Púrpura cósmico (`#130D24`) con violeta neón (`#A855F7`).
-* ☀️ **Antigravity Light Studio**: Modo claro de alta nitidez (`#F8F9FA` / `#FFFFFF`) con azul cerúleo (`#0284C7`).
-* 🏖️ **Antigravity Warm Solar**: Tonalidad arena cálida y ámbar (`#FAF7F2` / `#D97706`).
+### 2.1. Persistencia y Autoguardado en Segundo Plano
+* **Movimiento y Redimensionamiento:** Cada vez que mueva una tarjeta a una nueva posición `(X, Y)` o la redimensione desde las esquinas, el sistema realiza un **autoguardado inteligente en segundo plano** directamente en el archivo JSON.
+* **Estilos de Flechas y Conectores:** Cualquier cambio de color, grosor o animación de flujo en las conexiones queda registrado de forma permanente.
+* **Apertura de Proyectos:** Al iniciar la app, accederá al Gestor de Proyectos donde podrá seleccionar el archivo deseado con la certeza de que todos los nodos, conectores y estilos estarán exactamente como los dejó.
 
 ---
 
-### 2.2. Modificación de la Pizarra con Preservación del Resto de Colores
-En la pestaña **`2. Fondo de la Pizarra`**:
-1. Elija un color rápido (*Carbón BPMN, Obsidiana, Cosmic, Cyber, Púrpura, Gris Perla, Crema Solar, Blanco Puro*) o use el **selector hexadecimal libre**.
-2. **Comportamiento de Herencia:** Al cambiar el color de la parte de atrás de la pizarra, **las franjas de los carriles organizativos (swimlanes) y el lienzo adoptan ese color inmediatamente**, mientras que todos los paneles, botones, textos y acentos de la app continúan basados en la **temática base elegida** en el Paso 1.
-3. Si en algún momento desea volver a la paleta original pura, dispone del botón **`Restablecer a base`**.
+### 2.2. Selección de Temática Base y Fondo de Pizarra
+En la barra superior, haga clic en el botón **`Temas y Colores`** (ícono de paleta):
+1. **Temática Base:** Elija entre *Antigravity Dark*, *Antigravity Cosmic*, *Antigravity Cyber Emerald*, *Antigravity Nebula Violet*, *Antigravity Light Studio* o *Antigravity Warm Solar*.
+2. **Fondo de Pizarra:** Cambie el color de la parte de atrás de la pizarra (carbón, azul noche o color libre HEX). Las bandas de los carriles swimlanes adoptarán el color sin alterar el resto de la temática elegida.
 
 ---
 
-### 2.3. Personalización de Tarjetas (Individual y Grupal)
-Al seleccionar cualquier tarjeta o nodo en el lienzo, el panel derecho (*Propiedades*) incluye la sección **🎨 Color de la Tarjeta**:
-* **Ajuste Individual**: Muestras rápidas o selector libre para cambiar el color de esa tarjeta específica.
-* **Acciones Masivas Grupales**:
-  * 🔘 *"Aplicar a todas las tarjetas de tipo: [UserTask / SubProcess / etc.]"*
-  * 🔘 *"Aplicar a todas las tarjetas del carril actual: [Nombre de Carril]"*
-  * 🔘 *"Aplicar a todas las tarjetas del diagrama"*
-
----
-
-### 2.4. Personalización de Conexiones y Flechas
-Al hacer clic sobre cualquier flecha de flujo, el panel de propiedades permite configurar:
-* **Color de la Flecha**: Paleta rápida o selector de color libre.
-* **Grosor**: Fino (1.5px), Normal (2px), Grueso (3px) o Énfasis (4px).
-* **Flujo Animado**: Conmutador para activar el movimiento de flujo continuo.
-* **Botón Masivo**: *"Aplicar a todas las conexiones del proyecto"*.
+### 2.3. Personalización de Tarjetas y Conexiones
+* **Tarjetas:** Paleta rápida o selector libre en el panel de propiedades, con botones para aplicar el color a todas las tarjetas del mismo tipo, al carril o a todo el diagrama.
+* **Conexiones:** Color de flecha, grosor de línea (1.5px a 4px), flujo animado y aplicación a todas las conexiones del proyecto.
 
 ---
 
@@ -120,14 +106,12 @@ Al hacer clic sobre cualquier flecha de flujo, el panel de propiedades permite c
 ### PASO 1: Alta del Proyecto y Elección de Temática Base
 1. En el Dashboard haga clic en **`Nuevo Proyecto`**. Complete el título, autor y unidad organizativa.
 2. En la barra superior, haga clic en **`Temas y Colores`** y elija su temática base (ej: *Antigravity Cosmic*).
-3. En la pestaña **`Fondo de la Pizarra`**, seleccione el color deseado para la parte de atrás del diagrama (ej: *Carbón Profundo* o un tono personalizado).
 
 ### PASO 2: Modelado, Personalización Cromática y Redimensionamiento
 1. Arrastre los nodos desde la paleta izquierda.
-2. Seleccione las tarjetas y personalice su color de fondo desde el panel derecho. Use la opción **`Aplicar a todas de tipo`** para dar un estilo visual coherente.
-3. Conecte los flujos y ajuste el color y grosor de las flechas (activando el flujo animado si lo desea).
-4. Redimensione cualquier tarjeta arrastrando desde las esquinas para ajustar la proporción.
-5. En el nodo `SUB-01`, haga clic en **`Ampliar`** para cargar las tareas internas.
+2. Mueva y redimensione las tarjetas libremente; el sistema guardará su posición automáticamente.
+3. Personalice el color de fondo de las tarjetas y conectores según la jerarquía visual requerida.
+4. En el nodo `SUB-01`, presione **`Ampliar`** para cargar las tareas internas.
 
 ### PASO 3: Navegación y Reporte Oficial ISO 9001
 1. En el menú derecho (`Navegador`), haga clic en `SUB-01` para comprobar el **zoom y centrado automático**.
