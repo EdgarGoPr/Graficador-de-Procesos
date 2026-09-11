@@ -6,6 +6,7 @@ import { LogoPS } from '../common/LogoPS';
 import {
   LayoutDashboard,
   GitGraph,
+  Workflow,
   Table,
   FileCheck,
   Save,
@@ -91,6 +92,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
   const navTabs: { id: ActiveView; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
     { id: 'DASHBOARD', label: 'Proyectos USB', icon: LayoutDashboard },
     { id: 'CANVAS', label: 'Lienzo BPMN 2.0', icon: GitGraph },
+    { id: 'FLOWCHART', label: 'Flujograma', icon: Workflow },
     { id: 'SIPOC', label: 'Matriz SIPOC', icon: Table },
     { id: 'REPORT', label: 'Documento & Diagrama', icon: FileCheck },
   ];

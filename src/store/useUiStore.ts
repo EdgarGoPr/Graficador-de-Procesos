@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { AppThemeId, ThemeColors, PRESET_THEMES, applyThemeToDocument } from '../types/theme';
 
-export type ActiveView = 'DASHBOARD' | 'CANVAS' | 'SIPOC' | 'REPORT';
+export type ActiveView = 'DASHBOARD' | 'CANVAS' | 'FLOWCHART' | 'SIPOC' | 'REPORT';
 export type ThemeMode = 'dark' | 'light';
 export type RightPanelTab = 'PROPERTIES' | 'NAVIGATOR';
 

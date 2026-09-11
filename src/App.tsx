@@ -8,6 +8,7 @@ import { ProcessCanvas } from './components/canvas/ProcessCanvas';
 import { RightSidebar } from './components/layout/RightSidebar';
 import { ProjectDashboard } from './components/dashboard/ProjectDashboard';
 import { SipocMatrixView } from './components/sipoc/SipocMatrixView';
+import { FlowchartView } from './components/flowchart/FlowchartView';
 import { TechnicalReportView } from './components/report/TechnicalReportView';
 import { NewProjectModal } from './components/modals/NewProjectModal';
 import { SubProcessDetailModal } from './components/modals/SubProcessDetailModal';
@@ -68,6 +69,8 @@ export const App: React.FC = () => {
               </div>
             </ReactFlowProvider>
           )}
+
+          {activeView === 'FLOWCHART' && <FlowchartView />}
 
           {activeView === 'SIPOC' && <SipocMatrixView />}
 
