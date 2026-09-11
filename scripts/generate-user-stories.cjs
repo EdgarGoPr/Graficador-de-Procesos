@@ -1,0 +1,255 @@
+const fs = require('fs');
+const path = require('path');
+const XLSX = require('xlsx');
+
+const userStories = [
+  {
+    id: 'PST-001',
+    modulo: 'Arquitectura & Persistencia',
+    titulo: 'Arquitectura Portable USB Zero-AppData y Persistencia JSON',
+    historiaUsuario: 'Como usuario de ProcesStudio, quiero que la aplicación funcione en modo portable desde cualquier pendrive o carpeta sin requerir instalación ni escribir en %APPDATA% ni en el Registro de Windows, para poder transportar y ejecutar mis proyectos de procesos en cualquier equipo corporativo de forma segura y autónoma.',
+    criteriosAceptacion: '1. Los datos de sesión y caché de Electron se redirigen a MiAppProcesos_USB/data/.\n2. Todos los proyectos se guardan y leen como archivos .json en MiAppProcesos_USB/Proyectos/.\n3. Los nombres de archivo se sanitizan automáticamente en formato AAAA-MM-DD_proc-<titulo>-v<version>.json.\n4. No se deja ningún residuo en el registro de Windows ni en carpetas del usuario del sistema.',
+    fechaImplementacion: '2026-09-01',
+    estado: 'Implementado / Producción'
+  },
+  {
+    id: 'PST-002',
+    modulo: 'Dashboard & Gestión',
+    titulo: 'Panel Dashboard de Gestión de Proyectos y Carga Dinámica',
+    historiaUsuario: 'Como analista de procesos, quiero un panel principal que liste todos los proyectos disponibles en la unidad USB con sus métricas clave (Lead Time, riesgos, checkpoints y fecha), para poder abrir, duplicar, crear o eliminar proyectos de forma intuitiva.',
+    criteriosAceptacion: '1. Vista en cuadrícula responsiva con tarjetas de proyecto.\n2. Cálculo en tiempo real de Lead Time total (horas y días hábiles), cantidad de riesgos operativos y checkpoints QC.\n3. Botón para crear nuevo proyecto con modal guiado (título, responsable, unidad operativa).\n4. Acciones directas de duplicar, descargar JSON y eliminar proyecto.',
+    fechaImplementacion: '2026-09-01',
+    estado: 'Implementado / Producción'
+  },
+  {
+    id: 'PST-003',
+    modulo: 'Lienzo BPMN 2.0',
+    titulo: 'Pizarra de Modelado BPMN 2.0 y Tarjetas de Actividad Inteligentes',
+    historiaUsuario: 'Como modelador de procesos, quiero un lienzo infinito interactivo con soporte de estándares BPMN 2.0 e ISO 19510 (eventos, tareas de usuario, servicios TI, tareas manuales y compuertas), para diagramar flujos de trabajo operativos con rigor normativo.',
+    criteriosAceptacion: '1. Paleta lateral con arrastrar y soltar (Drag & Drop) de nodos BPMN al lienzo.\n2. Tarjetas con tipografía moderna, insignias de ID estándar (INI, TSK, GTW, QC), rol y sistema TI.\n3. Conexiones interactivas (Sequence Flow) con puntos de anclaje (handles) magnéticos.\n4. Panel lateral de propiedades para editar metadatos, SLAs, marco legal, entradas y salidas.',
+    fechaImplementacion: '2026-09-01',
+    estado: 'Implementado / Producción'
+  },
+  {
+    id: 'PST-004',
+    modulo: 'Lienzo BPMN 2.0',
+    titulo: 'Carriles Funcionales (Swimlanes) con Redimensionamiento y Colores',
+    historiaUsuario: 'Como diseñador organizacional, quiero definir carriles funcionales (swimlanes) como tarjetas nativas que delimiten responsabilidades por área o rol, para estructurar visualmente qué departamento ejecuta cada fase del proceso.',
+    criteriosAceptacion: '1. Carriles creados como nodos nativos en capa de fondo (Z-Index negativo).\n2. Botones integrados para mover carriles arriba/abajo trasladando automáticamente las tarjetas contenidas.\n3. Redimensionamiento horizontal y vertical intuitivo.\n4. Paleta de colores temáticos personalizables por carril.',
+    fechaImplementacion: '2026-09-01',
+    estado: 'Implementado / Producción'
+  },
+  {
+    id: 'PST-005',
+    modulo: 'Lienzo BPMN 2.0',
+    titulo: 'Motor de Atracción Magnética y Guías Inteligentes de Alineación',
+    historiaUsuario: 'Como usuario que busca diagramas prolijos, quiero que el lienzo cuente con atracción magnética y guías visuales en tiempo real durante el arrastre, para alinear y apilar tarjetas y carriles con precisión geométrica sin esfuerzo manual.',
+    criteriosAceptacion: '1. Guías visuales inteligentes (líneas de alineación vertical y horizontal) que aparecen dinámicamente al coincidir bordes o centros.\n2. Snapping magnético real que ajusta las coordenadas (X, Y) al aproximarse a una distancia umbral (16px).\n3. Acoplamiento magnético carril con carril con contacto exacto de 0px de separación.\n4. Botón de 1-clic para auto-alinear y organizar todos los carriles verticalmente.',
+    fechaImplementacion: '2026-09-01',
+    estado: 'Implementado / Producción'
+  },
+  {
+    id: 'PST-006',
+    modulo: 'Subprocesos & Jerarquías',
+    titulo: 'Compresión y Descompresión Jerárquica de Subprocesos',
+    historiaUsuario: 'Como arquitecto de procesos complejos, quiero seleccionar un conjunto de actividades y comprimirlas en un Subproceso Procedimental (y descomprimirlas cuando lo requiera), para abstraer la complejidad y mantener diagramas limpios y modulares.',
+    criteriosAceptacion: '1. Validación topológica estricta que exige un único punto de entrada y salida para permitir la compresión.\n2. Empaquetado de nodos y aristas internas dentro de la estructura de datos del subproceso.\n3. Modal de doble clic para visualizar y editar el contenido interno del subproceso.\n4. Acción de descompresión (Unpack) que restaura los nodos originales en el lienzo principal.',
+    fechaImplementacion: '2026-09-01',
+    estado: 'Implementado / Producción'
+  },
+  {
+    id: 'PST-007',
+    modulo: 'Edición & Productividad',
+    titulo: 'Copiar, Pegar y Duplicación Rápida con Portapapeles Inteligente',
+    historiaUsuario: 'Como usuario frecuente, quiero copiar y pegar selecciones múltiples de tarjetas y conexiones mediante atajos de teclado (Ctrl+C / Ctrl+V), para acelerar la construcción de patrones de procesos repetitivos.',
+    criteriosAceptacion: '1. Atajo Ctrl+C copia las tarjetas seleccionadas y sus conexiones internas al portapapeles en memoria.\n2. Atajo Ctrl+V pega los elementos con IDs únicos nuevos y un desplazamiento visual (+40px, +40px).\n3. Notificación flotante (toast) confirmando la cantidad de elementos copiados y pegados.\n4. Atajo Delete / Backspace para eliminar elementos seleccionados.',
+    fechaImplementacion: '2026-09-01',
+    estado: 'Implementado / Producción'
+  },
+  {
+    id: 'PST-008',
+    modulo: 'Lienzo BPMN 2.0',
+    titulo: 'Bloqueo y Fijación de Posición de Tarjetas y Pizarra (Modo Candado)',
+    historiaUsuario: 'Como usuario que revisa o presenta diagramas, quiero fijar y bloquear tarjetas individuales o la pizarra completa, para evitar que se muevan elementos por arrastres accidentales con el ratón.',
+    criteriosAceptacion: '1. Botón de candado en la barra flotante de selección y atajo Ctrl+L para fijar elementos seleccionados.\n2. Las tarjetas bloqueadas impiden el arrastre individual (draggable = false) mostrando icono de candado.\n3. Botón de bloqueo global en barra superior para navegar y hacer zoom sin alterar posiciones.\n4. Las posiciones (X, Y) se guardan con precisión exacta en el JSON y persisten al reabrir la app.',
+    fechaImplementacion: '2026-09-01',
+    estado: 'Implementado / Producción'
+  },
+  {
+    id: 'PST-009',
+    modulo: 'Calidad ISO 9001',
+    titulo: 'Generación Automática de Matriz SIPOC de Alta Dirección',
+    historiaUsuario: 'Como auditor o responsable de calidad, quiero una vista dedicada que genere automáticamente la Matriz SIPOC (Proveedores, Entradas, Proceso, Salidas, Clientes) a partir del flujo modelado, para cumplir con el análisis de contexto de ISO 9001:2015.',
+    criteriosAceptacion: '1. Pestaña independiente "Matriz SIPOC" en la navegación principal.\n2. Tabla de 5 columnas (Suppliers, Inputs, Process Steps, Outputs, Customers) derivada de los metadatos de las tarjetas.\n3. Identificación automática de roles precedentes como proveedores y roles sucesores como clientes.\n4. Resumen cuantitativo de entradas, salidas y actores involucrados.',
+    fechaImplementacion: '2026-09-01',
+    estado: 'Implementado / Producción'
+  },
+  {
+    id: 'PST-010',
+    modulo: 'Calidad ISO 9001',
+    titulo: 'Calculadora de Tiempos de Ciclo (Lead Time) y Plazos Legales',
+    historiaUsuario: 'Como gestor administrativo, quiero que el sistema calcule automáticamente el tiempo total de ciclo en horas y días hábiles y controle los plazos perentorios de prescripción legal, para asegurar el cumplimiento de SLAs y normativas.',
+    criteriosAceptacion: '1. Motor de cálculo topológico que suma tiempos de actividades en serie y ramas paralelas.\n2. Conversión automática entre horas administrativas, días hábiles y días corridos (ISO 8601).\n3. Detección de plazos fatales/perentorios con alertas visuales destacadas.\n4. Resumen ejecutivo de tiempos visible en el Dashboard y en los reportes técnicos.',
+    fechaImplementacion: '2026-09-01',
+    estado: 'Implementado / Producción'
+  },
+  {
+    id: 'PST-011',
+    modulo: 'Calidad ISO 9001',
+    titulo: 'Matriz de Riesgos Operativos y Controles Mitigantes (Cláusula 6.1)',
+    historiaUsuario: 'Como oficial de cumplimiento, quiero registrar riesgos operativos asociados a cada actividad con su nivel de impacto, probabilidad y control mitigante obligatorio, para satisfacer los requisitos de gestión de riesgos de ISO 9001.',
+    criteriosAceptacion: '1. Formulario en el panel de propiedades para agregar múltiples riesgos por tarea.\n2. Asignación de ID de riesgo (ej. RSK-01), probabilidad (Baja/Media/Alta) e impacto.\n3. Definición de control mitigante y sistema informático responsable.\n4. Tabla consolidada de matriz de riesgos en la ficha técnica del proceso.',
+    fechaImplementacion: '2026-09-01',
+    estado: 'Implementado / Producción'
+  },
+  {
+    id: 'PST-012',
+    modulo: 'Calidad ISO 9001',
+    titulo: 'Matriz de Decisiones y Lógica de Bifurcación (Gateways)',
+    historiaUsuario: 'Como analista funcional, quiero documentar formalmente las condiciones de bifurcación de cada compuerta exclusiva y paralela, para que las reglas de negocio queden explícitas en el manual de procedimientos.',
+    criteriosAceptacion: '1. Extracción automática de todas las compuertas (Gateways) del diagrama.\n2. Identificación del rol evaluador y desglose de cada opción de resolución con su texto de condición y nodo destino.\n3. Texto de condición visible sobre las flechas en el lienzo y en el flujograma.\n4. Matriz formal de decisiones tabulada en la ficha técnica.',
+    fechaImplementacion: '2026-09-01',
+    estado: 'Implementado / Producción'
+  },
+  {
+    id: 'PST-013',
+    modulo: 'Documentación & Reportes',
+    titulo: 'Documento Estructurado del Proceso y Manual Jerárquico',
+    historiaUsuario: 'Como responsable de calidad, quiero una vista que presente el proceso completo como un documento formal estructurado de texto en orden jerárquico (Macroproceso -> Carriles/Roles -> Actividades detalladas), para disponer de un manual de procedimientos completo.',
+    criteriosAceptacion: '1. Encabezado formal con control de documentos ISO 9001 (código, versión, fecha, objetivo y marco legal).\n2. Desglose jerárquico por carril donde cada actividad muestra ID estándar, tipo BPMN, título, descripción operativa completa, rol, sistema TI, inputs, outputs, QC y riesgos.\n3. Historial de revisiones y bloques de firmas técnicas de modelado y aprobación.\n4. Vista con diseño tipográfico formal para lectura clara.',
+    fechaImplementacion: '2026-09-11',
+    estado: 'Implementado / Producción'
+  },
+  {
+    id: 'PST-014',
+    modulo: 'Documentación & Reportes',
+    titulo: 'Impresión en PDF del Documento Técnico con Estilos Formales',
+    historiaUsuario: 'Como usuario administrativo, quiero imprimir o guardar en PDF el manual estructurado de texto con saltos de página limpios y formato A4 vertical, para distribuirlo o archivarlo formalmente en la organización.',
+    criteriosAceptacion: '1. Botón "Imprimir Documento en PDF" en la barra de acciones superior.\n2. Estilos CSS @media print optimizados para A4 portrait con márgenes de 1.2cm.\n3. Reglas de page-break-inside: avoid que evitan que las fichas de tareas o tablas se corten a la mitad.\n4. Encabezados de tabla repetidos automáticamente al cambiar de página.',
+    fechaImplementacion: '2026-09-11',
+    estado: 'Implementado / Producción'
+  },
+  {
+    id: 'PST-015',
+    modulo: 'Documentación & Reportes',
+    titulo: 'Impresión Gráfica del Diagrama BPMN en Formato Apaisado (Landscape)',
+    historiaUsuario: 'Como modelador, quiero poder imprimir el diagrama BPMN 2.0 tal cual está diseñado en la pizarra en una hoja apaisada horizontal, para presentar el mapa gráfico a directivos en alta resolución.',
+    criteriosAceptacion: '1. Selector interno en la pestaña Documento & Diagrama para alternar a "Diagrama del Proceso (Mapa Gráfico)".\n2. Renderizado interactivo con controles de zoom y ajuste de vista.\n3. Botón "Imprimir Diagrama (PDF Apaisado)" configurado con @page { size: landscape }.\n4. Ocultamiento automático de barras de herramientas y controles al imprimir.',
+    fechaImplementacion: '2026-09-11',
+    estado: 'Implementado / Producción'
+  },
+  {
+    id: 'PST-016',
+    modulo: 'Flujograma Descendente',
+    titulo: 'Pestaña Independiente de Flujograma con Auto-Layout Top-to-Bottom',
+    historiaUsuario: 'Como usuario que requiere una lectura lineal simple del proceso, quiero una pestaña independiente con un flujograma descendente estructurado 100% de forma automática, para comprender la secuencia sin lidiar con la distribución manual del lienzo.',
+    criteriosAceptacion: '1. Nueva pestaña "Flujograma" en la barra de navegación principal.\n2. Algoritmo determinista DAG que posiciona los eventos de inicio arriba (Y=0) y distribuye los nodos hacia abajo en capas sucesivas.\n3. Cero superposiciones: ningún nodo queda sobre otro ni se tocan entre sí.\n4. Conexiones limpias de salida inferior (bottom) a entrada superior (top).',
+    fechaImplementacion: '2026-09-11',
+    estado: 'Implementado / Producción'
+  },
+  {
+    id: 'PST-017',
+    modulo: 'Flujograma Descendente',
+    titulo: 'Nodos Simplificados de Flujograma (Solo Título) y Conexiones sin Cruces',
+    historiaUsuario: 'Como lector operativo, quiero que las tarjetas del flujograma muestren únicamente el título y el ID estándar, y que las flechas no pasen por arriba ni por abajo de los nodos, para una lectura visual limpia y despejada.',
+    criteriosAceptacion: '1. Tarjetas compactas (260px x 70px) con tipografía destacada mostrando solo el Título del ítem e ID estándar.\n2. Icono semántico y geometría BPMN (óvalos redondeados para eventos, rectángulos para tareas y cajas doradas para decisiones).\n3. Enrutamiento smoothstep ortogonal que evita cruces sobre los cuerpos de las tarjetas.\n4. Enlaces de bucle / retroceso con trazado lateral punteado diferenciado en color ámbar.',
+    fechaImplementacion: '2026-09-11',
+    estado: 'Implementado / Producción'
+  },
+  {
+    id: 'PST-018',
+    modulo: 'Flujograma Descendente',
+    titulo: 'Impresión en PDF Multipágina del Flujograma Descendente',
+    historiaUsuario: 'Como usuario que necesita entregar el flujograma impreso, quiero imprimirlo en PDF extendido en múltiples páginas A4 continuas si el proceso es largo, para no perder legibilidad.',
+    criteriosAceptacion: '1. Botón "Imprimir en PDF (Multipágina)" en la barra superior del flujograma.\n2. Encabezado formal visible únicamente en la impresión con título del proceso, código, versión y fecha.\n3. Estilos CSS adaptados para dividir el flujo vertical a lo largo de varias páginas A4 sin cortar elementos.',
+    fechaImplementacion: '2026-09-11',
+    estado: 'Implementado / Producción'
+  },
+  {
+    id: 'PST-019',
+    modulo: 'Interfaz & Personalización',
+    titulo: 'Sistema de Temas Personalizables (Modo Oscuro, Claro y Paleta Antigravity)',
+    historiaUsuario: 'Como usuario, quiero alternar entre Modo Oscuro y Modo Claro con un solo clic, y personalizar colores de fondo de pizarra y acentos, para trabajar cómodamente en diferentes condiciones de iluminación.',
+    criteriosAceptacion: '1. Botón de alternancia rápida Sol/Luna en la barra superior.\n2. Modal de personalización de temas con presets (Antigravity Dark, Slate Blue, Minimal Light, Cyberpunk Neon).\n3. Selector de color de fondo del lienzo con guardado en almacenamiento local.\n4. MiniMap y guías que adaptan sus colores dinámicamente según el tema seleccionado.',
+    fechaImplementacion: '2026-09-01',
+    estado: 'Implementado / Producción'
+  },
+  {
+    id: 'PST-020',
+    modulo: 'Packaging & Seguridad Windows',
+    titulo: 'Lanzador Nativo Portable (.exe) con Manifiesto y Firma Digital Authenticode',
+    historiaUsuario: 'Como usuario de Windows 10/11, quiero un ejecutable nativo (.exe) firmado digitalmente que inicie la aplicación directamente sin requerir scripts .bat ni generar advertencias bloqueantes de SmartScreen o Smart App Control, para una experiencia de usuario fluida y profesional.',
+    criteriosAceptacion: '1. Ejecutable ProcesStudio.exe compilado en C# con metadatos completos (producto, versión 1.0, compañía).\n2. Manifiesto incrustado asInvoker compatible con Windows 10 y 11.\n3. Certificado digital Authenticode aplicado al binario reconocido en las propiedades del archivo.\n4. Eliminación de todos los archivos .bat para operar exclusivamente con el ejecutable nativo en MiAppProcesos_USB/.',
+    fechaImplementacion: '2026-09-11',
+    estado: 'Implementado / Producción'
+  },
+  {
+    id: 'PST-021',
+    modulo: 'DevOps & Metodología',
+    titulo: 'Cadena de Compilación Automática y Auto-Push Git tras cada Cambio',
+    historiaUsuario: 'Como equipo de desarrollo, quiero que cada cambio aprobado active automáticamente la sincronización de archivos (sync-dist), la generación del backlog Excel y el push al repositorio remoto en GitHub, para mantener la máxima trazabilidad y sincronización en la nube.',
+    criteriosAceptacion: '1. Script sync-dist.cjs clona automáticamente los bundles compilados a MiAppProcesos_USB/App/dist/.\n2. Script generate-user-stories.cjs mantiene actualizado el archivo HISTORIAS_DE_USUARIO_PROCESSTUDIO.xlsx.\n3. Directiva permanente de Plan de Ruta previo obligatorio ante cualquier solicitud.\n4. Auto-Push automático a origin/main inmediatamente tras verificar cada funcionalidad aprobada.',
+    fechaImplementacion: '2026-09-11',
+    estado: 'Implementado / Producción'
+  }
+];
+
+function generateExcel() {
+  console.log('📊 Generando archivo Excel de Historias de Usuario...');
+
+  // Create worksheet data
+  const headers = [
+    'ID',
+    'Módulo / Componente',
+    'Título del Desarrollo',
+    'Historia de Usuario (User Story)',
+    'Criterios de Aceptación (Acceptance Criteria)',
+    'Fecha de Implementación',
+    'Estado'
+  ];
+
+  const rows = userStories.map(story => [
+    story.id,
+    story.modulo,
+    story.titulo,
+    story.historiaUsuario,
+    story.criteriosAceptacion,
+    story.fechaImplementacion,
+    story.estado
+  ]);
+
+  const worksheetData = [headers, ...rows];
+  const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
+
+  // Column widths
+  worksheet['!cols'] = [
+    { wch: 12 },  // ID
+    { wch: 26 },  // Módulo
+    { wch: 38 },  // Título
+    { wch: 65 },  // Historia de Usuario
+    { wch: 75 },  // Criterios de Aceptación
+    { wch: 22 },  // Fecha
+    { wch: 24 }   // Estado
+  ];
+
+  // Create workbook
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Historias de Usuario');
+
+  // Paths
+  const rootPath = path.resolve(__dirname, '../HISTORIAS_DE_USUARIO_PROCESSTUDIO.xlsx');
+  const usbPath = path.resolve(__dirname, '../MiAppProcesos_USB/HISTORIAS_DE_USUARIO_PROCESSTUDIO.xlsx');
+
+  // Write files
+  XLSX.writeFile(workbook, rootPath);
+  console.log(`✓ Archivo generado en raíz: ${rootPath}`);
+
+  if (fs.existsSync(path.dirname(usbPath))) {
+    XLSX.writeFile(workbook, usbPath);
+    console.log(`✓ Archivo sincronizado en USB: ${usbPath}`);
+  }
+
+  console.log(`✅ Total de Historias de Usuario registradas: ${userStories.length}`);
+}
+
+generateExcel();
