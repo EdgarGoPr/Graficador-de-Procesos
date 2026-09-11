@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   ReactFlow,
   ReactFlowProvider,
@@ -14,15 +14,16 @@ import { useUiStore } from '../../store/useUiStore';
 import { PRESET_THEMES } from '../../types/theme';
 import { computeFlowchartLayout } from '../../services/flowchartLayout';
 import { FlowchartNode } from './FlowchartNode';
+import { FlowchartPrintDocument } from './FlowchartPrintDocument';
 import {
   Printer,
   Maximize2,
   ZoomIn,
   ZoomOut,
   GitGraph,
-  Layers,
-  Shield,
-  ArrowDown
+  ArrowDown,
+  FileText,
+  Eye
 } from 'lucide-react';
 
 const NODE_TYPES = {
@@ -33,12 +34,13 @@ const FlowchartInternal: React.FC = () => {
   const { currentProject } = useProjectStore();
   const { zoomIn, zoomOut, fitView } = useReactFlow();
   const { currentThemeId, customThemeColors } = useUiStore();
+  const [viewMode, setViewMode] = useState<'INTERACTIVE' | 'PAGINATED_PREVIEW'>('INTERACTIVE');
 
   const activeColors = currentThemeId === 'custom'
     ? customThemeColors
     : (PRESET_THEMES[currentThemeId]?.colors || PRESET_THEMES['antigravity-dark'].colors);
 
-  // Compute deterministic hierarchical top-to-bottom layout
+  // Compute deterministic hierarchical top-to-bottom layout for interactive screen view
   const layout = useMemo(() => {
     if (!currentProject) {
       return { nodes: [], edges: [], totalWidth: 0, totalHeight: 0, layerCount: 0 };
@@ -47,10 +49,7 @@ const FlowchartInternal: React.FC = () => {
   }, [currentProject]);
 
   const handlePrint = () => {
-    fitView({ padding: 0.15 });
-    setTimeout(() => {
-      window.print();
-    }, 200);
+    window.print();
   };
 
   if (!currentProject) {
@@ -74,9 +73,6 @@ const FlowchartInternal: React.FC = () => {
             background-color: white !important;
             color: black !important;
           }
-          .react-flow__pane {
-            cursor: default !important;
-          }
         }
       `}</style>
 
@@ -95,7 +91,7 @@ const FlowchartInternal: React.FC = () => {
             </span>
           </div>
 
-          <div className="hidden md:flex items-center space-x-2 text-xs font-mono text-theme-text-muted">
+          <div className="hidden lg:flex items-center space-x-2 text-xs font-mono text-theme-text-muted">
             <span>&bull;</span>
             <span>{layout.nodes.length} Nodos</span>
             <span>&bull;</span>
@@ -104,28 +100,61 @@ const FlowchartInternal: React.FC = () => {
         </div>
 
         <div className="flex items-center space-x-2">
-          <button
-            onClick={() => zoomIn()}
-            className="p-1.5 rounded-lg bg-theme-surface-subtle hover:bg-theme-surface text-theme-text border border-theme-border text-xs transition-colors"
-            title="Acercar (+)"
-          >
-            <ZoomIn className="w-4 h-4" />
-          </button>
-          <button
-            onClick={() => zoomOut()}
-            className="p-1.5 rounded-lg bg-theme-surface-subtle hover:bg-theme-surface text-theme-text border border-theme-border text-xs transition-colors"
-            title="Alejar (-)"
-          >
-            <ZoomOut className="w-4 h-4" />
-          </button>
-          <button
-            onClick={() => fitView({ padding: 0.15 })}
-            className="flex items-center space-x-1 px-2.5 py-1.5 rounded-lg bg-theme-surface-subtle hover:bg-theme-surface text-theme-text border border-theme-border text-xs font-medium transition-colors"
-            title="Centrar y ajustar flujograma"
-          >
-            <Maximize2 className="w-3.5 h-3.5" />
-            <span>Ajustar Vista</span>
-          </button>
+          {/* Toggle Screen View Mode */}
+          <div className="flex items-center bg-theme-surface-subtle p-0.5 rounded-lg border border-theme-border mr-2">
+            <button
+              onClick={() => setViewMode('INTERACTIVE')}
+              className={`flex items-center space-x-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-all ${
+                viewMode === 'INTERACTIVE'
+                  ? 'bg-theme-surface text-theme-accent font-bold shadow-xs'
+                  : 'text-theme-text-muted hover:text-theme-text'
+              }`}
+              title="Vista interactiva con zoom y navegación"
+            >
+              <Eye className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Lienzo Interactivo</span>
+            </button>
+            <button
+              onClick={() => setViewMode('PAGINATED_PREVIEW')}
+              className={`flex items-center space-x-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-all ${
+                viewMode === 'PAGINATED_PREVIEW'
+                  ? 'bg-theme-surface text-theme-accent font-bold shadow-xs'
+                  : 'text-theme-text-muted hover:text-theme-text'
+              }`}
+              title="Vista previa del documento paginado para PDF"
+            >
+              <FileText className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Vista Paginada</span>
+            </button>
+          </div>
+
+          {viewMode === 'INTERACTIVE' && (
+            <>
+              <button
+                onClick={() => zoomIn()}
+                className="p-1.5 rounded-lg bg-theme-surface-subtle hover:bg-theme-surface text-theme-text border border-theme-border text-xs transition-colors"
+                title="Acercar (+)"
+              >
+                <ZoomIn className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => zoomOut()}
+                className="p-1.5 rounded-lg bg-theme-surface-subtle hover:bg-theme-surface text-theme-text border border-theme-border text-xs transition-colors"
+                title="Alejar (-)"
+              >
+                <ZoomOut className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => fitView({ padding: 0.15 })}
+                className="flex items-center space-x-1 px-2.5 py-1.5 rounded-lg bg-theme-surface-subtle hover:bg-theme-surface text-theme-text border border-theme-border text-xs font-medium transition-colors"
+                title="Centrar y ajustar flujograma"
+              >
+                <Maximize2 className="w-3.5 h-3.5" />
+                <span className="hidden md:inline">Ajustar</span>
+              </button>
+            </>
+          )}
+
           <button
             onClick={handlePrint}
             className="flex items-center space-x-2 px-4 py-1.5 bg-gradient-to-r from-[#0284C7] to-[#3B82F6] hover:brightness-110 text-white rounded-xl text-xs font-bold shadow-md shadow-blue-500/20 transition-all active:scale-95"
@@ -136,28 +165,8 @@ const FlowchartInternal: React.FC = () => {
         </div>
       </div>
 
-      {/* Main Flowchart Interactive / Printable Canvas */}
-      <div className="flex-1 w-full h-full relative print:h-auto print:w-full">
-        {/* Document Title header visible only during print */}
-        <div className="hidden print:block p-6 border-b-2 border-slate-900 mb-4">
-          <div className="flex justify-between items-center">
-            <div>
-              <span className="text-xs font-mono font-bold uppercase text-slate-700">
-                Flujograma Operativo &bull; ISO 9001:2015
-              </span>
-              <h1 className="text-2xl font-bold text-black mt-0.5">
-                {currentProject.documentControl.documentTitle}
-              </h1>
-              <p className="text-xs text-slate-600 mt-0.5">
-                {currentProject.documentControl.organizationUnit} &bull; Código: {currentProject.documentControl.documentCode} (v{currentProject.documentControl.version})
-              </p>
-            </div>
-            <div className="text-right text-xs font-mono text-slate-600">
-              {new Date().toISOString().substring(0, 10)}
-            </div>
-          </div>
-        </div>
-
+      {/* 1. Interactive Screen Mode (Hidden during print) */}
+      <div className={`flex-1 w-full h-full relative print:hidden ${viewMode === 'PAGINATED_PREVIEW' ? 'hidden' : 'block'}`}>
         <ReactFlow
           nodes={layout.nodes}
           edges={layout.edges}
@@ -174,7 +183,7 @@ const FlowchartInternal: React.FC = () => {
           maxZoom={2.0}
           style={{ backgroundColor: activeColors.canvasBg }}
         >
-          <Controls className="!bg-theme-surface !border-theme-border !text-theme-text fill-current shadow-lg print:hidden" />
+          <Controls className="!bg-theme-surface !border-theme-border !text-theme-text fill-current shadow-lg" />
           <Background
             variant={BackgroundVariant.Dots}
             gap={24}
@@ -183,6 +192,20 @@ const FlowchartInternal: React.FC = () => {
             bgColor={activeColors.canvasBg}
           />
         </ReactFlow>
+      </div>
+
+      {/* 2. Paginated Screen Preview Mode */}
+      {viewMode === 'PAGINATED_PREVIEW' && (
+        <div className="flex-1 overflow-y-auto p-4 md:p-8 bg-slate-900/40 print:hidden">
+          <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-2xl p-8 border border-slate-700">
+            <FlowchartPrintDocument project={currentProject} />
+          </div>
+        </div>
+      )}
+
+      {/* 3. Dedicated Print Document (Visible ONLY during window.print()) */}
+      <div className="hidden print:block w-full">
+        <FlowchartPrintDocument project={currentProject} />
       </div>
     </div>
   );

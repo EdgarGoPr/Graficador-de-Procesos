@@ -98,7 +98,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
   ];
 
   return (
-    <header className="h-14 bg-theme-surface border-b border-theme-border px-4 flex items-center justify-between shrink-0 select-none z-30 transition-colors">
+    <header className="h-14 bg-theme-surface border-b border-theme-border px-4 flex items-center justify-between shrink-0 select-none z-30 transition-colors print:hidden">
       {/* Brand & Project Info */}
       <div className="flex items-center space-x-3">
         <div

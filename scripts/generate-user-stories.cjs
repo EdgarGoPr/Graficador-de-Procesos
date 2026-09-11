@@ -200,6 +200,15 @@ const userStories = [
     criteriosAceptacion: '1. Creación del bundle oficial ProcesStudio.app con estructura estándar Contents/Info.plist y Contents/MacOS/ProcesStudio.\n2. Ejecutable nativo compatible con procesadores Intel y Apple Silicon (M1/M2/M3/M4).\n3. Resolución automática de la carpeta ../Proyectos/ para persistencia local de archivos .json.\n4. Soporte complementario del script ProcesStudio_Mac.command para ejecución por terminal.',
     fechaImplementacion: '2026-09-11',
     estado: 'Implementado / Producción'
+  },
+  {
+    id: 'PST-023',
+    modulo: 'Flujograma & Impresión',
+    titulo: 'Renderizador de Impresión Multipágina Vectorial para Flujograma en PDF',
+    historiaUsuario: 'Como usuario administrativo, quiero que al imprimir el diagrama de flujo en PDF la salida esté perfectamente centrada, oculte la interfaz de la aplicación y se extienda a lo largo de tantas páginas A4 como sea necesario con saltos limpios sin cortar tarjetas, para obtener un documento impreso profesional y completo.',
+    criteriosAceptacion: '1. Ocultamiento total de la barra de navegación Header durante la impresión mediante clase print:hidden.\n2. Motor de renderizado vectorial FlowchartPrintDocument con estructura descendente nivel por nivel.\n3. Centrado automático horizontal de cada nivel en la hoja A4 con flechas SVG continuas y etiquetas de condición.\n4. Soporte nativo de paginación vertical con reglas page-break-inside: avoid en cada bloque.\n5. Selector de Vista Paginada para previsualizar el PDF en pantalla antes de imprimir.',
+    fechaImplementacion: '2026-09-11',
+    estado: 'Implementado / Producción'
   }
 ];
 
