@@ -1,14 +1,28 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Windows.Forms;
+
+[assembly: AssemblyTitle("ProcesStudio Portable")]
+[assembly: AssemblyDescription("BPMN 2.0 (ISO 19510) & ISO 9001:2015 Process Studio")]
+[assembly: AssemblyConfiguration("")]
+[assembly: AssemblyCompany("ProcesStudio")]
+[assembly: AssemblyProduct("ProcesStudio Portable")]
+[assembly: AssemblyCopyright("Copyright © 2026")]
+[assembly: AssemblyTrademark("")]
+[assembly: ComVisible(false)]
+[assembly: Guid("b2c58971-4682-4fa1-8288-51829e7104b2")]
+[assembly: AssemblyVersion("1.0.0.0")]
+[assembly: AssemblyFileVersion("1.0.0.0")]
 
 namespace ProcesStudio
 {
     static class Program
     {
         [STAThread]
-        static void Main()
+        static void Main(string[] args)
         {
             try
             {
@@ -64,7 +78,7 @@ namespace ProcesStudio
                 {
                     ProcessStartInfo psi = new ProcessStartInfo();
                     psi.FileName = electronExe;
-                    psi.Arguments = "\"" + mainScript + "\"";
+                    psi.Arguments = "\"" + mainScript + "\" --portable";
                     psi.WorkingDirectory = Path.GetDirectoryName(mainScript);
                     psi.UseShellExecute = false;
                     psi.CreateNoWindow = true;

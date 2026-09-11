@@ -165,7 +165,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
           title="Personalizar Temas de Antigravity IDE, Fondo de Pizarra y Paleta"
         >
           <Palette className="w-3.5 h-3.5 text-theme-accent group-hover:rotate-12 transition-transform" />
-          <span className="hidden xl:inline text-[11px] text-theme-text">Temas y Colores</span>
+          <span className="hidden sm:inline text-[11px] text-theme-text">Temas</span>
           <span className="w-1.5 h-1.5 rounded-full bg-theme-accent shrink-0" />
         </button>
 

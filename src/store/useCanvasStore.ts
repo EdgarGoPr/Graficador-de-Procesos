@@ -27,6 +27,7 @@ interface CanvasStoreState {
   selectedEdgeId: string | null;
   clipboardPayload: { nodes: Node<BpmnNodeData>[]; edges: Edge<SequenceFlowData>[] } | null;
   isCompressModalOpen: boolean;
+  isCanvasLocked: boolean; // Modo fijado global: ningún elemento se desplaza y arrastrar sobre ellos desplaza el mapa
 
   // React Flow Handlers
   onNodesChange: OnNodesChange<Node<BpmnNodeData>>;
@@ -38,6 +39,11 @@ interface CanvasStoreState {
   setSelectedNodeIds: (ids: string[]) => void;
   selectEdge: (edgeId: string | null) => void;
   setCompressModalOpen: (open: boolean) => void;
+
+  // Lock / Pin controls
+  toggleCanvasLock: () => void;
+  toggleLockSelected: () => void;
+  setNodeLock: (nodeId: string, isLocked: boolean) => void;
 
   // Clipboard (Copy / Paste)
   copySelection: () => boolean;
@@ -71,11 +77,24 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
   selectedEdgeId: null,
   clipboardPayload: null,
   isCompressModalOpen: false,
+  isCanvasLocked: false,
 
   onNodesChange: (changes) => {
     const projectStore = useProjectStore.getState();
     const currentProject = projectStore.currentProject;
     if (!currentProject) return;
+
+    const { isCanvasLocked } = get();
+
+    // Filter out drag position changes if canvas is locked or if the specific node is locked
+    const validChanges = changes.filter((change) => {
+      if (change.type === 'position' && change.dragging) {
+        if (isCanvasLocked) return false;
+        const draggingNode = currentProject.nodes.find((n) => n.id === change.id);
+        if (draggingNode?.data?.isLocked) return false;
+      }
+      return true;
+    });
 
     // Apply Real Magnetic Snapping during drag
     const SNAP_RADIUS = 16;
@@ -83,7 +102,7 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
     const GAP_X = 40;
     const GAP_Y = 30;
 
-    const modifiedChanges = changes.map((change) => {
+    const modifiedChanges = validChanges.map((change) => {
       if (change.type === 'position' && change.position && change.dragging) {
         const draggingNode = currentProject.nodes.find((n) => n.id === change.id);
         if (!draggingNode) return change;
@@ -268,6 +287,65 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
   },
 
   setCompressModalOpen: (open: boolean) => set({ isCompressModalOpen: open }),
+
+  // Lock / Pin controls
+  toggleCanvasLock: () => set((state) => ({ isCanvasLocked: !state.isCanvasLocked })),
+
+  toggleLockSelected: () => {
+    const { selectedNodeIds, selectedNodeId } = get();
+    const ids = selectedNodeIds.length > 0 ? selectedNodeIds : (selectedNodeId ? [selectedNodeId] : []);
+    if (ids.length === 0) return;
+
+    const projectStore = useProjectStore.getState();
+    const currentProject = projectStore.currentProject;
+    if (!currentProject) return;
+
+    // Check if any of the selected nodes are unlocked
+    const anyUnlocked = currentProject.nodes.some((n) => ids.includes(n.id) && !n.data?.isLocked);
+    const targetState = anyUnlocked; // If any is unlocked, lock all; otherwise unlock all
+
+    const nextNodes = currentProject.nodes.map((node) => {
+      if (ids.includes(node.id)) {
+        return {
+          ...node,
+          data: {
+            ...node.data,
+            isLocked: targetState
+          }
+        };
+      }
+      return node;
+    });
+
+    projectStore.setProjectData({
+      ...currentProject,
+      nodes: nextNodes
+    });
+  },
+
+  setNodeLock: (nodeId: string, isLocked: boolean) => {
+    const projectStore = useProjectStore.getState();
+    const currentProject = projectStore.currentProject;
+    if (!currentProject) return;
+
+    const nextNodes = currentProject.nodes.map((node) => {
+      if (node.id === nodeId) {
+        return {
+          ...node,
+          data: {
+            ...node.data,
+            isLocked
+          }
+        };
+      }
+      return node;
+    });
+
+    projectStore.setProjectData({
+      ...currentProject,
+      nodes: nextNodes
+    });
+  },
 
   // CLIPBOARD OPERATIONS
   copySelection: () => {

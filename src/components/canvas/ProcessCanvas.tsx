@@ -15,6 +15,7 @@ import '@xyflow/react/dist/style.css';
 import { useProjectStore } from '../../store/useProjectStore';
 import { useCanvasStore } from '../../store/useCanvasStore';
 import { useUiStore } from '../../store/useUiStore';
+import { PRESET_THEMES, hexToRgba } from '../../types/theme';
 
 import { StartEventNode } from './custom-nodes/StartEventNode';
 import { EndEventNode } from './custom-nodes/EndEventNode';
@@ -64,10 +65,22 @@ const ProcessCanvasInternal: React.FC = () => {
     deleteSelected,
     copySelection,
     pasteSelection,
-    selectedNodeIds
+    selectedNodeIds,
+    isCanvasLocked
   } = useCanvasStore();
 
-  const { setPropertiesPanelOpen, theme, showNotification } = useUiStore();
+  const {
+    setPropertiesPanelOpen,
+    currentThemeId,
+    customThemeColors,
+    theme,
+    showNotification
+  } = useUiStore();
+
+  const activeColors = currentThemeId === 'custom'
+    ? customThemeColors
+    : (PRESET_THEMES[currentThemeId]?.colors || PRESET_THEMES['antigravity-dark'].colors);
+
   const [alignmentGuides, setAlignmentGuides] = useState<AlignmentGuide[]>([]);
 
   const onDragOver = useCallback((event: React.DragEvent) => {
@@ -301,17 +314,39 @@ const ProcessCanvasInternal: React.FC = () => {
     );
   }
 
+  // Stable hierarchical sorting so sections/lanes are rendered in background (first in array),
+  // and tasks, gateways, and events are rendered on top (foreground).
+  // Dynamically set draggable to false if the canvas is locked or if the node is individually locked.
+  const hierarchicalNodes = React.useMemo(() => {
+    if (!currentProject?.nodes) return [];
+    const getHierarchyLevel = (type?: string) => {
+      if (type === 'PoolLane') return 0; // Jerarquía más básica (fondo)
+      if (type === 'SubProcess') return 1; // Subprocesos contenedores
+      if (type?.includes('Task')) return 2; // Tareas de usuario / servicio / manual
+      if (type?.includes('Gateway')) return 3; // Compuertas
+      if (type?.includes('Event')) return 4; // Eventos inicio, fin, calidad, timer
+      return 2;
+    };
+    return [...currentProject.nodes]
+      .map((node) => ({
+        ...node,
+        draggable: !isCanvasLocked && !node.data?.isLocked
+      }))
+      .sort((a, b) => getHierarchyLevel(a.type) - getHierarchyLevel(b.type));
+  }, [currentProject?.nodes, isCanvasLocked]);
+
   return (
     <div
       ref={reactFlowWrapper}
-      className="flex-1 h-full relative bg-theme-canvas transition-colors outline-none"
+      style={{ backgroundColor: activeColors.canvasBg }}
+      className="flex-1 h-full relative transition-colors outline-none"
       onKeyDown={onKeyDown}
       tabIndex={0}
     >
       <SelectionToolbar />
 
       <ReactFlow
-        nodes={currentProject.nodes}
+        nodes={hierarchicalNodes}
         edges={currentProject.edges}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
@@ -327,8 +362,8 @@ const ProcessCanvasInternal: React.FC = () => {
         edgeTypes={EDGE_TYPES}
         selectionMode={SelectionMode.Partial}
         multiSelectionKeyCode={['Shift']}
-        nodesDraggable={true}
-        nodesConnectable={true}
+        nodesDraggable={!isCanvasLocked}
+        nodesConnectable={!isCanvasLocked}
         elementsSelectable={true}
         panOnDrag={true}
         panOnScroll={true}
@@ -340,7 +375,7 @@ const ProcessCanvasInternal: React.FC = () => {
         fitView
         minZoom={0.2}
         maxZoom={2.5}
-        className="bg-theme-canvas"
+        style={{ backgroundColor: activeColors.canvasBg }}
         defaultEdgeOptions={{
           type: 'sequenceFlow',
           animated: false,
@@ -350,21 +385,60 @@ const ProcessCanvasInternal: React.FC = () => {
         <Controls className="!bg-theme-surface !border-theme-border !text-theme-text fill-current shadow-lg" />
         <MiniMap
           nodeColor={(node) => {
+            // 1. Jerarquía base: Carril / Sección (Fondo traslúcido suave con borde distintivo para no tapar los elementos de encima)
+            if (node.type === 'PoolLane') {
+              const laneColor = (node.data as any)?.customBorderColor || '#38BDF8';
+              return hexToRgba(laneColor, 18);
+            }
+            // 2. Eventos Iniciales y Calidad (Verde Esmeralda)
             if (node.type === 'StartEvent') return '#10B981';
+            if (node.type === 'QualityCheckpointEvent') return '#059669';
+            
+            // 3. Eventos Finales (Rojo Carmesí)
             if (node.type === 'EndEvent') return '#EF4444';
-            if (node.type === 'QualityCheckpointEvent') return '#10B981';
-            if (node.type?.includes('Gateway') || node.type === 'TimerBoundaryEvent') return '#F59E0B';
-            if (node.type === 'PoolLane') return '#0284C7';
+            
+            // 4. Compuertas y Decisiones (Ámbar / Dorado)
+            if (node.type === 'ExclusiveGateway' || node.type === 'ParallelGateway') return '#F59E0B';
+            
+            // 5. Eventos Temporizadores (Naranja Cálido)
+            if (node.type === 'TimerBoundaryEvent') return '#F97316';
+            
+            // 6. Subprocesos (Púrpura / Violeta)
+            if (node.type === 'SubProcess') return '#A855F7';
+
+            // 7. Tareas por tipo
+            if (node.type === 'UserTask') return '#38BDF8';     // Azul Cielo (Usuario)
+            if (node.type === 'ServiceTask') return '#06B6D4';  // Cian (Sistema/Servicio)
+            if (node.type === 'ManualTask') return '#F59E0B';   // Ámbar (Manual)
+
             return '#3B82F6';
           }}
-          className="!bg-theme-surface/90 !border-theme-border !rounded-lg shadow-xl"
-          maskColor={theme === 'dark' ? 'rgba(24, 24, 27, 0.75)' : 'rgba(241, 243, 245, 0.75)'}
+          nodeStrokeColor={(node) => {
+            if (node.type === 'PoolLane') {
+              return (node.data as any)?.customBorderColor || '#38BDF8';
+            }
+            if (node.type === 'StartEvent' || node.type === 'QualityCheckpointEvent') return '#047857';
+            if (node.type === 'EndEvent') return '#B91C1C';
+            if (node.type === 'ExclusiveGateway' || node.type === 'ParallelGateway' || node.type === 'ManualTask') return '#B45309';
+            if (node.type === 'TimerBoundaryEvent') return '#C2410C';
+            if (node.type === 'SubProcess') return '#7E22CE';
+            if (node.type === 'ServiceTask') return '#0891B2';
+            return '#0284C7';
+          }}
+          nodeStrokeWidth={1.5}
+          nodeBorderRadius={4}
+          className="!bg-theme-surface/90 !border-theme-border !rounded-xl shadow-2xl backdrop-blur-md"
+          maskColor={activeColors.isDark ? 'rgba(15, 23, 42, 0.70)' : 'rgba(241, 245, 249, 0.70)'}
+          maskStrokeColor={activeColors.accent}
+          maskStrokeWidth={1.5}
         />
         <Background
           variant={BackgroundVariant.Dots}
           gap={24}
-          size={1}
-          color={theme === 'dark' ? '#3F3F46' : '#CBD5E1'}
+          size={1.5}
+          color={activeColors.dotGridColor}
+          bgColor={activeColors.canvasBg}
+          style={{ backgroundColor: activeColors.canvasBg }}
         />
       </ReactFlow>
     </div>

@@ -138,6 +138,7 @@ export interface BpmnNodeData {
   customFontSize?: number; // Tamaño de letra personalizado en px (ej: 10, 12, 14, 16, 18)
   displayMode?: 'full' | 'title_only'; // Modo de visualización: 'full' (completo) o 'title_only' (solo título)
   orientation?: 'horizontal' | 'vertical'; // Orientación: 'horizontal' (apaisado) o 'vertical' (columna)
+  isLocked?: boolean; // Elemento fijado/bloqueado: no se arrastra y permite desplazar el lienzo al hacer clic y arrastrar sobre él
   tags: string[];
   [key: string]: unknown;
 }

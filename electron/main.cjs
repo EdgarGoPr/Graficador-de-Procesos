@@ -6,7 +6,10 @@ const fs = require('fs');
  * 100% Portable Mode Configuration (Zero AppData, Zero Registry)
  * Redirects userData to local directory relative to the executable
  */
-const portableDataDir = path.join(__dirname, '../data');
+let portableDataDir = path.resolve(__dirname, '../MiAppProcesos_USB/data');
+if (!fs.existsSync(portableDataDir)) {
+  portableDataDir = path.resolve(__dirname, '../data');
+}
 if (!fs.existsSync(portableDataDir)) {
   fs.mkdirSync(portableDataDir, { recursive: true });
 }
@@ -17,11 +20,11 @@ app.commandLine.appendSwitch('disable-gpu-shader-disk-cache');
 app.commandLine.appendSwitch('no-sandbox');
 
 /**
- * Resolve ../Proyectos/ directory relative to executable or app root
+ * Resolve Proyectos directory (prioritizing MiAppProcesos_USB/Proyectos)
  */
-let projectsDir = path.resolve(__dirname, '../Proyectos');
+let projectsDir = path.resolve(__dirname, '../MiAppProcesos_USB/Proyectos');
 if (!fs.existsSync(projectsDir)) {
-  projectsDir = path.resolve(__dirname, '../../Proyectos');
+  projectsDir = path.resolve(__dirname, '../Proyectos');
 }
 if (!fs.existsSync(projectsDir)) {
   fs.mkdirSync(projectsDir, { recursive: true });

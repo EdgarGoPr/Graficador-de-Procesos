@@ -2,7 +2,7 @@ import React from 'react';
 import { useCanvasStore } from '../../store/useCanvasStore';
 import { useProjectStore } from '../../store/useProjectStore';
 import { useUiStore } from '../../store/useUiStore';
-import { Box, Copy, Clipboard, Trash2, RotateCcw, AlignJustify } from 'lucide-react';
+import { Box, Copy, Clipboard, Trash2, RotateCcw, AlignJustify, Lock, Unlock } from 'lucide-react';
 
 export const SelectionToolbar: React.FC = () => {
   const {
@@ -13,7 +13,10 @@ export const SelectionToolbar: React.FC = () => {
     setCompressModalOpen,
     deleteSelected,
     updateNodeData,
-    alignAllLanes
+    alignAllLanes,
+    isCanvasLocked,
+    toggleCanvasLock,
+    toggleLockSelected
   } = useCanvasStore();
 
   const { currentProject } = useProjectStore();
@@ -23,8 +26,9 @@ export const SelectionToolbar: React.FC = () => {
   const hasMultiple = selectedNodeIds.length >= 2;
   const hasClipboard = Boolean(clipboardPayload && clipboardPayload.nodes.length > 0);
   const hasLanes = currentProject?.nodes.some((n) => n.type === 'PoolLane') ?? false;
+  const isSelectionLocked = hasSelection && (currentProject?.nodes.some((n) => selectedNodeIds.includes(n.id) && n.data?.isLocked) ?? false);
 
-  if (!hasSelection && !hasClipboard && !hasLanes) return null;
+  if (!hasSelection && !hasClipboard && !hasLanes && !isCanvasLocked) return null;
 
   const handleCopy = () => {
     const ok = copySelection();
@@ -60,6 +64,68 @@ export const SelectionToolbar: React.FC = () => {
         </div>
       )}
 
+      {/* Lock / Unlock Selected Nodes Button */}
+      {hasSelection && (
+        <button
+          onClick={() => {
+            toggleLockSelected();
+            showNotification(
+              isSelectionLocked
+                ? 'Elementos desbloqueados (permiten arrastrar su posición)'
+                : 'Elementos fijados (al arrastrar sobre ellos se desplaza el mapa)',
+              'info'
+            );
+          }}
+          className={`flex items-center space-x-1 px-2.5 py-1.5 rounded-xl border text-xs font-medium transition-colors cursor-pointer ${
+            isSelectionLocked
+              ? 'bg-amber-500/15 border-amber-500/40 text-amber-400 hover:bg-amber-500/25 font-bold shadow-sm'
+              : 'bg-theme-surface-subtle hover:bg-theme-surface border-theme-border text-theme-text'
+          }`}
+          title={
+            isSelectionLocked
+              ? 'Desfijar elementos seleccionados para moverlos de lugar'
+              : 'Fijar posición de elementos seleccionados (permite arrastrar el mapa sobre ellos sin moverlos)'
+          }
+        >
+          {isSelectionLocked ? (
+            <Lock className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+          ) : (
+            <Unlock className="w-3.5 h-3.5 text-theme-text-muted shrink-0" />
+          )}
+          <span>{isSelectionLocked ? 'Fijado' : 'Fijar'}</span>
+        </button>
+      )}
+
+      {/* Global Canvas Lock / Pan Mode Toggle */}
+      <button
+        onClick={() => {
+          toggleCanvasLock();
+          showNotification(
+            isCanvasLocked
+              ? 'Lienzo desbloqueado (edición libre de posiciones)'
+              : 'Lienzo fijado en modo mapa / navegación',
+            'info'
+          );
+        }}
+        className={`flex items-center space-x-1 px-2.5 py-1.5 rounded-xl border text-xs font-medium transition-colors cursor-pointer ${
+          isCanvasLocked
+            ? 'bg-sky-500/20 border-sky-400 text-sky-400 ring-1 ring-sky-400 font-bold'
+            : 'bg-theme-surface-subtle hover:bg-theme-surface border-theme-border text-theme-text-muted hover:text-theme-text'
+        }`}
+        title={
+          isCanvasLocked
+            ? 'Lienzo fijado: clic para habilitar el arrastre de elementos'
+            : 'Fijar todo el mapa para navegar libremente arrastrando sobre cualquier elemento'
+        }
+      >
+        {isCanvasLocked ? (
+          <Lock className="w-3.5 h-3.5 text-sky-400 shrink-0" />
+        ) : (
+          <Unlock className="w-3.5 h-3.5 text-theme-text-muted shrink-0" />
+        )}
+        <span className="hidden md:inline">{isCanvasLocked ? 'Mapa Fijado' : 'Fijar Mapa'}</span>
+      </button>
+
       {/* Dock and Align Lanes Button */}
       {hasLanes && (
         <button
@@ -71,7 +137,7 @@ export const SelectionToolbar: React.FC = () => {
           title="Acoplar y alinear todos los carriles en secuencia continua sin solapamientos"
         >
           <AlignJustify className="w-3.5 h-3.5" />
-          <span>Acoplar Carriles</span>
+          <span className="hidden sm:inline">Acoplar Carriles</span>
         </button>
       )}
 

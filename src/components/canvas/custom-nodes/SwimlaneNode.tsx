@@ -3,7 +3,7 @@ import { NodeProps, NodeResizer } from '@xyflow/react';
 import { BpmnNodeData } from '../../../types/process';
 import { hexToRgba } from '../../../types/theme';
 import { useCanvasStore } from '../../../store/useCanvasStore';
-import { Layers, Server, UserCheck, Edit2, Check, Palette, X, RotateCcw } from 'lucide-react';
+import { Layers, Server, UserCheck, Edit2, Check, Palette, X, RotateCcw, Lock, Unlock } from 'lucide-react';
 
 const PRESET_COLORS = [
   { label: 'Azul Acero', hex: '#38bdf8' },
@@ -106,6 +106,22 @@ export const SwimlaneNode = memo(({ id, data, selected }: NodeProps<any>) => {
           </div>
 
           <div className="flex items-center space-x-1">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                updateNodeData(id, { isLocked: !nodeData.isLocked });
+              }}
+              onMouseDown={(e) => e.stopPropagation()}
+              className={`nodrag nopan p-1 rounded transition-colors cursor-pointer ${
+                nodeData.isLocked
+                  ? 'text-amber-400 bg-amber-500/10 hover:bg-amber-500/20'
+                  : 'text-theme-text-muted hover:text-amber-400 hover:bg-theme-surface'
+              }`}
+              title={nodeData.isLocked ? 'Carril fijado (hacer clic para desbloquear)' : 'Fijar carril (bloquear posición para arrastrar mapa libremente)'}
+            >
+              {nodeData.isLocked ? <Lock className="w-3.5 h-3.5" /> : <Unlock className="w-3.5 h-3.5" />}
+            </button>
             <button
               type="button"
               onClick={toggleOrientation}
