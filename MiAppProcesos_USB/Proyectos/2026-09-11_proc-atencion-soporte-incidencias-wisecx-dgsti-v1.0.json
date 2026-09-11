@@ -8,7 +8,7 @@
     "organizationUnit": "Dirección General de Sistemas, Tecnología e Innovación (DGSTI) - Tribunal Administrativo Municipal de Faltas",
     "processObjective": "Estandarizar el ciclo integral de soporte técnico e incidencias de hardware, conectividad y sistemas de faltas (SAM, VUPRA, SIGEF) mediante atención humana directa en la consola WiseCX, gestionando el empadronamiento interno, la categorización en dos niveles, el control de inactividad de usuarios y la derivación a soporte avanzado.",
     "createdAt": "2026-09-11T10:00:00Z",
-    "updatedAt": "2026-09-11T16:10:48.722Z",
+    "updatedAt": "2026-09-11T16:36:08.504Z",
     "status": "APPROVED",
     "legalNormativeBasis": [
       "Ordenanza de Procedimiento Administrativo Municipal de Córdoba",
@@ -493,8 +493,8 @@
       "id": "node-task-resolucion-n1",
       "type": "UserTask",
       "position": {
-        "x": 1939.9026946598005,
-        "y": -178.34842958116457
+        "x": 2037.4026946598005,
+        "y": -258.3484295811645
       },
       "data": {
         "standardId": "TSK-05",
@@ -671,7 +671,7 @@
         "width": 96,
         "height": 96
       },
-      "selected": true,
+      "selected": false,
       "dragging": false
     }
   ],
@@ -814,7 +814,8 @@
         "source": "node-gtw-complejidad-n1",
         "target": "node-task-resolucion-n1",
         "conditionText": "[Resolución directa N1 <= 30 min]"
-      }
+      },
+      "selected": false
     },
     {
       "id": "edge-14",
@@ -826,7 +827,8 @@
         "source": "node-gtw-complejidad-n1",
         "target": "node-task-escalado-n2",
         "conditionText": "[Incidencia compleja / Base de Datos / Apps Core]"
-      }
+      },
+      "selected": false
     },
     {
       "id": "edge-15",
@@ -838,7 +840,8 @@
         "source": "node-task-escalado-n2",
         "target": "node-task-resolucion-n2",
         "conditionText": "Pase a intervención N2"
-      }
+      },
+      "selected": false
     },
     {
       "id": "edge-16",
@@ -850,7 +853,8 @@
         "source": "node-task-resolucion-n1",
         "target": "node-end-cierre-definitivo",
         "conditionText": "Solución técnica aplicada N1"
-      }
+      },
+      "selected": false
     },
     {
       "id": "edge-17",
@@ -862,7 +866,8 @@
         "source": "node-task-resolucion-n2",
         "target": "node-end-cierre-definitivo",
         "conditionText": "Solución técnica aplicada N2"
-      }
+      },
+      "selected": false
     },
     {
       "id": "e_node-gtw-respuesta-usuario_node-gtw-complejidad-n1_1789141873412",

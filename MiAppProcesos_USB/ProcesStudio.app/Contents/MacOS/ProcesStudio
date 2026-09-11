@@ -1,0 +1,60 @@
+#!/bin/bash
+# ==============================================================================
+# ProcesStudio Portable — Binario Ejecutable Nativo para Apple macOS
+# Compatible con macOS Monterey, Ventura, Sonoma, Sequoia (Intel & Apple Silicon)
+# ==============================================================================
+
+# 1. Determinar la ruta base del directorio USB / Carpeta donde reside ProcesStudio.app
+MACOS_DIR="$(cd "$(dirname "$0")" && pwd)"
+CONTENTS_DIR="$(cd "$MACOS_DIR/.." && pwd)"
+APP_BUNDLE_DIR="$(cd "$CONTENTS_DIR/.." && pwd)"
+USB_ROOT="$(cd "$APP_BUNDLE_DIR/.." && pwd)"
+
+# 2. Asegurar que la carpeta de Proyectos y Data existan en el USB
+if [ ! -d "$USB_ROOT/Proyectos" ]; then
+  mkdir -p "$USB_ROOT/Proyectos"
+fi
+
+if [ ! -d "$USB_ROOT/data" ]; then
+  mkdir -p "$USB_ROOT/data"
+fi
+
+# 3. Candidatos para motor Electron nativo de macOS
+CANDIDATE_ELECTRONS=(
+  "$USB_ROOT/App/electron.app/Contents/MacOS/Electron"
+  "$USB_ROOT/App/Electron.app/Contents/MacOS/Electron"
+  "$USB_ROOT/electron.app/Contents/MacOS/Electron"
+  "$USB_ROOT/node_modules/electron/dist/Electron.app/Contents/MacOS/Electron"
+  "$USB_ROOT/../node_modules/electron/dist/Electron.app/Contents/MacOS/Electron"
+)
+
+MAIN_SCRIPT="$USB_ROOT/App/main.cjs"
+if [ ! -f "$MAIN_SCRIPT" ]; then
+  MAIN_SCRIPT="$USB_ROOT/electron/main.cjs"
+fi
+
+# Intentar iniciar con Electron de escritorio nativo si está presente
+for ELEC in "${CANDIDATE_ELECTRONS[@]}"; do
+  if [ -f "$ELEC" ] && [ -f "$MAIN_SCRIPT" ]; then
+    "$ELEC" "$MAIN_SCRIPT" --portable &
+    exit 0
+  fi
+done
+
+# 4. Modo Web Portable Autónomo (dist/index.html)
+CANDIDATE_HTMLS=(
+  "$USB_ROOT/App/dist/index.html"
+  "$USB_ROOT/dist/index.html"
+  "$USB_ROOT/index.html"
+)
+
+for HTML in "${CANDIDATE_HTMLS[@]}"; do
+  if [ -f "$HTML" ]; then
+    open "$HTML"
+    exit 0
+  fi
+done
+
+# 5. Diálogo de error visual nativo de macOS si faltan archivos
+osascript -e 'display dialog "No se encontraron los componentes de inicio de ProcesStudio.\nVerifique que la carpeta App/ contenga los archivos del programa." with title "ProcesStudio Portable" buttons {"Aceptar"} default button "Aceptar" with icon stop'
+exit 1

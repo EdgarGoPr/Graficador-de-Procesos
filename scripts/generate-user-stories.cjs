@@ -191,6 +191,15 @@ const userStories = [
     criteriosAceptacion: '1. Script sync-dist.cjs clona automáticamente los bundles compilados a MiAppProcesos_USB/App/dist/.\n2. Script generate-user-stories.cjs mantiene actualizado el archivo HISTORIAS_DE_USUARIO_PROCESSTUDIO.xlsx.\n3. Directiva permanente de Plan de Ruta previo obligatorio ante cualquier solicitud.\n4. Auto-Push automático a origin/main inmediatamente tras verificar cada funcionalidad aprobada.',
     fechaImplementacion: '2026-09-11',
     estado: 'Implementado / Producción'
+  },
+  {
+    id: 'PST-022',
+    modulo: 'Packaging & Compatibilidad macOS',
+    titulo: 'Lanzador Nativo Portable para macOS (ProcesStudio.app)',
+    historiaUsuario: 'Como usuario del sistema operativo Apple macOS (Macbook / iMac), quiero disponer de un paquete de aplicación nativo ProcesStudio.app ejecutable con doble clic y totalmente funcional, para abrir mis proyectos de procesos JSON en macOS con la misma facilidad que en Windows.',
+    criteriosAceptacion: '1. Creación del bundle oficial ProcesStudio.app con estructura estándar Contents/Info.plist y Contents/MacOS/ProcesStudio.\n2. Ejecutable nativo compatible con procesadores Intel y Apple Silicon (M1/M2/M3/M4).\n3. Resolución automática de la carpeta ../Proyectos/ para persistencia local de archivos .json.\n4. Soporte complementario del script ProcesStudio_Mac.command para ejecución por terminal.',
+    fechaImplementacion: '2026-09-11',
+    estado: 'Implementado / Producción'
   }
 ];
 
