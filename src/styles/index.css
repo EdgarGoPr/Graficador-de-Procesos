@@ -81,16 +81,38 @@
 
 /* Print CSS Optimization */
 @media print {
-  @page {
-    margin: 1.5cm;
-    size: A4 portrait;
-  }
   body {
     background-color: white !important;
     color: black !important;
+    overflow: visible !important;
   }
   .print\:hidden {
     display: none !important;
+  }
+  .print\:block {
+    display: block !important;
+  }
+  .print\:p-0 {
+    padding: 0 !important;
+  }
+  .page-break-avoid {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+  .page-break-before {
+    break-before: page !important;
+    page-break-before: always !important;
+  }
+  /* Table styling in print */
+  table {
+    page-break-inside: auto;
+  }
+  tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
+  }
+  thead {
+    display: table-header-group;
   }
 }
 

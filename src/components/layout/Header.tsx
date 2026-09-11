@@ -92,7 +92,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
     { id: 'DASHBOARD', label: 'Proyectos USB', icon: LayoutDashboard },
     { id: 'CANVAS', label: 'Lienzo BPMN 2.0', icon: GitGraph },
     { id: 'SIPOC', label: 'Matriz SIPOC', icon: Table },
-    { id: 'REPORT', label: 'Ficha Técnica ISO 9001', icon: FileCheck },
+    { id: 'REPORT', label: 'Documento & Diagrama', icon: FileCheck },
   ];
 
   return (
