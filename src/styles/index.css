@@ -79,30 +79,86 @@
   background: var(--theme-text-muted);
 }
 
-/* Print CSS Optimization */
+/* Print CSS Optimization & Multi-Page Unconstrained Flow */
 @media print {
+  @page {
+    size: A4 portrait;
+    margin: 10mm 12mm 10mm 12mm;
+  }
+
+  html,
   body {
     background-color: white !important;
     color: black !important;
+    height: auto !important;
+    min-height: 100% !important;
     overflow: visible !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
+
+  /* Reset all SPA layout wrappers to allow multiple pages */
+  #root,
+  .h-screen,
+  .w-screen,
+  main,
+  .overflow-hidden,
+  .overflow-y-auto,
+  .overflow-x-auto,
+  .h-full {
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+    position: static !important;
+    display: block !important;
+    width: 100% !important;
+  }
+
   .print\:hidden {
     display: none !important;
   }
+
   .print\:block {
     display: block !important;
   }
+
   .print\:p-0 {
     padding: 0 !important;
   }
-  .page-break-avoid {
+
+  .page-break-avoid,
+  .flowchart-level-block {
     break-inside: avoid !important;
     page-break-inside: avoid !important;
   }
+
   .page-break-before {
     break-before: page !important;
     page-break-before: always !important;
   }
+
+  /* Dedicated Flowchart Print Styles */
+  .flowchart-print-document {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 auto !important;
+    padding: 0 !important;
+    background: white !important;
+    color: black !important;
+    display: block !important;
+  }
+
+  .flowchart-print-container {
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+    position: static !important;
+  }
+
   /* Table styling in print */
   table {
     page-break-inside: auto;
@@ -115,4 +171,5 @@
     display: table-header-group;
   }
 }
+
 

@@ -218,6 +218,15 @@ const userStories = [
     criteriosAceptacion: '1. Registro inmutable de instantáneas previas (snapshots) en una pila de historial con límite de hasta 50 estados.\n2. Captura única de estado al iniciar arrastre de tarjetas (onNodeDragStart) evitando saturación de memoria.\n3. Deshacer (Ctrl+Z) y Rehacer (Ctrl+Y / Ctrl+Shift+Z) paso a paso en movimientos, adición/eliminación de nodos, conexiones, cambios de estilo y carriles.\n4. Botones visuales Deshacer y Rehacer en la barra superior (Header) con estados activos/deshabilitados e información contextual.\n5. Aislamiento de eventos de teclado en inputs y textareas para preservar el deshacer nativo de texto.',
     fechaImplementacion: '2026-09-11',
     estado: 'Implementado / Producción'
+  },
+  {
+    id: 'PST-025',
+    modulo: 'Flujograma & Impresión',
+    titulo: 'Paginación Vertical y Saltos de Hoja Irrestrictos en PDF de Flujograma',
+    historiaUsuario: 'Como usuario y auditor de calidad, quiero que al imprimir el Flujograma en PDF la salida se expanda de forma natural y automática a lo largo de tantas páginas A4 como demande la extensión del diagrama, para que ningún nivel o actividad sea truncado a una sola hoja por restricciones de altura o desborde del lienzo.',
+    criteriosAceptacion: '1. Reseteo global de altura, posicionamiento y overflow en @media print para todos los ancestros SPA (html, body, #root, .h-screen, main, .overflow-*).\n2. Estructuración en bloques naturales independientes (.flowchart-level-block) con break-inside: avoid y page-break-inside: avoid.\n3. Contenedor de impresión dedicado (.flowchart-print-container) con ancho al 100% y visualización limpia sin solapamientos.\n4. Soporte de exportación a PDF multipágina probado y verificado tanto en navegadores como en Electron portable.',
+    fechaImplementacion: '2026-09-11',
+    estado: 'Implementado / Producción'
   }
 ];
 

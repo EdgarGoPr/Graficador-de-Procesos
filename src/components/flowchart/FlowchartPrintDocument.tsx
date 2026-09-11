@@ -129,7 +129,7 @@ export const FlowchartPrintDocument: React.FC<FlowchartPrintDocumentProps> = ({ 
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto py-8 px-6 print:py-0 print:px-0 text-slate-900 bg-white print:bg-white select-text">
+    <div className="flowchart-print-document w-full max-w-4xl mx-auto py-8 px-6 print:py-0 print:px-0 text-slate-900 bg-white print:bg-white select-text">
       {/* 1. Formal Document Header (Prints on top of Page 1) */}
       <div className="border-b-2 border-slate-900 pb-5 mb-8 page-break-avoid">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -160,91 +160,88 @@ export const FlowchartPrintDocument: React.FC<FlowchartPrintDocumentProps> = ({ 
         )}
       </div>
 
-      {/* 2. Structured Top-to-Bottom Flow Container */}
-      <div className="space-y-6 w-full flex flex-col items-center">
+      {/* 2. Structured Top-to-Bottom Flow Container (Natural block flow for multi-page breaking) */}
+      <div className="flowchart-layers-container w-full block">
         {layers.map((layerNodeIds, layerIdx) => (
-          <React.Fragment key={layerIdx}>
-            {/* Level Container (Page Break Avoid) */}
-            <div className="w-full flex flex-col items-center page-break-avoid">
-              {/* Nodes in this Layer */}
-              <div
-                className={`w-full flex flex-wrap items-center justify-center gap-6 ${
-                  layerNodeIds.length > 2 ? 'sm:grid sm:grid-cols-3' : layerNodeIds.length === 2 ? 'sm:grid sm:grid-cols-2 max-w-2xl' : 'max-w-md'
-                }`}
-              >
-                {layerNodeIds.map((nodeId) => {
-                  const node = nodeMap.get(nodeId);
-                  if (!node) return null;
-                  const data = node.data;
-                  const isStart = node.type === 'StartEvent';
-                  const isEnd = node.type === 'EndEvent';
-                  const isGateway = node.type?.includes('Gateway');
+          <div key={layerIdx} className="flowchart-level-block w-full page-break-avoid mb-6">
+            {/* Nodes in this Layer */}
+            <div
+              className={`w-full flex flex-wrap items-center justify-center gap-4 mx-auto ${
+                layerNodeIds.length > 2 ? 'sm:grid sm:grid-cols-3 max-w-4xl' : layerNodeIds.length === 2 ? 'sm:grid sm:grid-cols-2 max-w-2xl' : 'max-w-md'
+              }`}
+            >
+              {layerNodeIds.map((nodeId) => {
+                const node = nodeMap.get(nodeId);
+                if (!node) return null;
+                const data = node.data;
+                const isStart = node.type === 'StartEvent';
+                const isEnd = node.type === 'EndEvent';
+                const isGateway = node.type?.includes('Gateway');
 
-                  let shapeClasses = 'rounded-xl border-slate-400 bg-white shadow-sm';
-                  if (isStart) shapeClasses = 'rounded-full border-emerald-500 bg-emerald-50/50';
-                  else if (isEnd) shapeClasses = 'rounded-full border-rose-500 bg-rose-50/50';
-                  else if (isGateway) shapeClasses = 'rounded-2xl border-amber-500 bg-amber-50/40';
+                let shapeClasses = 'rounded-xl border-slate-400 bg-white shadow-sm';
+                if (isStart) shapeClasses = 'rounded-full border-emerald-500 bg-emerald-50/50';
+                else if (isEnd) shapeClasses = 'rounded-full border-rose-500 bg-rose-50/50';
+                else if (isGateway) shapeClasses = 'rounded-2xl border-amber-500 bg-amber-50/40';
 
-                  return (
-                    <div
-                      key={node.id}
-                      className={`relative p-3.5 border-2 ${shapeClasses} flex items-center space-x-3 transition-all min-h-[68px] w-full`}
-                    >
-                      <div className="p-1.5 rounded-lg bg-slate-100 border border-slate-300 shrink-0">
-                        {renderIcon(node.type)}
-                      </div>
-
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center space-x-1.5 mb-0.5">
-                          <span className="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded bg-slate-200 text-slate-800 border border-slate-300">
-                            {data.standardId || 'ID'}
-                          </span>
-                          {data.roleName && (
-                            <span className="text-[10px] font-mono text-slate-500 truncate max-w-[130px]">
-                              {data.roleName}
-                            </span>
-                          )}
-                        </div>
-                        <h3 className="text-xs font-bold text-black leading-tight line-clamp-2" title={data.title}>
-                          {data.title || 'Sin Título'}
-                        </h3>
-                      </div>
+                return (
+                  <div
+                    key={node.id}
+                    className={`relative p-3.5 border-2 ${shapeClasses} flex items-center space-x-3 transition-all min-h-[68px] w-full`}
+                  >
+                    <div className="p-1.5 rounded-lg bg-slate-100 border border-slate-300 shrink-0">
+                      {renderIcon(node.type)}
                     </div>
-                  );
-                })}
-              </div>
 
-              {/* Connector Arrows to Next Layer */}
-              {layerIdx < layers.length - 1 && (
-                <div className="flex flex-col items-center my-2 space-y-1 page-break-avoid">
-                  {/* Find conditions if any node in this layer is a gateway or has labeled outgoing edges */}
-                  {layerNodeIds.flatMap((id) => outgoingEdgesMap.get(id) || []).some((e) => e.data?.conditionText) ? (
-                    <div className="flex flex-wrap items-center justify-center gap-2 max-w-xl py-1">
-                      {layerNodeIds
-                        .flatMap((id) => outgoingEdgesMap.get(id) || [])
-                        .filter((e) => e.data?.conditionText)
-                        .map((edge, eIdx) => (
-                          <span
-                            key={eIdx}
-                            className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-amber-100 text-amber-900 border border-amber-300 shadow-xs"
-                          >
-                            {edge.data?.conditionText}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center space-x-1.5 mb-0.5">
+                        <span className="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded bg-slate-200 text-slate-800 border border-slate-300">
+                          {data.standardId || 'ID'}
+                        </span>
+                        {data.roleName && (
+                          <span className="text-[10px] font-mono text-slate-500 truncate max-w-[130px]">
+                            {data.roleName}
                           </span>
-                        ))}
+                        )}
+                      </div>
+                      <h3 className="text-xs font-bold text-black leading-tight line-clamp-2" title={data.title}>
+                        {data.title || 'Sin Título'}
+                      </h3>
                     </div>
-                  ) : null}
-
-                  {/* Clean SVG Connecting Arrow */}
-                  <div className="flex items-center justify-center text-slate-400">
-                    <svg width="24" height="28" viewBox="0 0 24 28" fill="none" className="stroke-slate-500">
-                      <line x1="12" y1="0" x2="12" y2="20" strokeWidth="2.5" strokeLinecap="round" />
-                      <polyline points="7,15 12,22 17,15" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
                   </div>
-                </div>
-              )}
+                );
+              })}
             </div>
-          </React.Fragment>
+
+            {/* Connector Arrows to Next Layer */}
+            {layerIdx < layers.length - 1 && (
+              <div className="flex flex-col items-center justify-center my-3 page-break-avoid">
+                {/* Find conditions if any node in this layer is a gateway or has labeled outgoing edges */}
+                {layerNodeIds.flatMap((id) => outgoingEdgesMap.get(id) || []).some((e) => e.data?.conditionText) ? (
+                  <div className="flex flex-wrap items-center justify-center gap-2 max-w-xl mb-1">
+                    {layerNodeIds
+                      .flatMap((id) => outgoingEdgesMap.get(id) || [])
+                      .filter((e) => e.data?.conditionText)
+                      .map((edge, eIdx) => (
+                        <span
+                          key={eIdx}
+                          className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-amber-100 text-amber-900 border border-amber-300 shadow-xs"
+                        >
+                          {edge.data?.conditionText}
+                        </span>
+                      ))}
+                  </div>
+                ) : null}
+
+                {/* Clean SVG Connecting Arrow */}
+                <div className="flex items-center justify-center text-slate-400">
+                  <svg width="24" height="28" viewBox="0 0 24 28" fill="none" className="stroke-slate-500">
+                    <line x1="12" y1="0" x2="12" y2="20" strokeWidth="2.5" strokeLinecap="round" />
+                    <polyline points="7,15 12,22 17,15" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </div>
+              </div>
+            )}
+          </div>
         ))}
       </div>
 

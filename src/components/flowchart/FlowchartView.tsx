@@ -204,7 +204,7 @@ const FlowchartInternal: React.FC = () => {
       )}
 
       {/* 3. Dedicated Print Document (Visible ONLY during window.print()) */}
-      <div className="hidden print:block w-full">
+      <div className="flowchart-print-container hidden print:block w-full">
         <FlowchartPrintDocument project={currentProject} />
       </div>
     </div>
