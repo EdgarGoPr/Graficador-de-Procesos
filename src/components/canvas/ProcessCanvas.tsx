@@ -25,6 +25,7 @@ import { QualityCheckpointNode } from './custom-nodes/QualityCheckpointNode';
 import { TimerBoundaryNode } from './custom-nodes/TimerBoundaryNode';
 import { SubProcessNode } from './custom-nodes/SubProcessNode';
 import { SwimlaneNode } from './custom-nodes/SwimlaneNode';
+import { StickyNoteNode } from './custom-nodes/StickyNoteNode';
 import { SequenceFlowEdge } from './custom-edges/SequenceFlowEdge';
 import { SelectionToolbar } from './SelectionToolbar';
 import { AlignmentGuidesOverlay, AlignmentGuide } from './AlignmentGuidesOverlay';
@@ -43,6 +44,7 @@ const NODE_TYPES: any = {
   TimerBoundaryEvent: TimerBoundaryNode,
   SubProcess: SubProcessNode,
   PoolLane: SwimlaneNode,
+  StickyNote: StickyNoteNode,
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

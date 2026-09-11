@@ -227,6 +227,60 @@ const userStories = [
     criteriosAceptacion: '1. Reseteo global de altura, posicionamiento y overflow en @media print para todos los ancestros SPA (html, body, #root, .h-screen, main, .overflow-*).\n2. Estructuración en bloques naturales independientes (.flowchart-level-block) con break-inside: avoid y page-break-inside: avoid.\n3. Contenedor de impresión dedicado (.flowchart-print-container) con ancho al 100% y visualización limpia sin solapamientos.\n4. Soporte de exportación a PDF multipágina probado y verificado tanto en navegadores como en Electron portable.',
     fechaImplementacion: '2026-09-11',
     estado: 'Implementado / Producción'
+  },
+  {
+    id: 'PST-026',
+    modulo: 'Calidad ISO 9001 & Auditoría BPMN',
+    titulo: 'Auditor de Calidad y Linter Topológico BPMN 2.0 / ISO 9001 con Score de Salud',
+    historiaUsuario: 'Como auditor de calidad y oficial de cumplimiento, quiero una herramienta de diagnóstico en 1-clic que escanee todo el diagrama BPMN 2.0 y evalúe la completitud normativa (eventos iniciales/finales, compuertas sin salida, actividades sin rol o SLA, ciclos infinitos y controles de riesgo), asignando un puntaje de salud del 0 al 100% y permitiendo saltar directamente a la tarjeta infractora, para garantizar procesos 100% conformes y sin errores estructurales.',
+    criteriosAceptacion: '1. Motor linter determinista offline que analiza nodos, conexiones, SLAs, riesgos y roles sin requerir internet.\n2. Cálculo de puntuación de salud (Health Score 0-100%) con clasificación visual (Excelente, Bueno, Regular, Crítico).\n3. Clasificación de hallazgos por severidad (Crítico / Error, Advertencia, Sugerencia).\n4. Botón "Localizar" en cada hallazgo que centra y resalta automáticamente la tarjeta en el lienzo.',
+    fechaImplementacion: '2026-09-11',
+    estado: 'Implementado / Producción'
+  },
+  {
+    id: 'PST-027',
+    modulo: 'Lienzo & Colaboración',
+    titulo: 'Notas Adhesivas (Sticky Notes / Post-its) en el Lienzo',
+    historiaUsuario: 'Como analista o facilitador de talleres de procesos, quiero agregar notas adhesivas flotantes (post-its) de colores con texto libre en cualquier área de la pizarra, para registrar comentarios de reuniones, dudas operativas o recordatorios de diseño sin alterar la lógica formal del flujo BPMN.',
+    criteriosAceptacion: '1. Nuevo elemento interactivo "Nota Adhesiva" arrastrable desde la paleta lateral.\n2. Edición de texto inline instantánea al hacer foco o doble clic en la nota.\n3. Selector dinámico de colores de fondo estilo post-it (amarillo, azul, verde, rosa, púrpura, naranja).\n4. Exclusión transparente del flujo de secuencia BPMN formal pero guardado persistente en el archivo JSON del proyecto.',
+    fechaImplementacion: '2026-09-11',
+    estado: 'Implementado / Producción'
+  },
+  {
+    id: 'PST-028',
+    modulo: 'Gobernanza Organizacional',
+    titulo: 'Matriz RACI Interactiva y Exportación a Excel (.xlsx)',
+    historiaUsuario: 'Como gerente o líder de transformación, quiero una pestaña con la Matriz RACI (Responsable, Aprobador, Consultado, Informado) calculada automáticamente cruzando actividades y roles, con edición de celdas en tiempo real y exportación directa a Excel (.xlsx), para clarificar el gobierno de responsabilidades del proceso.',
+    criteriosAceptacion: '1. Pestaña independiente "Matriz RACI" en la barra de navegación principal.\n2. Cálculo matricial automático cruzando cada actividad con los roles operativos del proceso.\n3. Interactividad para alternar asignaciones (R, A, C, I o vacío) con clic en celda.\n4. Exportación directa a hoja de cálculo Excel (.xlsx) 100% offline con formato corporativo y leyendas claras.',
+    fechaImplementacion: '2026-09-11',
+    estado: 'Implementado / Producción'
+  },
+  {
+    id: 'PST-029',
+    modulo: 'Interoperabilidad & Exportación',
+    titulo: 'Centro Unificado de Exportación Multiformato (PNG 300 DPI, SVG, BPMN 2.0 XML, Word .doc)',
+    historiaUsuario: 'Como profesional de procesos, quiero un centro de exportación centralizado que me permita descargar mi proyecto en imágenes de alta resolución (PNG 300 DPI / SVG vectorial), archivo estándar XML BPMN 2.0 (ISO 19510) y manual operativo en Microsoft Word (.doc), para compartir mi trabajo con cualquier herramienta corporativa sin depender de conexión a internet.',
+    criteriosAceptacion: '1. Modal unificado "Centro de Exportación" accesible desde el menú superior.\n2. Exportación a imagen PNG HD y SVG vectorial escalable sin pérdida de nitidez.\n3. Generación de archivo BPMN 2.0 XML estándar (ISO 19510) compatible con Camunda, Signavio y Bizagi.\n4. Generación y descarga de Manual de Procedimientos en formato Microsoft Word (.doc) con tablas e índice formal.',
+    fechaImplementacion: '2026-09-11',
+    estado: 'Implementado / Producción'
+  },
+  {
+    id: 'PST-030',
+    modulo: 'Simulación & Optimización',
+    titulo: 'Simulador de Procesos con Detección de Cuellos de Botella y Mapa de Calor (Heatmap)',
+    historiaUsuario: 'Como ingeniero de optimización o Black Belt Lean, quiero ejecutar simulaciones de eventos discretos con diferentes volúmenes de casos y turnos de trabajo para identificar cuellos de botella y colorear un mapa de calor dinámico sobre el lienzo, para saber dónde se concentran las colas de espera y tiempos muertos.',
+    criteriosAceptacion: '1. Simulador de eventos discretos con parámetros configurables (número de casos, horas diarias, capacidad de recursos).\n2. Detección automática de la actividad que representa el cuello de botella crítico y cálculo de costos y tiempos de espera.\n3. Botón "Aplicar Mapa de Calor en el Lienzo" que tiñe los nodos de verde (rápido) a rojo intenso (saturado/crítico).\n4. Botón de 1-clic para restaurar los colores originales del proyecto.',
+    fechaImplementacion: '2026-09-11',
+    estado: 'Implementado / Producción'
+  },
+  {
+    id: 'PST-031',
+    modulo: 'Control de Versiones & Auditoría',
+    titulo: 'Comparador Visual de Versiones JSON (Visual Diff Tool)',
+    historiaUsuario: 'Como auditor o líder de proyecto, quiero comparar el proyecto actual con cualquier versión previa o archivo JSON externo para ver un resumen de actividades agregadas, modificadas o eliminadas y diferencias campo por campo, para auditar cambios antes de publicar una nueva versión.',
+    criteriosAceptacion: '1. Modal de comparación con selector de archivo JSON de versión previa o base.\n2. Análisis comparativo instantáneo mostrando métricas de elementos añadidos, eliminados y modificados.\n3. Tabla detallada con etiquetas de colores (verde para agregados, rojo para eliminados, ámbar para modificados).\n4. Inspección expandible campo por campo destacando valor anterior vs. valor actual.',
+    fechaImplementacion: '2026-09-11',
+    estado: 'Implementado / Producción'
   }
 ];
 

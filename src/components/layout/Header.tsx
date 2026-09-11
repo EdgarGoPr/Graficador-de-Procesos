@@ -19,7 +19,11 @@ import {
   Compass,
   Palette,
   Undo2,
-  Redo2
+  Redo2,
+  Flame,
+  GitCompare,
+  ArrowDownToLine,
+  ShieldAlert
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -44,6 +48,10 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
     theme,
     currentThemeId,
     setThemeModalOpen,
+    setQualityAuditModalOpen,
+    setExportCenterModalOpen,
+    setSimulationModalOpen,
+    setVersionDiffModalOpen,
     toggleTheme,
     showNotification,
     isPropertiesPanelOpen,
@@ -132,6 +140,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
     { id: 'CANVAS', label: 'Lienzo BPMN 2.0', icon: GitGraph },
     { id: 'FLOWCHART', label: 'Flujograma', icon: Workflow },
     { id: 'SIPOC', label: 'Matriz SIPOC', icon: Table },
+    { id: 'RACI', label: 'Matriz RACI', icon: Table },
     { id: 'REPORT', label: 'Documento & Diagrama', icon: FileCheck },
   ];
 
@@ -277,6 +286,47 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
           </div>
         )}
 
+        {/* Quality Audit, Simulation, Diff, and Export Tools */}
+        {currentProject && (
+          <>
+            <button
+              onClick={() => setQualityAuditModalOpen(true)}
+              className="flex items-center space-x-1.5 px-2.5 py-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-[#10B981] rounded-lg text-xs font-semibold border border-emerald-500/30 transition-colors"
+              title="Auditor de Calidad y Linter BPMN 2.0 / ISO 9001"
+            >
+              <Shield className="w-3.5 h-3.5" />
+              <span className="hidden xl:inline">Auditar</span>
+            </button>
+
+            <button
+              onClick={() => setSimulationModalOpen(true)}
+              className="flex items-center space-x-1.5 px-2.5 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-[#F59E0B] rounded-lg text-xs font-semibold border border-amber-500/30 transition-colors"
+              title="Simulador de Flujos y Detección de Cuellos de Botella"
+            >
+              <Flame className="w-3.5 h-3.5" />
+              <span className="hidden xl:inline">Simular</span>
+            </button>
+
+            <button
+              onClick={() => setVersionDiffModalOpen(true)}
+              className="flex items-center space-x-1.5 px-2.5 py-1.5 bg-theme-surface-subtle hover:bg-theme-surface text-theme-text rounded-lg text-xs font-medium border border-theme-border transition-colors"
+              title="Comparador Visual de Versiones JSON"
+            >
+              <GitCompare className="w-3.5 h-3.5 text-theme-accent" />
+              <span className="hidden xl:inline">Comparar</span>
+            </button>
+
+            <button
+              onClick={() => setExportCenterModalOpen(true)}
+              className="flex items-center space-x-1.5 px-2.5 py-1.5 bg-theme-surface-subtle hover:bg-theme-surface text-theme-text rounded-lg text-xs font-medium border border-theme-border transition-colors"
+              title="Centro de Exportación: PNG HD, SVG Vectorial, BPMN 2.0 XML y Word (.doc)"
+            >
+              <ArrowDownToLine className="w-3.5 h-3.5 text-theme-accent" />
+              <span className="hidden sm:inline">Exportar</span>
+            </button>
+          </>
+        )}
+
         <button
           onClick={onOpenNewProjectModal}
           className="flex items-center space-x-1 px-2.5 py-1.5 bg-theme-surface-subtle hover:bg-theme-surface text-theme-text rounded-lg text-xs font-medium border border-theme-border transition-colors"
@@ -288,15 +338,6 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
 
         {currentProject && (
           <>
-            <button
-              onClick={handleExportJson}
-              className="flex items-center space-x-1 px-2.5 py-1.5 bg-theme-surface-subtle hover:bg-theme-surface text-theme-text rounded-lg text-xs font-medium border border-theme-border transition-colors"
-              title="Descargar archivo JSON a tu equipo"
-            >
-              <Download className="w-3.5 h-3.5 text-theme-text-muted" />
-              <span className="hidden sm:inline">JSON</span>
-            </button>
-
             <button
               onClick={handleSave}
               disabled={isSaving}

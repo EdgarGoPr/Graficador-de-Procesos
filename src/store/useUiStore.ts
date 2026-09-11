@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { AppThemeId, ThemeColors, PRESET_THEMES, applyThemeToDocument } from '../types/theme';
 
-export type ActiveView = 'DASHBOARD' | 'CANVAS' | 'FLOWCHART' | 'SIPOC' | 'REPORT';
+export type ActiveView = 'DASHBOARD' | 'CANVAS' | 'FLOWCHART' | 'SIPOC' | 'RACI' | 'REPORT';
 export type ThemeMode = 'dark' | 'light';
 export type RightPanelTab = 'PROPERTIES' | 'NAVIGATOR';
 
@@ -18,6 +18,10 @@ interface UiStoreState {
   searchFilter: string;
   activeNotification: { message: string; type: 'success' | 'info' | 'error' } | null;
   isThemeModalOpen: boolean;
+  isQualityAuditModalOpen: boolean;
+  isExportCenterModalOpen: boolean;
+  isSimulationModalOpen: boolean;
+  isVersionDiffModalOpen: boolean;
 
   setActiveView: (view: ActiveView) => void;
   setTheme: (theme: ThemeMode) => void;
@@ -25,6 +29,10 @@ interface UiStoreState {
   updateCustomTheme: (updates: Partial<ThemeColors>) => void;
   setCanvasBgColor: (color: string) => void;
   setThemeModalOpen: (open: boolean) => void;
+  setQualityAuditModalOpen: (open: boolean) => void;
+  setExportCenterModalOpen: (open: boolean) => void;
+  setSimulationModalOpen: (open: boolean) => void;
+  setVersionDiffModalOpen: (open: boolean) => void;
   toggleTheme: () => void;
   toggleSidebar: () => void;
   togglePropertiesPanel: () => void;
@@ -95,6 +103,10 @@ export const useUiStore = create<UiStoreState>((set, get) => ({
   searchFilter: '',
   activeNotification: null,
   isThemeModalOpen: false,
+  isQualityAuditModalOpen: false,
+  isExportCenterModalOpen: false,
+  isSimulationModalOpen: false,
+  isVersionDiffModalOpen: false,
 
   setActiveView: (view) => set({ activeView: view }),
 
@@ -164,6 +176,10 @@ export const useUiStore = create<UiStoreState>((set, get) => ({
   },
 
   setThemeModalOpen: (open) => set({ isThemeModalOpen: open }),
+  setQualityAuditModalOpen: (open) => set({ isQualityAuditModalOpen: open }),
+  setExportCenterModalOpen: (open) => set({ isExportCenterModalOpen: open }),
+  setSimulationModalOpen: (open) => set({ isSimulationModalOpen: open }),
+  setVersionDiffModalOpen: (open) => set({ isVersionDiffModalOpen: open }),
 
   toggleTheme: () => {
     const isCurrentlyDark = get().theme === 'dark';

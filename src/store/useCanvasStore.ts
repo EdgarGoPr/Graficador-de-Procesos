@@ -488,6 +488,7 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
     else if (nodeType === BPMN_NODE_TYPES.TIMER_BOUNDARY_EVENT) prefix = 'TMR';
     else if (nodeType === BPMN_NODE_TYPES.SUB_PROCESS) prefix = 'SUB';
     else if (nodeType === BPMN_NODE_TYPES.POOL_LANE) prefix = 'LANE';
+    else if (nodeType === BPMN_NODE_TYPES.STICKY_NOTE) prefix = 'NOTE';
 
     const count = currentProject.nodes.filter(n => n.data.nodeType === nodeType).length + 1;
     const standardId = `${prefix}-${count < 10 ? '0' + count : count}`;
@@ -503,27 +504,30 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
       [BPMN_NODE_TYPES.QUALITY_CHECKPOINT_EVENT]: 'Punto de Control de Calidad',
       [BPMN_NODE_TYPES.TIMER_BOUNDARY_EVENT]: 'Control de Plazo Legal',
       [BPMN_NODE_TYPES.SUB_PROCESS]: 'Subproceso Procedimental',
-      [BPMN_NODE_TYPES.POOL_LANE]: `Carril Funcional #${count}`
+      [BPMN_NODE_TYPES.POOL_LANE]: `Carril Funcional #${count}`,
+      [BPMN_NODE_TYPES.STICKY_NOTE]: `Nota #${count}`
     }[nodeType] || 'Nuevo Elemento';
 
     const isLane = nodeType === BPMN_NODE_TYPES.POOL_LANE;
-    const newNodeId = isLane ? `lane_node_${Date.now()}` : `node_${Date.now()}`;
+    const isSticky = nodeType === BPMN_NODE_TYPES.STICKY_NOTE;
+    const newNodeId = isLane ? `lane_node_${Date.now()}` : isSticky ? `note_${Date.now()}` : `node_${Date.now()}`;
     const newNode: Node<BpmnNodeData> = {
       id: newNodeId,
       type: nodeType,
       position,
-      style: isLane ? { width: 2200, height: 160, zIndex: -1 } : undefined,
-      zIndex: isLane ? -1 : 1,
+      style: isLane ? { width: 2200, height: 160, zIndex: -1 } : isSticky ? { zIndex: 10 } : undefined,
+      zIndex: isLane ? -1 : isSticky ? 10 : 1,
       data: {
         standardId,
         title: defaultTitle,
-        description: isLane ? 'Carril contenedor de actividades' : 'Descripción operativa de la actividad...',
+        description: isLane ? 'Carril contenedor de actividades' : isSticky ? '' : 'Descripción operativa de la actividad...',
         nodeType,
         laneId: isLane ? newNodeId : targetLaneId,
         laneName: targetLane?.name,
-        roleName: targetLane?.role || 'Responsable de Área',
-        itSystem: targetLane?.system || 'SAM / VUPRA',
-        legalFramework: 'Marco normativo general',
+        roleName: isSticky ? 'Auditor / Analista' : (targetLane?.role || 'Responsable de Área'),
+        itSystem: isSticky ? '' : (targetLane?.system || 'SAM / VUPRA'),
+        legalFramework: isSticky ? '' : 'Marco normativo general',
+        customBgColor: isSticky ? 'yellow' : undefined,
         customBorderColor: isLane ? '#38bdf8' : undefined,
         inputs: [],
         outputs: [],

@@ -8,12 +8,17 @@ import { ProcessCanvas } from './components/canvas/ProcessCanvas';
 import { RightSidebar } from './components/layout/RightSidebar';
 import { ProjectDashboard } from './components/dashboard/ProjectDashboard';
 import { SipocMatrixView } from './components/sipoc/SipocMatrixView';
+import { RaciMatrixView } from './components/raci/RaciMatrixView';
 import { FlowchartView } from './components/flowchart/FlowchartView';
 import { TechnicalReportView } from './components/report/TechnicalReportView';
 import { NewProjectModal } from './components/modals/NewProjectModal';
 import { SubProcessDetailModal } from './components/modals/SubProcessDetailModal';
 import { ThemeCustomizationModal } from './components/modals/ThemeCustomizationModal';
 import { CompressSubProcessModal } from './components/modals/CompressSubProcessModal';
+import { QualityAuditModal } from './components/quality/QualityAuditModal';
+import { ExportCenterModal } from './components/export/ExportCenterModal';
+import { SimulationModal } from './components/simulation/SimulationModal';
+import { VersionDiffModal } from './components/diff/VersionDiffModal';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
 import { CheckCircle2, Info, AlertCircle, X } from 'lucide-react';
 
@@ -25,7 +30,15 @@ export const App: React.FC = () => {
     activeSubProcessNodeId,
     closeSubProcessDetail,
     activeNotification,
-    clearNotification
+    clearNotification,
+    isQualityAuditModalOpen,
+    setQualityAuditModalOpen,
+    isExportCenterModalOpen,
+    setExportCenterModalOpen,
+    isSimulationModalOpen,
+    setSimulationModalOpen,
+    isVersionDiffModalOpen,
+    setVersionDiffModalOpen
   } = useUiStore();
 
   const [isNewProjectModalOpen, setIsNewProjectModalOpen] = useState(false);
@@ -74,6 +87,8 @@ export const App: React.FC = () => {
 
           {activeView === 'SIPOC' && <SipocMatrixView />}
 
+          {activeView === 'RACI' && <RaciMatrixView />}
+
           {activeView === 'REPORT' && <TechnicalReportView />}
         </main>
 
@@ -85,27 +100,27 @@ export const App: React.FC = () => {
           />
         )}
 
-      {/* Notification Toast */}
-      {activeNotification && (
-        <div className="fixed bottom-5 right-5 z-50 flex items-center space-x-3 px-4 py-3 rounded-xl bg-theme-surface border border-theme-border shadow-2xl animate-slideUp text-xs">
-          {activeNotification.type === 'success' && (
-            <CheckCircle2 className="w-4 h-4 text-[#10B981] shrink-0" />
-          )}
-          {activeNotification.type === 'info' && (
-            <Info className="w-4 h-4 text-[#3B82F6] shrink-0" />
-          )}
-          {activeNotification.type === 'error' && (
-            <AlertCircle className="w-4 h-4 text-[#EF4444] shrink-0" />
-          )}
-          <span className="text-theme-text font-medium">{activeNotification.message}</span>
-          <button
-            onClick={clearNotification}
-            className="text-theme-text-muted hover:text-theme-text p-0.5"
-          >
-            <X className="w-3.5 h-3.5" />
-          </button>
-        </div>
-      )}
+        {/* Notification Toast */}
+        {activeNotification && (
+          <div className="fixed bottom-5 right-5 z-50 flex items-center space-x-3 px-4 py-3 rounded-xl bg-theme-surface border border-theme-border shadow-2xl animate-slideUp text-xs">
+            {activeNotification.type === 'success' && (
+              <CheckCircle2 className="w-4 h-4 text-[#10B981] shrink-0" />
+            )}
+            {activeNotification.type === 'info' && (
+              <Info className="w-4 h-4 text-[#3B82F6] shrink-0" />
+            )}
+            {activeNotification.type === 'error' && (
+              <AlertCircle className="w-4 h-4 text-[#EF4444] shrink-0" />
+            )}
+            <span className="text-theme-text font-medium">{activeNotification.message}</span>
+            <button
+              onClick={clearNotification}
+              className="text-theme-text-muted hover:text-theme-text p-0.5"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        )}
 
         {/* New Project Modal */}
         <NewProjectModal
@@ -118,6 +133,30 @@ export const App: React.FC = () => {
 
         {/* Compress Selection to SubProcess Modal */}
         <CompressSubProcessModal />
+
+        {/* Quality Audit Modal */}
+        <QualityAuditModal
+          isOpen={isQualityAuditModalOpen}
+          onClose={() => setQualityAuditModalOpen(false)}
+        />
+
+        {/* Export Center Modal */}
+        <ExportCenterModal
+          isOpen={isExportCenterModalOpen}
+          onClose={() => setExportCenterModalOpen(false)}
+        />
+
+        {/* Process Simulation Modal */}
+        <SimulationModal
+          isOpen={isSimulationModalOpen}
+          onClose={() => setSimulationModalOpen(false)}
+        />
+
+        {/* Project Version Diff Modal */}
+        <VersionDiffModal
+          isOpen={isVersionDiffModalOpen}
+          onClose={() => setVersionDiffModalOpen(false)}
+        />
       </div>
     </ErrorBoundary>
   );

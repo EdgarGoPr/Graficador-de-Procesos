@@ -14,6 +14,7 @@ export const BPMN_NODE_TYPES = {
   TIMER_BOUNDARY_EVENT: 'TimerBoundaryEvent',
   SUB_PROCESS: 'SubProcess',
   POOL_LANE: 'PoolLane',
+  STICKY_NOTE: 'StickyNote',
 } as const;
 
 export type BpmnNodeType = typeof BPMN_NODE_TYPES[keyof typeof BPMN_NODE_TYPES];

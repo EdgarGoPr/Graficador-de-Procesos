@@ -16,7 +16,8 @@ import {
   ChevronLeft,
   ChevronRight,
   PanelLeftClose,
-  PanelLeftOpen
+  PanelLeftOpen,
+  StickyNote
 } from 'lucide-react';
 import { useCanvasStore } from '../../store/useCanvasStore';
 import { useProjectStore } from '../../store/useProjectStore';
@@ -141,6 +142,19 @@ const PALETTE_GROUPS: { groupName: string; items: PaletteItem[] }[] = [
         icon: Layers,
         colorClass: 'text-[#38BDF8] border-[#38BDF8]/40',
         bgClass: 'bg-[#38BDF8]/10 hover:bg-[#38BDF8]/20'
+      }
+    ]
+  },
+  {
+    groupName: 'Anotaciones & Auditoría',
+    items: [
+      {
+        type: BPMN_NODE_TYPES.STICKY_NOTE,
+        title: 'Nota Adhesiva (Post-it)',
+        subtitle: 'Comentario / Hallazgo de auditoría',
+        icon: StickyNote,
+        colorClass: 'text-[#EAB308] border-[#EAB308]/40',
+        bgClass: 'bg-[#FEF08A]/20 hover:bg-[#FEF08A]/40'
       }
     ]
   }
