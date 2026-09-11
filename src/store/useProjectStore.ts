@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { ProcessProjectFile, ProjectSummary } from '../types/project';
 import { StorageService } from '../services/storageService';
 import { calculateTotalLeadTime } from '../services/leadTimeCalculator';
+import { CanvasSnapshot, createSnapshot, pushToHistory } from '../services/historyManager';
 
 interface ProjectStoreState {
   currentProject: ProcessProjectFile | null;
@@ -11,6 +12,12 @@ interface ProjectStoreState {
   lastSavedAt: string | null;
   hasUnsavedChanges: boolean;
   projectsDirectoryPath: string;
+
+  // History (Undo / Redo)
+  past: CanvasSnapshot[];
+  future: CanvasSnapshot[];
+  canUndo: boolean;
+  canRedo: boolean;
 
   // Actions
   initialize: () => Promise<void>;
@@ -23,6 +30,12 @@ interface ProjectStoreState {
   setProjectData: (project: ProcessProjectFile) => void;
   updateDocumentControl: (updates: Partial<ProcessProjectFile['documentControl']>) => void;
   markUnsavedChanges: () => void;
+
+  // Undo / Redo Actions
+  pushSnapshot: (description?: string) => void;
+  undo: () => boolean;
+  redo: () => boolean;
+  clearHistory: () => void;
 }
 
 let autoSaveTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -36,11 +49,15 @@ export const useProjectStore = create<ProjectStoreState>((set, get) => ({
   hasUnsavedChanges: false,
   projectsDirectoryPath: '../Proyectos/',
 
+  past: [],
+  future: [],
+  canUndo: false,
+  canRedo: false,
+
   initialize: async () => {
     set({ isLoading: true });
     await StorageService.initializeStorage();
     await get().refreshProjectList();
-    // Do NOT automatically force open any project; user lands cleanly on the Dashboard
     set({ isLoading: false });
   },
 
@@ -83,6 +100,10 @@ export const useProjectStore = create<ProjectStoreState>((set, get) => ({
         currentProject: project,
         lastSavedAt: project.documentControl.updatedAt,
         hasUnsavedChanges: false,
+        past: [],
+        future: [],
+        canUndo: false,
+        canRedo: false,
         isLoading: false
       });
       return true;
@@ -175,7 +196,14 @@ export const useProjectStore = create<ProjectStoreState>((set, get) => ({
 
     const fileName = await StorageService.saveProject(newProject);
     newProject.fileName = fileName;
-    set({ currentProject: newProject, hasUnsavedChanges: false });
+    set({
+      currentProject: newProject,
+      hasUnsavedChanges: false,
+      past: [],
+      future: [],
+      canUndo: false,
+      canRedo: false
+    });
     await get().refreshProjectList();
     return fileName;
   },
@@ -255,5 +283,132 @@ export const useProjectStore = create<ProjectStoreState>((set, get) => ({
 
   markUnsavedChanges: () => {
     set({ hasUnsavedChanges: true });
+  },
+
+  // --- UNDO / REDO IMPLEMENTATION ---
+
+  pushSnapshot: (description?: string) => {
+    const { currentProject, past } = get();
+    if (!currentProject) return;
+
+    const snap = createSnapshot(
+      currentProject.nodes,
+      currentProject.edges,
+      currentProject.pools,
+      description
+    );
+    const nextPast = pushToHistory(past, snap);
+
+    set({
+      past: nextPast,
+      future: [], // New action invalidates redo history
+      canUndo: true,
+      canRedo: false
+    });
+  },
+
+  undo: () => {
+    const { currentProject, past, future } = get();
+    if (!currentProject || past.length === 0) return false;
+
+    // Current state becomes the next future redo state
+    const currentSnap = createSnapshot(
+      currentProject.nodes,
+      currentProject.edges,
+      currentProject.pools,
+      'Estado previo a deshacer'
+    );
+    const newFuture = [currentSnap, ...future];
+
+    // Pop the most recent past snapshot
+    const targetSnapshot = past[past.length - 1];
+    const newPast = past.slice(0, past.length - 1);
+
+    const updatedProject: ProcessProjectFile = {
+      ...currentProject,
+      nodes: JSON.parse(JSON.stringify(targetSnapshot.nodes)),
+      edges: JSON.parse(JSON.stringify(targetSnapshot.edges)),
+      pools: JSON.parse(JSON.stringify(targetSnapshot.pools)),
+      documentControl: {
+        ...currentProject.documentControl,
+        updatedAt: new Date().toISOString()
+      }
+    };
+
+    set({
+      currentProject: updatedProject,
+      past: newPast,
+      future: newFuture,
+      canUndo: newPast.length > 0,
+      canRedo: true,
+      hasUnsavedChanges: true
+    });
+
+    if (autoSaveTimeout) clearTimeout(autoSaveTimeout);
+    autoSaveTimeout = setTimeout(async () => {
+      if (updatedProject.fileName) {
+        await StorageService.saveProject(updatedProject);
+        set({ lastSavedAt: new Date().toISOString(), hasUnsavedChanges: false });
+      }
+    }, 800);
+
+    return true;
+  },
+
+  redo: () => {
+    const { currentProject, past, future } = get();
+    if (!currentProject || future.length === 0) return false;
+
+    // Current state becomes past snapshot
+    const currentSnap = createSnapshot(
+      currentProject.nodes,
+      currentProject.edges,
+      currentProject.pools,
+      'Estado previo a rehacer'
+    );
+    const newPast = pushToHistory(past, currentSnap);
+
+    // Pop first future snapshot
+    const targetSnapshot = future[0];
+    const newFuture = future.slice(1);
+
+    const updatedProject: ProcessProjectFile = {
+      ...currentProject,
+      nodes: JSON.parse(JSON.stringify(targetSnapshot.nodes)),
+      edges: JSON.parse(JSON.stringify(targetSnapshot.edges)),
+      pools: JSON.parse(JSON.stringify(targetSnapshot.pools)),
+      documentControl: {
+        ...currentProject.documentControl,
+        updatedAt: new Date().toISOString()
+      }
+    };
+
+    set({
+      currentProject: updatedProject,
+      past: newPast,
+      future: newFuture,
+      canUndo: true,
+      canRedo: newFuture.length > 0,
+      hasUnsavedChanges: true
+    });
+
+    if (autoSaveTimeout) clearTimeout(autoSaveTimeout);
+    autoSaveTimeout = setTimeout(async () => {
+      if (updatedProject.fileName) {
+        await StorageService.saveProject(updatedProject);
+        set({ lastSavedAt: new Date().toISOString(), hasUnsavedChanges: false });
+      }
+    }, 800);
+
+    return true;
+  },
+
+  clearHistory: () => {
+    set({
+      past: [],
+      future: [],
+      canUndo: false,
+      canRedo: false
+    });
   }
 }));

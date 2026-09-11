@@ -8,7 +8,7 @@
     "organizationUnit": "Dirección General de Sistemas, Tecnología e Innovación (DGSTI) - Tribunal Administrativo Municipal de Faltas",
     "processObjective": "Estandarizar el ciclo integral de soporte técnico e incidencias de hardware, conectividad y sistemas de faltas (SAM, VUPRA, SIGEF) mediante atención humana directa en la consola WiseCX, gestionando el empadronamiento interno, la categorización en dos niveles, el control de inactividad de usuarios y la derivación a soporte avanzado.",
     "createdAt": "2026-09-11T10:00:00Z",
-    "updatedAt": "2026-09-11T16:36:08.504Z",
+    "updatedAt": "2026-09-11T17:20:34.795Z",
     "status": "APPROVED",
     "legalNormativeBasis": [
       "Ordenanza de Procedimiento Administrativo Municipal de Córdoba",
@@ -62,8 +62,8 @@
       "id": "node-start-contacto",
       "type": "StartEvent",
       "position": {
-        "x": -481.0339907874309,
-        "y": -359.0501450768879
+        "x": -768.8522324221518,
+        "y": -574.419452358034
       },
       "data": {
         "standardId": "EVT-01",
@@ -100,8 +100,8 @@
       "id": "node-task-recepcion-toma",
       "type": "UserTask",
       "position": {
-        "x": -263.1809891498417,
-        "y": -160.4521208540098
+        "x": -514.8788514367735,
+        "y": -575.1082144933785
       },
       "data": {
         "standardId": "TSK-01",
@@ -143,8 +143,8 @@
       "id": "node-gtw-empadronado",
       "type": "ExclusiveGateway",
       "position": {
-        "x": 54.36452204665851,
-        "y": -142.9416436836118
+        "x": -203.78713158096394,
+        "y": -523.7153327843548
       },
       "data": {
         "standardId": "GTW-01",
@@ -177,8 +177,8 @@
       "id": "node-task-alta-contacto",
       "type": "UserTask",
       "position": {
-        "x": 261.80904711584213,
-        "y": -47.91322980074753
+        "x": -62.49396775385855,
+        "y": -359.3086619890671
       },
       "data": {
         "standardId": "TSK-02",
@@ -223,8 +223,8 @@
       "id": "node-task-categorizacion",
       "type": "UserTask",
       "position": {
-        "x": 627.9436834236951,
-        "y": -221.27571660063862
+        "x": 260.9931880547081,
+        "y": -642.1448734975831
       },
       "data": {
         "standardId": "TSK-03",
@@ -273,8 +273,8 @@
       "id": "node-gtw-info-suficiente",
       "type": "ExclusiveGateway",
       "position": {
-        "x": 868.1878120504604,
-        "y": -155.59204701850592
+        "x": 568.0865147083493,
+        "y": -454.0798965254444
       },
       "data": {
         "standardId": "GTW-02",
@@ -299,158 +299,6 @@
       "measured": {
         "width": 130,
         "height": 125
-      },
-      "selected": false,
-      "dragging": false
-    },
-    {
-      "id": "node-task-solicitud-datos",
-      "type": "UserTask",
-      "position": {
-        "x": 1067.1643355441527,
-        "y": -303.3283523898265
-      },
-      "data": {
-        "standardId": "TSK-04",
-        "title": "Solicitud Manual de Evidencia y Pausa de SLA",
-        "description": "El técnico redacta de forma manual y personalizada el pedido de datos faltantes y coloca el ticket en estado 'Pendiente Usuario', pausando los tiempos de resolución del área.",
-        "nodeType": "UserTask",
-        "laneId": "lane-operador-n1",
-        "itSystem": "WiseCX Chat/Mail",
-        "legalFramework": "Reglamento de Soporte a Dependencias",
-        "inputs": [
-          "Requerimiento de datos técnicos específicos"
-        ],
-        "outputs": [
-          "Mensaje remitido al solicitante",
-          "Estado Pendiente Usuario",
-          "Temporizador de 20 minutos activado"
-        ],
-        "operationalRisks": [],
-        "tags": [
-          "Pendiente Usuario",
-          "Pausa SLA"
-        ]
-      },
-      "measured": {
-        "width": 200,
-        "height": 151
-      },
-      "selected": false,
-      "dragging": false,
-      "width": 200,
-      "height": 151,
-      "resizing": false
-    },
-    {
-      "id": "node-qc-inactividad-20min",
-      "type": "QualityCheckpointEvent",
-      "position": {
-        "x": 1316.908466417576,
-        "y": -317.4032080958821
-      },
-      "data": {
-        "standardId": "QC-01",
-        "title": "Control de Espera e Inactividad (Regla 20 Min)",
-        "description": "Control de cumplimiento del tiempo de respuesta del solicitante para evitar casos ociosos en cola y no distorsionar las métricas de atención.",
-        "nodeType": "QualityCheckpointEvent",
-        "laneId": "lane-operador-n1",
-        "itSystem": "WiseCX Motor de Reglas",
-        "legalFramework": "Criterios Operativos de Cierre DGSTI",
-        "qualityCheckpoint": {
-          "checkpointCode": "QC-INACT-20M",
-          "inspectionCriteria": "Verificación estricta de mensaje entrante del usuario antes de transcurridos 20 minutos desde la repregunta.",
-          "severity": "MEDIUM",
-          "sampleRatePercentage": 100,
-          "responsibleRole": "Operador N1 / Temporizador WiseCX",
-          "evidenceRequired": "Registro temporal de inactividad en la bitácora del ticket"
-        },
-        "inputs": [
-          "Tiempo transcurrido en estado Pendiente Usuario"
-        ],
-        "outputs": [
-          "Reanudación de gestión o habilitación de cierre"
-        ],
-        "operationalRisks": [],
-        "tags": [
-          "Control Calidad",
-          "Temporizador"
-        ]
-      },
-      "measured": {
-        "width": 190,
-        "height": 179
-      },
-      "selected": false,
-      "dragging": false,
-      "width": 190,
-      "height": 179,
-      "resizing": false
-    },
-    {
-      "id": "node-gtw-respuesta-usuario",
-      "type": "ExclusiveGateway",
-      "position": {
-        "x": 1571.0425268254821,
-        "y": -247.4423356063947
-      },
-      "data": {
-        "standardId": "GTW-03",
-        "title": "¿Respondió el Usuario en <= 20 min?",
-        "description": "Bifurcación por inactividad o reanudación del proceso de asistencia técnica.",
-        "nodeType": "ExclusiveGateway",
-        "laneId": "lane-operador-n1",
-        "itSystem": "WiseCX",
-        "legalFramework": "Reglas de Retención y Cierre de Sesión DGSTI",
-        "inputs": [
-          "Resultado de QC-01"
-        ],
-        "outputs": [
-          "Continuación de análisis o cierre administrativo"
-        ],
-        "operationalRisks": [],
-        "tags": [
-          "Compuerta",
-          "Inactividad"
-        ]
-      },
-      "measured": {
-        "width": 130,
-        "height": 125
-      },
-      "selected": false,
-      "dragging": false
-    },
-    {
-      "id": "node-end-inactividad",
-      "type": "EndEvent",
-      "position": {
-        "x": 1813.2670939436487,
-        "y": -296.2021174840228
-      },
-      "data": {
-        "standardId": "EVT-02",
-        "title": "Cierre Administrativo por Inactividad",
-        "description": "El ticket concluye formalmente por abandono o falta de respuesta del solicitante al superar los 20 minutos de espera, liberando la bandeja operativa.",
-        "nodeType": "EndEvent",
-        "laneId": "lane-operador-n1",
-        "itSystem": "WiseCX",
-        "legalFramework": "Reglamento Operativo DGSTI Art. 1.2",
-        "inputs": [
-          "Plazo de 20 minutos vencido sin interacción"
-        ],
-        "outputs": [
-          "Ticket en estado CERRADO por inactividad"
-        ],
-        "operationalRisks": [],
-        "tags": [
-          "Fin",
-          "Cierre Inactividad"
-        ]
-      },
-      "measured": {
-        "width": 96,
-        "height": 96
       },
       "selected": false,
       "dragging": false
@@ -673,6 +521,154 @@
       },
       "selected": false,
       "dragging": false
+    },
+    {
+      "id": "node-task-solicitud-datos",
+      "type": "UserTask",
+      "position": {
+        "x": 832.7055727682472,
+        "y": -640.4626713641829
+      },
+      "selected": false,
+      "width": 200,
+      "height": 151,
+      "data": {
+        "standardId": "TSK-04",
+        "title": "Solicitud Manual de Evidencia y Pausa de SLA",
+        "description": "El técnico redacta de forma manual y personalizada el pedido de datos faltantes y coloca el ticket en estado 'Pendiente Usuario', pausando los tiempos de resolución del área.",
+        "nodeType": "UserTask",
+        "laneId": "lane-operador-n1",
+        "itSystem": "WiseCX Chat/Mail",
+        "legalFramework": "Reglamento de Soporte a Dependencias",
+        "inputs": [
+          "Requerimiento de datos técnicos específicos"
+        ],
+        "outputs": [
+          "Mensaje remitido al solicitante",
+          "Estado Pendiente Usuario",
+          "Temporizador de 20 minutos activado"
+        ],
+        "operationalRisks": [],
+        "tags": [
+          "Pendiente Usuario",
+          "Pausa SLA"
+        ]
+      },
+      "measured": {
+        "width": 200,
+        "height": 151
+      },
+      "dragging": false
+    },
+    {
+      "id": "node-qc-inactividad-20min",
+      "type": "QualityCheckpointEvent",
+      "position": {
+        "x": 1297.638625977928,
+        "y": -554.1768317703782
+      },
+      "selected": false,
+      "width": 190,
+      "height": 179,
+      "data": {
+        "standardId": "QC-01",
+        "title": "Control de Espera e Inactividad (Regla 20 Min)",
+        "description": "Control de cumplimiento del tiempo de respuesta del solicitante para evitar casos ociosos en cola y no distorsionar las métricas de atención.",
+        "nodeType": "QualityCheckpointEvent",
+        "laneId": "lane-operador-n1",
+        "itSystem": "WiseCX Motor de Reglas",
+        "legalFramework": "Criterios Operativos de Cierre DGSTI",
+        "qualityCheckpoint": {
+          "checkpointCode": "QC-INACT-20M",
+          "inspectionCriteria": "Verificación estricta de mensaje entrante del usuario antes de transcurridos 20 minutos desde la repregunta.",
+          "severity": "MEDIUM",
+          "sampleRatePercentage": 100,
+          "responsibleRole": "Operador N1 / Temporizador WiseCX",
+          "evidenceRequired": "Registro temporal de inactividad en la bitácora del ticket"
+        },
+        "inputs": [
+          "Tiempo transcurrido en estado Pendiente Usuario"
+        ],
+        "outputs": [
+          "Reanudación de gestión o habilitación de cierre"
+        ],
+        "operationalRisks": [],
+        "tags": [
+          "Control Calidad",
+          "Temporizador"
+        ]
+      },
+      "measured": {
+        "width": 190,
+        "height": 179
+      },
+      "dragging": false
+    },
+    {
+      "id": "node-gtw-respuesta-usuario",
+      "type": "ExclusiveGateway",
+      "position": {
+        "x": 1571,
+        "y": -247
+      },
+      "selected": false,
+      "data": {
+        "standardId": "GTW-03",
+        "title": "¿Respondió el Usuario en <= 20 min?",
+        "description": "Bifurcación por inactividad o reanudación del proceso de asistencia técnica.",
+        "nodeType": "ExclusiveGateway",
+        "laneId": "lane-operador-n1",
+        "itSystem": "WiseCX",
+        "legalFramework": "Reglas de Retención y Cierre de Sesión DGSTI",
+        "inputs": [
+          "Resultado de QC-01"
+        ],
+        "outputs": [
+          "Continuación de análisis o cierre administrativo"
+        ],
+        "operationalRisks": [],
+        "tags": [
+          "Compuerta",
+          "Inactividad"
+        ]
+      },
+      "measured": {
+        "width": 130,
+        "height": 125
+      }
+    },
+    {
+      "id": "node-end-inactividad",
+      "type": "EndEvent",
+      "position": {
+        "x": 1813,
+        "y": -296
+      },
+      "selected": false,
+      "data": {
+        "standardId": "EVT-02",
+        "title": "Cierre Administrativo por Inactividad",
+        "description": "El ticket concluye formalmente por abandono o falta de respuesta del solicitante al superar los 20 minutos de espera, liberando la bandeja operativa.",
+        "nodeType": "EndEvent",
+        "laneId": "lane-operador-n1",
+        "itSystem": "WiseCX",
+        "legalFramework": "Reglamento Operativo DGSTI Art. 1.2",
+        "inputs": [
+          "Plazo de 20 minutos vencido sin interacción"
+        ],
+        "outputs": [
+          "Ticket en estado CERRADO por inactividad"
+        ],
+        "operationalRisks": [],
+        "tags": [
+          "Fin",
+          "Cierre Inactividad"
+        ]
+      },
+      "measured": {
+        "width": 96,
+        "height": 96
+      }
     }
   ],
   "edges": [
@@ -686,7 +682,8 @@
         "source": "node-start-contacto",
         "target": "node-task-recepcion-toma",
         "conditionText": "Ingreso a bandeja general directa"
-      }
+      },
+      "selected": false
     },
     {
       "id": "edge-02",
@@ -697,7 +694,8 @@
         "id": "edge-02",
         "source": "node-task-recepcion-toma",
         "target": "node-gtw-empadronado"
-      }
+      },
+      "selected": false
     },
     {
       "id": "edge-03",
@@ -709,7 +707,8 @@
         "source": "node-gtw-empadronado",
         "target": "node-task-alta-contacto",
         "conditionText": "[No registrado / Primer contacto]"
-      }
+      },
+      "selected": false
     },
     {
       "id": "edge-04",
@@ -721,7 +720,8 @@
         "source": "node-gtw-empadronado",
         "target": "node-task-categorizacion",
         "conditionText": "[Ya registrado en Padrón]"
-      }
+      },
+      "selected": false
     },
     {
       "id": "edge-05",
@@ -733,7 +733,8 @@
         "source": "node-task-alta-contacto",
         "target": "node-task-categorizacion",
         "conditionText": "Ficha vinculada"
-      }
+      },
+      "selected": false
     },
     {
       "id": "edge-06",
@@ -744,7 +745,8 @@
         "id": "edge-06",
         "source": "node-task-categorizacion",
         "target": "node-gtw-info-suficiente"
-      }
+      },
+      "selected": false
     },
     {
       "id": "edge-07",
@@ -752,11 +754,12 @@
       "target": "node-task-solicitud-datos",
       "type": "sequenceFlow",
       "data": {
+        "conditionText": "[Faltan datos / Requiere evidencias]",
         "id": "edge-07",
         "source": "node-gtw-info-suficiente",
-        "target": "node-task-solicitud-datos",
-        "conditionText": "[Faltan datos / Requiere evidencias]"
-      }
+        "target": "node-task-solicitud-datos"
+      },
+      "selected": false
     },
     {
       "id": "edge-08",
@@ -768,40 +771,6 @@
         "source": "node-gtw-info-suficiente",
         "target": "node-gtw-complejidad-n1",
         "conditionText": "[Datos completos para diagnóstico]"
-      }
-    },
-    {
-      "id": "edge-09",
-      "source": "node-task-solicitud-datos",
-      "target": "node-qc-inactividad-20min",
-      "type": "sequenceFlow",
-      "data": {
-        "id": "edge-09",
-        "source": "node-task-solicitud-datos",
-        "target": "node-qc-inactividad-20min"
-      }
-    },
-    {
-      "id": "edge-10",
-      "source": "node-qc-inactividad-20min",
-      "target": "node-gtw-respuesta-usuario",
-      "type": "sequenceFlow",
-      "data": {
-        "id": "edge-10",
-        "source": "node-qc-inactividad-20min",
-        "target": "node-gtw-respuesta-usuario"
-      }
-    },
-    {
-      "id": "edge-11",
-      "source": "node-gtw-respuesta-usuario",
-      "target": "node-end-inactividad",
-      "type": "sequenceFlow",
-      "data": {
-        "id": "edge-11",
-        "source": "node-gtw-respuesta-usuario",
-        "target": "node-end-inactividad",
-        "conditionText": "[No responde tras >20 min]"
       }
     },
     {
@@ -871,6 +840,55 @@
     },
     {
       "id": "e_node-gtw-respuesta-usuario_node-gtw-complejidad-n1_1789141873412",
+      "source": "node-end-inactividad",
+      "target": "node-gtw-complejidad-n1",
+      "type": "sequenceFlow",
+      "data": {
+        "conditionText": "",
+        "id": "e_node-gtw-respuesta-usuario_node-gtw-complejidad-n1",
+        "source": "node-end-inactividad",
+        "target": "node-gtw-complejidad-n1"
+      },
+      "selected": false
+    },
+    {
+      "id": "edge-09",
+      "source": "node-task-solicitud-datos",
+      "target": "node-qc-inactividad-20min",
+      "type": "sequenceFlow",
+      "data": {
+        "conditionText": "",
+        "id": "edge-09",
+        "source": "node-task-solicitud-datos",
+        "target": "node-qc-inactividad-20min"
+      }
+    },
+    {
+      "id": "edge-10",
+      "source": "node-qc-inactividad-20min",
+      "target": "node-gtw-respuesta-usuario",
+      "type": "sequenceFlow",
+      "data": {
+        "conditionText": "",
+        "id": "edge-10",
+        "source": "node-qc-inactividad-20min",
+        "target": "node-gtw-respuesta-usuario"
+      }
+    },
+    {
+      "id": "edge-11",
+      "source": "node-gtw-respuesta-usuario",
+      "target": "node-end-inactividad",
+      "type": "sequenceFlow",
+      "data": {
+        "conditionText": "[No responde tras >20 min]",
+        "id": "edge-11",
+        "source": "node-gtw-respuesta-usuario",
+        "target": "node-end-inactividad"
+      }
+    },
+    {
+      "id": "e_node-gtw-respuesta-usuario_node-gtw-complejidad-n1_1789147083839",
       "source": "node-gtw-respuesta-usuario",
       "target": "node-gtw-complejidad-n1",
       "type": "sequenceFlow",

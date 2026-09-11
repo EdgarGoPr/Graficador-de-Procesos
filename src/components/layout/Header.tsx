@@ -17,7 +17,9 @@ import {
   Moon,
   FolderOpen,
   Compass,
-  Palette
+  Palette,
+  Undo2,
+  Redo2
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -30,6 +32,10 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
     saveCurrentProject,
     isSaving,
     hasUnsavedChanges,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
   } = useProjectStore();
 
   const {
@@ -45,17 +51,49 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
     setActiveRightTab
   } = useUiStore();
 
-  // Keyboard shortcut Ctrl+S
+  const handleUndo = () => {
+    if (canUndo) {
+      const ok = undo();
+      if (ok) {
+        showNotification('↩️ Acción deshecha (Ctrl+Z)', 'info');
+      }
+    }
+  };
+
+  const handleRedo = () => {
+    if (canRedo) {
+      const ok = redo();
+      if (ok) {
+        showNotification('↪️ Acción rehecha (Ctrl+Y)', 'info');
+      }
+    }
+  };
+
+  // Global keyboard shortcuts: Ctrl+S (Save), Ctrl+Z (Undo), Ctrl+Y / Ctrl+Shift+Z (Redo)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
+        return;
+      }
+
       if ((e.ctrlKey || e.metaKey) && e.key === 's') {
         e.preventDefault();
         handleSave();
+      } else if ((e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'Z') && !e.shiftKey) {
+        e.preventDefault();
+        handleUndo();
+      } else if (
+        ((e.ctrlKey || e.metaKey) && (e.key === 'y' || e.key === 'Y')) ||
+        ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'z' || e.key === 'Z'))
+      ) {
+        e.preventDefault();
+        handleRedo();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [currentProject, hasUnsavedChanges]);
+  }, [currentProject, hasUnsavedChanges, canUndo, canRedo, undo, redo]);
 
   const handleSave = async () => {
     if (!currentProject) return;
@@ -205,6 +243,38 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
             <Compass className="w-3.5 h-3.5 text-theme-accent" />
             <span className="hidden lg:inline">Navegador</span>
           </button>
+        )}
+
+        {/* Undo / Redo History Buttons */}
+        {currentProject && (
+          <div className="flex items-center space-x-0.5 bg-theme-surface-subtle p-0.5 rounded-lg border border-theme-border">
+            <button
+              onClick={handleUndo}
+              disabled={!canUndo}
+              className={`flex items-center space-x-1 px-2 py-1 rounded-md text-xs font-medium transition-all ${
+                canUndo
+                  ? 'text-theme-text hover:text-theme-accent hover:bg-theme-surface cursor-pointer'
+                  : 'text-theme-text-muted/40 cursor-not-allowed opacity-50'
+              }`}
+              title={canUndo ? 'Deshacer último movimiento (Ctrl+Z)' : 'Nada que deshacer'}
+            >
+              <Undo2 className="w-3.5 h-3.5" />
+              <span className="hidden xl:inline text-[11px]">Deshacer</span>
+            </button>
+            <button
+              onClick={handleRedo}
+              disabled={!canRedo}
+              className={`flex items-center space-x-1 px-2 py-1 rounded-md text-xs font-medium transition-all ${
+                canRedo
+                  ? 'text-theme-text hover:text-theme-accent hover:bg-theme-surface cursor-pointer'
+                  : 'text-theme-text-muted/40 cursor-not-allowed opacity-50'
+              }`}
+              title={canRedo ? 'Rehacer movimiento (Ctrl+Y o Ctrl+Shift+Z)' : 'Nada que rehacer'}
+            >
+              <Redo2 className="w-3.5 h-3.5" />
+              <span className="hidden xl:inline text-[11px]">Rehacer</span>
+            </button>
+          </div>
         )}
 
         <button

@@ -302,6 +302,10 @@ const ProcessCanvasInternal: React.FC = () => {
     [currentProject]
   );
 
+  const onNodeDragStart = useCallback(() => {
+    useProjectStore.getState().pushSnapshot('Mover elemento');
+  }, []);
+
   const onNodeDragStop = useCallback(() => {
     setAlignmentGuides([]);
   }, []);
@@ -354,6 +358,7 @@ const ProcessCanvasInternal: React.FC = () => {
         onNodeClick={onNodeClick}
         onEdgeClick={onEdgeClick}
         onPaneClick={onPaneClick}
+        onNodeDragStart={onNodeDragStart}
         onNodeDrag={onNodeDrag}
         onNodeDragStop={onNodeDragStop}
         onDragOver={onDragOver}

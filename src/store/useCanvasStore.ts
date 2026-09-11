@@ -242,6 +242,8 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
     const currentProject = projectStore.currentProject;
     if (!currentProject || !connection.source || !connection.target) return;
 
+    projectStore.pushSnapshot('Crear conexión');
+
     const newEdge: Edge<SequenceFlowData> = {
       id: `e_${connection.source}_${connection.target}_${Date.now()}`,
       source: connection.source,
@@ -300,6 +302,8 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
     const currentProject = projectStore.currentProject;
     if (!currentProject) return;
 
+    projectStore.pushSnapshot('Fijar/Desfijar elementos');
+
     // Check if any of the selected nodes are unlocked
     const anyUnlocked = currentProject.nodes.some((n) => ids.includes(n.id) && !n.data?.isLocked);
     const targetState = anyUnlocked; // If any is unlocked, lock all; otherwise unlock all
@@ -327,6 +331,8 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
     const projectStore = useProjectStore.getState();
     const currentProject = projectStore.currentProject;
     if (!currentProject) return;
+
+    projectStore.pushSnapshot('Fijar/Desfijar elemento');
 
     const nextNodes = currentProject.nodes.map((node) => {
       if (node.id === nodeId) {
@@ -366,6 +372,8 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
     const projectStore = useProjectStore.getState();
     const currentProject = projectStore.currentProject;
     if (!clipboardPayload || !currentProject || clipboardPayload.nodes.length === 0) return false;
+
+    projectStore.pushSnapshot('Pegar elementos');
 
     const { newNodes, newEdges } = pasteClipboardPayload(clipboardPayload, { x: 40, y: 40 });
 
@@ -414,6 +422,8 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
       return { success: false, error: 'No hay un proyecto activo.' };
     }
 
+    projectStore.pushSnapshot('Comprimir subproceso');
+
     const result = compressNodesToSubProcess(
       selectedNodeIds,
       title,
@@ -443,6 +453,8 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
       return { success: false, error: 'No hay un proyecto activo.' };
     }
 
+    projectStore.pushSnapshot('Descomprimir subproceso');
+
     const result = decompressSubProcessToCanvas(subProcessNodeId, currentProject);
     if ('error' in result) {
       return { success: false, error: result.error };
@@ -461,6 +473,8 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
     const projectStore = useProjectStore.getState();
     const currentProject = projectStore.currentProject;
     if (!currentProject) return;
+
+    projectStore.pushSnapshot('Agregar elemento');
 
     const firstLane = currentProject.pools[0]?.lanes[0];
     const targetLaneId = laneId || firstLane?.id || 'lane-default';
@@ -531,6 +545,8 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
     const currentProject = projectStore.currentProject;
     if (!currentProject) return;
 
+    projectStore.pushSnapshot('Modificar elemento');
+
     const nextNodes = currentProject.nodes.map((node) => {
       if (node.id === nodeId) {
         return {
@@ -557,6 +573,8 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
 
     const targetNode = currentProject.nodes.find((n) => n.id === targetNodeId);
     if (!targetNode && scope !== 'all') return;
+
+    projectStore.pushSnapshot('Aplicar estilo');
 
     const targetType = targetNode?.data?.nodeType;
 
@@ -593,6 +611,8 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
     const currentProject = projectStore.currentProject;
     if (!currentProject) return;
 
+    projectStore.pushSnapshot('Modificar conector');
+
     const nextEdges = currentProject.edges.map((edge) => {
       if (edge.id === edgeId) {
         return {
@@ -619,6 +639,8 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
     const projectStore = useProjectStore.getState();
     const currentProject = projectStore.currentProject;
     if (!currentProject) return;
+
+    projectStore.pushSnapshot('Cambiar colores');
 
     const nextNodes = currentProject.nodes.map((node) => {
       let matches = false;
@@ -653,6 +675,8 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
     const currentProject = projectStore.currentProject;
     if (!currentProject) return;
 
+    projectStore.pushSnapshot('Cambiar estilo de conectores');
+
     const nextEdges = currentProject.edges.map((edge) => ({
       ...edge,
       data: {
@@ -679,6 +703,7 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
     const targetNodeIds = selectedNodeIds.length > 0 ? selectedNodeIds : (selectedNodeId ? [selectedNodeId] : []);
 
     if (targetNodeIds.length > 0) {
+      projectStore.pushSnapshot('Eliminar selección');
       const deleteSet = new Set(targetNodeIds);
       const nextNodes = currentProject.nodes.filter(n => !deleteSet.has(n.id));
       const nextEdges = currentProject.edges.filter(
@@ -691,6 +716,7 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
       });
       set({ selectedNodeId: null, selectedNodeIds: [] });
     } else if (selectedEdgeId) {
+      projectStore.pushSnapshot('Eliminar conector');
       const nextEdges = currentProject.edges.filter(e => e.id !== selectedEdgeId);
       projectStore.setProjectData({
         ...currentProject,
@@ -707,6 +733,8 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
 
     const pool = currentProject.pools.find(p => p.id === poolId) || currentProject.pools[0];
     if (!pool) return;
+
+    projectStore.pushSnapshot('Agregar carril');
 
     const newLaneId = `lane-${Date.now()}`;
     const defaultColors = ['#38bdf8', '#818cf8', '#34d399', '#f59e0b', '#ec4899', '#06b6d4', '#a855f7', '#64748b'];
@@ -742,6 +770,8 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
     const currentProject = projectStore.currentProject;
     if (!currentProject) return;
 
+    projectStore.pushSnapshot('Modificar carril');
+
     const nextPools = currentProject.pools.map(p => ({
       ...p,
       lanes: p.lanes.map(l => (l.id === laneId ? { ...l, ...updates } : l))
@@ -765,6 +795,8 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
 
     const targetIndex = direction === 'up' ? index - 1 : index + 1;
     if (targetIndex < 0 || targetIndex >= lanes.length) return;
+
+    projectStore.pushSnapshot('Mover carril');
 
     const laneA = lanes[index];
     const laneB = lanes[targetIndex];
@@ -827,6 +859,8 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
     const deletedIndex = pool.lanes.findIndex(l => l.id === laneId);
     if (deletedIndex === -1) return;
 
+    projectStore.pushSnapshot('Eliminar carril');
+
     const remainingLanes = pool.lanes.filter(l => l.id !== laneId);
     remainingLanes.forEach((l, i) => { l.order = i; });
 
@@ -879,6 +913,8 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
 
     const laneNodes = currentProject.nodes.filter((n) => n.type === 'PoolLane');
     if (laneNodes.length === 0) return;
+
+    projectStore.pushSnapshot('Alinear carriles');
 
     const isVertical = laneNodes[0].data.orientation === 'vertical';
     let nextNodes = [...currentProject.nodes];

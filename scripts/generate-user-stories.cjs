@@ -209,6 +209,15 @@ const userStories = [
     criteriosAceptacion: '1. Ocultamiento total de la barra de navegación Header durante la impresión mediante clase print:hidden.\n2. Motor de renderizado vectorial FlowchartPrintDocument con estructura descendente nivel por nivel.\n3. Centrado automático horizontal de cada nivel en la hoja A4 con flechas SVG continuas y etiquetas de condición.\n4. Soporte nativo de paginación vertical con reglas page-break-inside: avoid en cada bloque.\n5. Selector de Vista Paginada para previsualizar el PDF en pantalla antes de imprimir.',
     fechaImplementacion: '2026-09-11',
     estado: 'Implementado / Producción'
+  },
+  {
+    id: 'PST-024',
+    modulo: 'Edición & Productividad',
+    titulo: 'Sistema de Historial Deshacer (Ctrl+Z) y Rehacer (Ctrl+Y) Paso a Paso',
+    historiaUsuario: 'Como usuario y modelador de procesos, quiero poder deshacer y rehacer con Ctrl+Z y Ctrl+Y (o mediante botones en la barra superior) cada uno de los movimientos y modificaciones realizadas en la sesión paso a paso, para rectificar errores o experimentar con el diagrama con total libertad y seguridad.',
+    criteriosAceptacion: '1. Registro inmutable de instantáneas previas (snapshots) en una pila de historial con límite de hasta 50 estados.\n2. Captura única de estado al iniciar arrastre de tarjetas (onNodeDragStart) evitando saturación de memoria.\n3. Deshacer (Ctrl+Z) y Rehacer (Ctrl+Y / Ctrl+Shift+Z) paso a paso en movimientos, adición/eliminación de nodos, conexiones, cambios de estilo y carriles.\n4. Botones visuales Deshacer y Rehacer en la barra superior (Header) con estados activos/deshabilitados e información contextual.\n5. Aislamiento de eventos de teclado en inputs y textareas para preservar el deshacer nativo de texto.',
+    fechaImplementacion: '2026-09-11',
+    estado: 'Implementado / Producción'
   }
 ];
 
