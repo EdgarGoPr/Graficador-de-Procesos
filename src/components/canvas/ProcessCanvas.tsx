@@ -29,6 +29,7 @@ import { StickyNoteNode } from './custom-nodes/StickyNoteNode';
 import { SequenceFlowEdge } from './custom-edges/SequenceFlowEdge';
 import { SelectionToolbar } from './SelectionToolbar';
 import { AlignmentGuidesOverlay, AlignmentGuide } from './AlignmentGuidesOverlay';
+import { PrintFrameOverlay } from './PrintFrameOverlay';
 import { BpmnNodeType, BpmnNodeData } from '../../types/process';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -389,6 +390,7 @@ const ProcessCanvasInternal: React.FC = () => {
         }}
       >
         <AlignmentGuidesOverlay guides={alignmentGuides} />
+        <PrintFrameOverlay />
         <Controls className="!bg-theme-surface !border-theme-border !text-theme-text fill-current shadow-lg" />
         <MiniMap
           nodeColor={(node) => {

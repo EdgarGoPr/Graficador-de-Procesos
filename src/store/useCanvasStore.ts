@@ -11,6 +11,8 @@ import {
   Connection
 } from '@xyflow/react';
 import { BpmnNodeData, BpmnNodeType, SequenceFlowData, BPMN_NODE_TYPES } from '../types/process';
+import { PrintFrame, PageFormat, PageOrientation, DEFAULT_PAGE_DIMENSIONS } from '../types/printFrame';
+import { calculateAutoFrames } from '../services/pdfDiagramExportService';
 import { useProjectStore } from './useProjectStore';
 import {
   validateSubProcessCompression,
@@ -28,6 +30,7 @@ interface CanvasStoreState {
   clipboardPayload: { nodes: Node<BpmnNodeData>[]; edges: Edge<SequenceFlowData>[] } | null;
   isCompressModalOpen: boolean;
   isCanvasLocked: boolean; // Modo fijado global: ningún elemento se desplaza y arrastrar sobre ellos desplaza el mapa
+  isPrintOverlayVisible: boolean; // Visibilidad de recuadros punteados de impresión
 
   // React Flow Handlers
   onNodesChange: OnNodesChange<Node<BpmnNodeData>>;
@@ -39,6 +42,14 @@ interface CanvasStoreState {
   setSelectedNodeIds: (ids: string[]) => void;
   selectEdge: (edgeId: string | null) => void;
   setCompressModalOpen: (open: boolean) => void;
+
+  // Print Frames Management
+  togglePrintOverlay: () => void;
+  setPrintOverlayVisible: (visible: boolean) => void;
+  addPrintFrame: (format?: PageFormat, orientation?: PageOrientation) => void;
+  updatePrintFrame: (frameId: string, updates: Partial<PrintFrame>) => void;
+  deletePrintFrame: (frameId: string) => void;
+  autoLayoutPrintFrames: (format?: PageFormat, orientation?: PageOrientation) => void;
 
   // Lock / Pin controls
   toggleCanvasLock: () => void;
@@ -78,6 +89,113 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
   clipboardPayload: null,
   isCompressModalOpen: false,
   isCanvasLocked: false,
+  isPrintOverlayVisible: false,
+
+  togglePrintOverlay: () => {
+    const current = get().isPrintOverlayVisible;
+    const next = !current;
+    set({ isPrintOverlayVisible: next });
+
+    if (next) {
+      const projectStore = useProjectStore.getState();
+      const currentProject = projectStore.currentProject;
+      if (currentProject && (!currentProject.printFrames || currentProject.printFrames.length === 0)) {
+        const frames = calculateAutoFrames(currentProject, 'A4', 'landscape');
+        projectStore.setProjectData({
+          ...currentProject,
+          printFrames: frames,
+        });
+      }
+    }
+  },
+
+  setPrintOverlayVisible: (visible: boolean) => {
+    set({ isPrintOverlayVisible: visible });
+  },
+
+  addPrintFrame: (format: PageFormat = 'A4', orientation: PageOrientation = 'landscape') => {
+    const projectStore = useProjectStore.getState();
+    const currentProject = projectStore.currentProject;
+    if (!currentProject) return;
+
+    const existingFrames = currentProject.printFrames || [];
+    const dim = DEFAULT_PAGE_DIMENSIONS[format][orientation];
+    const lastFrame = existingFrames[existingFrames.length - 1];
+    const newX = lastFrame ? lastFrame.x + lastFrame.width + 60 : 0;
+    const newY = lastFrame ? lastFrame.y : 0;
+
+    const newFrame: PrintFrame = {
+      id: `frame_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+      pageNumber: existingFrames.length + 1,
+      format,
+      orientation,
+      x: Math.round(newX),
+      y: Math.round(newY),
+      width: dim.width,
+      height: dim.height,
+    };
+
+    const nextFrames = [...existingFrames, newFrame].map((f, idx) => ({ ...f, pageNumber: idx + 1 }));
+    projectStore.setProjectData({
+      ...currentProject,
+      printFrames: nextFrames,
+    });
+    set({ isPrintOverlayVisible: true });
+  },
+
+  updatePrintFrame: (frameId: string, updates: Partial<PrintFrame>) => {
+    const projectStore = useProjectStore.getState();
+    const currentProject = projectStore.currentProject;
+    if (!currentProject) return;
+
+    const existingFrames = currentProject.printFrames || [];
+    const nextFrames = existingFrames.map((f) => {
+      if (f.id === frameId) {
+        const updated = { ...f, ...updates };
+        if ((updates.format || updates.orientation) && !updates.width && !updates.height) {
+          const dim = DEFAULT_PAGE_DIMENSIONS[updated.format][updated.orientation];
+          updated.width = dim.width;
+          updated.height = dim.height;
+        }
+        return updated;
+      }
+      return f;
+    });
+
+    projectStore.setProjectData({
+      ...currentProject,
+      printFrames: nextFrames,
+    });
+  },
+
+  deletePrintFrame: (frameId: string) => {
+    const projectStore = useProjectStore.getState();
+    const currentProject = projectStore.currentProject;
+    if (!currentProject) return;
+
+    const existingFrames = currentProject.printFrames || [];
+    const nextFrames = existingFrames
+      .filter((f) => f.id !== frameId)
+      .map((f, idx) => ({ ...f, pageNumber: idx + 1 }));
+
+    projectStore.setProjectData({
+      ...currentProject,
+      printFrames: nextFrames,
+    });
+  },
+
+  autoLayoutPrintFrames: (format: PageFormat = 'A4', orientation: PageOrientation = 'landscape') => {
+    const projectStore = useProjectStore.getState();
+    const currentProject = projectStore.currentProject;
+    if (!currentProject) return;
+
+    const frames = calculateAutoFrames(currentProject, format, orientation);
+    projectStore.setProjectData({
+      ...currentProject,
+      printFrames: frames,
+    });
+    set({ isPrintOverlayVisible: true });
+  },
 
   onNodesChange: (changes) => {
     const projectStore = useProjectStore.getState();

@@ -8,7 +8,7 @@
     "organizationUnit": "Dirección General de Sistemas, Tecnología e Innovación (DGSTI) - Tribunal Administrativo Municipal de Faltas",
     "processObjective": "Estandarizar el ciclo integral de soporte técnico e incidencias de hardware, conectividad y sistemas de faltas (SAM, VUPRA, SIGEF) mediante atención humana directa en la consola WiseCX, gestionando el empadronamiento interno, la categorización en dos niveles, el control de inactividad de usuarios y la derivación a soporte avanzado.",
     "createdAt": "2026-09-11T10:00:00Z",
-    "updatedAt": "2026-09-11T18:03:16.165Z",
+    "updatedAt": "2026-09-17T17:04:36.907Z",
     "status": "APPROVED",
     "legalNormativeBasis": [
       "Ordenanza de Procedimiento Administrativo Municipal de Córdoba",
@@ -567,7 +567,7 @@
         "x": 1297.638625977928,
         "y": -554.1768317703782
       },
-      "selected": false,
+      "selected": true,
       "width": 190,
       "height": 179,
       "data": {

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useProjectStore } from '../../store/useProjectStore';
 import { useUiStore } from '../../store/useUiStore';
 import { downloadPngFile, downloadSvgFile } from '../../services/imageExportService';
+import { exportMultiPageDiagramPdf } from '../../services/pdfDiagramExportService';
 import { downloadBpmnXmlFile } from '../../services/bpmnXmlExporter';
 import { downloadDocxManual } from '../../services/docxExportService';
 import {
@@ -14,7 +15,8 @@ import {
   CheckCircle2,
   Sparkles,
   Layers,
-  ArrowDownToLine
+  ArrowDownToLine,
+  Printer
 } from 'lucide-react';
 
 interface ExportCenterModalProps {
@@ -28,6 +30,22 @@ export const ExportCenterModal: React.FC<ExportCenterModalProps> = ({ isOpen, on
   const [isExporting, setIsExporting] = useState<string | null>(null);
 
   if (!isOpen || !currentProject) return null;
+
+  const handleExportPdfDiagram = async () => {
+    try {
+      setIsExporting('pdf');
+      const fileName = await exportMultiPageDiagramPdf(currentProject, currentProject.printFrames, {
+        themeMode: 'light',
+        includeHeaderFooter: true,
+      });
+      showNotification(`PDF generado exitosamente: ${fileName}`, 'success');
+      onClose();
+    } catch (e) {
+      showNotification('Error al exportar Diagrama PDF', 'error');
+    } finally {
+      setIsExporting(null);
+    }
+  };
 
   const handleExportPng = async () => {
     try {
@@ -87,7 +105,34 @@ export const ExportCenterModal: React.FC<ExportCenterModalProps> = ({ isOpen, on
 
         {/* Options Grid */}
         <div className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {/* 1. PNG HD */}
+          {/* 1. PDF Multi-Página Diagram */}
+          <div
+            onClick={handleExportPdfDiagram}
+            className="p-5 rounded-2xl bg-theme-surface-subtle border border-theme-border hover:border-sky-400 hover:bg-theme-surface cursor-pointer group transition-all flex flex-col justify-between"
+          >
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <div className="p-2.5 rounded-xl bg-sky-500/15 text-sky-400 border border-sky-500/30 group-hover:scale-110 transition-transform">
+                  <Printer className="w-5 h-5" />
+                </div>
+                <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-theme-surface border border-theme-border text-sky-400">
+                  .PDF (Multi-Hoja)
+                </span>
+              </div>
+              <h3 className="text-sm font-bold text-theme-text group-hover:text-sky-400 transition-colors">
+                Diagrama en PDF (Multi-Página)
+              </h3>
+              <p className="text-xs text-theme-text-muted mt-1 leading-relaxed">
+                Exporta el mapa del proceso en páginas A4/Carta/A3 con encuadre de recuadros punteados y membrete ISO 9001.
+              </p>
+            </div>
+            <div className="mt-4 pt-3 border-t border-theme-border flex items-center text-xs font-semibold text-sky-400">
+              <span>{isExporting === 'pdf' ? 'Generando PDF...' : 'Guardar PDF Diagrama'}</span>
+              <ArrowDownToLine className="w-3.5 h-3.5 ml-1.5 group-hover:translate-y-0.5 transition-transform" />
+            </div>
+          </div>
+
+          {/* 2. PNG HD */}
           <div
             onClick={handleExportPng}
             className="p-5 rounded-2xl bg-theme-surface-subtle border border-theme-border hover:border-theme-accent hover:bg-theme-surface cursor-pointer group transition-all flex flex-col justify-between"

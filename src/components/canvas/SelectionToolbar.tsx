@@ -2,7 +2,7 @@ import React from 'react';
 import { useCanvasStore } from '../../store/useCanvasStore';
 import { useProjectStore } from '../../store/useProjectStore';
 import { useUiStore } from '../../store/useUiStore';
-import { Box, Copy, Clipboard, Trash2, RotateCcw, AlignJustify, Lock, Unlock } from 'lucide-react';
+import { Box, Copy, Clipboard, Trash2, RotateCcw, AlignJustify, Lock, Unlock, Printer } from 'lucide-react';
 
 export const SelectionToolbar: React.FC = () => {
   const {
@@ -16,7 +16,9 @@ export const SelectionToolbar: React.FC = () => {
     alignAllLanes,
     isCanvasLocked,
     toggleCanvasLock,
-    toggleLockSelected
+    toggleLockSelected,
+    isPrintOverlayVisible,
+    togglePrintOverlay
   } = useCanvasStore();
 
   const { currentProject } = useProjectStore();
@@ -28,7 +30,7 @@ export const SelectionToolbar: React.FC = () => {
   const hasLanes = currentProject?.nodes.some((n) => n.type === 'PoolLane') ?? false;
   const isSelectionLocked = hasSelection && (currentProject?.nodes.some((n) => selectedNodeIds.includes(n.id) && n.data?.isLocked) ?? false);
 
-  if (!hasSelection && !hasClipboard && !hasLanes && !isCanvasLocked) return null;
+  if (!hasSelection && !hasClipboard && !hasLanes && !isCanvasLocked && !isPrintOverlayVisible) return null;
 
   const handleCopy = () => {
     const ok = copySelection();
@@ -124,6 +126,28 @@ export const SelectionToolbar: React.FC = () => {
           <Unlock className="w-3.5 h-3.5 text-theme-text-muted shrink-0" />
         )}
         <span className="hidden md:inline">{isCanvasLocked ? 'Mapa Fijado' : 'Fijar Mapa'}</span>
+      </button>
+
+      {/* Print Frames Toggle Button */}
+      <button
+        onClick={() => {
+          togglePrintOverlay();
+          showNotification(
+            !isPrintOverlayVisible
+              ? 'Modo Hojas de Impresión activado. Ajusta los recuadros para exportar a PDF.'
+              : 'Recuadros de impresión ocultados.',
+            'info'
+          );
+        }}
+        className={`flex items-center space-x-1 px-2.5 py-1.5 rounded-xl border text-xs font-medium transition-colors cursor-pointer ${
+          isPrintOverlayVisible
+            ? 'bg-sky-500/20 border-sky-400 text-sky-400 ring-1 ring-sky-400 font-bold'
+            : 'bg-theme-surface-subtle hover:bg-theme-surface border-theme-border text-theme-text-muted hover:text-theme-text'
+        }`}
+        title="Mostrar / Ocultar recuadros de hojas de impresión para exportar a PDF"
+      >
+        <Printer className="w-3.5 h-3.5 text-sky-400 shrink-0" />
+        <span className="hidden sm:inline">Hojas de Impresión</span>
       </button>
 
       {/* Dock and Align Lanes Button */}

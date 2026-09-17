@@ -1,5 +1,6 @@
 import { Node, Edge } from '@xyflow/react';
 import { BpmnNodeData, SequenceFlowData, PoolDefinition } from './process';
+import { PrintFrame } from './printFrame';
 
 /**
  * ISO/IEC 11179 & ISO 9001:2015 Document Control and Project Schema
@@ -32,6 +33,7 @@ export interface ProcessProjectFile {
   pools: PoolDefinition[];
   nodes: Node<BpmnNodeData>[];
   edges: Edge<SequenceFlowData>[];
+  printFrames?: PrintFrame[];
   fileName?: string; // e.g. "2026-09-01_proc-tribunal-faltas-v1.json"
 }
 

@@ -281,6 +281,15 @@ const userStories = [
     criteriosAceptacion: '1. Modal de comparación con selector de archivo JSON de versión previa o base.\n2. Análisis comparativo instantáneo mostrando métricas de elementos añadidos, eliminados y modificados.\n3. Tabla detallada con etiquetas de colores (verde para agregados, rojo para eliminados, ámbar para modificados).\n4. Inspección expandible campo por campo destacando valor anterior vs. valor actual.',
     fechaImplementacion: '2026-09-11',
     estado: 'Implementado / Producción'
+  },
+  {
+    id: 'PST-032',
+    modulo: 'Diseño & Exportación de Diagramas',
+    titulo: 'Sistema de Hojas de Impresión Multi-Página (Recuadros Punteados A4/Carta/A3) y Exportación PDF',
+    historiaUsuario: 'Como analista o líder de procesos, quiero configurar recuadros punteados en el lienzo que delimiten hojas de impresión en formatos estándar (A4, Carta, A3 en horizontal/vertical) pudiendo moverlos y ajustarlos a gusto, para generar un documento PDF de alta calidad que contenga todas las hojas configuradas con nomenclatura estandarizada sin hojas en blanco.',
+    criteriosAceptacion: '1. Recuadros punteados interactivos en el lienzo con identificación de hoja (Hoja 1, Hoja 2, etc.), arrastre para reposicionar y tiradores en esquinas para redimensionar.\n2. Selector de formatos de hoja (A4, Carta, A3) y orientaciones (Horizontal / Vertical).\n3. Botones de acción rápida: "+ Agregar Hoja", "Auto-Encuadrar" y "Ocultar Hojas".\n4. Generación nativa en cliente de PDF multi-página mediante jsPDF sin hojas en blanco ni distorsiones.\n5. Nomenclatura automática de archivo PDF con referencia al proyecto: AAAA-MM-DD_proc-<codigo>_<titulo>_diagrama.pdf.\n6. Integración en el Centro de Exportación y en el visor de Diagrama del Proceso.',
+    fechaImplementacion: '2026-09-17',
+    estado: 'Implementado / Producción'
   }
 ];
 

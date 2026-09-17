@@ -8,7 +8,7 @@
     "organizationUnit": "Justicia Administrativa Municipal de Faltas",
     "processObjective": "Definir el objetivo y alcance operativo del proceso.",
     "createdAt": "2026-09-01T15:50:30.507Z",
-    "updatedAt": "2026-09-01T18:59:49.072Z",
+    "updatedAt": "2026-09-01T19:01:42.381Z",
     "status": "DRAFT",
     "legalNormativeBasis": [
       "Normativa aplicable general"
@@ -163,7 +163,7 @@
       "id": "lane_node_1788288285354",
       "type": "PoolLane",
       "position": {
-        "x": -677.1393655116256,
+        "x": -750.960926648719,
         "y": -1256.3159476925027
       },
       "style": {
@@ -203,8 +203,8 @@
       "id": "lane_node_1788288778125",
       "type": "PoolLane",
       "position": {
-        "x": -678.2239365149874,
-        "y": -426.8115047509693
+        "x": -752.960926648719,
+        "y": -1096.3159476925027
       },
       "style": {
         "width": 2200,
@@ -218,6 +218,45 @@
         "description": "Carril contenedor de actividades",
         "nodeType": "PoolLane",
         "laneId": "lane_node_1788288778125",
+        "laneName": "Mesa de Entradas / Inspectoría",
+        "roleName": "Inspector / Operador",
+        "itSystem": "SAM / VUPRA",
+        "legalFramework": "Marco normativo general",
+        "customBorderColor": "#38bdf8",
+        "inputs": [],
+        "outputs": [],
+        "operationalRisks": [],
+        "tags": []
+      },
+      "measured": {
+        "width": 2202,
+        "height": 436
+      },
+      "selected": true,
+      "dragging": false,
+      "width": 2202,
+      "height": 436,
+      "resizing": false
+    },
+    {
+      "id": "lane_node_1788289289960",
+      "type": "PoolLane",
+      "position": {
+        "x": -750.960926648719,
+        "y": -936.3159476925027
+      },
+      "style": {
+        "width": 2200,
+        "height": 160,
+        "zIndex": -1
+      },
+      "zIndex": -1,
+      "data": {
+        "standardId": "LANE-03",
+        "title": "Carril Funcional #3",
+        "description": "Carril contenedor de actividades",
+        "nodeType": "PoolLane",
+        "laneId": "lane_node_1788289289960",
         "laneName": "Mesa de Entradas / Inspectoría",
         "roleName": "Inspector / Operador",
         "itSystem": "SAM / VUPRA",

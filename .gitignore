@@ -11,6 +11,7 @@ dist-ssr/
 # Portable electron binaries (>100MB)
 MiAppProcesos_USB/App/electron/
 app-data/
+*.zip
 
 # Portable runtime data
 data/
