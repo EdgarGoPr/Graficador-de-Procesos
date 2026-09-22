@@ -308,6 +308,15 @@ const userStories = [
     criteriosAceptacion: '1. Extractor de secuencia topológica automática que ordena las actividades desde el Evento de Inicio hasta el Fin respetando bifurcaciones y carriles.\n2. Animación fluida de cámara (ReactFlow setCenter con zoom 1.35) y resplandor focal (spotlight) sobre la tarjeta activa con atenuación del entorno.\n3. Panel lateral derecho estructurado con código estándar, rol, título, descripción, métricas de tiempo/SLA, sistemas TI, entradas (inputs), entregables (outputs), marco legal/ISO 9001, riesgos operativos y enlaces de navegación del flujo.\n4. Barra de reproducción flotante con controles de Inicio, Anterior, Siguiente, selector de diapositivas y modo Auto-Play con temporizador configurable.\n5. Control completo por teclado (←, →, Espacio para pausar/reanudar, Home, End, F para pantalla completa, Esc para salir y F5/Shift+P para abrir desde el lienzo).',
     fechaImplementacion: '2026-09-22',
     estado: 'Implementado / Producción'
+  },
+  {
+    id: 'PST-035',
+    modulo: 'Navegación & Experiencia de Usuario',
+    titulo: 'Reestructuración y Compactación de Barra Superior con Menús Desplegables Profesionales',
+    historiaUsuario: 'Como usuario de ProcesStudio en pantallas estándar o portátiles, quiero una barra superior limpia y compacta organizada en menús desplegables jerárquicos (Vistas & Matrices, Herramientas) y botones de utilidad en iconos con tooltip, para acceder a todas las 18 funcionalidades del sistema con 1 solo clic sin desborde horizontal ni necesidad de múltiples monitores.',
+    criteriosAceptacion: '1. Pestañas de acceso directo para "Proyectos" y "Lienzo BPMN".\n2. Menú desplegable flotante "Vistas & Matrices" que agrupa Flujograma, Matriz SIPOC, Matriz RACI y Documento & Reporte.\n3. Menú desplegable flotante "Herramientas" que agrupa Presentación Prezi (F5), Auditor de Calidad, Simulador de Flujos, Comparador de Versiones y Navegador de Subprocesos.\n4. Grupo de utilidades compactas en formato icono con tooltip (Deshacer, Rehacer, Ver Carpeta, Temas y Modo Claro/Oscuro).\n5. Acciones principales destacadas (Exportar, Nuevo y Guardar con indicador animado de cambios pendientes).\n6. Reducción de más del 65% del ancho total de la barra con cierre automático al hacer clic afuera (click outside listener).',
+    fechaImplementacion: '2026-09-22',
+    estado: 'Implementado / Producción'
   }
 ];
 
