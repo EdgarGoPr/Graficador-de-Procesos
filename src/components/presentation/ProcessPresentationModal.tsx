@@ -80,7 +80,7 @@ const PresentationCanvasController: React.FC<{
   activeColors: any;
 }> = ({ steps, currentStepIndex, onSelectStep, activeColors }) => {
   const { currentProject } = useProjectStore();
-  const { setCenter, getZoom } = useReactFlow();
+  const { setCenter } = useReactFlow();
 
   const currentStep = steps[currentStepIndex];
 
@@ -105,35 +105,72 @@ const PresentationCanvasController: React.FC<{
     setCenter(centerX, centerY, { zoom: 1.35, duration: 850 });
   }, [currentStepIndex, currentStep, setCenter]);
 
-  // Nodes with active spotlight styling
+  // Nodes with active spotlight styling and proper layering
   const presentationNodes = useMemo(() => {
     if (!currentProject) return [];
 
     const activeNodeId = currentStep?.node.id;
 
-    return currentProject.nodes.map((n) => {
-      const isCurrent = n.id === activeNodeId;
-      const isSwimlane = n.type === 'PoolLane';
+    const getHierarchyLevel = (type?: string) => {
+      if (type === 'PoolLane') return 0; // Fondo (Swimlanes / Carriles)
+      if (type === 'SubProcess') return 1; // Contenedores de subproceso
+      if (type?.includes('Task')) return 2; // Tareas
+      if (type?.includes('Gateway')) return 3; // Compuertas
+      if (type?.includes('Event')) return 4; // Eventos
+      return 2;
+    };
 
+    return [...currentProject.nodes]
+      .map((n) => {
+        const isCurrent = n.id === activeNodeId;
+        const isSwimlane = n.type === 'PoolLane';
+        const nodeZIndex = isCurrent ? 100 : isSwimlane ? 0 : 10;
+
+        return {
+          ...n,
+          selected: isCurrent,
+          zIndex: nodeZIndex,
+          style: {
+            ...n.style,
+            zIndex: nodeZIndex,
+            transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+            opacity: isSwimlane ? 0.75 : isCurrent ? 1 : 0.45,
+            filter: isCurrent
+              ? 'drop-shadow(0 0 20px var(--theme-accent, #38bdf8)) drop-shadow(0 0 8px rgba(56,189,248,0.5))'
+              : 'none',
+            transform: isCurrent ? 'scale(1.04)' : 'scale(1)'
+          }
+        };
+      })
+      .sort((a, b) => getHierarchyLevel(a.type) - getHierarchyLevel(b.type));
+  }, [currentProject, currentStep]);
+
+  // Edges highlighting incoming and outgoing connections of current step
+  const presentationEdges = useMemo(() => {
+    if (!currentProject?.edges) return [];
+    const activeNodeId = currentStep?.node.id;
+
+    return currentProject.edges.map((edge) => {
+      const isConnected = edge.source === activeNodeId || edge.target === activeNodeId;
       return {
-        ...n,
-        selected: isCurrent,
+        ...edge,
+        animated: isConnected || edge.data?.isAnimated,
         style: {
-          ...n.style,
-          transition: 'all 0.5s ease',
-          opacity: isSwimlane ? 0.9 : isCurrent ? 1 : 0.45,
-          filter: isCurrent ? 'drop-shadow(0 0 16px var(--theme-accent))' : 'none',
-          transform: isCurrent ? 'scale(1.03)' : 'scale(1)'
+          ...edge.style,
+          strokeWidth: isConnected ? 3.5 : (edge.data?.strokeWidth || 2),
+          stroke: isConnected ? 'var(--theme-accent, #38bdf8)' : (edge.data?.strokeColor || '#94a3b8'),
+          opacity: isConnected ? 1 : 0.35,
+          transition: 'all 0.4s ease'
         }
       };
     });
-  }, [currentProject, currentStep]);
+  }, [currentProject?.edges, currentStep]);
 
   return (
     <div className="w-full h-full relative overflow-hidden bg-theme-canvas-bg">
       <ReactFlow
         nodes={presentationNodes as Node[]}
-        edges={currentProject?.edges as Edge[] || []}
+        edges={presentationEdges as Edge[]}
         nodeTypes={NODE_TYPES}
         edgeTypes={EDGE_TYPES}
         nodesDraggable={false}

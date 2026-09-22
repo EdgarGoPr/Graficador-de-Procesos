@@ -503,40 +503,37 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
           </button>
         </div>
 
-        {/* Primary Project Actions */}
+        {/* Primary Project Actions (Icon-Only) */}
         {currentProject && (
           <button
             onClick={() => setExportCenterModalOpen(true)}
-            className="flex items-center space-x-1.5 px-2.5 py-1.5 bg-theme-surface-subtle hover:bg-theme-surface text-theme-text rounded-lg text-xs font-semibold border border-theme-border transition-all hover:scale-105"
+            className="p-2 bg-theme-surface-subtle hover:bg-theme-surface text-theme-text hover:text-theme-accent rounded-lg text-xs font-semibold border border-theme-border transition-all hover:scale-105"
             title="Centro de Exportación: PNG HD, SVG Vectorial, PDF, BPMN 2.0 XML y Word (.doc)"
           >
-            <ArrowDownToLine className="w-3.5 h-3.5 text-theme-accent" />
-            <span className="hidden sm:inline">Exportar</span>
+            <ArrowDownToLine className="w-4 h-4 text-theme-accent" />
           </button>
         )}
 
         <button
           onClick={onOpenNewProjectModal}
-          className="flex items-center space-x-1 px-2.5 py-1.5 bg-theme-surface-subtle hover:bg-theme-surface text-theme-text rounded-lg text-xs font-semibold border border-theme-border transition-all hover:scale-105"
+          className="p-2 bg-theme-surface-subtle hover:bg-theme-surface text-theme-text hover:text-theme-accent rounded-lg text-xs font-semibold border border-theme-border transition-all hover:scale-105"
           title="Crear nuevo proyecto"
         >
-          <Plus className="w-3.5 h-3.5 text-theme-accent" />
-          <span className="hidden sm:inline">Nuevo</span>
+          <Plus className="w-4 h-4 text-theme-accent" />
         </button>
 
         {currentProject && (
           <button
             onClick={handleSave}
             disabled={isSaving}
-            className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-bold shadow-md transition-all hover:scale-105 ${
+            className={`p-2 rounded-lg text-xs font-bold shadow-md transition-all hover:scale-105 flex items-center justify-center ${
               hasUnsavedChanges
                 ? 'bg-gradient-to-r from-[#0284C7] to-[#3B82F6] hover:brightness-110 text-white animate-pulse'
                 : 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/25'
             }`}
-            title="Guardar cambios (Ctrl+S)"
+            title={isSaving ? 'Guardando...' : hasUnsavedChanges ? 'Guardar cambios pendientes (Ctrl+S)' : 'Todos los cambios guardados (Ctrl+S)'}
           >
-            <Save className="w-3.5 h-3.5" />
-            <span>{isSaving ? 'Guardando...' : hasUnsavedChanges ? 'Guardar' : 'Guardado'}</span>
+            <Save className="w-4 h-4" />
           </button>
         )}
       </div>

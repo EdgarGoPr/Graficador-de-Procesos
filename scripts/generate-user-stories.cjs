@@ -317,6 +317,15 @@ const userStories = [
     criteriosAceptacion: '1. Pestañas de acceso directo para "Proyectos" y "Lienzo BPMN".\n2. Menú desplegable flotante "Vistas & Matrices" que agrupa Flujograma, Matriz SIPOC, Matriz RACI y Documento & Reporte.\n3. Menú desplegable flotante "Herramientas" que agrupa Presentación Prezi (F5), Auditor de Calidad, Simulador de Flujos, Comparador de Versiones y Navegador de Subprocesos.\n4. Grupo de utilidades compactas en formato icono con tooltip (Deshacer, Rehacer, Ver Carpeta, Temas y Modo Claro/Oscuro).\n5. Acciones principales destacadas (Exportar, Nuevo y Guardar con indicador animado de cambios pendientes).\n6. Reducción de más del 65% del ancho total de la barra con cierre automático al hacer clic afuera (click outside listener).',
     fechaImplementacion: '2026-09-22',
     estado: 'Implementado / Producción'
+  },
+  {
+    id: 'PST-036',
+    modulo: 'UI / UX & Presentación',
+    titulo: 'Iconos Compactos en Encabezado, Separación de Propiedades (Contenido vs Estilo) y Visibilidad de Elementos en Presentación',
+    historiaUsuario: 'Como modelador de procesos, quiero botones de acción icon-only en la barra superior, un panel lateral derecho organizado con pestañas dedicadas para Contenido/Datos y Estilo/Apariencia, y una visualización destacada y en primer plano de todos los elementos durante el modo presentación tipo Prezi, para tener una experiencia de diseño ágil, limpia y sin interferencias visuales.',
+    criteriosAceptacion: '1. Los botones de Exportar, Nuevo y Guardar en la cabecera superior muestran exclusivamente sus iconos representativos con tooltips contextuales y estados de guardado/animación.\n2. El panel lateral de propiedades de nodos separa limpiamente la edición de información BPMN (ID, Título, Descripción, Rol, SLA, SIPOC, Riesgos) y personalización visual (Paletas de color, opacidad, bordes, encabezados, tipografía, orientación y bloqueo de dimensiones) mediante pestañas "Contenido & Datos" y "Estilo & Apariencia".\n3. Corrección de la jerarquía de capas (z-index y ordenamiento de nodos de fondo a primer plano: Swimlane -> Subproceso -> Tareas -> Compuertas -> Eventos) en el modo presentación tipo Prezi para garantizar que todas las tarjetas de proceso sean visibles con nitidez y resplandor activo sobre los carriles.',
+    fechaImplementacion: '2026-09-22',
+    estado: 'Implementado / Producción'
   }
 ];
 

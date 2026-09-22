@@ -23,7 +23,9 @@ import {
   FolderOpen,
   Type,
   Eye,
-  Layout
+  Layout,
+  Lock,
+  Unlock
 } from 'lucide-react';
 import {
   BpmnNodeData,
@@ -74,6 +76,7 @@ export const PropertiesPanel: React.FC = () => {
   const { currentProject } = useProjectStore();
   const { setPropertiesPanelOpen, setActiveRightTab, openSubProcessDetail, showNotification } = useUiStore();
 
+  const [activeSection, setActiveSection] = useState<'content' | 'style'>('content');
   const [cardStyleScope, setCardStyleScope] = useState<'single' | 'same_type' | 'all'>('single');
   const [newInputText, setNewInputText] = useState('');
   const [newOutputText, setNewOutputText] = useState('');
@@ -392,381 +395,470 @@ export const PropertiesPanel: React.FC = () => {
         </div>
       </div>
 
+      {/* Tab Switcher: Contenido vs Estilo */}
+      <div className="flex border-b border-theme-border bg-theme-surface-subtle/60 p-1 gap-1">
+        <button
+          type="button"
+          onClick={() => setActiveSection('content')}
+          className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold flex items-center justify-center space-x-1.5 transition-all ${
+            activeSection === 'content'
+              ? 'bg-theme-surface text-theme-accent shadow-sm border border-theme-border'
+              : 'text-theme-text-muted hover:text-theme-text hover:bg-theme-surface/50'
+          }`}
+        >
+          <FileText className="w-3.5 h-3.5" />
+          <span>Contenido & Datos</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveSection('style')}
+          className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold flex items-center justify-center space-x-1.5 transition-all ${
+            activeSection === 'style'
+              ? 'bg-theme-surface text-theme-accent shadow-sm border border-theme-border'
+              : 'text-theme-text-muted hover:text-theme-text hover:bg-theme-surface/50'
+          }`}
+        >
+          <Palette className="w-3.5 h-3.5" />
+          <span>Estilo & Apariencia</span>
+        </button>
+      </div>
+
       {/* Form Content */}
       <div className="p-4 space-y-4 text-xs">
-        {/* Subprocess Expansion Card if SubProcess */}
-        {isSubProcess && (
-          <div className="p-3.5 bg-[#3B82F6]/10 border border-[#3B82F6]/30 rounded-xl space-y-2.5">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-[#3B82F6] font-mono flex items-center space-x-1">
-                <Layers className="w-3.5 h-3.5 mr-1" />
-                <span>Subproceso Expandible</span>
-              </span>
-              <span className="text-[10px] text-theme-text-muted font-mono font-semibold">
-                {data.subProcessSteps?.length || 0} etapas
-              </span>
-            </div>
-            <p className="text-[11px] text-theme-text-muted leading-relaxed">
-              Desglose de tareas internas y secuenciación detallada para este subproceso.
-            </p>
-            <div className="flex flex-col gap-1.5 pt-1">
-              <button
-                onClick={() => openSubProcessDetail(node.id)}
-                className="w-full py-2 bg-gradient-to-r from-[#0284C7] to-[#3B82F6] hover:brightness-110 text-white rounded-lg font-bold text-xs shadow-md flex items-center justify-center space-x-1.5 transition-all"
-              >
-                <Maximize2 className="w-3.5 h-3.5" />
-                <span>Ampliar y Editar Detalle</span>
-              </button>
+        {/* SECCIÓN ESTILO Y APARIENCIA */}
+        {activeSection === 'style' && (
+          <div className="space-y-4">
+            {/* 🎨 PERSONALIZACIÓN VISUAL Y TEMÁTICA DE LA TARJETA */}
+            <div className="p-3.5 bg-theme-surface-subtle/70 border border-theme-border rounded-xl space-y-3.5">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-theme-text font-mono flex items-center">
+                  <Palette className="w-3.5 h-3.5 text-theme-accent mr-1.5" />
+                  <span>Estilo y Temática de Tarjeta</span>
+                </span>
+                {(data.customBgColor || data.customBorderColor || data.customHeaderBgColor || data.customBgOpacity !== undefined) && (
+                  <button
+                    onClick={() => {
+                      applyCardStyleToScope(node.id, cardStyleScope, {
+                        customBgColor: undefined,
+                        customBgOpacity: undefined,
+                        customBorderColor: undefined,
+                        customHeaderBgColor: undefined,
+                        customHeaderTextColor: undefined,
+                        customTextColor: undefined
+                      });
+                      showNotification('Estilo de tarjeta restablecido', 'info');
+                    }}
+                    className="text-[10px] text-theme-text-muted hover:text-theme-text flex items-center space-x-1"
+                    title="Restablecer estilos predeterminados"
+                  >
+                    <RotateCcw className="w-3 h-3" />
+                    <span>Restablecer</span>
+                  </button>
+                )}
+              </div>
 
-              {(data.subProcessSteps?.length || 0) > 0 && (
+              {/* Selector de Orientación */}
+              <div className="space-y-1 bg-theme-surface p-2 rounded-lg border border-theme-border/60">
+                <span className="text-[9px] font-mono text-theme-text-muted font-bold block uppercase">
+                  📐 Orientación de la Tarjeta:
+                </span>
+                <div className="grid grid-cols-2 gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => applyCardStyleToScope(node.id, cardStyleScope, { orientation: 'horizontal' })}
+                    className={`px-2.5 py-1.5 rounded text-[11px] font-semibold flex items-center justify-center space-x-1 border transition-all ${
+                      (data.orientation || 'horizontal') === 'horizontal'
+                        ? 'bg-sky-500/20 border-sky-400 text-sky-400 shadow-sm font-bold'
+                        : 'bg-theme-surface-subtle border-theme-border text-theme-text-muted hover:text-theme-text'
+                    }`}
+                  >
+                    <span>Horizontal</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => applyCardStyleToScope(node.id, cardStyleScope, { orientation: 'vertical' })}
+                    className={`px-2.5 py-1.5 rounded text-[11px] font-semibold flex items-center justify-center space-x-1 border transition-all ${
+                      data.orientation === 'vertical'
+                        ? 'bg-sky-500/20 border-sky-400 text-sky-400 shadow-sm font-bold'
+                        : 'bg-theme-surface-subtle border-theme-border text-theme-text-muted hover:text-theme-text'
+                    }`}
+                  >
+                    <span>Vertical (Torre)</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Bloqueo de Dimensiones */}
+              <div className="flex items-center justify-between p-2 rounded-lg bg-theme-surface border border-theme-border/60">
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-mono font-bold text-theme-text">Bloquear Dimensiones</span>
+                  <span className="text-[9px] text-theme-text-muted">Evita auto-ajuste al editar texto</span>
+                </div>
                 <button
-                  onClick={() => {
-                    if (window.confirm(`¿Desea descomprimir "${data.title}" y desplegar sus ${data.subProcessSteps?.length} etapas individuales en el lienzo?`)) {
-                      const result = decompressSubProcess(node.id);
-                      if (result.success) {
-                        showNotification('Subproceso descomprimido en el lienzo', 'success');
-                      } else {
-                        showNotification(result.error || 'Error al descomprimir', 'error');
-                      }
-                    }
-                  }}
-                  className="w-full py-1.5 bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-amber-400 rounded-lg font-semibold text-xs flex items-center justify-center space-x-1.5 transition-all"
+                  type="button"
+                  onClick={() => applyCardStyleToScope(node.id, cardStyleScope, { isDimensionLocked: !data.isDimensionLocked })}
+                  className={`p-1.5 rounded-lg border transition-colors ${
+                    data.isDimensionLocked
+                      ? 'bg-amber-500/20 border-amber-400 text-amber-400'
+                      : 'bg-theme-surface-subtle border-theme-border text-theme-text-muted'
+                  }`}
+                  title={data.isDimensionLocked ? 'Dimensiones fijadas' : 'Auto-ajustable según contenido'}
                 >
-                  <FolderOpen className="w-3.5 h-3.5" />
-                  <span>Descomprimir en el Lienzo</span>
+                  {data.isDimensionLocked ? <Lock className="w-3.5 h-3.5" /> : <Unlock className="w-3.5 h-3.5" />}
                 </button>
-              )}
-            </div>
-          </div>
-        )}
+              </div>
 
-        {/* 🎨 SECCIÓN DE PERSONALIZACIÓN VISUAL Y TEMÁTICA DE LA TARJETA */}
-        <div className="p-3.5 bg-theme-surface-subtle/70 border border-theme-border rounded-xl space-y-3.5">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-theme-text font-mono flex items-center">
-              <Palette className="w-3.5 h-3.5 text-theme-accent mr-1.5" />
-              <span>Estilo y Temática de Tarjeta</span>
-            </span>
-            {(data.customBgColor || data.customBorderColor || data.customHeaderBgColor || data.customBgOpacity !== undefined) && (
-              <button
-                onClick={() => {
-                  applyCardStyleToScope(node.id, cardStyleScope, {
-                    customBgColor: undefined,
-                    customBgOpacity: undefined,
-                    customBorderColor: undefined,
-                    customHeaderBgColor: undefined,
-                    customHeaderTextColor: undefined,
-                    customTextColor: undefined
-                  });
-                  showNotification('Estilo de tarjeta restablecido', 'info');
-                }}
-                className="text-[10px] text-theme-text-muted hover:text-theme-text flex items-center space-x-1"
-                title="Restablecer estilos predeterminados"
-              >
-                <RotateCcw className="w-3 h-3" />
-                <span>Restablecer</span>
-              </button>
-            )}
-          </div>
+              {/* Ámbito de aplicación del estilo */}
+              <div className="space-y-1 bg-theme-surface p-2 rounded-lg border border-theme-border/60">
+                <span className="text-[9px] font-mono text-theme-text-muted font-bold block uppercase">
+                  🎯 Aplicar cambios a:
+                </span>
+                <div className="grid grid-cols-3 gap-1">
+                  <button
+                    type="button"
+                    onClick={() => setCardStyleScope('single')}
+                    className={`px-1.5 py-1 rounded text-[10px] font-medium border transition-all ${
+                      cardStyleScope === 'single'
+                        ? 'bg-sky-500/20 border-sky-400 text-sky-400 font-bold'
+                        : 'bg-theme-surface-subtle border-theme-border text-theme-text-muted hover:text-theme-text'
+                    }`}
+                  >
+                    Solo este
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCardStyleScope('same_type')}
+                    className={`px-1.5 py-1 rounded text-[10px] font-medium border transition-all ${
+                      cardStyleScope === 'same_type'
+                        ? 'bg-sky-500/20 border-sky-400 text-sky-400 font-bold'
+                        : 'bg-theme-surface-subtle border-theme-border text-theme-text-muted hover:text-theme-text'
+                    }`}
+                  >
+                    Mismo tipo
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCardStyleScope('all')}
+                    className={`px-1.5 py-1 rounded text-[10px] font-medium border transition-all ${
+                      cardStyleScope === 'all'
+                        ? 'bg-sky-500/20 border-sky-400 text-sky-400 font-bold'
+                        : 'bg-theme-surface-subtle border-theme-border text-theme-text-muted hover:text-theme-text'
+                    }`}
+                  >
+                    Todos
+                  </button>
+                </div>
+              </div>
 
-          {/* Selector de Orientación */}
-          <div className="space-y-1 bg-theme-surface p-2 rounded-lg border border-theme-border/60">
-            <span className="text-[9px] font-mono text-theme-text-muted font-bold block uppercase">
-              📐 Orientación de la Tarjeta:
-            </span>
-            <div className="grid grid-cols-2 gap-1.5">
-              <button
-                type="button"
-                onClick={() => applyCardStyleToScope(node.id, cardStyleScope, { orientation: 'horizontal' })}
-                className={`py-1.5 px-2 rounded-md text-[10px] font-semibold transition-all flex items-center justify-center space-x-1 cursor-pointer ${
-                  (data.orientation || 'horizontal') === 'horizontal'
-                    ? 'bg-theme-accent text-white shadow-sm font-bold'
-                    : 'bg-theme-surface-subtle text-theme-text-muted hover:text-theme-text'
-                }`}
-              >
-                <span>↔️ Horizontal</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => applyCardStyleToScope(node.id, cardStyleScope, { orientation: 'vertical' })}
-                className={`py-1.5 px-2 rounded-md text-[10px] font-semibold transition-all flex items-center justify-center space-x-1 cursor-pointer ${
-                  data.orientation === 'vertical'
-                    ? 'bg-theme-accent text-white shadow-sm font-bold'
-                    : 'bg-theme-surface-subtle text-theme-text-muted hover:text-theme-text'
-                }`}
-              >
-                <span>↕️ Vertical</span>
-              </button>
-            </div>
-          </div>
+              {/* Paleta Rápida de Temas Predefinidos */}
+              <div className="space-y-1.5">
+                <span className="text-[10px] text-theme-text-muted block font-semibold">Temas de Tarjeta:</span>
+                <div className="grid grid-cols-2 gap-1.5">
+                  {CARD_THEME_PRESETS.map((preset) => {
+                    const isSelected =
+                      data.customBgColor === preset.bgColor &&
+                      data.customBorderColor === preset.borderColor &&
+                      data.customHeaderBgColor === preset.headerBgColor;
 
-          {/* Selector de Ámbito / Alcance */}
-          <div className="space-y-1 bg-theme-surface p-2 rounded-lg border border-theme-border/60">
-            <span className="text-[9px] font-mono text-theme-text-muted font-bold block uppercase">
-              Aplicar cambios en:
-            </span>
-            <div className="grid grid-cols-3 gap-1">
-              <button
-                onClick={() => setCardStyleScope('single')}
-                className={`py-1 px-1 rounded-md text-[10px] font-semibold transition-all text-center truncate ${
-                  cardStyleScope === 'single'
-                    ? 'bg-theme-accent text-white shadow-sm'
-                    : 'bg-theme-surface-subtle text-theme-text-muted hover:text-theme-text'
-                }`}
-                title="Afecta solo a la tarjeta seleccionada"
-              >
-                🎯 Esta tarjeta
-              </button>
-              <button
-                onClick={() => setCardStyleScope('same_type')}
-                className={`py-1 px-1 rounded-md text-[10px] font-semibold transition-all text-center truncate ${
-                  cardStyleScope === 'same_type'
-                    ? 'bg-theme-accent text-white shadow-sm'
-                    : 'bg-theme-surface-subtle text-theme-text-muted hover:text-theme-text'
-                }`}
-                title={`Afecta a todas las tarjetas de tipo ${data.nodeType}`}
-              >
-                🏷️ Mismo tipo
-              </button>
-              <button
-                onClick={() => setCardStyleScope('all')}
-                className={`py-1 px-1 rounded-md text-[10px] font-semibold transition-all text-center truncate ${
-                  cardStyleScope === 'all'
-                    ? 'bg-theme-accent text-white shadow-sm'
-                    : 'bg-theme-surface-subtle text-theme-text-muted hover:text-theme-text'
-                }`}
-                title="Afecta a todas las tarjetas del diagrama"
-              >
-                🌐 Todo el mapa
-              </button>
-            </div>
-          </div>
+                    return (
+                      <button
+                        key={preset.id}
+                        type="button"
+                        onClick={() => {
+                          applyCardStyleToScope(node.id, cardStyleScope, {
+                            customBgColor: preset.bgColor,
+                            customBgOpacity: preset.bgOpacity ? preset.bgOpacity / 100 : undefined,
+                            customBorderColor: preset.borderColor,
+                            customHeaderBgColor: preset.headerBgColor,
+                            customHeaderTextColor: preset.headerTextColor
+                          });
+                          showNotification(`Tema "${preset.name}" aplicado`, 'success');
+                        }}
+                        className={`p-1.5 rounded-lg border text-left flex flex-col justify-between transition-all ${
+                          isSelected
+                            ? 'ring-2 ring-sky-400 border-transparent shadow-md bg-theme-surface-subtle'
+                            : 'border-theme-border hover:border-theme-text-muted/50 bg-theme-surface'
+                        }`}
+                      >
+                        <div className="flex items-center space-x-1.5 mb-1">
+                          <span
+                            className="w-3 h-3 rounded-full border border-white/20 shadow-xs shrink-0"
+                            style={{ backgroundColor: preset.borderColor }}
+                          />
+                          <span className="text-[10px] font-bold text-theme-text truncate">
+                            {preset.name}
+                          </span>
+                        </div>
+                        <p className="text-[9px] text-theme-text-muted line-clamp-1">
+                          {preset.description}
+                        </p>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
 
-          {/* Temáticas Predefinidas de Tarjeta */}
-          <div className="space-y-1.5">
-            <span className="text-[10px] text-theme-text-muted font-semibold block">Temáticas de Tarjeta:</span>
-            <div className="grid grid-cols-2 gap-1.5">
-              {CARD_THEME_PRESETS.map((preset) => (
-                <button
-                  key={preset.id}
-                  onClick={() => {
-                    applyCardStyleToScope(node.id, cardStyleScope, {
-                      customBgColor: preset.bgColor,
-                      customBgOpacity: preset.bgOpacity,
-                      customBorderColor: preset.borderColor,
-                      customHeaderBgColor: preset.headerBgColor,
-                      customHeaderTextColor: preset.headerTextColor
-                    });
-                    showNotification(`Temática "${preset.name}" aplicada`);
-                  }}
-                  className="p-1.5 rounded-lg border border-theme-border hover:border-theme-accent bg-theme-surface hover:bg-theme-surface-subtle text-left transition-all group shadow-sm"
-                >
-                  <div className="flex items-center space-x-1.5 mb-0.5">
-                    <div
-                      className="w-3 h-3 rounded-full border border-white/20 shrink-0"
-                      style={{ backgroundColor: preset.borderColor }}
+              {/* Color de Fondo de la Tarjeta */}
+              <div className="space-y-1.5 pt-2 border-t border-theme-border/50">
+                <span className="text-[10px] text-theme-text-muted block font-semibold">Color de Fondo:</span>
+                <div className="flex flex-wrap gap-1.5">
+                  {CARD_BG_SWATCHES.map((swatch) => (
+                    <button
+                      key={swatch.color}
+                      type="button"
+                      onClick={() => applyCardStyleToScope(node.id, cardStyleScope, { customBgColor: swatch.color || undefined })}
+                      title={swatch.label}
+                      className={`w-6 h-6 rounded-md border transition-transform ${
+                        customBg === swatch.color ? 'scale-110 ring-2 ring-sky-400 border-white' : 'border-theme-border/60 hover:scale-105'
+                      } ${!swatch.color ? 'bg-gradient-to-tr from-theme-surface via-theme-border to-theme-surface' : ''}`}
+                      style={swatch.color ? { backgroundColor: swatch.color } : {}}
                     />
-                    <span className="text-[10px] font-bold text-theme-text truncate group-hover:text-theme-accent">
-                      {preset.name}
-                    </span>
+                  ))}
+                  <div className="relative">
+                    <input
+                      type="color"
+                      value={data.customBgColor || '#18181B'}
+                      onChange={(e) => applyCardStyleToScope(node.id, cardStyleScope, { customBgColor: e.target.value })}
+                      className="w-6 h-6 rounded-md cursor-pointer border border-theme-border p-0 bg-transparent"
+                      title="Elegir color personalizado"
+                    />
                   </div>
-                  <p className="text-[8.5px] text-theme-text-muted line-clamp-1">
-                    {preset.description}
-                  </p>
-                </button>
-              ))}
-            </div>
-          </div>
+                </div>
+              </div>
 
-          {/* Color de Fondo y Slider de Transparencia */}
-          <div className="space-y-2.5 p-2.5 rounded-xl bg-theme-surface border border-theme-border">
-            {/* Color de Fondo */}
-            <div>
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-[10px] text-theme-text-muted font-semibold">Color de Fondo:</span>
-                <div className="flex items-center space-x-1.5">
+              {/* Opacidad / Transparencia del Fondo */}
+              <div className="space-y-1 pt-2 border-t border-theme-border/50">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] text-theme-text-muted font-semibold">Opacidad de Fondo:</span>
+                  <span className="text-[10px] font-mono text-sky-400">
+                    {Math.round((data.customBgOpacity ?? 1) * 100)}%
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min="0.1"
+                  max="1.0"
+                  step="0.05"
+                  value={data.customBgOpacity ?? 1}
+                  onChange={(e) => applyCardStyleToScope(node.id, cardStyleScope, { customBgOpacity: Number(e.target.value) })}
+                  className="w-full h-1.5 bg-theme-surface-subtle rounded-lg appearance-none cursor-pointer accent-sky-400"
+                />
+              </div>
+
+              {/* Color del Borde */}
+              <div className="space-y-1.5 pt-2 border-t border-theme-border/50">
+                <span className="text-[10px] text-theme-text-muted block font-semibold">Color del Borde:</span>
+                <div className="flex flex-wrap gap-1.5">
+                  {EDGE_COLOR_SWATCHES.map((swatch) => (
+                    <button
+                      key={swatch.color}
+                      type="button"
+                      onClick={() => applyCardStyleToScope(node.id, cardStyleScope, { customBorderColor: swatch.color })}
+                      title={swatch.label}
+                      className={`w-6 h-6 rounded-md border transition-transform ${
+                        customBorder === swatch.color ? 'scale-110 ring-2 ring-sky-400 border-white' : 'border-theme-border/60 hover:scale-105'
+                      }`}
+                      style={{ backgroundColor: swatch.color }}
+                    />
+                  ))}
                   <input
                     type="color"
-                    value={data.customBgColor || '#1E293B'}
-                    onChange={(e) => applyCardStyleToScope(node.id, cardStyleScope, { customBgColor: e.target.value })}
-                    className="w-5 h-5 rounded cursor-pointer border-0 bg-transparent"
-                  />
-                  <input
-                    type="text"
-                    value={data.customBgColor || ''}
-                    placeholder="Predeterminado"
-                    onChange={(e) => applyCardStyleToScope(node.id, cardStyleScope, { customBgColor: e.target.value })}
-                    className="w-24 px-1.5 py-0.5 rounded bg-theme-surface-subtle border border-theme-border text-[10px] font-mono text-theme-text uppercase"
+                    value={data.customBorderColor || '#38BDF8'}
+                    onChange={(e) => applyCardStyleToScope(node.id, cardStyleScope, { customBorderColor: e.target.value })}
+                    className="w-6 h-6 rounded-md cursor-pointer border border-theme-border p-0 bg-transparent"
+                    title="Borde personalizado"
                   />
                 </div>
               </div>
 
-              {/* Muestras rápidas de fondo */}
-              <div className="grid grid-cols-5 gap-1 pt-1">
-                {CARD_BG_SWATCHES.map((swatch) => (
+              {/* Cabecera / Header de la Tarjeta */}
+              <div className="space-y-1.5 pt-2 border-t border-theme-border/50">
+                <span className="text-[10px] text-theme-text-muted block font-semibold">Color de Encabezado (Header):</span>
+                <div className="flex flex-wrap gap-1.5 items-center">
+                  {CARD_BG_SWATCHES.slice(1).map((swatch) => (
+                    <button
+                      key={swatch.color}
+                      type="button"
+                      onClick={() => applyCardStyleToScope(node.id, cardStyleScope, { customHeaderBgColor: swatch.color })}
+                      title={swatch.label}
+                      className={`w-6 h-6 rounded-md border transition-transform ${
+                        data.customHeaderBgColor === swatch.color ? 'scale-110 ring-2 ring-sky-400 border-white' : 'border-theme-border/60 hover:scale-105'
+                      }`}
+                      style={{ backgroundColor: swatch.color }}
+                    />
+                  ))}
+                  <input
+                    type="color"
+                    value={data.customHeaderBgColor || '#1E293B'}
+                    onChange={(e) => applyCardStyleToScope(node.id, cardStyleScope, { customHeaderBgColor: e.target.value })}
+                    className="w-6 h-6 rounded-md cursor-pointer border border-theme-border p-0 bg-transparent"
+                    title="Color de header personalizado"
+                  />
+                  {data.customHeaderBgColor && (
+                    <button
+                      type="button"
+                      onClick={() => applyCardStyleToScope(node.id, cardStyleScope, { customHeaderBgColor: undefined })}
+                      className="text-[10px] text-theme-text-muted hover:text-theme-text ml-auto"
+                      title="Usar color automático"
+                    >
+                      Automático
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Modo de Visualización */}
+              <div className="space-y-1.5 pt-2 border-t border-theme-border/50">
+                <span className="text-[10px] text-theme-text-muted block font-semibold">Modo de Visualización:</span>
+                <div className="grid grid-cols-2 gap-1.5">
                   <button
-                    key={swatch.label}
-                    onClick={() => applyCardStyleToScope(node.id, cardStyleScope, { customBgColor: swatch.color || undefined })}
-                    className="p-0.5 rounded border border-theme-border hover:border-theme-accent text-[8px] text-center truncate bg-theme-surface-subtle transition-all"
-                    style={{ backgroundColor: swatch.color || undefined }}
+                    type="button"
+                    onClick={() => applyCardStyleToScope(node.id, cardStyleScope, { displayMode: 'full' })}
+                    className={`px-2 py-1.5 rounded-lg border text-xs font-semibold flex items-center justify-center space-x-1 transition-all ${
+                      (data.displayMode || 'full') === 'full'
+                        ? 'bg-sky-500/20 border-sky-400 text-sky-400 font-bold'
+                        : 'bg-theme-surface-subtle border-theme-border text-theme-text-muted hover:text-theme-text'
+                    }`}
                   >
-                    <span className="drop-shadow text-theme-text truncate block">{swatch.label}</span>
+                    <span>Detalle Completo</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => applyCardStyleToScope(node.id, cardStyleScope, { displayMode: 'title_only' })}
+                    className={`px-2 py-1.5 rounded-lg border text-xs font-semibold flex items-center justify-center space-x-1 transition-all ${
+                      data.displayMode === 'title_only'
+                        ? 'bg-sky-500/20 border-sky-400 text-sky-400 font-bold'
+                        : 'bg-theme-surface-subtle border-theme-border text-theme-text-muted hover:text-theme-text'
+                    }`}
+                  >
+                    <span>Solo Título</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Botón Aplicar a Todos */}
+              <button
+                type="button"
+                onClick={() => {
+                  applyCardStyleToScope(node.id, 'all', {
+                    customBgColor: data.customBgColor,
+                    customBgOpacity: data.customBgOpacity,
+                    customBorderColor: data.customBorderColor,
+                    customHeaderBgColor: data.customHeaderBgColor,
+                    customHeaderTextColor: data.customHeaderTextColor,
+                    customTextColor: data.customTextColor,
+                    orientation: data.orientation
+                  });
+                  showNotification('Estilo de tarjeta aplicado a todos los nodos del proyecto', 'success');
+                }}
+                className="w-full py-1.5 px-2.5 rounded-lg bg-theme-surface hover:bg-theme-surface-subtle text-theme-accent border border-theme-border hover:border-theme-accent text-xs font-semibold transition-all flex items-center justify-center space-x-1.5 shadow-sm"
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Aplicar a todos los nodos</span>
+              </button>
+            </div>
+
+            {/* Selector de Tamaño de Letra de Tarjeta */}
+            <div className="p-3 bg-theme-surface-subtle border border-theme-border rounded-xl space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-theme-text font-mono flex items-center">
+                  <Type className="w-3.5 h-3.5 text-theme-accent mr-1.5" />
+                  <span>Tamaño de Tipografía</span>
+                </span>
+                <span className="text-[10px] font-mono text-sky-400 font-bold">
+                  {data.customFontSize || 12}px
+                </span>
+              </div>
+
+              {/* Botones de presets rápidos */}
+              <div className="grid grid-cols-4 gap-1">
+                {[
+                  { label: 'Compacto', size: 10 },
+                  { label: 'Normal', size: 12 },
+                  { label: 'Mediano', size: 14 },
+                  { label: 'Grande', size: 16 }
+                ].map((item) => (
+                  <button
+                    key={item.size}
+                    type="button"
+                    onClick={() => applyCardStyleToScope(node.id, cardStyleScope, { customFontSize: item.size })}
+                    className={`py-1 rounded text-[10px] font-semibold border transition-all ${
+                      (data.customFontSize || 12) === item.size
+                        ? 'bg-sky-500/20 border-sky-400 text-sky-400 font-bold'
+                        : 'bg-theme-surface border-theme-border text-theme-text-muted hover:text-theme-text'
+                    }`}
+                  >
+                    {item.label} ({item.size}px)
                   </button>
                 ))}
               </div>
-            </div>
 
-            {/* Slider de Transparencia / Opacidad */}
-            <div className="pt-2 border-t border-theme-border/60">
-              <div className="flex items-center justify-between text-[10px] mb-1">
-                <span className="text-theme-text-muted font-semibold">Opacidad / Transparencia:</span>
-                <span className="font-mono font-bold text-theme-accent">{data.customBgOpacity ?? 95}%</span>
-              </div>
+              {/* Slider de ajuste fino */}
               <input
                 type="range"
-                min="10"
-                max="100"
-                step="5"
-                value={data.customBgOpacity ?? 95}
-                onChange={(e) => applyCardStyleToScope(node.id, cardStyleScope, { customBgOpacity: Number(e.target.value) })}
-                className="w-full h-1.5 bg-theme-surface-subtle rounded-lg appearance-none cursor-pointer accent-sky-400"
+                min="9"
+                max="20"
+                step="1"
+                value={data.customFontSize ?? 12}
+                onChange={(e) => applyCardStyleToScope(node.id, cardStyleScope, { customFontSize: Number(e.target.value) })}
+                className="w-full h-1.5 bg-theme-surface-subtle rounded-lg appearance-none cursor-pointer accent-sky-400 mt-1"
               />
-              <div className="flex justify-between text-[8px] text-theme-text-muted font-mono mt-0.5">
-                <span>Translúcido (10%)</span>
-                <span>Sólido (100%)</span>
-              </div>
-            </div>
-
-            {/* Color de Borde */}
-            <div className="flex items-center justify-between pt-2 border-t border-theme-border/60">
-              <span className="text-[10px] text-theme-text-muted font-semibold">Color de Borde:</span>
-              <div className="flex items-center space-x-1.5">
-                <input
-                  type="color"
-                  value={data.customBorderColor || '#38BDF8'}
-                  onChange={(e) => applyCardStyleToScope(node.id, cardStyleScope, { customBorderColor: e.target.value })}
-                  className="w-5 h-5 rounded cursor-pointer border-0 bg-transparent"
-                />
-                <input
-                  type="text"
-                  value={data.customBorderColor || ''}
-                  placeholder="Predeterminado"
-                  onChange={(e) => applyCardStyleToScope(node.id, cardStyleScope, { customBorderColor: e.target.value })}
-                  className="w-24 px-1.5 py-0.5 rounded bg-theme-surface-subtle border border-theme-border text-[10px] font-mono text-theme-text uppercase"
-                />
-              </div>
-            </div>
-
-            {/* Recuadro del Título / Cabecera */}
-            <div className="flex items-center justify-between pt-2 border-t border-theme-border/60">
-              <span className="text-[10px] text-theme-text-muted font-semibold">Recuadro del Título:</span>
-              <div className="flex items-center space-x-1.5">
-                <input
-                  type="color"
-                  value={data.customHeaderBgColor || '#38BDF8'}
-                  onChange={(e) => applyCardStyleToScope(node.id, cardStyleScope, { customHeaderBgColor: e.target.value })}
-                  className="w-5 h-5 rounded cursor-pointer border-0 bg-transparent"
-                />
-                <input
-                  type="text"
-                  value={data.customHeaderBgColor || ''}
-                  placeholder="Predeterminado"
-                  onChange={(e) => applyCardStyleToScope(node.id, cardStyleScope, { customHeaderBgColor: e.target.value })}
-                  className="w-24 px-1.5 py-0.5 rounded bg-theme-surface-subtle border border-theme-border text-[10px] font-mono text-theme-text uppercase"
-                />
+              <div className="flex justify-between text-[8px] text-theme-text-muted font-mono">
+                <span>9px (Mínimo)</span>
+                <span>20px (Máximo)</span>
               </div>
             </div>
           </div>
+        )}
 
-          {/* Modo de Visualización (Solo Título vs Completo) */}
-          <div className="space-y-1.5 p-2.5 rounded-xl bg-theme-surface border border-theme-border">
-            <span className="text-[10px] text-theme-text font-semibold flex items-center">
-              <Layout className="w-3.5 h-3.5 mr-1 text-theme-accent" />
-              <span>Contenido Visible en Tarjeta:</span>
-            </span>
-            <div className="grid grid-cols-2 gap-1.5 pt-0.5">
-              <button
-                onClick={() => {
-                  applyCardStyleToScope(node.id, cardStyleScope, { displayMode: 'full' });
-                  showNotification('Modo detallado aplicado (Toda la información)');
-                }}
-                className={`py-1.5 px-2 rounded-lg border text-[10px] font-semibold flex items-center justify-center space-x-1.5 transition-all ${
-                  (data.displayMode || 'full') === 'full'
-                    ? 'bg-theme-accent/20 border-theme-accent text-theme-accent shadow-sm'
-                    : 'bg-theme-surface-subtle border-theme-border text-theme-text-muted hover:text-theme-text'
-                }`}
-              >
-                <Eye className="w-3.5 h-3.5 shrink-0" />
-                <span>📋 Toda la info</span>
-              </button>
+        {/* SECCIÓN CONTENIDO & DATOS */}
+        {activeSection === 'content' && (
+          <div className="space-y-4">
+            {/* Subprocess Expansion Card if SubProcess */}
+            {isSubProcess && (
+              <div className="p-3.5 bg-[#3B82F6]/10 border border-[#3B82F6]/30 rounded-xl space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#3B82F6] font-mono flex items-center space-x-1">
+                    <Layers className="w-3.5 h-3.5 mr-1" />
+                    <span>Subproceso Expandible</span>
+                  </span>
+                  <span className="text-[10px] text-theme-text-muted font-mono font-semibold">
+                    {data.subProcessSteps?.length || 0} etapas
+                  </span>
+                </div>
+                <p className="text-[11px] text-theme-text-muted leading-relaxed">
+                  Desglose de tareas internas y secuenciación detallada para este subproceso.
+                </p>
+                <div className="flex flex-col gap-1.5 pt-1">
+                  <button
+                    onClick={() => openSubProcessDetail(node.id)}
+                    className="w-full py-2 bg-gradient-to-r from-[#0284C7] to-[#3B82F6] hover:brightness-110 text-white rounded-lg font-bold text-xs shadow-md flex items-center justify-center space-x-1.5 transition-all"
+                  >
+                    <Maximize2 className="w-3.5 h-3.5" />
+                    <span>Ampliar y Editar Detalle</span>
+                  </button>
 
-              <button
-                onClick={() => {
-                  applyCardStyleToScope(node.id, cardStyleScope, { displayMode: 'title_only' });
-                  showNotification('Modo compacto aplicado (Solo título)');
-                }}
-                className={`py-1.5 px-2 rounded-lg border text-[10px] font-semibold flex items-center justify-center space-x-1.5 transition-all ${
-                  data.displayMode === 'title_only'
-                    ? 'bg-theme-accent/20 border-theme-accent text-theme-accent shadow-sm'
-                    : 'bg-theme-surface-subtle border-theme-border text-theme-text-muted hover:text-theme-text'
-                }`}
-              >
-                <Type className="w-3.5 h-3.5 shrink-0" />
-                <span>🏷️ Solo título</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Tamaño de Letra / Tipografía */}
-          <div className="space-y-2 p-2.5 rounded-xl bg-theme-surface border border-theme-border">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] text-theme-text font-semibold flex items-center">
-                <Type className="w-3.5 h-3.5 mr-1 text-theme-accent" />
-                <span>Tamaño de Letra:</span>
-              </span>
-              <span className="text-[10px] font-mono font-bold text-theme-accent bg-theme-surface-subtle px-2 py-0.5 rounded border border-theme-border">
-                {data.customFontSize ?? 12}px
-              </span>
-            </div>
-
-            {/* Pastillas de tamaño rápido */}
-            <div className="grid grid-cols-4 gap-1">
-              {[
-                { label: 'Compacta', size: 10 },
-                { label: 'Normal', size: 12 },
-                { label: 'Mediana', size: 14 },
-                { label: 'Grande', size: 16 }
-              ].map((item) => (
-                <button
-                  key={item.size}
-                  onClick={() => applyCardStyleToScope(node.id, cardStyleScope, { customFontSize: item.size })}
-                  className={`py-1 px-1 rounded-md text-[9px] font-semibold transition-all text-center truncate border ${
-                    (data.customFontSize ?? 12) === item.size
-                      ? 'bg-theme-accent text-white border-theme-accent shadow-sm'
-                      : 'bg-theme-surface-subtle border-theme-border text-theme-text-muted hover:text-theme-text'
-                  }`}
-                >
-                  {item.label} ({item.size}px)
-                </button>
-              ))}
-            </div>
-
-            {/* Slider de ajuste fino */}
-            <input
-              type="range"
-              min="9"
-              max="20"
-              step="1"
-              value={data.customFontSize ?? 12}
-              onChange={(e) => applyCardStyleToScope(node.id, cardStyleScope, { customFontSize: Number(e.target.value) })}
-              className="w-full h-1.5 bg-theme-surface-subtle rounded-lg appearance-none cursor-pointer accent-sky-400 mt-1"
-            />
-            <div className="flex justify-between text-[8px] text-theme-text-muted font-mono">
-              <span>9px (Mínimo)</span>
-              <span>20px (Máximo)</span>
-            </div>
-          </div>
-        </div>
+                  {(data.subProcessSteps?.length || 0) > 0 && (
+                    <button
+                      onClick={() => {
+                        if (window.confirm(`¿Desea descomprimir "${data.title}" y desplegar sus ${data.subProcessSteps?.length} etapas individuales en el lienzo?`)) {
+                          const result = decompressSubProcess(node.id);
+                          if (result.success) {
+                            showNotification('Subproceso descomprimido en el lienzo', 'success');
+                          } else {
+                            showNotification(result.error || 'Error al descomprimir', 'error');
+                          }
+                        }
+                      }}
+                      className="w-full py-1.5 bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-amber-400 rounded-lg font-semibold text-xs flex items-center justify-center space-x-1.5 transition-all"
+                    >
+                      <FolderOpen className="w-3.5 h-3.5" />
+                      <span>Descomprimir en el Lienzo</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
 
         {/* Standard ID & Title */}
         <div className="grid grid-cols-3 gap-2">
@@ -1089,6 +1181,8 @@ export const PropertiesPanel: React.FC = () => {
           </div>
         </div>
       </div>
-    </div>
+    )}
+  </div>
+</div>
   );
 };
