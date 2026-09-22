@@ -95,14 +95,18 @@ const PresentationCanvasController: React.FC<{
     let w = (node.measured?.width ?? node.width) as number;
     let h = (node.measured?.height ?? node.height) as number;
 
-    if (!w || w <= 0) w = 220;
-    if (!h || h <= 0) h = 140;
+    if (!w || w <= 0) w = 200;
+    if (!h || h <= 0) h = 120;
 
     const centerX = posX + w / 2;
     const centerY = posY + h / 2;
 
-    // Smooth Prezi zoom animation
-    setCenter(centerX, centerY, { zoom: 1.35, duration: 850 });
+    const timer = setTimeout(() => {
+      // Smooth Prezi zoom animation
+      setCenter(centerX, centerY, { zoom: 1.25, duration: 800 });
+    }, 60);
+
+    return () => clearTimeout(timer);
   }, [currentStepIndex, currentStep, setCenter]);
 
   // Nodes with active spotlight styling and proper layering
@@ -124,7 +128,7 @@ const PresentationCanvasController: React.FC<{
       .map((n) => {
         const isCurrent = n.id === activeNodeId;
         const isSwimlane = n.type === 'PoolLane';
-        const nodeZIndex = isCurrent ? 100 : isSwimlane ? 0 : 10;
+        const nodeZIndex = isCurrent ? 1000 : isSwimlane ? 0 : 10;
 
         return {
           ...n,
@@ -133,12 +137,11 @@ const PresentationCanvasController: React.FC<{
           style: {
             ...n.style,
             zIndex: nodeZIndex,
-            transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
-            opacity: isSwimlane ? 0.75 : isCurrent ? 1 : 0.45,
+            transition: 'opacity 0.4s ease, filter 0.4s ease',
+            opacity: isSwimlane ? 0.85 : isCurrent ? 1 : 0.6,
             filter: isCurrent
-              ? 'drop-shadow(0 0 20px var(--theme-accent, #38bdf8)) drop-shadow(0 0 8px rgba(56,189,248,0.5))'
-              : 'none',
-            transform: isCurrent ? 'scale(1.04)' : 'scale(1)'
+              ? 'drop-shadow(0 0 16px rgba(56, 189, 248, 0.75))'
+              : 'none'
           }
         };
       })
