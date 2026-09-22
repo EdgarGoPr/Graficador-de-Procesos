@@ -8,7 +8,7 @@
     "organizationUnit": "Dirección General de Sistemas, Tecnología e Innovación (DGSTI) - Tribunal Administrativo Municipal de Faltas",
     "processObjective": "Estandarizar el ciclo integral de soporte técnico e incidencias de hardware, conectividad y sistemas de faltas (SAM, VUPRA, SIGEF) mediante atención humana directa en la consola WiseCX, gestionando el empadronamiento interno, la categorización en dos niveles, el control de inactividad de usuarios y la derivación a soporte avanzado.",
     "createdAt": "2026-09-11T10:00:00Z",
-    "updatedAt": "2026-09-17T17:04:36.907Z",
+    "updatedAt": "2026-09-17T17:37:02.714Z",
     "status": "APPROVED",
     "legalNormativeBasis": [
       "Ordenanza de Procedimiento Administrativo Municipal de Córdoba",
@@ -350,7 +350,7 @@
         "description": "El técnico ejecuta la solución directa (blanqueo de credenciales, configuración de puertos/periféricos o soporte guiado de aplicaciones), comunica manualmente el resultado al empleado y pasa el ticket a 'Resuelto N1'.",
         "nodeType": "UserTask",
         "laneId": "lane-operador-n1",
-        "itSystem": "WiseCX / Escritorio Remoto / SAM / VUPRA",
+        "itSystem": "Oficina",
         "legalFramework": "Protocolo de Cierre Directo N1",
         "slaDuration": {
           "value": 30,
@@ -372,13 +372,13 @@
         ]
       },
       "measured": {
-        "width": 245,
-        "height": 160
+        "width": 242,
+        "height": 167
       },
       "selected": false,
       "dragging": false,
-      "width": 245,
-      "height": 160,
+      "width": 242,
+      "height": 167,
       "resizing": false
     },
     {
@@ -394,7 +394,7 @@
         "description": "El operador N1 transfiere el ticket a la cola especializada informando al empleado un plazo diferido de hasta 72 horas hábiles para fallas complejas de bases de datos, caídas de enlaces WAN o bugs en SAM/VUPRA/SIGEF.",
         "nodeType": "UserTask",
         "laneId": "lane-operador-n1",
-        "itSystem": "WiseCX",
+        "itSystem": "Trello",
         "legalFramework": "Matriz de Escalado y SLA Diferido DGSTI",
         "inputs": [
           "Informe de escalado redactado por N1"
@@ -442,7 +442,7 @@
         "description": "Supervisores o administradores resuelven la causa raíz técnica (scripts en BD, corrección de endpoints, coordinación con Ciudad Inteligente o infraestructura de servidores), notifican personalmente al solicitante y fijan estado 'Resuelto N2'.",
         "nodeType": "UserTask",
         "laneId": "lane-soporte-n2",
-        "itSystem": "Bases de Datos / Servidores / SAM / VUPRA / SIGEF",
+        "itSystem": "Trello",
         "legalFramework": "Procedimiento de Administración Avanzada DGSTI",
         "slaDuration": {
           "value": 72,
@@ -523,88 +523,6 @@
       "dragging": false
     },
     {
-      "id": "node-task-solicitud-datos",
-      "type": "UserTask",
-      "position": {
-        "x": 832.7055727682472,
-        "y": -640.4626713641829
-      },
-      "selected": false,
-      "width": 200,
-      "height": 151,
-      "data": {
-        "standardId": "TSK-04",
-        "title": "Solicitud Manual de Evidencia y Pausa de SLA",
-        "description": "El técnico redacta de forma manual y personalizada el pedido de datos faltantes y coloca el ticket en estado 'Pendiente Usuario', pausando los tiempos de resolución del área.",
-        "nodeType": "UserTask",
-        "laneId": "lane-operador-n1",
-        "itSystem": "WiseCX Chat/Mail",
-        "legalFramework": "Reglamento de Soporte a Dependencias",
-        "inputs": [
-          "Requerimiento de datos técnicos específicos"
-        ],
-        "outputs": [
-          "Mensaje remitido al solicitante",
-          "Estado Pendiente Usuario",
-          "Temporizador de 20 minutos activado"
-        ],
-        "operationalRisks": [],
-        "tags": [
-          "Pendiente Usuario",
-          "Pausa SLA"
-        ]
-      },
-      "measured": {
-        "width": 200,
-        "height": 151
-      },
-      "dragging": false
-    },
-    {
-      "id": "node-qc-inactividad-20min",
-      "type": "QualityCheckpointEvent",
-      "position": {
-        "x": 1297.638625977928,
-        "y": -554.1768317703782
-      },
-      "selected": true,
-      "width": 190,
-      "height": 179,
-      "data": {
-        "standardId": "QC-01",
-        "title": "Control de Espera e Inactividad (Regla 20 Min)",
-        "description": "Control de cumplimiento del tiempo de respuesta del solicitante para evitar casos ociosos en cola y no distorsionar las métricas de atención.",
-        "nodeType": "QualityCheckpointEvent",
-        "laneId": "lane-operador-n1",
-        "itSystem": "WiseCX Motor de Reglas",
-        "legalFramework": "Criterios Operativos de Cierre DGSTI",
-        "qualityCheckpoint": {
-          "checkpointCode": "QC-INACT-20M",
-          "inspectionCriteria": "Verificación estricta de mensaje entrante del usuario antes de transcurridos 20 minutos desde la repregunta.",
-          "severity": "MEDIUM",
-          "sampleRatePercentage": 100,
-          "responsibleRole": "Operador N1 / Temporizador WiseCX",
-          "evidenceRequired": "Registro temporal de inactividad en la bitácora del ticket"
-        },
-        "inputs": [
-          "Tiempo transcurrido en estado Pendiente Usuario"
-        ],
-        "outputs": [
-          "Reanudación de gestión o habilitación de cierre"
-        ],
-        "operationalRisks": [],
-        "tags": [
-          "Control Calidad",
-          "Temporizador"
-        ]
-      },
-      "measured": {
-        "width": 190,
-        "height": 179
-      },
-      "dragging": false
-    },
-    {
       "id": "node-gtw-respuesta-usuario",
       "type": "ExclusiveGateway",
       "position": {
@@ -669,6 +587,88 @@
         "width": 96,
         "height": 96
       }
+    },
+    {
+      "id": "node-task-solicitud-datos",
+      "type": "UserTask",
+      "position": {
+        "x": 843.4900157842594,
+        "y": -633.0066561438271
+      },
+      "selected": false,
+      "width": 200,
+      "height": 151,
+      "data": {
+        "standardId": "TSK-04",
+        "title": "Solicitud Manual de Evidencia y Pausa de SLA",
+        "description": "El técnico redacta de forma manual y personalizada el pedido de datos faltantes y coloca el ticket en estado 'Pendiente Usuario', pausando los tiempos de resolución del área.",
+        "nodeType": "UserTask",
+        "laneId": "lane-operador-n1",
+        "itSystem": "WiseCX Chat/Mail",
+        "legalFramework": "Reglamento de Soporte a Dependencias",
+        "inputs": [
+          "Requerimiento de datos técnicos específicos"
+        ],
+        "outputs": [
+          "Mensaje remitido al solicitante",
+          "Estado Pendiente Usuario",
+          "Temporizador de 20 minutos activado"
+        ],
+        "operationalRisks": [],
+        "tags": [
+          "Pendiente Usuario",
+          "Pausa SLA"
+        ]
+      },
+      "measured": {
+        "width": 200,
+        "height": 151
+      },
+      "dragging": false
+    },
+    {
+      "id": "node-qc-inactividad-20min",
+      "type": "QualityCheckpointEvent",
+      "position": {
+        "x": 1308.4900157842594,
+        "y": -547.0066561438271
+      },
+      "selected": false,
+      "width": 190,
+      "height": 179,
+      "data": {
+        "standardId": "QC-01",
+        "title": "Control de Espera e Inactividad (Regla 20 Min)",
+        "description": "Control de cumplimiento del tiempo de respuesta del solicitante para evitar casos ociosos en cola y no distorsionar las métricas de atención.",
+        "nodeType": "QualityCheckpointEvent",
+        "laneId": "lane-operador-n1",
+        "itSystem": "WiseCX Motor de Reglas",
+        "legalFramework": "Criterios Operativos de Cierre DGSTI",
+        "qualityCheckpoint": {
+          "checkpointCode": "QC-INACT-20M",
+          "inspectionCriteria": "Verificación estricta de mensaje entrante del usuario antes de transcurridos 20 minutos desde la repregunta.",
+          "severity": "MEDIUM",
+          "sampleRatePercentage": 100,
+          "responsibleRole": "Operador N1 / Temporizador WiseCX",
+          "evidenceRequired": "Registro temporal de inactividad en la bitácora del ticket"
+        },
+        "inputs": [
+          "Tiempo transcurrido en estado Pendiente Usuario"
+        ],
+        "outputs": [
+          "Reanudación de gestión o habilitación de cierre"
+        ],
+        "operationalRisks": [],
+        "tags": [
+          "Control Calidad",
+          "Temporizador"
+        ]
+      },
+      "measured": {
+        "width": 190,
+        "height": 179
+      },
+      "dragging": false
     }
   ],
   "edges": [
@@ -852,18 +852,6 @@
       "selected": false
     },
     {
-      "id": "edge-09",
-      "source": "node-task-solicitud-datos",
-      "target": "node-qc-inactividad-20min",
-      "type": "sequenceFlow",
-      "data": {
-        "conditionText": "",
-        "id": "edge-09",
-        "source": "node-task-solicitud-datos",
-        "target": "node-qc-inactividad-20min"
-      }
-    },
-    {
       "id": "edge-10",
       "source": "node-qc-inactividad-20min",
       "target": "node-gtw-respuesta-usuario",
@@ -873,7 +861,8 @@
         "id": "edge-10",
         "source": "node-qc-inactividad-20min",
         "target": "node-gtw-respuesta-usuario"
-      }
+      },
+      "selected": false
     },
     {
       "id": "edge-11",
@@ -898,7 +887,51 @@
         "target": "node-gtw-complejidad-n1",
         "conditionText": ""
       }
+    },
+    {
+      "id": "edge-09",
+      "source": "node-task-solicitud-datos",
+      "target": "node-qc-inactividad-20min",
+      "type": "sequenceFlow",
+      "data": {
+        "conditionText": "",
+        "id": "edge-09",
+        "source": "node-task-solicitud-datos",
+        "target": "node-qc-inactividad-20min"
+      }
     }
   ],
-  "fileName": "2026-09-11_proc-atencion-soporte-incidencias-wisecx-dgsti-v1.0.json"
+  "fileName": "2026-09-11_proc-atencion-soporte-incidencias-wisecx-dgsti-v1.0.json",
+  "printFrames": [
+    {
+      "id": "frame_1",
+      "pageNumber": 1,
+      "format": "A4",
+      "orientation": "landscape",
+      "x": -895,
+      "y": -792,
+      "width": 1627,
+      "height": 1150
+    },
+    {
+      "id": "frame_2",
+      "pageNumber": 2,
+      "format": "A4",
+      "orientation": "landscape",
+      "x": 727,
+      "y": -792,
+      "width": 1629,
+      "height": 1152
+    },
+    {
+      "id": "frame_3",
+      "pageNumber": 3,
+      "format": "A4",
+      "orientation": "landscape",
+      "x": 2310,
+      "y": -788,
+      "width": 1627,
+      "height": 1150
+    }
+  ]
 }
