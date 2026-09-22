@@ -8,7 +8,7 @@
     "organizationUnit": "Dirección General de Sistemas, Tecnología e Innovación (DGSTI) - Tribunal Administrativo Municipal de Faltas",
     "processObjective": "Estandarizar el ciclo integral de soporte técnico e incidencias de hardware, conectividad y sistemas de faltas (SAM, VUPRA, SIGEF) mediante atención humana directa en la consola WiseCX, gestionando el empadronamiento interno, la categorización en dos niveles, el control de inactividad de usuarios y la derivación a soporte avanzado.",
     "createdAt": "2026-09-11T10:00:00Z",
-    "updatedAt": "2026-09-22T17:29:07.209Z",
+    "updatedAt": "2026-09-22T17:44:27.857Z",
     "status": "APPROVED",
     "legalNormativeBasis": [
       "Ordenanza de Procedimiento Administrativo Municipal de Córdoba",
@@ -362,8 +362,8 @@
       "id": "node-task-resolucion-n1",
       "type": "UserTask",
       "position": {
-        "x": 2264.345778444072,
-        "y": -524.9005349201746
+        "x": 2192.5975357957964,
+        "y": -616.441396230044
       },
       "data": {
         "standardId": "TSK-05",
@@ -464,8 +464,8 @@
       "id": "node-task-resolucion-n2",
       "type": "UserTask",
       "position": {
-        "x": 2523.5170921736626,
-        "y": -319.2975231118246
+        "x": 2539.311694554872,
+        "y": -318.0764206430445
       },
       "data": {
         "standardId": "TSK-07",
@@ -512,8 +512,8 @@
         "width": 187,
         "height": 95
       },
-      "selected": false,
-      "dragging": false,
+      "selected": true,
+      "dragging": true,
       "width": 187,
       "height": 95,
       "resizing": false
@@ -562,7 +562,7 @@
         "x": 1329.5710048737567,
         "y": -558.7389824856572
       },
-      "selected": true,
+      "selected": false,
       "data": {
         "standardId": "GTW-03",
         "title": "¿Respondió el Usuario en <= 30 min?",
@@ -1162,6 +1162,18 @@
         "id": "e_node-task-solicitud-datos_timerboundaryevent_1790091295465_0",
         "source": "node-task-solicitud-datos",
         "target": "timerboundaryevent_1790091295465_0"
+      }
+    },
+    {
+      "id": "e_node-gtw-respuesta-usuario_node-task-solicitud-datos_1790098975935",
+      "source": "node-gtw-respuesta-usuario",
+      "target": "node-task-solicitud-datos",
+      "type": "sequenceFlow",
+      "data": {
+        "id": "e_node-gtw-respuesta-usuario_node-task-solicitud-datos",
+        "source": "node-gtw-respuesta-usuario",
+        "target": "node-task-solicitud-datos",
+        "conditionText": ""
       }
     }
   ],
