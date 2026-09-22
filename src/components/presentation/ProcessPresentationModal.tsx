@@ -48,8 +48,35 @@ import {
   RotateCcw,
   CheckSquare,
   ShieldCheck,
-  FileText
+  FileText,
+  Palette,
+  Check,
+  Grid,
+  Square,
+  CircleDot
 } from 'lucide-react';
+
+export interface PresentationBgConfig {
+  bgColor: string;
+  gridColor: string;
+  gridVariant: 'dots' | 'lines' | 'cross' | 'none';
+  isDark: boolean;
+}
+
+export const PRESENTATION_BG_PRESETS: {
+  id: string;
+  label: string;
+  bgColor: string;
+  gridColor: string;
+  isDark: boolean;
+}[] = [
+  { id: 'oled', label: 'Negro Profundo OLED', bgColor: '#020617', gridColor: '#1e293b', isDark: true },
+  { id: 'slate', label: 'Grafito Slate', bgColor: '#0f172a', gridColor: '#334155', isDark: true },
+  { id: 'midnight', label: 'Azul Medianoche', bgColor: '#030712', gridColor: '#1e3a5f', isDark: true },
+  { id: 'pure-white', label: 'Blanco Puro', bgColor: '#ffffff', gridColor: '#e2e8f0', isDark: false },
+  { id: 'paper-gray', label: 'Gris Papel Minimal', bgColor: '#f8fafc', gridColor: '#cbd5e1', isDark: false },
+  { id: 'warm-cream', label: 'Crema Cálido', bgColor: '#fdfbf7', gridColor: '#e7e5e4', isDark: false },
+];
 
 // Node types mapping for presentation canvas
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -77,8 +104,8 @@ const PresentationCanvasController: React.FC<{
   steps: ProcessPresentationStep[];
   currentStepIndex: number;
   onSelectStep: (index: number) => void;
-  activeColors: any;
-}> = ({ steps, currentStepIndex, onSelectStep, activeColors }) => {
+  bgConfig: PresentationBgConfig;
+}> = ({ steps, currentStepIndex, onSelectStep, bgConfig }) => {
   const { currentProject } = useProjectStore();
   const { setCenter } = useReactFlow();
 
@@ -170,7 +197,10 @@ const PresentationCanvasController: React.FC<{
   }, [currentProject?.edges, currentStep]);
 
   return (
-    <div className="w-full h-full relative overflow-hidden bg-theme-canvas-bg">
+    <div
+      className="w-full h-full relative overflow-hidden transition-colors duration-300"
+      style={{ backgroundColor: bgConfig.bgColor }}
+    >
       <ReactFlow
         nodes={presentationNodes as Node[]}
         edges={presentationEdges as Edge[]}
@@ -188,12 +218,20 @@ const PresentationCanvasController: React.FC<{
         fitViewOptions={{ padding: 0.2 }}
         proOptions={{ hideAttribution: true }}
       >
-        <Background
-          variant={BackgroundVariant.Dots}
-          gap={24}
-          size={1.5}
-          color={hexToRgba(activeColors.border, 0.4)}
-        />
+        {bgConfig.gridVariant !== 'none' && (
+          <Background
+            variant={
+              bgConfig.gridVariant === 'lines'
+                ? BackgroundVariant.Lines
+                : bgConfig.gridVariant === 'cross'
+                ? BackgroundVariant.Cross
+                : BackgroundVariant.Dots
+            }
+            gap={24}
+            size={1.5}
+            color={bgConfig.gridColor}
+          />
+        )}
       </ReactFlow>
     </div>
   );
@@ -214,11 +252,59 @@ export const ProcessPresentationModal: React.FC = () => {
   const [autoplaySeconds, setAutoplaySeconds] = useState(6);
   const [timeRemaining, setTimeRemaining] = useState(autoplaySeconds);
 
+  // Background Customization State & Local Persistence
+  const [bgConfig, setBgConfig] = useState<PresentationBgConfig>(() => {
+    try {
+      const saved = localStorage.getItem('procesos_presentation_bg_config');
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return {
+      bgColor: '#020617',
+      gridColor: '#1e293b',
+      gridVariant: 'dots',
+      isDark: true
+    };
+  });
+
+  const [isBgPickerOpen, setIsBgPickerOpen] = useState(false);
+  const bgPickerRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const activeColors = currentThemeId === 'custom'
-    ? customThemeColors
-    : (PRESET_THEMES[currentThemeId]?.colors || PRESET_THEMES['antigravity-dark'].colors);
+  const updateBgConfig = (updates: Partial<PresentationBgConfig>) => {
+    setBgConfig((prev) => {
+      const next = { ...prev, ...updates };
+      try {
+        localStorage.setItem('procesos_presentation_bg_config', JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+  };
+
+  const handleCustomColorChange = (hex: string) => {
+    const r = parseInt(hex.slice(1, 3), 16) || 0;
+    const g = parseInt(hex.slice(3, 5), 16) || 0;
+    const b = parseInt(hex.slice(5, 7), 16) || 0;
+    const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    const isDark = lum < 0.5;
+    const gridColor = isDark ? hexToRgba('#ffffff', 18) : hexToRgba('#000000', 15);
+
+    updateBgConfig({
+      bgColor: hex,
+      gridColor,
+      isDark
+    });
+  };
+
+  // Close background menu on click outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (bgPickerRef.current && !bgPickerRef.current.contains(e.target as unknown as HTMLElement)) {
+        setIsBgPickerOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Extract topological steps
   const steps = useMemo(() => {
@@ -349,6 +435,125 @@ export const ProcessPresentationModal: React.FC = () => {
             <span className="text-theme-text-muted">{totalSteps}</span>
           </div>
 
+          {/* Background & Grid Theme Selector Popover */}
+          <div ref={bgPickerRef} className="relative">
+            <button
+              onClick={() => setIsBgPickerOpen((o) => !o)}
+              className={`p-2 rounded-lg border transition-all flex items-center space-x-1 ${
+                isBgPickerOpen
+                  ? 'bg-theme-accent/20 border-theme-accent text-theme-accent shadow-sm'
+                  : 'bg-theme-surface-subtle hover:bg-theme-surface border-theme-border text-theme-text hover:text-theme-accent'
+              }`}
+              title="Personalizar color de fondo y trama del lienzo"
+            >
+              <Palette className="w-4 h-4" />
+            </button>
+
+            {isBgPickerOpen && (
+              <div className="absolute top-full mt-2 right-0 w-72 bg-theme-surface/98 backdrop-blur-2xl border border-theme-border rounded-2xl shadow-2xl p-4 z-50 animate-in fade-in zoom-in-95 space-y-4">
+                <div>
+                  <h4 className="text-xs font-bold text-theme-text flex items-center justify-between mb-2.5">
+                    <span>Fondo de Presentación</span>
+                    <span className="text-[10px] font-mono text-theme-accent px-1.5 py-0.5 rounded bg-theme-surface border border-theme-border">
+                      {bgConfig.bgColor}
+                    </span>
+                  </h4>
+
+                  {/* Preset Background Swatches */}
+                  <div className="grid grid-cols-3 gap-2">
+                    {PRESENTATION_BG_PRESETS.map((preset) => {
+                      const isSelected = bgConfig.bgColor === preset.bgColor;
+                      return (
+                        <button
+                          key={preset.id}
+                          type="button"
+                          onClick={() => {
+                            updateBgConfig({
+                              bgColor: preset.bgColor,
+                              gridColor: preset.gridColor,
+                              isDark: preset.isDark
+                            });
+                          }}
+                          className={`p-2 rounded-xl border text-left flex flex-col justify-between transition-all ${
+                            isSelected
+                              ? 'border-theme-accent ring-2 ring-theme-accent/30 shadow-md'
+                              : 'border-theme-border/80 hover:border-theme-border hover:shadow-sm'
+                          }`}
+                          style={{ backgroundColor: preset.bgColor }}
+                        >
+                          <div className="flex items-center justify-between w-full mb-1">
+                            <span
+                              className={`w-3 h-3 rounded-full border ${
+                                preset.isDark ? 'border-white/30' : 'border-black/20'
+                              }`}
+                              style={{ backgroundColor: preset.bgColor }}
+                            />
+                            {isSelected && (
+                              <Check className={`w-3.5 h-3.5 ${preset.isDark ? 'text-sky-400' : 'text-blue-600'}`} />
+                            )}
+                          </div>
+                          <span
+                            className={`text-[10px] font-medium leading-tight truncate ${
+                              preset.isDark ? 'text-slate-200' : 'text-slate-800'
+                            }`}
+                          >
+                            {preset.label.split(' ')[0]}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Custom Color Picker Input */}
+                <div className="pt-2 border-t border-theme-border">
+                  <label className="text-[11px] font-semibold text-theme-text-muted mb-1.5 flex items-center justify-between">
+                    <span>Color Personalizado (HEX):</span>
+                    <input
+                      type="color"
+                      value={bgConfig.bgColor}
+                      onChange={(e) => handleCustomColorChange(e.target.value)}
+                      className="w-6 h-6 rounded cursor-pointer border border-theme-border bg-transparent p-0"
+                    />
+                  </label>
+                </div>
+
+                {/* Grid Pattern Selector */}
+                <div className="pt-2 border-t border-theme-border">
+                  <label className="block text-[11px] font-semibold text-theme-text-muted mb-2">
+                    Trama de Fondo (Cuadrícula):
+                  </label>
+                  <div className="grid grid-cols-4 gap-1.5">
+                    {[
+                      { id: 'dots', label: 'Puntos', icon: CircleDot },
+                      { id: 'lines', label: 'Líneas', icon: Grid },
+                      { id: 'cross', label: 'Cruz', icon: Square },
+                      { id: 'none', label: 'Liso', icon: Square }
+                    ].map((mode) => {
+                      const isSelected = bgConfig.gridVariant === mode.id;
+                      const Icon = mode.icon;
+                      return (
+                        <button
+                          key={mode.id}
+                          type="button"
+                          onClick={() => updateBgConfig({ gridVariant: mode.id as any })}
+                          className={`py-1.5 px-2 rounded-lg border text-[10px] font-semibold flex flex-col items-center justify-center space-y-1 transition-all ${
+                            isSelected
+                              ? 'border-theme-accent bg-theme-accent/15 text-theme-accent shadow-sm'
+                              : 'border-theme-border text-theme-text-muted hover:text-theme-text hover:bg-theme-surface-subtle'
+                          }`}
+                        >
+                          <Icon className="w-3.5 h-3.5" />
+                          <span>{mode.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
           <button
             onClick={toggleFullscreen}
             className="p-2 rounded-lg bg-theme-surface-subtle hover:bg-theme-surface border border-theme-border text-theme-text hover:text-theme-accent transition-colors"
@@ -376,7 +581,7 @@ export const ProcessPresentationModal: React.FC = () => {
               steps={steps}
               currentStepIndex={currentStepIndex}
               onSelectStep={setCurrentStepIndex}
-              activeColors={activeColors}
+              bgConfig={bgConfig}
             />
           </ReactFlowProvider>
 
@@ -416,22 +621,22 @@ export const ProcessPresentationModal: React.FC = () => {
 
               <button
                 onClick={handlePrev}
-                className="flex items-center space-x-1 px-3.5 py-2 rounded-xl bg-theme-surface-subtle hover:bg-theme-surface text-theme-text border border-theme-border text-xs font-semibold transition-all hover:scale-105"
+                className="flex items-center space-x-1 px-3 py-2 rounded-xl bg-theme-surface-subtle hover:bg-theme-surface text-theme-text border border-theme-border text-xs font-semibold transition-colors"
                 title="Paso anterior (←)"
               >
                 <ChevronLeft className="w-4 h-4" />
                 <span>Anterior</span>
               </button>
 
-              {/* Play / Pause Toggle */}
+              {/* Play / Pause toggle */}
               <button
                 onClick={() => setIsPlaying((p) => !p)}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-md ${
+                className={`flex items-center space-x-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-md ${
                   isPlaying
-                    ? 'bg-amber-500 text-slate-950 hover:bg-amber-400'
-                    : 'bg-theme-accent text-slate-950 hover:opacity-90'
+                    ? 'bg-amber-500 hover:bg-amber-600 text-slate-950'
+                    : 'bg-theme-accent hover:bg-theme-accent-hover text-white'
                 }`}
-                title="Reproducción automática (Espacio)"
+                title="Reproducir automáticamente (Espacio)"
               >
                 {isPlaying ? (
                   <>
@@ -448,7 +653,7 @@ export const ProcessPresentationModal: React.FC = () => {
 
               <button
                 onClick={handleNext}
-                className="flex items-center space-x-1 px-3.5 py-2 rounded-xl bg-theme-surface-subtle hover:bg-theme-surface text-theme-text border border-theme-border text-xs font-semibold transition-all hover:scale-105"
+                className="flex items-center space-x-1 px-3 py-2 rounded-xl bg-theme-surface-subtle hover:bg-theme-surface text-theme-text border border-theme-border text-xs font-semibold transition-colors"
                 title="Paso siguiente (→)"
               >
                 <span>Siguiente</span>
@@ -458,255 +663,188 @@ export const ProcessPresentationModal: React.FC = () => {
           </div>
         </div>
 
-        {/* Right Structured Step Detail Panel */}
-        <aside className="w-[420px] max-w-full h-full bg-theme-surface/95 backdrop-blur-md border-l border-theme-border flex flex-col z-20 shrink-0 shadow-2xl overflow-y-auto">
-          {/* Header Card */}
-          <div className="p-6 border-b border-theme-border/80 bg-theme-surface-subtle/50">
-            <div className="flex items-center justify-between mb-2">
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-theme-accent/15 text-theme-accent border border-theme-accent/30">
-                PASO {currentStepIndex + 1} DE {totalSteps}
-              </span>
-              <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-theme-surface border border-theme-border text-theme-text-muted">
-                {nodeData.standardId || 'ID-BPMN'}
-              </span>
+        {/* Right Structured Presentation Step Detail Sidebar */}
+        <aside className="w-80 md:w-96 border-l border-theme-border/80 bg-theme-surface/95 backdrop-blur-xl flex flex-col justify-between z-10 shrink-0 shadow-2xl overflow-hidden transition-colors">
+          <div className="flex-1 overflow-y-auto p-5 space-y-4">
+            {/* Step Badge & Standard ID */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <span
+                  className="text-xs font-mono font-extrabold px-2.5 py-1 rounded-lg text-white shadow-sm"
+                  style={{ backgroundColor: currentStep.laneColor || 'var(--theme-accent, #38bdf8)' }}
+                >
+                  {nodeData.standardId || `PASO-${currentStep.stepNumber}`}
+                </span>
+                <span className="text-xs font-mono text-theme-text-muted uppercase tracking-wider">
+                  {nodeData.nodeType}
+                </span>
+              </div>
+
+              {currentStep.slaText && (
+                <div className="flex items-center space-x-1 px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 font-mono text-[10px]">
+                  <Clock className="w-3 h-3" />
+                  <span>{currentStep.slaText}</span>
+                </div>
+              )}
             </div>
 
-            {/* Role & Functional Lane */}
-            <div className="flex items-center space-x-2 mt-2">
-              <div
-                className="w-3 h-3 rounded-full shrink-0"
-                style={{ backgroundColor: currentStep.laneColor }}
-              />
-              <span className="text-xs font-bold text-theme-text flex items-center space-x-1 truncate">
-                <User className="w-3.5 h-3.5 text-theme-accent shrink-0" />
-                <span className="truncate">{currentStep.roleName}</span>
-              </span>
+            {/* Step Title & Responsible Role */}
+            <div className="space-y-1">
+              <div className="flex items-center space-x-1.5 text-xs text-theme-accent font-semibold">
+                <User className="w-3.5 h-3.5" />
+                <span>{currentStep.roleName}</span>
+              </div>
+              <h2 className="text-lg font-black text-theme-text leading-snug tracking-tight">
+                {nodeData.title || 'Paso del Proceso'}
+              </h2>
             </div>
 
-            {/* Title */}
-            <h2 className="text-base font-bold text-theme-text mt-3 leading-snug">
-              {nodeData.title || 'Sin Título'}
-            </h2>
-          </div>
-
-          {/* Structured Detail Body */}
-          <div className="p-6 space-y-5 text-xs">
             {/* Description */}
-            <div>
-              <h3 className="text-[10px] font-mono font-bold text-theme-text-muted uppercase tracking-wider mb-1.5 flex items-center space-x-1.5">
-                <FileText className="w-3 h-3 text-theme-accent" />
+            <div className="space-y-1.5 bg-theme-surface-subtle p-3.5 rounded-xl border border-theme-border">
+              <div className="flex items-center space-x-1.5 text-[10px] font-mono font-bold text-theme-accent uppercase tracking-wider">
+                <FileText className="w-3.5 h-3.5" />
                 <span>Descripción del Paso</span>
-              </h3>
-              <p className="text-theme-text text-xs leading-relaxed bg-theme-surface-subtle/70 p-3 rounded-lg border border-theme-border">
+              </div>
+              <p className="text-xs text-theme-text leading-relaxed">
                 {nodeData.description || 'Sin descripción detallada registrada para esta actividad.'}
               </p>
             </div>
 
-            {/* Quick Metrics: SLA & IT System */}
-            <div className="grid grid-cols-2 gap-3">
-              {/* SLA Metric */}
-              <div className="p-3 rounded-lg bg-theme-surface-subtle/60 border border-theme-border flex flex-col justify-between">
-                <span className="text-[10px] font-mono font-bold text-theme-text-muted flex items-center space-x-1">
+            {/* IT System & Lead Time / SLA Grid */}
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              <div className="p-2.5 rounded-xl bg-theme-surface-subtle border border-theme-border space-y-1">
+                <div className="flex items-center space-x-1 text-[10px] text-theme-text-muted font-mono uppercase">
                   <Clock className="w-3 h-3 text-amber-400" />
-                  <span>TIEMPO / SLA</span>
-                </span>
-                <span className="text-xs font-bold text-theme-text mt-1">
+                  <span>Tiempo / SLA</span>
+                </div>
+                <div className="font-bold text-theme-text truncate">
                   {currentStep.slaText || 'No aplica'}
-                </span>
+                </div>
               </div>
 
-              {/* IT System */}
-              <div className="p-3 rounded-lg bg-theme-surface-subtle/60 border border-theme-border flex flex-col justify-between">
-                <span className="text-[10px] font-mono font-bold text-theme-text-muted flex items-center space-x-1">
-                  <Server className="w-3 h-3 text-blue-400" />
-                  <span>SISTEMA TI</span>
-                </span>
-                <span className="text-xs font-bold text-theme-text mt-1 truncate">
+              <div className="p-2.5 rounded-xl bg-theme-surface-subtle border border-theme-border space-y-1">
+                <div className="flex items-center space-x-1 text-[10px] text-theme-text-muted font-mono uppercase">
+                  <Server className="w-3 h-3 text-cyan-400" />
+                  <span>Sistema TI</span>
+                </div>
+                <div className="font-bold text-theme-text truncate">
                   {nodeData.itSystem || 'Manual / Físico'}
-                </span>
+                </div>
               </div>
             </div>
 
             {/* Inputs & Outputs */}
             <div className="space-y-3">
               {/* Inputs */}
-              <div>
-                <h3 className="text-[10px] font-mono font-bold text-theme-text-muted uppercase tracking-wider mb-1.5 flex items-center space-x-1.5">
-                  <CheckSquare className="w-3 h-3 text-emerald-400" />
-                  <span>Entradas Requeridas (Inputs)</span>
-                </h3>
-                {nodeData.inputs && nodeData.inputs.length > 0 ? (
-                  <ul className="space-y-1">
+              {nodeData.inputs && nodeData.inputs.length > 0 && (
+                <div className="space-y-1.5">
+                  <div className="flex items-center space-x-1 text-[10px] font-mono font-bold text-emerald-400 uppercase tracking-wider">
+                    <CheckSquare className="w-3 h-3" />
+                    <span>Entradas Requeridas (Inputs)</span>
+                  </div>
+                  <div className="space-y-1">
                     {nodeData.inputs.map((inp, i) => (
-                      <li
+                      <div
                         key={i}
-                        className="flex items-start space-x-2 text-theme-text bg-emerald-500/5 border border-emerald-500/20 px-2.5 py-1.5 rounded-md"
+                        className="flex items-start space-x-2 text-xs text-theme-text bg-emerald-500/5 border border-emerald-500/20 p-2 rounded-lg"
                       >
                         <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
-                        <span className="leading-tight">{inp}</span>
-                      </li>
+                        <span>{inp}</span>
+                      </div>
                     ))}
-                  </ul>
-                ) : (
-                  <p className="text-[11px] text-theme-text-muted italic bg-theme-surface-subtle/40 px-2.5 py-1.5 rounded">
-                    No especifica entradas formales.
-                  </p>
-                )}
-              </div>
+                  </div>
+                </div>
+              )}
 
               {/* Outputs */}
-              <div>
-                <h3 className="text-[10px] font-mono font-bold text-theme-text-muted uppercase tracking-wider mb-1.5 flex items-center space-x-1.5">
-                  <ArrowRight className="w-3 h-3 text-sky-400" />
-                  <span>Salidas / Entregables (Outputs)</span>
-                </h3>
-                {nodeData.outputs && nodeData.outputs.length > 0 ? (
-                  <ul className="space-y-1">
+              {nodeData.outputs && nodeData.outputs.length > 0 && (
+                <div className="space-y-1.5">
+                  <div className="flex items-center space-x-1 text-[10px] font-mono font-bold text-sky-400 uppercase tracking-wider">
+                    <ArrowRight className="w-3 h-3" />
+                    <span>Salidas / Entregables (Outputs)</span>
+                  </div>
+                  <div className="space-y-1">
                     {nodeData.outputs.map((out, i) => (
-                      <li
+                      <div
                         key={i}
-                        className="flex items-start space-x-2 text-theme-text bg-sky-500/5 border border-sky-500/20 px-2.5 py-1.5 rounded-md"
+                        className="flex items-start space-x-2 text-xs text-theme-text bg-sky-500/5 border border-sky-500/20 p-2 rounded-lg"
                       >
                         <ArrowRight className="w-3.5 h-3.5 text-sky-400 shrink-0 mt-0.5" />
-                        <span className="leading-tight">{out}</span>
-                      </li>
+                        <span>{out}</span>
+                      </div>
                     ))}
-                  </ul>
-                ) : (
-                  <p className="text-[11px] text-theme-text-muted italic bg-theme-surface-subtle/40 px-2.5 py-1.5 rounded">
-                    No especifica entregables formales.
-                  </p>
-                )}
-              </div>
+                  </div>
+                </div>
+              )}
             </div>
 
-            {/* Legal Framework */}
+            {/* Legal Framework & Normatives */}
             {nodeData.legalFramework && (
-              <div>
-                <h3 className="text-[10px] font-mono font-bold text-theme-text-muted uppercase tracking-wider mb-1.5 flex items-center space-x-1.5">
-                  <Scale className="w-3 h-3 text-purple-400" />
+              <div className="space-y-1.5 bg-purple-500/5 p-3 rounded-xl border border-purple-500/20">
+                <div className="flex items-center space-x-1.5 text-[10px] font-mono font-bold text-purple-400 uppercase tracking-wider">
+                  <Scale className="w-3 h-3" />
                   <span>Marco Legal & Normativa</span>
-                </h3>
-                <div className="bg-purple-500/5 border border-purple-500/20 p-2.5 rounded-lg text-theme-text">
-                  <span className="font-semibold text-purple-400">{String(nodeData.legalFramework)}</span>
+                </div>
+                <div className="text-xs text-purple-200">
+                  {nodeData.legalFramework}
                 </div>
               </div>
             )}
 
-            {/* Quality Checkpoint (QC) */}
-            {nodeData.qualityCheckpoint && (
-              <div>
-                <h3 className="text-[10px] font-mono font-bold text-theme-text-muted uppercase tracking-wider mb-1.5 flex items-center space-x-1.5">
-                  <ShieldCheck className="w-3 h-3 text-emerald-400" />
-                  <span>Punto de Control de Calidad ({nodeData.qualityCheckpoint.checkpointCode})</span>
-                </h3>
-                <div className="bg-emerald-500/5 border border-emerald-500/20 p-2.5 rounded-lg text-theme-text space-y-1">
-                  <span className="font-semibold text-emerald-400 block">{nodeData.qualityCheckpoint.inspectionCriteria}</span>
-                  <span className="text-[10px] text-theme-text-muted font-mono block">
-                    Severidad: {nodeData.qualityCheckpoint.severity} &bull; Muestreo: {nodeData.qualityCheckpoint.sampleRatePercentage}%
-                  </span>
-                </div>
-              </div>
-            )}
-
-            {/* Operational Risks */}
+            {/* Quality & Risks */}
             {nodeData.operationalRisks && nodeData.operationalRisks.length > 0 && (
-              <div>
-                <h3 className="text-[10px] font-mono font-bold text-theme-text-muted uppercase tracking-wider mb-1.5 flex items-center space-x-1.5">
-                  <AlertTriangle className="w-3 h-3 text-amber-400" />
-                  <span>Riesgos Operativos</span>
-                </h3>
-                <ul className="space-y-1.5">
+              <div className="space-y-1.5 bg-red-500/5 p-3 rounded-xl border border-red-500/20">
+                <div className="flex items-center space-x-1.5 text-[10px] font-mono font-bold text-red-400 uppercase tracking-wider">
+                  <AlertTriangle className="w-3 h-3" />
+                  <span>Riesgos Operacionales (ISO 9001)</span>
+                </div>
+                <div className="space-y-1">
                   {nodeData.operationalRisks.map((risk, i) => (
-                    <li
-                      key={i}
-                      className="bg-amber-500/5 border border-amber-500/20 p-2.5 rounded-lg text-theme-text"
+                    <div key={i} className="text-xs text-red-300">
+                      &bull; {typeof risk === 'string' ? risk : (risk.description || (risk as any).title || 'Riesgo operacional')}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Navigation Relations (Previous & Next) */}
+            <div className="pt-2 border-t border-theme-border space-y-2">
+              <div className="text-[10px] font-mono font-bold text-theme-text-muted uppercase tracking-wider flex items-center space-x-1">
+                <GitBranch className="w-3 h-3" />
+                <span>Navegación del Flujo</span>
+              </div>
+
+              {/* Next branch jump buttons */}
+              {currentStep.nextSteps.length > 0 && (
+                <div className="space-y-1">
+                  <div className="text-[10px] text-theme-text-muted">Continúa hacia:</div>
+                  {currentStep.nextSteps.map((next) => (
+                    <button
+                      key={next.id}
+                      onClick={() => {
+                        const idx = steps.findIndex((s) => s.node.id === next.id);
+                        if (idx !== -1) {
+                          setCurrentStepIndex(idx);
+                          setTimeRemaining(autoplaySeconds);
+                        }
+                      }}
+                      className="w-full text-left p-2 rounded-lg bg-theme-surface-subtle hover:bg-theme-surface border border-theme-border text-xs flex items-center justify-between group transition-colors"
                     >
-                      <div className="flex items-center justify-between">
-                        <span className="font-semibold text-amber-400">{risk.description}</span>
-                        <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300">
-                          {risk.impact}
-                        </span>
+                      <div className="flex items-center space-x-1.5 truncate">
+                        <ArrowRight className="w-3.5 h-3.5 text-theme-accent shrink-0 group-hover:translate-x-0.5 transition-transform" />
+                        <span className="font-mono text-[10px] text-emerald-400">{next.standardId}</span>
+                        <span className="truncate text-theme-text">{next.title}</span>
                       </div>
-                      {risk.mitigatingControl && (
-                        <span className="text-[11px] text-theme-text-muted block mt-1">
-                          Control Mitigante: {risk.mitigatingControl}
+                      {next.conditionText && (
+                        <span className="text-[9px] font-mono text-amber-400 px-1 py-0.5 rounded bg-amber-500/10 border border-amber-500/20 shrink-0 ml-1">
+                          {next.conditionText}
                         </span>
                       )}
-                    </li>
+                    </button>
                   ))}
-                </ul>
-              </div>
-            )}
-
-            {/* Previous & Next Steps Navigation */}
-            <div className="pt-4 border-t border-theme-border/80 space-y-3">
-              <h3 className="text-[10px] font-mono font-bold text-theme-text-muted uppercase tracking-wider flex items-center space-x-1.5">
-                <GitBranch className="w-3 h-3 text-theme-accent" />
-                <span>Navegación del Flujo</span>
-              </h3>
-
-              <div className="space-y-2">
-                {/* Previous Steps */}
-                {currentStep.previousSteps.length > 0 && (
-                  <div>
-                    <span className="text-[10px] text-theme-text-muted block mb-1">Viene de:</span>
-                    <div className="space-y-1">
-                      {currentStep.previousSteps.map((ps) => {
-                        const targetIdx = steps.findIndex((s) => s.node.id === ps.id);
-                        return (
-                          <button
-                            key={ps.id}
-                            onClick={() => targetIdx !== -1 && setCurrentStepIndex(targetIdx)}
-                            className="w-full flex items-center justify-between text-left p-2 rounded bg-theme-surface-subtle hover:bg-theme-surface border border-theme-border transition-colors group"
-                          >
-                            <span className="flex items-center space-x-1.5 truncate">
-                              <ArrowLeft className="w-3 h-3 text-theme-accent shrink-0 group-hover:-translate-x-0.5 transition-transform" />
-                              <span className="font-mono text-[10px] text-theme-accent">{ps.standardId || 'ID'}</span>
-                              <span className="truncate text-[11px]">{ps.title}</span>
-                            </span>
-                            {ps.conditionText && (
-                              <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 shrink-0">
-                                {ps.conditionText}
-                              </span>
-                            )}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-
-                {/* Next Steps */}
-                {currentStep.nextSteps.length > 0 && (
-                  <div>
-                    <span className="text-[10px] text-theme-text-muted block mb-1">Continúa hacia:</span>
-                    <div className="space-y-1">
-                      {currentStep.nextSteps.map((ns) => {
-                        const targetIdx = steps.findIndex((s) => s.node.id === ns.id);
-                        return (
-                          <button
-                            key={ns.id}
-                            onClick={() => targetIdx !== -1 && setCurrentStepIndex(targetIdx)}
-                            className="w-full flex items-center justify-between text-left p-2 rounded bg-theme-surface-subtle hover:bg-theme-surface border border-theme-border transition-colors group"
-                          >
-                            <span className="flex items-center space-x-1.5 truncate">
-                              <ArrowRight className="w-3 h-3 text-theme-accent shrink-0 group-hover:translate-x-0.5 transition-transform" />
-                              <span className="font-mono text-[10px] text-theme-accent">{ns.standardId || 'ID'}</span>
-                              <span className="truncate text-[11px]">{ns.title}</span>
-                            </span>
-                            {ns.conditionText && (
-                              <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 shrink-0">
-                                {ns.conditionText}
-                              </span>
-                            )}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-              </div>
+                </div>
+              )}
             </div>
           </div>
         </aside>

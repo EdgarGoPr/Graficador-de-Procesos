@@ -335,6 +335,15 @@ const userStories = [
     criteriosAceptacion: '1. Creación del servicio processVersionManager para cálculo de semver, normalización de claves canónicas y agrupación inteligente de archivos JSON en ProcessGroupSummary.\n2. La tarjeta de proyecto en el Dashboard agrupa todas las versiones de un mismo proceso, destacando un badge "vX.X (Última versión)", botón primario "Abrir Última Versión" y acordeón desplegable con el historial completo de archivos y revisiones.\n3. Incorporación del modal NewRevisionModal en el encabezado para guardar nuevas versiones inmutables con incremento semántico (Menor, Parche, Mayor), etiqueta de dispositivo (PC Casa, PC Trabajo, Personalizado) y descripción de cambios para trazabilidad ISO 9001.\n4. Integración del banner NewerVersionBanner en el lienzo BPMN que detecta si el archivo cargado tiene una versión más nueva sincronizada en disco y ofrece actualizarla al instante con un clic.',
     fechaImplementacion: '2026-09-22',
     estado: 'Implementado / Producción'
+  },
+  {
+    id: 'PST-038',
+    modulo: 'UI / UX & Presentación',
+    titulo: 'Personalización de Color de Fondo, Trasparencia y Trama de Cuadrícula en Modo Presentación (Prezi)',
+    historiaUsuario: 'Como presentador o expositor de procesos ante autoridades, quiero personalizar el color de fondo del lienzo en modo presentación (eligiendo entre presets como Negro Profundo OLED, Grafito Slate, Blanco Puro, Gris Papel, o un color HEX personalizado) y alternar el tipo de cuadrícula (puntos, líneas, cruces o liso), para adaptar la estética visual a proyectores, salas de reuniones o pantallas OLED con máxima legibilidad.',
+    criteriosAceptacion: '1. Incorporación de menú desplegable con botón de paleta en la cabecera del Modo Presentación con 6 presets optimizados (OLED, Slate, Midnight, Blanco Puro, Gris Papel, Crema Cálido) y selector nativo de color HEX.\n2. Selector de trama de fondo dinámico que permite alternar entre variantes Dots, Lines, Cross y None (liso).\n3. Cálculo automático de contraste para el color de los puntos/líneas de la cuadrícula según la luminancia del fondo.\n4. Persistencia automática de la configuración de fondo en localStorage para conservar las preferencias del expositor en sesiones futuras.',
+    fechaImplementacion: '2026-09-22',
+    estado: 'Implementado / Producción'
   }
 ];
 
