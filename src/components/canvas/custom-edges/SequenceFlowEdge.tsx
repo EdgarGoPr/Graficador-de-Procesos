@@ -30,9 +30,7 @@ export const SequenceFlowEdge = memo(({
     nodes,
     sourceNodeId: source,
     targetNodeId: target,
-    cornerRadius: 10,
-    padding: 22,
-    stubLength: 24
+    padding: 24
   });
 
   const conditionText = data?.conditionText;
