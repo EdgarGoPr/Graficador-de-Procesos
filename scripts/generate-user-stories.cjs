@@ -326,6 +326,15 @@ const userStories = [
     criteriosAceptacion: '1. Los botones de Exportar, Nuevo y Guardar en la cabecera superior muestran exclusivamente sus iconos representativos con tooltips contextuales y estados de guardado/animación.\n2. El panel lateral de propiedades de nodos separa limpiamente la edición de información BPMN (ID, Título, Descripción, Rol, SLA, SIPOC, Riesgos) y personalización visual (Paletas de color, opacidad, bordes, encabezados, tipografía, orientación y bloqueo de dimensiones) mediante pestañas "Contenido & Datos" y "Estilo & Apariencia".\n3. Corrección de la jerarquía de capas (z-index y ordenamiento de nodos de fondo a primer plano: Swimlane -> Subproceso -> Tareas -> Compuertas -> Eventos) en el modo presentación tipo Prezi para garantizar que todas las tarjetas de proceso sean visibles con nitidez y resplandor activo sobre los carriles.',
     fechaImplementacion: '2026-09-22',
     estado: 'Implementado / Producción'
+  },
+  {
+    id: 'PST-037',
+    modulo: 'Sincronización & Versionado Multi-Equipo',
+    titulo: 'Sistema de Versionado Inmutable Multi-Equipo (Casa/Trabajo), Agrupación de Macroprocesos y Detección Automática de Última Versión',
+    historiaUsuario: 'Como usuario que modela procesos alternando entre la PC de su casa y la del trabajo mediante sincronización con Git, quiero que la aplicación guarde las nuevas versiones o revisiones como archivos inmutables independientes y agrupe automáticamente los procesos en el Gestor permitiéndome abrir con un solo clic la versión más reciente disponible, para erradicar por completo los conflictos de merge en Git y trabajar de forma transparente y segura entre múltiples dispositivos.',
+    criteriosAceptacion: '1. Creación del servicio processVersionManager para cálculo de semver, normalización de claves canónicas y agrupación inteligente de archivos JSON en ProcessGroupSummary.\n2. La tarjeta de proyecto en el Dashboard agrupa todas las versiones de un mismo proceso, destacando un badge "vX.X (Última versión)", botón primario "Abrir Última Versión" y acordeón desplegable con el historial completo de archivos y revisiones.\n3. Incorporación del modal NewRevisionModal en el encabezado para guardar nuevas versiones inmutables con incremento semántico (Menor, Parche, Mayor), etiqueta de dispositivo (PC Casa, PC Trabajo, Personalizado) y descripción de cambios para trazabilidad ISO 9001.\n4. Integración del banner NewerVersionBanner en el lienzo BPMN que detecta si el archivo cargado tiene una versión más nueva sincronizada en disco y ofrece actualizarla al instante con un clic.',
+    fechaImplementacion: '2026-09-22',
+    estado: 'Implementado / Producción'
   }
 ];
 

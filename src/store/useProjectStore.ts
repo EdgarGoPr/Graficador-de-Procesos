@@ -3,6 +3,17 @@ import { ProcessProjectFile, ProjectSummary } from '../types/project';
 import { StorageService } from '../services/storageService';
 import { calculateTotalLeadTime } from '../services/leadTimeCalculator';
 import { CanvasSnapshot, createSnapshot, pushToHistory } from '../services/historyManager';
+import {
+  bumpVersion,
+  generateRevisionFilename,
+  groupProjectsByProcess
+} from '../services/processVersionManager';
+
+interface SaveRevisionOptions {
+  bumpType?: 'patch' | 'minor' | 'major';
+  customTag?: string;
+  changeDescription?: string;
+}
 
 interface ProjectStoreState {
   currentProject: ProcessProjectFile | null;
@@ -23,8 +34,10 @@ interface ProjectStoreState {
   initialize: () => Promise<void>;
   refreshProjectList: () => Promise<void>;
   openProject: (fileName: string) => Promise<boolean>;
+  openLatestVersion: (groupKeyOrCode: string) => Promise<boolean>;
   createNewProject: (title: string, authorName: string, orgUnit: string) => Promise<string>;
   saveCurrentProject: () => Promise<boolean>;
+  saveProjectAsNewRevision: (options?: SaveRevisionOptions) => Promise<string | null>;
   duplicateProject: (fileName: string) => Promise<string | null>;
   deleteProject: (fileName: string) => Promise<boolean>;
   setProjectData: (project: ProcessProjectFile) => void;
@@ -109,6 +122,16 @@ export const useProjectStore = create<ProjectStoreState>((set, get) => ({
       return true;
     }
     set({ isLoading: false });
+    return false;
+  },
+
+  openLatestVersion: async (groupKeyOrCode: string) => {
+    const { projectList, openProject } = get();
+    const groups = groupProjectsByProcess(projectList);
+    const targetGroup = groups.find(g => g.groupKey === groupKeyOrCode || g.documentCode === groupKeyOrCode);
+    if (targetGroup && targetGroup.latestVersion) {
+      return await openProject(targetGroup.latestVersion.fileName);
+    }
     return false;
   },
 
@@ -222,6 +245,56 @@ export const useProjectStore = create<ProjectStoreState>((set, get) => ({
     });
     await get().refreshProjectList();
     return true;
+  },
+
+  saveProjectAsNewRevision: async (options?: SaveRevisionOptions) => {
+    const { currentProject } = get();
+    if (!currentProject) return null;
+
+    set({ isSaving: true });
+    const now = new Date().toISOString();
+    const bumpType = options?.bumpType || 'minor';
+    const newVersion = bumpVersion(currentProject.documentControl.version || '1.0', bumpType);
+    const changeDesc = options?.changeDescription || `Revisión guardada el ${new Date().toLocaleDateString('es-AR')}`;
+
+    const updatedRevisions = [
+      ...(currentProject.documentControl.revisionHistory || []),
+      {
+        revisionDate: now,
+        version: newVersion,
+        author: currentProject.documentControl.authorName || 'Analista de Procesos',
+        changeDescription: changeDesc
+      }
+    ];
+
+    const newFileName = generateRevisionFilename(
+      currentProject.documentControl.documentTitle,
+      newVersion,
+      options?.customTag
+    );
+
+    const updatedProject: ProcessProjectFile = {
+      ...currentProject,
+      documentControl: {
+        ...currentProject.documentControl,
+        version: newVersion,
+        updatedAt: now,
+        revisionHistory: updatedRevisions
+      },
+      fileName: newFileName
+    };
+
+    await StorageService.saveProject(updatedProject);
+
+    set({
+      currentProject: updatedProject,
+      lastSavedAt: now,
+      hasUnsavedChanges: false,
+      isSaving: false
+    });
+
+    await get().refreshProjectList();
+    return newFileName;
   },
 
   duplicateProject: async (fileName: string) => {

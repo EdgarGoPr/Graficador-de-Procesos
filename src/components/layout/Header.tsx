@@ -3,6 +3,7 @@ import { useProjectStore } from '../../store/useProjectStore';
 import { useUiStore, ActiveView } from '../../store/useUiStore';
 import { StorageService } from '../../services/storageService';
 import { LogoPS } from '../common/LogoPS';
+import { NewRevisionModal } from '../modals/NewRevisionModal';
 import {
   LayoutDashboard,
   GitGraph,
@@ -25,7 +26,8 @@ import {
   Tv,
   ChevronDown,
   Sparkles,
-  Check
+  Check,
+  GitCommit
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -63,6 +65,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
 
   const [isViewsMenuOpen, setIsViewsMenuOpen] = useState(false);
   const [isToolsMenuOpen, setIsToolsMenuOpen] = useState(false);
+  const [isRevisionModalOpen, setIsRevisionModalOpen] = useState(false);
 
   const viewsMenuRef = useRef<HTMLDivElement>(null);
   const toolsMenuRef = useRef<HTMLDivElement>(null);
@@ -523,20 +526,39 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
         </button>
 
         {currentProject && (
-          <button
-            onClick={handleSave}
-            disabled={isSaving}
-            className={`p-2 rounded-lg text-xs font-bold shadow-md transition-all hover:scale-105 flex items-center justify-center ${
-              hasUnsavedChanges
-                ? 'bg-gradient-to-r from-[#0284C7] to-[#3B82F6] hover:brightness-110 text-white animate-pulse'
-                : 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/25'
-            }`}
-            title={isSaving ? 'Guardando...' : hasUnsavedChanges ? 'Guardar cambios pendientes (Ctrl+S)' : 'Todos los cambios guardados (Ctrl+S)'}
-          >
-            <Save className="w-4 h-4" />
-          </button>
+          <div className="flex items-center space-x-1.5">
+            <button
+              onClick={() => setIsRevisionModalOpen(true)}
+              disabled={isSaving}
+              className="p-2 bg-theme-surface-subtle hover:bg-theme-surface text-theme-text hover:text-theme-accent rounded-lg text-xs font-semibold border border-theme-border transition-all hover:scale-105 flex items-center space-x-1"
+              title="Guardar como nueva versión inmutable (Multi-equipo Casa/Trabajo)"
+            >
+              <GitCommit className="w-4 h-4 text-theme-accent" />
+            </button>
+
+            <button
+              onClick={handleSave}
+              disabled={isSaving}
+              className={`p-2 rounded-lg text-xs font-bold shadow-md transition-all hover:scale-105 flex items-center justify-center ${
+                hasUnsavedChanges
+                  ? 'bg-gradient-to-r from-[#0284C7] to-[#3B82F6] hover:brightness-110 text-white animate-pulse'
+                  : 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/25'
+              }`}
+              title={isSaving ? 'Guardando...' : hasUnsavedChanges ? 'Guardar cambios pendientes (Ctrl+S)' : 'Todos los cambios guardados (Ctrl+S)'}
+            >
+              <Save className="w-4 h-4" />
+            </button>
+          </div>
         )}
       </div>
+
+      {/* New Revision Modal for Multi-Device safe saving */}
+      {isRevisionModalOpen && (
+        <NewRevisionModal
+          isOpen={isRevisionModalOpen}
+          onClose={() => setIsRevisionModalOpen(false)}
+        />
+      )}
     </header>
   );
 };

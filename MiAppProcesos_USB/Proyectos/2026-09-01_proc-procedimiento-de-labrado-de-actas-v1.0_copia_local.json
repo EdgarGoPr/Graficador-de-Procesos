@@ -1,0 +1,266 @@
+{
+  "schemaVersion": "1.0.0",
+  "documentControl": {
+    "documentTitle": "Procedimiento de Labrado de Actas",
+    "documentCode": "PRC-1511",
+    "version": "1.0",
+    "authorName": "Edgar Gonzalez de Prada",
+    "organizationUnit": "Justicia Administrativa Municipal de Faltas",
+    "processObjective": "Definir el objetivo y alcance operativo del proceso.",
+    "createdAt": "2026-09-01T15:50:30.507Z",
+    "updatedAt": "2026-09-11T18:39:16.725Z",
+    "status": "DRAFT",
+    "legalNormativeBasis": [
+      "Normativa aplicable general"
+    ],
+    "revisionHistory": [
+      {
+        "revisionDate": "2026-09-01T15:50:30.507Z",
+        "version": "1.0",
+        "author": "Edgar Gonzalez de Prada",
+        "changeDescription": "Creación inicial del proyecto"
+      }
+    ]
+  },
+  "pools": [
+    {
+      "id": "pool_1",
+      "name": "Procedimiento de Labrado de Actas",
+      "organization": "Justicia Administrativa Municipal de Faltas",
+      "lanes": [
+        {
+          "id": "lane_1",
+          "name": "Mesa de Entradas / Inspectoría",
+          "role": "Inspector / Operador",
+          "system": "SAM / VUPRA",
+          "colorHex": "#10B981",
+          "order": 0
+        },
+        {
+          "id": "lane_2",
+          "name": "Área Legal / Notificaciones",
+          "role": "Oficial Notificador / Asesor",
+          "system": "GDE / Notificaciones",
+          "colorHex": "#3B82F6",
+          "order": 1
+        },
+        {
+          "id": "lane_3",
+          "name": "Juzgado / Resolución Final",
+          "role": "Juez de Faltas / Resolutor",
+          "system": "Sistema de Sentencias",
+          "colorHex": "#8B5CF6",
+          "order": 2
+        }
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "id": "node_start",
+      "type": "StartEvent",
+      "position": {
+        "x": -442.8944270850695,
+        "y": -1084.9532003145762
+      },
+      "data": {
+        "standardId": "INI-01",
+        "title": "Inicio del Proceso",
+        "description": "Disparador formal de ingreso del trámite o expediente.",
+        "nodeType": "StartEvent",
+        "laneId": "lane_1",
+        "laneName": "Mesa de Entradas / Inspectoría",
+        "roleName": "Inspector / Operador",
+        "itSystem": "SAM / VUPRA",
+        "legalFramework": "Reglamento General",
+        "inputs": [
+          "Formulario de Solicitud / Acta"
+        ],
+        "outputs": [
+          "Expediente Iniciado"
+        ],
+        "operationalRisks": [],
+        "tags": [
+          "Inicio"
+        ]
+      },
+      "measured": {
+        "width": 96,
+        "height": 96
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "node_1788287508761",
+      "type": "UserTask",
+      "position": {
+        "x": -290.9546279635537,
+        "y": -1072.275820250019
+      },
+      "data": {
+        "standardId": "TSK-01",
+        "title": "Identificación de Infracción",
+        "description": "El inspector visualiza la infracción y labra el acta",
+        "nodeType": "UserTask",
+        "laneId": "lane_1",
+        "laneName": "Mesa de Entradas / Inspectoría",
+        "roleName": "Inspector / Operador",
+        "itSystem": "Sin Sistema",
+        "legalFramework": "Marco normativo general",
+        "inputs": [],
+        "outputs": [],
+        "operationalRisks": [],
+        "tags": [],
+        "displayMode": "title_only",
+        "customFontSize": 12
+      },
+      "measured": {
+        "width": 181,
+        "height": 76
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "usertask_1788287596609_0",
+      "type": "UserTask",
+      "position": {
+        "x": -43.35768845351474,
+        "y": -1072.1954479735655
+      },
+      "data": {
+        "standardId": "TSK-01-C",
+        "title": "Labrado del Acta",
+        "description": "El inspector toma nota del objeto y de la infracción",
+        "nodeType": "UserTask",
+        "laneId": "lane_1",
+        "laneName": "Mesa de Entradas / Inspectoría",
+        "roleName": "Inspector / Operador",
+        "itSystem": "APK / Talonario",
+        "legalFramework": "Marco normativo general",
+        "inputs": [
+          "Talonario",
+          "APK"
+        ],
+        "outputs": [
+          "Acta Papel",
+          "Acta Digital"
+        ],
+        "operationalRisks": [],
+        "tags": [],
+        "displayMode": "title_only",
+        "customFontSize": 12
+      },
+      "measured": {
+        "width": 170,
+        "height": 76
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "lane_node_1788288285354",
+      "type": "PoolLane",
+      "position": {
+        "x": -665.9663473847049,
+        "y": -1254.4537780046826
+      },
+      "style": {
+        "width": 2200,
+        "height": 160,
+        "zIndex": -1
+      },
+      "zIndex": -1,
+      "data": {
+        "standardId": "LANE-01",
+        "title": "Carril Funcional #1",
+        "description": "Carril contenedor de actividades",
+        "nodeType": "PoolLane",
+        "laneId": "lane_node_1788288285354",
+        "laneName": "Mesa de Entradas / Inspectoría",
+        "roleName": "Inspector / Operador",
+        "itSystem": "SAM / VUPRA",
+        "legalFramework": "Marco normativo general",
+        "customBorderColor": "#38bdf8",
+        "inputs": [],
+        "outputs": [],
+        "operationalRisks": [],
+        "tags": [],
+        "orientation": "horizontal"
+      },
+      "measured": {
+        "width": 2200,
+        "height": 829
+      },
+      "selected": true,
+      "dragging": false,
+      "width": 2200,
+      "height": 829,
+      "resizing": false
+    },
+    {
+      "id": "lane_node_1788288778125",
+      "type": "PoolLane",
+      "position": {
+        "x": -678.2239365149874,
+        "y": -426.8115047509693
+      },
+      "style": {
+        "width": 2200,
+        "height": 160,
+        "zIndex": -1
+      },
+      "zIndex": -1,
+      "data": {
+        "standardId": "LANE-03",
+        "title": "Carril Funcional #3",
+        "description": "Carril contenedor de actividades",
+        "nodeType": "PoolLane",
+        "laneId": "lane_node_1788288778125",
+        "laneName": "Mesa de Entradas / Inspectoría",
+        "roleName": "Inspector / Operador",
+        "itSystem": "SAM / VUPRA",
+        "legalFramework": "Marco normativo general",
+        "customBorderColor": "#38bdf8",
+        "inputs": [],
+        "outputs": [],
+        "operationalRisks": [],
+        "tags": []
+      },
+      "measured": {
+        "width": 2200,
+        "height": 160
+      },
+      "selected": false,
+      "dragging": false
+    }
+  ],
+  "edges": [
+    {
+      "id": "e_node_start_node_1788287508761_1788287707320",
+      "source": "node_start",
+      "target": "node_1788287508761",
+      "type": "sequenceFlow",
+      "data": {
+        "id": "e_node_start_node_1788287508761",
+        "source": "node_start",
+        "target": "node_1788287508761",
+        "conditionText": ""
+      }
+    },
+    {
+      "id": "e_node_1788287508761_usertask_1788287596609_0_1788287711079",
+      "source": "node_1788287508761",
+      "target": "usertask_1788287596609_0",
+      "type": "sequenceFlow",
+      "data": {
+        "id": "e_node_1788287508761_usertask_1788287596609_0",
+        "source": "node_1788287508761",
+        "target": "usertask_1788287596609_0",
+        "conditionText": ""
+      }
+    }
+  ],
+  "fileName": "2026-09-01_proc-procedimiento-de-labrado-de-actas-v1.0.json"
+}

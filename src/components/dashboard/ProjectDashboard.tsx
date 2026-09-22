@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useProjectStore } from '../../store/useProjectStore';
 import { useUiStore } from '../../store/useUiStore';
 import { StorageService } from '../../services/storageService';
+import { groupProjectsByProcess } from '../../services/processVersionManager';
 import { ProjectCard } from './ProjectCard';
 import {
   FolderGit2,
@@ -9,7 +10,9 @@ import {
   Search,
   HardDrive,
   RefreshCw,
-  FolderOpen
+  FolderOpen,
+  Layers,
+  Sparkles
 } from 'lucide-react';
 
 interface ProjectDashboardProps {
@@ -30,14 +33,21 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ onOpenNewMod
   const { setActiveView, showNotification } = useUiStore();
   const [searchTerm, setSearchTerm] = useState('');
 
-  const filteredProjects = projectList.filter((p) => {
+  const processGroups = groupProjectsByProcess(projectList);
+
+  const filteredGroups = processGroups.filter((g) => {
     const term = searchTerm.toLowerCase();
-    return (
-      p.documentTitle.toLowerCase().includes(term) ||
-      p.documentCode.toLowerCase().includes(term) ||
-      p.authorName.toLowerCase().includes(term) ||
-      p.fileName.toLowerCase().includes(term)
+    const matchesGroup =
+      g.documentTitle.toLowerCase().includes(term) ||
+      g.documentCode.toLowerCase().includes(term) ||
+      g.authorName.toLowerCase().includes(term) ||
+      g.organizationUnit.toLowerCase().includes(term);
+
+    const matchesAnyFile = g.versions.some((v) =>
+      v.fileName.toLowerCase().includes(term) || v.version.toLowerCase().includes(term)
     );
+
+    return matchesGroup || matchesAnyFile;
   });
 
   const handleOpen = async (fileName: string) => {
@@ -87,7 +97,7 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ onOpenNewMod
               Gestor de Proyectos de Procesos
             </h1>
             <p className="text-sm text-theme-text-muted mt-1 max-w-2xl">
-              Modelado estandarizado bajo BPMN 2.0 (ISO 19510), matrices SIPOC y gestión de riesgos conforme a ISO 9001:2015.
+              Agrupación inteligente de versiones y sincronización multi-equipo (Casa / Trabajo) bajo BPMN 2.0 e ISO 9001:2015.
             </p>
           </div>
 
@@ -117,27 +127,29 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ onOpenNewMod
           </div>
         </div>
 
-
         {/* Search & Filter Bar */}
         <div className="flex items-center justify-between gap-4">
           <div className="relative flex-1 max-w-md">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-theme-text-muted" />
             <input
               type="text"
-              placeholder="Buscar por título, código (ej: PRC-TF-001), autor o archivo..."
+              placeholder="Buscar por título, código (ej: PRC-1511), autor o archivo..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-9 pr-4 py-2 bg-theme-surface border border-theme-border rounded-xl text-xs text-theme-text placeholder-theme-text-muted focus:border-theme-accent outline-none"
             />
           </div>
 
-          <div className="text-xs text-theme-text-muted font-mono">
-            {filteredProjects.length} proyecto{filteredProjects.length === 1 ? '' : 's'} disponible{filteredProjects.length === 1 ? '' : 's'}
+          <div className="flex items-center space-x-2 text-xs text-theme-text-muted font-mono">
+            <Layers className="w-3.5 h-3.5 text-theme-accent" />
+            <span>
+              {filteredGroups.length} proceso{filteredGroups.length === 1 ? '' : 's'} ({projectList.length} archivo{projectList.length === 1 ? '' : 's'} en disco)
+            </span>
           </div>
         </div>
 
         {/* Project Grid */}
-        {filteredProjects.length === 0 ? (
+        {filteredGroups.length === 0 ? (
           <div className="p-12 text-center border-2 border-dashed border-theme-border rounded-2xl bg-theme-surface/50">
             <FolderGit2 className="w-12 h-12 text-theme-text-muted mx-auto mb-3" />
             <h3 className="text-base font-bold text-theme-text">No se encontraron proyectos</h3>
@@ -154,11 +166,11 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ onOpenNewMod
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredProjects.map((project) => (
+            {filteredGroups.map((group) => (
               <ProjectCard
-                key={project.fileName}
-                project={project}
-                isActive={currentProject?.fileName === project.fileName}
+                key={group.groupKey}
+                group={group}
+                activeFileName={currentProject?.fileName}
                 onOpen={handleOpen}
                 onDuplicate={handleDuplicate}
                 onDelete={handleDelete}
@@ -170,4 +182,3 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ onOpenNewMod
     </div>
   );
 };
-

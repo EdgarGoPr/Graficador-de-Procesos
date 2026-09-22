@@ -51,3 +51,14 @@ export interface ProjectSummary {
   riskCount: number;
   checkpointCount: number;
 }
+
+export interface ProcessGroupSummary {
+  groupKey: string;
+  documentTitle: string;
+  documentCode: string;
+  organizationUnit: string;
+  authorName: string;
+  latestVersion: ProjectSummary;
+  versions: ProjectSummary[];
+  versionCount: number;
+}
