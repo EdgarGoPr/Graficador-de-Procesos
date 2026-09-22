@@ -8,7 +8,7 @@
     "organizationUnit": "Dirección General de Sistemas, Tecnología e Innovación (DGSTI) - Tribunal Administrativo Municipal de Faltas",
     "processObjective": "Estandarizar el ciclo integral de soporte técnico e incidencias de hardware, conectividad y sistemas de faltas (SAM, VUPRA, SIGEF) mediante atención humana directa en la consola WiseCX, gestionando el empadronamiento interno, la categorización en dos niveles, el control de inactividad de usuarios y la derivación a soporte avanzado.",
     "createdAt": "2026-09-11T10:00:00Z",
-    "updatedAt": "2026-09-22T17:44:27.857Z",
+    "updatedAt": "2026-09-22T17:49:09.542Z",
     "status": "APPROVED",
     "legalNormativeBasis": [
       "Ordenanza de Procedimiento Administrativo Municipal de Córdoba",
@@ -362,8 +362,8 @@
       "id": "node-task-resolucion-n1",
       "type": "UserTask",
       "position": {
-        "x": 2192.5975357957964,
-        "y": -616.441396230044
+        "x": 2313.210863070485,
+        "y": -557.570605536446
       },
       "data": {
         "standardId": "TSK-05",
@@ -464,8 +464,8 @@
       "id": "node-task-resolucion-n2",
       "type": "UserTask",
       "position": {
-        "x": 2539.311694554872,
-        "y": -318.0764206430445
+        "x": 2566.5932804860513,
+        "y": -280.5289536306747
       },
       "data": {
         "standardId": "TSK-07",
@@ -512,8 +512,8 @@
         "width": 187,
         "height": 95
       },
-      "selected": true,
-      "dragging": true,
+      "selected": false,
+      "dragging": false,
       "width": 187,
       "height": 95,
       "resizing": false
@@ -566,7 +566,7 @@
       "data": {
         "standardId": "GTW-03",
         "title": "¿Respondió el Usuario en <= 30 min?",
-        "description": "Bifurcación por inactividad o reanudación del proceso de asistencia técnica.",
+        "description": "Bifurcación por inactividad, reanudación del proceso de asistencia técnica o vuelta a TSK-04 por falta de información.",
         "nodeType": "ExclusiveGateway",
         "laneId": "lane-operador-n1",
         "itSystem": "WiseCX",
@@ -1174,7 +1174,8 @@
         "source": "node-gtw-respuesta-usuario",
         "target": "node-task-solicitud-datos",
         "conditionText": ""
-      }
+      },
+      "selected": false
     }
   ],
   "fileName": "2026-09-11_proc-atencion-soporte-incidencias-wisecx-dgsti-v1.0.json",
