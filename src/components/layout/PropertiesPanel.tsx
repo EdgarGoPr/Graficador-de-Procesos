@@ -25,7 +25,8 @@ import {
   Eye,
   Layout,
   Lock,
-  Unlock
+  Unlock,
+  Tv
 } from 'lucide-react';
 import {
   BpmnNodeData,
@@ -859,6 +860,64 @@ export const PropertiesPanel: React.FC = () => {
                 </div>
               </div>
             )}
+
+        {/* 🎬 PARÁMETROS DE MODO PRESENTACIÓN (PREZI) */}
+        <div className="p-3 bg-theme-surface-subtle/70 border border-theme-border rounded-xl space-y-2.5">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-theme-accent font-mono flex items-center">
+              <Tv className="w-3.5 h-3.5 text-theme-accent mr-1.5" />
+              <span>Modo Presentación (Secuencia & Tiempo)</span>
+            </span>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="text-[10px] font-bold text-theme-text-muted font-mono block">
+                Orden Secuencial
+              </label>
+              <input
+                type="number"
+                min="1"
+                placeholder="Automático"
+                value={data.presentationOrder ?? ''}
+                onChange={(e) => {
+                  const val = e.target.value === '' ? undefined : parseInt(e.target.value, 10);
+                  handleUpdate({ presentationOrder: isNaN(val as number) ? undefined : val });
+                }}
+                className="w-full bg-theme-surface border border-theme-border rounded px-2 py-1.5 text-theme-text font-mono text-xs focus:border-theme-accent outline-none mt-0.5"
+              />
+              <span className="text-[9px] text-theme-text-muted block mt-0.5">
+                {typeof data.presentationOrder === 'number' ? `Paso #${data.presentationOrder} manual` : 'Por flujo por defecto'}
+              </span>
+            </div>
+
+            <div>
+              <label className="text-[10px] font-bold text-theme-text-muted font-mono block">
+                Tiempo Auto-Play
+              </label>
+              <div className="relative mt-0.5">
+                <input
+                  type="number"
+                  min="1"
+                  max="120"
+                  placeholder="Global (6s)"
+                  value={data.presentationDurationSeconds ?? ''}
+                  onChange={(e) => {
+                    const val = e.target.value === '' ? undefined : parseInt(e.target.value, 10);
+                    handleUpdate({ presentationDurationSeconds: isNaN(val as number) ? undefined : val });
+                  }}
+                  className="w-full bg-theme-surface border border-theme-border rounded px-2 py-1.5 pr-7 text-theme-text font-mono text-xs focus:border-theme-accent outline-none"
+                />
+                <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-theme-text-muted font-mono pointer-events-none">
+                  seg
+                </span>
+              </div>
+              <span className="text-[9px] text-theme-text-muted block mt-0.5">
+                {typeof data.presentationDurationSeconds === 'number' ? `${data.presentationDurationSeconds}s personalizados` : 'Usa tiempo global'}
+              </span>
+            </div>
+          </div>
+        </div>
 
         {/* Standard ID & Title */}
         <div className="grid grid-cols-3 gap-2">

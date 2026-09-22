@@ -344,6 +344,15 @@ const userStories = [
     criteriosAceptacion: '1. Incorporación de menú desplegable con botón de paleta en la cabecera del Modo Presentación con 6 presets optimizados (OLED, Slate, Midnight, Blanco Puro, Gris Papel, Crema Cálido) y selector nativo de color HEX.\n2. Selector de trama de fondo dinámico que permite alternar entre variantes Dots, Lines, Cross y None (liso).\n3. Cálculo automático de contraste para el color de los puntos/líneas de la cuadrícula según la luminancia del fondo.\n4. Persistencia automática de la configuración de fondo en localStorage para conservar las preferencias del expositor en sesiones futuras.',
     fechaImplementacion: '2026-09-22',
     estado: 'Implementado / Producción'
+  },
+  {
+    id: 'PST-039',
+    modulo: 'Presentación & Navegación',
+    titulo: 'Orden Secuencial Manual y Tiempos Individuales por Paso en Modo Presentación',
+    historiaUsuario: 'Como expositor y facilitador de procesos, quiero poder definir un número de orden secuencial manual en las actividades (manteniendo el orden topológico automático por defecto) y fijar una duración específica en segundos para cada paso durante el modo Auto-Play, para adaptar el ritmo y la narrativa de la presentación a pasos complejos o introductorios sin quedar limitado a un único temporizador global.',
+    criteriosAceptacion: '1. Propiedades de nodo presentationOrder (número de orden secuencial) y presentationDurationSeconds (duración en segundos) en BpmnNodeData.\n2. Extractor de secuencia topológica que prioriza los números de orden manuales cuando están definidos y utiliza el orden de flujo y geometría por defecto cuando no lo están.\n3. Panel de Propiedades del Nodo en la pestaña "Contenido & Datos" con sección dedicada "Modo Presentación (Secuencia & Tiempo)".\n4. Panel lateral del Modo Presentación con control directo en vivo para ajustar el número de orden y tiempo de permanencia del paso activo.\n5. Temporizador dinámico de Auto-Play que sincroniza automáticamente el tiempo restante con la duración individual de cada tarjeta o el tiempo base global seleccionado.\n6. Línea de tiempo con scrubber dots diferenciados para pasos con duración individual e indicador de tiempo restante vs tiempo total del paso.',
+    fechaImplementacion: '2026-09-22',
+    estado: 'Implementado / Producción'
   }
 ];
 

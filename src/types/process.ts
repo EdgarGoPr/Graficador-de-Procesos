@@ -140,6 +140,8 @@ export interface BpmnNodeData {
   displayMode?: 'full' | 'title_only'; // Modo de visualización: 'full' (completo) o 'title_only' (solo título)
   orientation?: 'horizontal' | 'vertical'; // Orientación: 'horizontal' (apaisado) o 'vertical' (columna)
   isLocked?: boolean; // Elemento fijado/bloqueado: no se arrastra y permite desplazar el lienzo al hacer clic y arrastrar sobre él
+  presentationOrder?: number; // Orden secuencial manual en modo presentación (opcional)
+  presentationDurationSeconds?: number; // Duración en segundos para auto-play en modo presentación (opcional)
   tags: string[];
   [key: string]: unknown;
 }

@@ -11,6 +11,7 @@ import {
 import '@xyflow/react/dist/style.css';
 
 import { useProjectStore } from '../../store/useProjectStore';
+import { useCanvasStore } from '../../store/useCanvasStore';
 import { useUiStore } from '../../store/useUiStore';
 import { extractProcessSequence, ProcessPresentationStep } from '../../utils/processSequenceExtractor';
 import { PRESET_THEMES, hexToRgba } from '../../types/theme';
@@ -53,7 +54,8 @@ import {
   Check,
   Grid,
   Square,
-  CircleDot
+  CircleDot,
+  Tv
 } from 'lucide-react';
 
 export interface PresentationBgConfig {
@@ -239,6 +241,7 @@ const PresentationCanvasController: React.FC<{
 
 export const ProcessPresentationModal: React.FC = () => {
   const { currentProject } = useProjectStore();
+  const { updateNodeData } = useCanvasStore();
   const {
     isPresentationModalOpen,
     setPresentationModalOpen,
@@ -306,7 +309,7 @@ export const ProcessPresentationModal: React.FC = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Extract topological steps
+  // Extract topological steps (taking into account manual sequence order)
   const steps = useMemo(() => {
     if (!currentProject) return [];
     return extractProcessSequence(
@@ -316,20 +319,36 @@ export const ProcessPresentationModal: React.FC = () => {
     );
   }, [currentProject]);
 
-  const currentStep = steps[currentStepIndex];
+  const currentStep = steps[currentStepIndex] || steps[0];
   const totalSteps = steps.length;
+  const currentStepDuration = currentStep?.durationSeconds || autoplaySeconds;
+
+  // Sync remaining countdown time on step or duration changes
+  useEffect(() => {
+    if (currentStep) {
+      setTimeRemaining(currentStep.durationSeconds || autoplaySeconds);
+    }
+  }, [currentStepIndex, currentStep?.durationSeconds, autoplaySeconds]);
 
   const handleNext = useCallback(() => {
-    setCurrentStepIndex((prev) => (prev < totalSteps - 1 ? prev + 1 : 0));
-    setTimeRemaining(autoplaySeconds);
-  }, [totalSteps, autoplaySeconds]);
+    setCurrentStepIndex((prev) => {
+      const nextIdx = prev < totalSteps - 1 ? prev + 1 : 0;
+      const nextStepDuration = steps[nextIdx]?.durationSeconds || autoplaySeconds;
+      setTimeRemaining(nextStepDuration);
+      return nextIdx;
+    });
+  }, [totalSteps, steps, autoplaySeconds]);
 
   const handlePrev = useCallback(() => {
-    setCurrentStepIndex((prev) => (prev > 0 ? prev - 1 : totalSteps - 1));
-    setTimeRemaining(autoplaySeconds);
-  }, [totalSteps, autoplaySeconds]);
+    setCurrentStepIndex((prev) => {
+      const prevIdx = prev > 0 ? prev - 1 : totalSteps - 1;
+      const prevStepDuration = steps[prevIdx]?.durationSeconds || autoplaySeconds;
+      setTimeRemaining(prevStepDuration);
+      return prevIdx;
+    });
+  }, [totalSteps, steps, autoplaySeconds]);
 
-  // Autoplay timer effect
+  // Autoplay timer effect with per-step custom durations
   useEffect(() => {
     if (!isPlaying) return;
 
@@ -337,14 +356,14 @@ export const ProcessPresentationModal: React.FC = () => {
       setTimeRemaining((prev) => {
         if (prev <= 1) {
           handleNext();
-          return autoplaySeconds;
+          return currentStepDuration;
         }
         return prev - 1;
       });
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [isPlaying, autoplaySeconds, handleNext]);
+  }, [isPlaying, currentStepDuration, handleNext]);
 
   // Toggle fullscreen mode
   const toggleFullscreen = () => {
@@ -594,14 +613,18 @@ export const ProcessPresentationModal: React.FC = () => {
                   key={s.node.id}
                   onClick={() => {
                     setCurrentStepIndex(idx);
-                    setTimeRemaining(autoplaySeconds);
+                    setTimeRemaining(s.durationSeconds || autoplaySeconds);
                   }}
                   className={`h-2 rounded-full transition-all duration-300 ${
                     idx === currentStepIndex
                       ? 'w-6 bg-theme-accent shadow-sm'
+                      : s.durationSeconds
+                      ? 'w-2.5 bg-amber-400/80 hover:bg-amber-400'
                       : 'w-2 bg-theme-border hover:bg-theme-text-muted'
                   }`}
-                  title={`${s.stepNumber}. ${s.node.data.title}`}
+                  title={`${s.stepNumber}. ${s.node.data.title}${
+                    s.durationSeconds ? ` (${s.durationSeconds}s indiv.)` : ''
+                  }${typeof s.presentationOrder === 'number' ? ` [Orden #${s.presentationOrder}]` : ''}`}
                 />
               ))}
             </div>
@@ -611,7 +634,7 @@ export const ProcessPresentationModal: React.FC = () => {
               <button
                 onClick={() => {
                   setCurrentStepIndex(0);
-                  setTimeRemaining(autoplaySeconds);
+                  setTimeRemaining(steps[0]?.durationSeconds || autoplaySeconds);
                 }}
                 className="p-2 rounded-xl bg-theme-surface-subtle hover:bg-theme-surface text-theme-text border border-theme-border transition-colors"
                 title="Ir al inicio (Home)"
@@ -641,12 +664,12 @@ export const ProcessPresentationModal: React.FC = () => {
                 {isPlaying ? (
                   <>
                     <Pause className="w-4 h-4 fill-current" />
-                    <span>Pausar ({timeRemaining}s)</span>
+                    <span>Pausar ({timeRemaining}s / {currentStepDuration}s)</span>
                   </>
                 ) : (
                   <>
                     <Play className="w-4 h-4 fill-current" />
-                    <span>Auto-Play</span>
+                    <span>Auto-Play ({currentStepDuration}s)</span>
                   </>
                 )}
               </button>
@@ -659,6 +682,25 @@ export const ProcessPresentationModal: React.FC = () => {
                 <span>Siguiente</span>
                 <ChevronRight className="w-4 h-4" />
               </button>
+
+              {/* Selector de Velocidad Global Base */}
+              <div className="flex items-center space-x-1 pl-2 border-l border-theme-border/60">
+                <Clock className="w-3.5 h-3.5 text-theme-text-muted" />
+                <select
+                  value={autoplaySeconds}
+                  onChange={(e) => setAutoplaySeconds(Number(e.target.value))}
+                  className="bg-transparent text-[11px] font-mono font-bold text-theme-text outline-none cursor-pointer"
+                  title="Tiempo base por defecto para pasos sin duración individual"
+                >
+                  <option value={3} className="bg-slate-900 text-white">3s</option>
+                  <option value={5} className="bg-slate-900 text-white">5s</option>
+                  <option value={6} className="bg-slate-900 text-white">6s</option>
+                  <option value={8} className="bg-slate-900 text-white">8s</option>
+                  <option value={10} className="bg-slate-900 text-white">10s</option>
+                  <option value={15} className="bg-slate-900 text-white">15s</option>
+                  <option value={20} className="bg-slate-900 text-white">20s</option>
+                </select>
+              </div>
             </div>
           </div>
         </div>
@@ -697,6 +739,63 @@ export const ProcessPresentationModal: React.FC = () => {
               <h2 className="text-lg font-black text-theme-text leading-snug tracking-tight">
                 {nodeData.title || 'Paso del Proceso'}
               </h2>
+            </div>
+
+            {/* Configuración Rápida de Secuencia y Duración del Paso */}
+            <div className="p-3 bg-theme-surface-subtle/80 border border-theme-border rounded-xl space-y-2.5">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-theme-accent font-mono flex items-center">
+                  <Tv className="w-3.5 h-3.5 text-theme-accent mr-1.5" />
+                  <span>Ajuste de Secuencia & Tiempo</span>
+                </span>
+                {currentStep.durationSeconds && (
+                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-amber-500/15 border border-amber-500/30 text-amber-400 font-bold">
+                    {currentStep.durationSeconds}s indiv.
+                  </span>
+                )}
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-[10px] font-bold text-theme-text-muted font-mono block">
+                    N° de Orden
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    placeholder={`Auto (#${currentStep.stepNumber})`}
+                    value={nodeData.presentationOrder ?? ''}
+                    onChange={(e) => {
+                      const val = e.target.value === '' ? undefined : parseInt(e.target.value, 10);
+                      updateNodeData(currentStep.node.id, { presentationOrder: isNaN(val as number) ? undefined : val });
+                    }}
+                    className="w-full bg-theme-surface border border-theme-border rounded px-2 py-1 text-theme-text font-mono text-xs focus:border-theme-accent outline-none mt-0.5"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-bold text-theme-text-muted font-mono block">
+                    Tiempo en Pantalla
+                  </label>
+                  <div className="relative mt-0.5">
+                    <input
+                      type="number"
+                      min="1"
+                      max="120"
+                      placeholder={`Global (${autoplaySeconds}s)`}
+                      value={nodeData.presentationDurationSeconds ?? ''}
+                      onChange={(e) => {
+                        const val = e.target.value === '' ? undefined : parseInt(e.target.value, 10);
+                        updateNodeData(currentStep.node.id, { presentationDurationSeconds: isNaN(val as number) ? undefined : val });
+                      }}
+                      className="w-full bg-theme-surface border border-theme-border rounded px-2 py-1 pr-6 text-theme-text font-mono text-xs focus:border-theme-accent outline-none"
+                    />
+                    <span className="absolute right-1.5 top-1/2 -translate-y-1/2 text-[9px] text-theme-text-muted font-mono pointer-events-none">
+                      seg
+                    </span>
+                  </div>
+                </div>
+              </div>
             </div>
 
             {/* Description */}

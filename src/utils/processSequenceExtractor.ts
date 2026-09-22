@@ -8,6 +8,8 @@ export interface ProcessPresentationStep {
   lane?: LaneDefinition;
   roleName: string;
   laneColor?: string;
+  presentationOrder?: number;
+  durationSeconds?: number;
   previousSteps: {
     id: string;
     standardId?: string;
@@ -129,7 +131,18 @@ export function extractProcessSequence(
 
   unvisitedNodes.forEach((un) => orderedNodes.push(un));
 
-  // 5. Map into rich presentation step metadata
+  // 5. If manual presentation orders exist, prioritize them while preserving stable fallback
+  const hasManualOrder = processNodes.some((n) => typeof n.data?.presentationOrder === 'number');
+  if (hasManualOrder) {
+    orderedNodes.sort((a, b) => {
+      const orderA = typeof a.data?.presentationOrder === 'number' ? a.data.presentationOrder : 9999;
+      const orderB = typeof b.data?.presentationOrder === 'number' ? b.data.presentationOrder : 9999;
+      if (orderA !== orderB) return orderA - orderB;
+      return (a.position?.x ?? 0) - (b.position?.x ?? 0);
+    });
+  }
+
+  // 6. Map into rich presentation step metadata
   return orderedNodes.map((node, idx) => {
     const data = node.data;
     const lane = data.laneId ? laneMap.get(data.laneId) : undefined;
@@ -171,6 +184,10 @@ export function extractProcessSequence(
       else slaHours = val;
     }
 
+    const durationSeconds = typeof data.presentationDurationSeconds === 'number' && data.presentationDurationSeconds > 0
+      ? data.presentationDurationSeconds
+      : undefined;
+
     return {
       index: idx,
       stepNumber: idx + 1,
@@ -178,6 +195,8 @@ export function extractProcessSequence(
       lane,
       roleName,
       laneColor,
+      presentationOrder: data.presentationOrder,
+      durationSeconds,
       previousSteps,
       nextSteps,
       slaText,
