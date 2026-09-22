@@ -290,6 +290,15 @@ const userStories = [
     criteriosAceptacion: '1. Recuadros punteados interactivos en el lienzo con identificación de hoja (Hoja 1, Hoja 2, etc.), arrastre para reposicionar y tiradores en esquinas para redimensionar.\n2. Selector de formatos de hoja (A4, Carta, A3) y orientaciones (Horizontal / Vertical).\n3. Botones de acción rápida: "+ Agregar Hoja", "Auto-Encuadrar" y "Ocultar Hojas".\n4. Generación nativa en cliente de PDF multi-página mediante jsPDF sin hojas en blanco ni distorsiones.\n5. Nomenclatura automática de archivo PDF con referencia al proyecto: AAAA-MM-DD_proc-<codigo>_<titulo>_diagrama.pdf.\n6. Integración en el Centro de Exportación y en el visor de Diagrama del Proceso.',
     fechaImplementacion: '2026-09-17',
     estado: 'Implementado / Producción'
+  },
+  {
+    id: 'PST-033',
+    modulo: 'Lienzo BPMN & Enrutamiento',
+    titulo: 'Enrutamiento Inteligente con Evasión Automática de Obstáculos en Conexiones BPMN',
+    historiaUsuario: 'Como modelador y documentador de procesos, quiero que las líneas de conexión (Sequence Flow) esquiven automáticamente cualquier tarjeta o nodo intermedio sin pasar nunca por encima ni por debajo de ellos, adaptándose en tiempo real durante el arrastre y diseño del lienzo, para mantener flujos visualmente impecables, legibles y 100% profesionales.',
+    criteriosAceptacion: '1. Motor de enrutamiento ortogonal A* integrado que detecta cajas delimitadoras de tarjetas con margen de seguridad de 22px.\n2. Evasión reactiva y suave en tiempo real al arrastrar, crear o desplazar nodos y compuertas.\n3. Esquinas con redondeo ergonómico (fillets de 10px) y trayectorias sin cruces invasivos sobre elementos.\n4. Soporte unificado en lienzo interactivo y vista de impresión/exportación multi-página a PDF.\n5. Exclusión inteligente de contenedores de carril (PoolLanes) para permitir que los flujos transiten libremente por el fondo de los carriles.',
+    fechaImplementacion: '2026-09-22',
+    estado: 'Implementado / Producción'
   }
 ];
 

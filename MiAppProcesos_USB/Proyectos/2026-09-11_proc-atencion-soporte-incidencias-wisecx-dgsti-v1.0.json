@@ -8,7 +8,7 @@
     "organizationUnit": "Dirección General de Sistemas, Tecnología e Innovación (DGSTI) - Tribunal Administrativo Municipal de Faltas",
     "processObjective": "Estandarizar el ciclo integral de soporte técnico e incidencias de hardware, conectividad y sistemas de faltas (SAM, VUPRA, SIGEF) mediante atención humana directa en la consola WiseCX, gestionando el empadronamiento interno, la categorización en dos niveles, el control de inactividad de usuarios y la derivación a soporte avanzado.",
     "createdAt": "2026-09-11T10:00:00Z",
-    "updatedAt": "2026-09-17T17:37:02.714Z",
+    "updatedAt": "2026-09-22T17:16:36.734Z",
     "status": "APPROVED",
     "legalNormativeBasis": [
       "Ordenanza de Procedimiento Administrativo Municipal de Córdoba",
@@ -62,17 +62,17 @@
       "id": "node-start-contacto",
       "type": "StartEvent",
       "position": {
-        "x": -768.8522324221518,
-        "y": -574.419452358034
+        "x": -863.5185265695886,
+        "y": -651.9342718001732
       },
       "data": {
         "standardId": "EVT-01",
-        "title": "Ingreso de Consulta o Incidencia Técnica",
-        "description": "El agente municipal perteneciente a Juzgados, Inspectores o Áreas Externas remite una solicitud por canal WhatsApp o correo electrónico sin pasar por IVR ni bots.",
+        "title": "Ingreso de Consulta",
+        "description": "El agente municipal perteneciente a Juzgados, Inspectores o Áreas Externas remite una solicitud por canal WhatsApp o correo electrónico sin pasar por bots.",
         "nodeType": "StartEvent",
         "laneId": "lane-usuario-interno",
         "itSystem": "WhatsApp / Correo Electrónico",
-        "legalFramework": "Manual de Procedimiento de Mesa de Ayuda DGSTI",
+        "legalFramework": "Instructivo de Soporte Interno",
         "inputs": [
           "Mensaje de texto",
           "Capturas de pantalla de error",
@@ -87,7 +87,8 @@
           "Omnicanal",
           "WhatsApp",
           "E-mail"
-        ]
+        ],
+        "displayMode": "title_only"
       },
       "measured": {
         "width": 96,
@@ -100,13 +101,13 @@
       "id": "node-task-recepcion-toma",
       "type": "UserTask",
       "position": {
-        "x": -514.8788514367735,
-        "y": -575.1082144933785
+        "x": -667.8094102846758,
+        "y": -519.6766772675169
       },
       "data": {
         "standardId": "TSK-01",
-        "title": "Toma del Caso y Verificación de Padrón",
-        "description": "El operador toma la gestión asignada directamente desde la bandeja general y comprueba si el número telefónico o dirección de correo ya se encuentra empadronado en la base de contactos de WiseCX.",
+        "title": "Toma del Caso ",
+        "description": "El operador toma la gestión asignada directamente desde la bandeja general.",
         "nodeType": "UserTask",
         "laneId": "lane-operador-n1",
         "itSystem": "WiseCX",
@@ -127,24 +128,25 @@
         "tags": [
           "Mesa de Entrada",
           "Toma de Ticket"
-        ]
+        ],
+        "displayMode": "title_only"
       },
       "measured": {
-        "width": 234,
-        "height": 185
+        "width": 150,
+        "height": 73
       },
       "selected": false,
       "dragging": false,
-      "width": 234,
-      "height": 185,
+      "width": 150,
+      "height": 73,
       "resizing": false
     },
     {
       "id": "node-gtw-empadronado",
       "type": "ExclusiveGateway",
       "position": {
-        "x": -203.78713158096394,
-        "y": -523.7153327843548
+        "x": -423.95466418674454,
+        "y": -488.6837496712075
       },
       "data": {
         "standardId": "GTW-01",
@@ -164,11 +166,17 @@
         "tags": [
           "Compuerta",
           "Validación Contacto"
-        ]
+        ],
+        "customBgOpacity": 75,
+        "customBorderColor": "#F59E0B",
+        "customHeaderBgColor": "rgba(245, 158, 11, 0.15)",
+        "customBgColor": "#231B15",
+        "customFontSize": 10,
+        "displayMode": "title_only"
       },
       "measured": {
         "width": 130,
-        "height": 125
+        "height": 111
       },
       "selected": false,
       "dragging": false
@@ -177,17 +185,17 @@
       "id": "node-task-alta-contacto",
       "type": "UserTask",
       "position": {
-        "x": -62.49396775385855,
-        "y": -359.3086619890671
+        "x": -226.50923213672928,
+        "y": -296.4800133839667
       },
       "data": {
         "standardId": "TSK-02",
         "title": "Empadronamiento Manual de Contacto",
-        "description": "El operador solicita y completa manualmente la ficha de contacto en la consola: Nombre, Apellido, CUIL/Legajo y Dependencia de radicación (Juzgado, Inspectores, Mesa de Entradas o Área Externa).",
+        "description": "El operador solicita y completa manualmente la ficha de contacto en la consola: Nombre, Apellido, CUIL/Legajo y Dependencia de radicación (Juzgado, Inspectores, Oficina o Área Externa).",
         "nodeType": "UserTask",
         "laneId": "lane-operador-n1",
-        "itSystem": "WiseCX Módulo Contactos",
-        "legalFramework": "Manual Operativo de Altas de Usuario DGSTI",
+        "itSystem": "WiseCX",
+        "legalFramework": "",
         "inputs": [
           "Datos filiatorios suministrados por el agente"
         ],
@@ -207,33 +215,34 @@
         "tags": [
           "Empadronamiento",
           "Alta Contacto"
-        ]
+        ],
+        "displayMode": "title_only"
       },
       "measured": {
-        "width": 217,
-        "height": 185
+        "width": 207,
+        "height": 93
       },
       "selected": false,
       "dragging": false,
-      "width": 217,
-      "height": 185,
+      "width": 207,
+      "height": 93,
       "resizing": false
     },
     {
       "id": "node-task-categorizacion",
       "type": "UserTask",
       "position": {
-        "x": 260.9931880547081,
-        "y": -642.1448734975831
+        "x": 36.72860429547835,
+        "y": -484.854938260175
       },
       "data": {
         "standardId": "TSK-03",
         "title": "Categorización y Apertura Formal del Caso",
-        "description": "El técnico clasifica in situ la consulta en el panel lateral asignando Tipificación (Nivel 1), Subtipificación (Nivel 2) y Etiquetas transversales (Área, Competencia y Contexto), fijando el estado En Análisis / En Curso.",
+        "description": "El técnico clasifica in situ la consulta en el panel lateral asignando Tipificación (Nivel 1, Tipo de Consulta), Subtipificación (Nivel 2, Origen) y Etiquetas transversales (Nivel 3, Contexto), fijando el estado En Análisis / En Curso.",
         "nodeType": "UserTask",
         "laneId": "lane-operador-n1",
-        "itSystem": "WiseCX Consola de Operador",
-        "legalFramework": "Taxonomía Estandarizada DGSTI",
+        "itSystem": "WiseCX",
+        "legalFramework": "Instructivo de Soporte Interno",
         "inputs": [
           "Mensaje contextual del empleado",
           "Ficha de contacto asociada"
@@ -257,16 +266,17 @@
           "Subtipificación",
           "Etiquetas"
         ],
-        "isLocked": false
+        "isLocked": false,
+        "displayMode": "title_only"
       },
       "measured": {
         "width": 200,
-        "height": 183
+        "height": 93
       },
       "selected": false,
       "dragging": false,
       "width": 200,
-      "height": 183,
+      "height": 93,
       "resizing": false
     },
     {
@@ -279,7 +289,7 @@
       "data": {
         "standardId": "GTW-02",
         "title": "¿Información Suficiente para Diagnóstico?",
-        "description": "Determina si se cuenta con la evidencia técnica completa o si se requiere solicitar capturas de pantalla, códigos de error, dominios o número de acta.",
+        "description": "Determina si se cuenta con la evidencia técnica completa o si se requiere solicitar capturas de pantalla, códigos de error, dominios o número de expediente.",
         "nodeType": "ExclusiveGateway",
         "laneId": "lane-operador-n1",
         "itSystem": "WiseCX",
@@ -294,11 +304,17 @@
         "tags": [
           "Compuerta",
           "Diagnóstico"
-        ]
+        ],
+        "customBgOpacity": 95,
+        "customBorderColor": "#F59E0B",
+        "customHeaderBgColor": "rgba(245, 158, 11, 0.15)",
+        "customBgColor": "#231B15",
+        "customFontSize": 9,
+        "displayMode": "title_only"
       },
       "measured": {
         "width": 130,
-        "height": 125
+        "height": 109
       },
       "selected": false,
       "dragging": false
@@ -307,17 +323,17 @@
       "id": "node-gtw-complejidad-n1",
       "type": "ExclusiveGateway",
       "position": {
-        "x": 1780.0211040635018,
-        "y": -77.40320809588215
+        "x": 2085.2656434274745,
+        "y": -326.83498921621316
       },
       "data": {
         "standardId": "GTW-04",
         "title": "¿Incidencia Resoluble en Nivel 1?",
-        "description": "Evaluación del alcance de la falla. Se considera N1 si puede subsanarse en el puesto de trabajo en un plazo estándar de hasta 30 minutos sin tocar bases de datos centrales.",
+        "description": "Evaluación del alcance de la falla. Se considera N1 si puede subsanarse en el puesto de trabajo utilizando las herramientas a disposición",
         "nodeType": "ExclusiveGateway",
         "laneId": "lane-operador-n1",
         "itSystem": "WiseCX",
-        "legalFramework": "Matriz de Competencias y Escalado DGSTI",
+        "legalFramework": "Instructivo de Soporte Interno",
         "inputs": [
           "Diagnóstico técnico confirmado"
         ],
@@ -328,11 +344,16 @@
         "tags": [
           "Compuerta",
           "Nivel de Atención"
-        ]
+        ],
+        "customBgOpacity": 95,
+        "customBorderColor": "#F59E0B",
+        "customHeaderBgColor": "rgba(245, 158, 11, 0.15)",
+        "customBgColor": "#231B15",
+        "displayMode": "title_only"
       },
       "measured": {
         "width": 130,
-        "height": 125
+        "height": 111
       },
       "selected": false,
       "dragging": false
@@ -341,17 +362,17 @@
       "id": "node-task-resolucion-n1",
       "type": "UserTask",
       "position": {
-        "x": 2037.4026946598005,
-        "y": -258.3484295811645
+        "x": 2264.345778444072,
+        "y": -524.9005349201746
       },
       "data": {
         "standardId": "TSK-05",
-        "title": "Resolución Técnica Nivel 1 y Comunicación",
-        "description": "El técnico ejecuta la solución directa (blanqueo de credenciales, configuración de puertos/periféricos o soporte guiado de aplicaciones), comunica manualmente el resultado al empleado y pasa el ticket a 'Resuelto N1'.",
+        "title": "Resolución Técnica Nivel 1",
+        "description": "El técnico ejecuta la solución directa utilizando las herramientas a disposición.",
         "nodeType": "UserTask",
         "laneId": "lane-operador-n1",
-        "itSystem": "Oficina",
-        "legalFramework": "Protocolo de Cierre Directo N1",
+        "itSystem": "Oficina DGSTI",
+        "legalFramework": "Instructivo de Soporte Interno",
         "slaDuration": {
           "value": 30,
           "unit": "MINUTES",
@@ -362,36 +383,45 @@
           "Diagnóstico y procedimiento técnico aplicado"
         ],
         "outputs": [
-          "Confirmación de operatividad entregada al usuario",
-          "Ticket en estado Resuelto N1"
+          "Resolución de la problemática"
         ],
-        "operationalRisks": [],
+        "operationalRisks": [
+          {
+            "riskId": "RSK-01",
+            "description": "Hallazgo de problema de mayor complejidad",
+            "probability": "MEDIUM",
+            "impact": "HIGH",
+            "mitigatingControl": "Revisión mas exhaustiva del caso",
+            "controlType": "PREVENTIVE"
+          }
+        ],
         "tags": [
           "Resolución N1",
           "Atención Directa"
-        ]
+        ],
+        "displayMode": "title_only"
       },
       "measured": {
-        "width": 242,
-        "height": 167
+        "width": 185,
+        "height": 80
       },
       "selected": false,
       "dragging": false,
-      "width": 242,
-      "height": 167,
+      "width": 185,
+      "height": 80,
       "resizing": false
     },
     {
       "id": "node-task-escalado-n2",
       "type": "UserTask",
       "position": {
-        "x": 1947.4814631169072,
-        "y": 87.49845969175468
+        "x": 2296.3299327555715,
+        "y": -145.14696951466271
       },
       "data": {
         "standardId": "TSK-06",
-        "title": "Transferencia Manual a Soporte N2 / Supervisión",
-        "description": "El operador N1 transfiere el ticket a la cola especializada informando al empleado un plazo diferido de hasta 72 horas hábiles para fallas complejas de bases de datos, caídas de enlaces WAN o bugs en SAM/VUPRA/SIGEF.",
+        "title": "Transferencia Manual a Soporte N2",
+        "description": " El operador N1 genera un ticket en Trello (N2) informando al empleado un plazo diferido de hasta 5 días hábiles para fallas complejas.",
         "nodeType": "UserTask",
         "laneId": "lane-operador-n1",
         "itSystem": "Trello",
@@ -400,8 +430,8 @@
           "Informe de escalado redactado por N1"
         ],
         "outputs": [
-          "Ticket en cola N2 en estado Escalado N2 / Supervisión",
-          "Notificación de plazo diferido pactado (<72 hs)"
+          "Ticket N2 en Trello",
+          "Notificación de plazo según dificultad"
         ],
         "operationalRisks": [
           {
@@ -417,37 +447,38 @@
           "Escalado",
           "Nivel 2",
           "Supervisores"
-        ]
+        ],
+        "displayMode": "title_only"
       },
       "measured": {
-        "width": 200,
-        "height": 175
+        "width": 177,
+        "height": 99
       },
       "selected": false,
       "dragging": false,
-      "width": 200,
-      "height": 175,
+      "width": 177,
+      "height": 99,
       "resizing": false
     },
     {
       "id": "node-task-resolucion-n2",
       "type": "UserTask",
       "position": {
-        "x": 2269.7060302350737,
-        "y": 85.33309727543838
+        "x": 2523.5170921736626,
+        "y": -319.2975231118246
       },
       "data": {
         "standardId": "TSK-07",
         "title": "Intervención Especializada N2 y Cierre Técnico",
-        "description": "Supervisores o administradores resuelven la causa raíz técnica (scripts en BD, corrección de endpoints, coordinación con Ciudad Inteligente o infraestructura de servidores), notifican personalmente al solicitante y fijan estado 'Resuelto N2'.",
+        "description": "Desarrollo resuelve la causa raíz técnica, notifican al personal de DGSTI.",
         "nodeType": "UserTask",
         "laneId": "lane-soporte-n2",
         "itSystem": "Trello",
         "legalFramework": "Procedimiento de Administración Avanzada DGSTI",
         "slaDuration": {
-          "value": 72,
-          "unit": "HOURS",
-          "iso8601String": "PT72H",
+          "value": 5,
+          "unit": "BUSINESS_DAYS",
+          "iso8601String": "P5D",
           "isPeremptory": true
         },
         "inputs": [
@@ -474,33 +505,34 @@
           "Infraestructura",
           "Desarrollo"
         ],
-        "isLocked": true
+        "isLocked": false,
+        "displayMode": "title_only"
       },
       "measured": {
-        "width": 232,
-        "height": 201
+        "width": 187,
+        "height": 95
       },
       "selected": false,
       "dragging": false,
-      "width": 232,
-      "height": 201,
+      "width": 187,
+      "height": 95,
       "resizing": false
     },
     {
       "id": "node-end-cierre-definitivo",
       "type": "EndEvent",
       "position": {
-        "x": 2733.1908926669507,
-        "y": -233.93944972750697
+        "x": 3478.830256691762,
+        "y": -444.0764206430445
       },
       "data": {
         "standardId": "EVT-03",
-        "title": "Cierre Administrativo y Métricas Consolidadas",
-        "description": "Cierre formal manual o automático tras la resolución. Se consolida el ciclo de vida del ticket en WiseCX para el cálculo de tiempos de atención, distribución por tipología y causas raíz, dejando al usuario habilitado para abrir un nuevo caso limpio.",
+        "title": "Cierre Administrativo",
+        "description": "Cierre formal tras la resolución. Se consolida el ciclo de vida del ticket en WiseCX para el cálculo de tiempos de atención, distribución por tipología y causas raíz, dejando al usuario habilitado para abrir un nuevo caso limpio.",
         "nodeType": "EndEvent",
         "laneId": "lane-operador-n1",
-        "itSystem": "WiseCX Motor Analítico",
-        "legalFramework": "Directiva de Calidad y Reportería DGSTI",
+        "itSystem": "WiseCX",
+        "legalFramework": "",
         "inputs": [
           "Ticket en estado Resuelto N1 o Resuelto N2"
         ],
@@ -513,7 +545,8 @@
           "Fin",
           "Cierre Final",
           "Métricas"
-        ]
+        ],
+        "displayMode": "title_only"
       },
       "measured": {
         "width": 96,
@@ -526,18 +559,18 @@
       "id": "node-gtw-respuesta-usuario",
       "type": "ExclusiveGateway",
       "position": {
-        "x": 1571,
-        "y": -247
+        "x": 1331.006877817503,
+        "y": -537.2008883294628
       },
       "selected": false,
       "data": {
         "standardId": "GTW-03",
-        "title": "¿Respondió el Usuario en <= 20 min?",
+        "title": "¿Respondió el Usuario en <= 30 min?",
         "description": "Bifurcación por inactividad o reanudación del proceso de asistencia técnica.",
         "nodeType": "ExclusiveGateway",
         "laneId": "lane-operador-n1",
         "itSystem": "WiseCX",
-        "legalFramework": "Reglas de Retención y Cierre de Sesión DGSTI",
+        "legalFramework": "",
         "inputs": [
           "Resultado de QC-01"
         ],
@@ -548,31 +581,37 @@
         "tags": [
           "Compuerta",
           "Inactividad"
-        ]
+        ],
+        "customBgOpacity": 95,
+        "customBorderColor": "#F59E0B",
+        "customHeaderBgColor": "rgba(245, 158, 11, 0.15)",
+        "customBgColor": "#231B15",
+        "displayMode": "title_only"
       },
       "measured": {
         "width": 130,
-        "height": 125
-      }
+        "height": 111
+      },
+      "dragging": false
     },
     {
       "id": "node-end-inactividad",
       "type": "EndEvent",
       "position": {
-        "x": 1813,
-        "y": -296
+        "x": 1596.1024502451075,
+        "y": -657.4959162581545
       },
       "selected": false,
       "data": {
         "standardId": "EVT-02",
-        "title": "Cierre Administrativo por Inactividad",
-        "description": "El ticket concluye formalmente por abandono o falta de respuesta del solicitante al superar los 20 minutos de espera, liberando la bandeja operativa.",
+        "title": "Cierre Administrativo",
+        "description": "El ticket concluye formalmente por abandono o falta de respuesta del solicitante al superar los 30 minutos de espera, liberando la bandeja operativa.",
         "nodeType": "EndEvent",
         "laneId": "lane-operador-n1",
         "itSystem": "WiseCX",
-        "legalFramework": "Reglamento Operativo DGSTI Art. 1.2",
+        "legalFramework": "",
         "inputs": [
-          "Plazo de 20 minutos vencido sin interacción"
+          "Plazo de 30 minutos vencido sin interacción"
         ],
         "outputs": [
           "Ticket en estado CERRADO por inactividad"
@@ -581,31 +620,194 @@
         "tags": [
           "Fin",
           "Cierre Inactividad"
-        ]
+        ],
+        "displayMode": "title_only"
       },
       "measured": {
         "width": 96,
         "height": 96
-      }
+      },
+      "dragging": false
+    },
+    {
+      "id": "usertask_1790087870808_0",
+      "type": "UserTask",
+      "position": {
+        "x": 2729.3453764222,
+        "y": -516.6029763350177
+      },
+      "data": {
+        "standardId": "TSK-08",
+        "title": "Comunicación al Empleado de la Solución",
+        "description": "El técnico comunica manualmente el resultado al empleado.",
+        "nodeType": "UserTask",
+        "laneId": "lane-operador-n1",
+        "itSystem": "Oficina DGSTI",
+        "legalFramework": "Instructivo de Soporte Interno",
+        "slaDuration": {
+          "value": 0,
+          "unit": "MINUTES",
+          "iso8601String": "P0D",
+          "isPeremptory": false
+        },
+        "inputs": [
+          "Diagnóstico y procedimiento técnico aplicado"
+        ],
+        "outputs": [
+          "Confirmación de operatividad entregada al usuario",
+          "Ticket en estado \"Resuelto\""
+        ],
+        "operationalRisks": [],
+        "tags": [
+          "Resolución N1",
+          "Atención Directa"
+        ],
+        "displayMode": "title_only"
+      },
+      "measured": {
+        "width": 198,
+        "height": 93
+      },
+      "selected": false,
+      "dragging": false,
+      "width": 198,
+      "height": 93,
+      "resizing": false
+    },
+    {
+      "id": "node_1790088628610",
+      "type": "ServiceTask",
+      "position": {
+        "x": 2975.4619958362023,
+        "y": -512.42198853839
+      },
+      "zIndex": 1,
+      "data": {
+        "standardId": "SVT-01",
+        "title": "Revisión de Categorización y Cierre de Ticket",
+        "description": "El operador revisa que las tipificaciones, sub-tipificaciones y etiquetas estén correctas, y cierra el caso",
+        "nodeType": "ServiceTask",
+        "laneId": "lane-usuario-interno",
+        "laneName": "Personal Municipal Interno (Usuario Solicitante)",
+        "roleName": "Empleado / Funcionario / Inspector / Letrado",
+        "itSystem": "WiseCX",
+        "legalFramework": "",
+        "inputs": [],
+        "outputs": [],
+        "operationalRisks": [],
+        "tags": [],
+        "displayMode": "title_only"
+      },
+      "measured": {
+        "width": 193,
+        "height": 86
+      },
+      "selected": false,
+      "dragging": false,
+      "width": 193,
+      "height": 86,
+      "resizing": false
+    },
+    {
+      "id": "node_1790088757378",
+      "type": "ExclusiveGateway",
+      "position": {
+        "x": 3191.0088704517884,
+        "y": -535.3919332435028
+      },
+      "zIndex": 1,
+      "data": {
+        "standardId": "GTW-05",
+        "title": "¿Operador Cerró el Caso?",
+        "description": "Revisión si el operador cerró el caso de forma manual.",
+        "nodeType": "ExclusiveGateway",
+        "laneId": "lane-usuario-interno",
+        "laneName": "Personal Municipal Interno (Usuario Solicitante)",
+        "roleName": "Empleado / Funcionario / Inspector / Letrado",
+        "itSystem": "",
+        "legalFramework": "",
+        "customBgColor": "#231B15",
+        "customBorderColor": "#F59E0B",
+        "inputs": [
+          "Consulta resuelta"
+        ],
+        "outputs": [
+          "Cierre manual o automático del caso"
+        ],
+        "operationalRisks": [],
+        "tags": [],
+        "customBgOpacity": 95,
+        "customHeaderBgColor": "rgba(245, 158, 11, 0.15)"
+      },
+      "measured": {
+        "width": 130,
+        "height": 125
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "timerboundaryevent_1790091653336_0",
+      "type": "TimerBoundaryEvent",
+      "position": {
+        "x": 3362.3613686057174,
+        "y": -606.1557463078303
+      },
+      "zIndex": 1,
+      "data": {
+        "standardId": "TMR-02",
+        "title": "Plazo de 30 min",
+        "description": "Control de cumplimiento del tiempo de respuesta del solicitante para evitar casos ociosos en cola y no distorsionar las métricas de atención.",
+        "nodeType": "TimerBoundaryEvent",
+        "laneId": "",
+        "itSystem": "WiseCX",
+        "legalFramework": "",
+        "customBgColor": "#1E293B",
+        "customBorderColor": "#94A3B8",
+        "inputs": [
+          "Consulta sin actividad",
+          "Tiempo transcurrido en estado \"Pendiente Usuario\""
+        ],
+        "outputs": [
+          "Cierre del caso",
+          "Reanudación de la gestión"
+        ],
+        "operationalRisks": [],
+        "tags": [],
+        "slaDuration": {
+          "value": 0.5,
+          "unit": "HOURS",
+          "iso8601String": "PT0.5H",
+          "isPeremptory": false
+        },
+        "customBgOpacity": 55,
+        "customHeaderBgColor": "rgba(255, 255, 255, 0.08)"
+      },
+      "measured": {
+        "width": 96,
+        "height": 96
+      },
+      "selected": false,
+      "dragging": false
     },
     {
       "id": "node-task-solicitud-datos",
       "type": "UserTask",
       "position": {
-        "x": 843.4900157842594,
-        "y": -633.0066561438271
+        "x": 813.6966666544232,
+        "y": -615.1123333419035
       },
       "selected": false,
-      "width": 200,
-      "height": 151,
+      "width": 201,
+      "height": 86,
       "data": {
         "standardId": "TSK-04",
-        "title": "Solicitud Manual de Evidencia y Pausa de SLA",
+        "title": "Solicitud de Evidencia y Pausa de SLA",
         "description": "El técnico redacta de forma manual y personalizada el pedido de datos faltantes y coloca el ticket en estado 'Pendiente Usuario', pausando los tiempos de resolución del área.",
         "nodeType": "UserTask",
         "laneId": "lane-operador-n1",
-        "itSystem": "WiseCX Chat/Mail",
-        "legalFramework": "Reglamento de Soporte a Dependencias",
+        "itSystem": "WiseCX",
+        "legalFramework": "Instructivo de Soporte Interno",
         "inputs": [
           "Requerimiento de datos técnicos específicos"
         ],
@@ -618,55 +820,55 @@
         "tags": [
           "Pendiente Usuario",
           "Pausa SLA"
-        ]
+        ],
+        "displayMode": "title_only"
       },
       "measured": {
-        "width": 200,
-        "height": 151
+        "width": 201,
+        "height": 86
       },
       "dragging": false
     },
     {
-      "id": "node-qc-inactividad-20min",
-      "type": "QualityCheckpointEvent",
+      "id": "timerboundaryevent_1790091295465_0",
+      "type": "TimerBoundaryEvent",
       "position": {
-        "x": 1308.4900157842594,
-        "y": -547.0066561438271
+        "x": 1176.696666654423,
+        "y": -644.1123333419035
       },
       "selected": false,
-      "width": 190,
-      "height": 179,
       "data": {
-        "standardId": "QC-01",
-        "title": "Control de Espera e Inactividad (Regla 20 Min)",
+        "standardId": "TMR-01",
+        "title": "Plazo de 30 min",
         "description": "Control de cumplimiento del tiempo de respuesta del solicitante para evitar casos ociosos en cola y no distorsionar las métricas de atención.",
-        "nodeType": "QualityCheckpointEvent",
-        "laneId": "lane-operador-n1",
-        "itSystem": "WiseCX Motor de Reglas",
-        "legalFramework": "Criterios Operativos de Cierre DGSTI",
-        "qualityCheckpoint": {
-          "checkpointCode": "QC-INACT-20M",
-          "inspectionCriteria": "Verificación estricta de mensaje entrante del usuario antes de transcurridos 20 minutos desde la repregunta.",
-          "severity": "MEDIUM",
-          "sampleRatePercentage": 100,
-          "responsibleRole": "Operador N1 / Temporizador WiseCX",
-          "evidenceRequired": "Registro temporal de inactividad en la bitácora del ticket"
-        },
+        "nodeType": "TimerBoundaryEvent",
+        "laneId": "",
+        "itSystem": "WiseCX",
+        "legalFramework": "",
+        "customBgColor": "#1E293B",
+        "customBorderColor": "#94A3B8",
         "inputs": [
-          "Tiempo transcurrido en estado Pendiente Usuario"
+          "Consulta sin actividad",
+          "Tiempo transcurrido en estado \"Pendiente Usuario\""
         ],
         "outputs": [
-          "Reanudación de gestión o habilitación de cierre"
+          "Cierre del caso",
+          "Reanudación de la gestión"
         ],
         "operationalRisks": [],
-        "tags": [
-          "Control Calidad",
-          "Temporizador"
-        ]
+        "tags": [],
+        "slaDuration": {
+          "value": 0.5,
+          "unit": "HOURS",
+          "iso8601String": "PT0.5H",
+          "isPeremptory": false
+        },
+        "customBgOpacity": 55,
+        "customHeaderBgColor": "rgba(255, 255, 255, 0.08)"
       },
       "measured": {
-        "width": 190,
-        "height": 179
+        "width": 96,
+        "height": 96
       },
       "dragging": false
     }
@@ -813,32 +1015,6 @@
       "selected": false
     },
     {
-      "id": "edge-16",
-      "source": "node-task-resolucion-n1",
-      "target": "node-end-cierre-definitivo",
-      "type": "sequenceFlow",
-      "data": {
-        "id": "edge-16",
-        "source": "node-task-resolucion-n1",
-        "target": "node-end-cierre-definitivo",
-        "conditionText": "Solución técnica aplicada N1"
-      },
-      "selected": false
-    },
-    {
-      "id": "edge-17",
-      "source": "node-task-resolucion-n2",
-      "target": "node-end-cierre-definitivo",
-      "type": "sequenceFlow",
-      "data": {
-        "id": "edge-17",
-        "source": "node-task-resolucion-n2",
-        "target": "node-end-cierre-definitivo",
-        "conditionText": "Solución técnica aplicada N2"
-      },
-      "selected": false
-    },
-    {
       "id": "e_node-gtw-respuesta-usuario_node-gtw-complejidad-n1_1789141873412",
       "source": "node-end-inactividad",
       "target": "node-gtw-complejidad-n1",
@@ -848,19 +1024,6 @@
         "id": "e_node-gtw-respuesta-usuario_node-gtw-complejidad-n1",
         "source": "node-end-inactividad",
         "target": "node-gtw-complejidad-n1"
-      },
-      "selected": false
-    },
-    {
-      "id": "edge-10",
-      "source": "node-qc-inactividad-20min",
-      "target": "node-gtw-respuesta-usuario",
-      "type": "sequenceFlow",
-      "data": {
-        "conditionText": "",
-        "id": "edge-10",
-        "source": "node-qc-inactividad-20min",
-        "target": "node-gtw-respuesta-usuario"
       },
       "selected": false
     },
@@ -889,15 +1052,116 @@
       }
     },
     {
-      "id": "edge-09",
-      "source": "node-task-solicitud-datos",
-      "target": "node-qc-inactividad-20min",
+      "id": "e_node-task-resolucion-n1_usertask_1790087870808_0_1790088260433",
+      "source": "node-task-resolucion-n1",
+      "target": "usertask_1790087870808_0",
+      "type": "sequenceFlow",
+      "data": {
+        "id": "e_node-task-resolucion-n1_usertask_1790087870808_0",
+        "source": "node-task-resolucion-n1",
+        "target": "usertask_1790087870808_0",
+        "conditionText": "Solución Técnica Aplicada"
+      },
+      "selected": false
+    },
+    {
+      "id": "e_node-task-resolucion-n2_usertask_1790087870808_0_1790088277465",
+      "source": "node-task-resolucion-n2",
+      "target": "usertask_1790087870808_0",
+      "type": "sequenceFlow",
+      "data": {
+        "id": "e_node-task-resolucion-n2_usertask_1790087870808_0",
+        "source": "node-task-resolucion-n2",
+        "target": "usertask_1790087870808_0",
+        "conditionText": "Solución Técnica Aplicada"
+      },
+      "selected": false
+    },
+    {
+      "id": "e_usertask_1790087870808_0_node_1790088628610_1790088919139",
+      "source": "usertask_1790087870808_0",
+      "target": "node_1790088628610",
+      "type": "sequenceFlow",
+      "data": {
+        "id": "e_usertask_1790087870808_0_node_1790088628610",
+        "source": "usertask_1790087870808_0",
+        "target": "node_1790088628610",
+        "conditionText": ""
+      }
+    },
+    {
+      "id": "e_node_1790088628610_node_1790088757378_1790088932474",
+      "source": "node_1790088628610",
+      "target": "node_1790088757378",
+      "type": "sequenceFlow",
+      "data": {
+        "id": "e_node_1790088628610_node_1790088757378",
+        "source": "node_1790088628610",
+        "target": "node_1790088757378",
+        "conditionText": ""
+      },
+      "selected": false
+    },
+    {
+      "id": "e_node_1790088757378_node-end-cierre-definitivo_1790088937466",
+      "source": "node_1790088757378",
+      "target": "node-end-cierre-definitivo",
+      "type": "sequenceFlow",
+      "data": {
+        "id": "e_node_1790088757378_node-end-cierre-definitivo",
+        "source": "node_1790088757378",
+        "target": "node-end-cierre-definitivo",
+        "conditionText": ""
+      },
+      "selected": false
+    },
+    {
+      "id": "e_timerboundaryevent_1790091295465_0_node-gtw-respuesta-usuario_1790091388975",
+      "source": "timerboundaryevent_1790091295465_0",
+      "target": "node-gtw-respuesta-usuario",
       "type": "sequenceFlow",
       "data": {
         "conditionText": "",
-        "id": "edge-09",
+        "id": "e_timerboundaryevent_1790091295465_0_node-gtw-respuesta-usuario",
+        "source": "timerboundaryevent_1790091295465_0",
+        "target": "node-gtw-respuesta-usuario"
+      },
+      "selected": false
+    },
+    {
+      "id": "e_node_1790088757378_timerboundaryevent_1790091653336_0_1790091661519",
+      "source": "node_1790088757378",
+      "target": "timerboundaryevent_1790091653336_0",
+      "type": "sequenceFlow",
+      "data": {
+        "id": "e_node_1790088757378_timerboundaryevent_1790091653336_0",
+        "source": "node_1790088757378",
+        "target": "timerboundaryevent_1790091653336_0",
+        "conditionText": ""
+      }
+    },
+    {
+      "id": "e_timerboundaryevent_1790091653336_0_node-end-cierre-definitivo_1790091662998",
+      "source": "timerboundaryevent_1790091653336_0",
+      "target": "node-end-cierre-definitivo",
+      "type": "sequenceFlow",
+      "data": {
+        "id": "e_timerboundaryevent_1790091653336_0_node-end-cierre-definitivo",
+        "source": "timerboundaryevent_1790091653336_0",
+        "target": "node-end-cierre-definitivo",
+        "conditionText": ""
+      }
+    },
+    {
+      "id": "e_node-task-solicitud-datos_timerboundaryevent_1790091295465_0_1790091385481",
+      "source": "node-task-solicitud-datos",
+      "target": "timerboundaryevent_1790091295465_0",
+      "type": "sequenceFlow",
+      "data": {
+        "conditionText": "",
+        "id": "e_node-task-solicitud-datos_timerboundaryevent_1790091295465_0",
         "source": "node-task-solicitud-datos",
-        "target": "node-qc-inactividad-20min"
+        "target": "timerboundaryevent_1790091295465_0"
       }
     }
   ],
@@ -908,8 +1172,8 @@
       "pageNumber": 1,
       "format": "A4",
       "orientation": "landscape",
-      "x": -895,
-      "y": -792,
+      "x": -1198,
+      "y": -870,
       "width": 1627,
       "height": 1150
     },
@@ -918,8 +1182,8 @@
       "pageNumber": 2,
       "format": "A4",
       "orientation": "landscape",
-      "x": 727,
-      "y": -792,
+      "x": 426,
+      "y": -868,
       "width": 1629,
       "height": 1152
     },
@@ -928,8 +1192,8 @@
       "pageNumber": 3,
       "format": "A4",
       "orientation": "landscape",
-      "x": 2310,
-      "y": -788,
+      "x": 2053,
+      "y": -868,
       "width": 1627,
       "height": 1150
     }

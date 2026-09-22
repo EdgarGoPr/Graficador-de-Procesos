@@ -1,8 +1,12 @@
 import React, { memo } from 'react';
-import { BaseEdge, EdgeLabelRenderer, EdgeProps, getBezierPath } from '@xyflow/react';
+import { BaseEdge, EdgeLabelRenderer, EdgeProps, useNodes } from '@xyflow/react';
+import { getSmartEdgePath } from '../../../utils/smartRouting';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const SequenceFlowEdge = memo(({
   id,
+  source,
+  target,
   sourceX,
   sourceY,
   targetX,
@@ -14,13 +18,21 @@ export const SequenceFlowEdge = memo(({
   data,
   selected
 }: EdgeProps<any>) => {
-  const [edgePath, labelX, labelY] = getBezierPath({
+  const nodes = useNodes();
+
+  const [edgePath, labelX, labelY] = getSmartEdgePath({
     sourceX,
     sourceY,
     sourcePosition,
     targetX,
     targetY,
     targetPosition,
+    nodes,
+    sourceNodeId: source,
+    targetNodeId: target,
+    cornerRadius: 10,
+    padding: 22,
+    stubLength: 24
   });
 
   const conditionText = data?.conditionText;
@@ -64,3 +76,4 @@ export const SequenceFlowEdge = memo(({
 });
 
 SequenceFlowEdge.displayName = 'SequenceFlowEdge';
+
