@@ -19,6 +19,7 @@ import { QualityAuditModal } from './components/quality/QualityAuditModal';
 import { ExportCenterModal } from './components/export/ExportCenterModal';
 import { SimulationModal } from './components/simulation/SimulationModal';
 import { VersionDiffModal } from './components/diff/VersionDiffModal';
+import { ProcessPresentationModal } from './components/presentation/ProcessPresentationModal';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
 import { CheckCircle2, Info, AlertCircle, X } from 'lucide-react';
 
@@ -157,6 +158,9 @@ export const App: React.FC = () => {
           isOpen={isVersionDiffModalOpen}
           onClose={() => setVersionDiffModalOpen(false)}
         />
+
+        {/* Process Presentation (Prezi Mode) Modal */}
+        <ProcessPresentationModal />
       </div>
     </ErrorBoundary>
   );

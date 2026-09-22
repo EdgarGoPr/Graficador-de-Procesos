@@ -8,7 +8,7 @@
     "organizationUnit": "Dirección General de Sistemas, Tecnología e Innovación (DGSTI) - Tribunal Administrativo Municipal de Faltas",
     "processObjective": "Estandarizar el ciclo integral de soporte técnico e incidencias de hardware, conectividad y sistemas de faltas (SAM, VUPRA, SIGEF) mediante atención humana directa en la consola WiseCX, gestionando el empadronamiento interno, la categorización en dos niveles, el control de inactividad de usuarios y la derivación a soporte avanzado.",
     "createdAt": "2026-09-11T10:00:00Z",
-    "updatedAt": "2026-09-22T17:49:09.542Z",
+    "updatedAt": "2026-09-22T18:44:59.835Z",
     "status": "APPROVED",
     "legalNormativeBasis": [
       "Ordenanza de Procedimiento Administrativo Municipal de Córdoba",
@@ -145,8 +145,8 @@
       "id": "node-gtw-empadronado",
       "type": "ExclusiveGateway",
       "position": {
-        "x": -423.95466418674454,
-        "y": -488.6837496712075
+        "x": -471.45466418674454,
+        "y": -497.4337496712075
       },
       "data": {
         "standardId": "GTW-01",
@@ -185,8 +185,8 @@
       "id": "node-task-alta-contacto",
       "type": "UserTask",
       "position": {
-        "x": -226.50923213672928,
-        "y": -296.4800133839667
+        "x": -281.5092321367292,
+        "y": -326.4800133839667
       },
       "data": {
         "standardId": "TSK-02",
@@ -232,8 +232,8 @@
       "id": "node-task-categorizacion",
       "type": "UserTask",
       "position": {
-        "x": 36.72860429547835,
-        "y": -484.854938260175
+        "x": -15.771395704521609,
+        "y": -492.354938260175
       },
       "data": {
         "standardId": "TSK-03",
@@ -283,8 +283,8 @@
       "id": "node-gtw-info-suficiente",
       "type": "ExclusiveGateway",
       "position": {
-        "x": 568.0865147083493,
-        "y": -454.0798965254444
+        "x": 261.83651470834957,
+        "y": -465.3298965254444
       },
       "data": {
         "standardId": "GTW-02",
@@ -323,8 +323,8 @@
       "id": "node-gtw-complejidad-n1",
       "type": "ExclusiveGateway",
       "position": {
-        "x": 2085.2656434274745,
-        "y": -326.83498921621316
+        "x": 1011.5156434274754,
+        "y": -421.8349892162131
       },
       "data": {
         "standardId": "GTW-04",
@@ -362,8 +362,8 @@
       "id": "node-task-resolucion-n1",
       "type": "UserTask",
       "position": {
-        "x": 2313.210863070485,
-        "y": -557.570605536446
+        "x": 1308.210863070486,
+        "y": -503.82060553644607
       },
       "data": {
         "standardId": "TSK-05",
@@ -415,8 +415,8 @@
       "id": "node-task-escalado-n2",
       "type": "UserTask",
       "position": {
-        "x": 2296.3299327555715,
-        "y": -145.14696951466271
+        "x": 1300.0799327555721,
+        "y": -256.39696951466266
       },
       "data": {
         "standardId": "TSK-06",
@@ -464,8 +464,8 @@
       "id": "node-task-resolucion-n2",
       "type": "UserTask",
       "position": {
-        "x": 2566.5932804860513,
-        "y": -280.5289536306747
+        "x": 1647.8432804860518,
+        "y": -334.27895363067466
       },
       "data": {
         "standardId": "TSK-07",
@@ -522,8 +522,8 @@
       "id": "node-end-cierre-definitivo",
       "type": "EndEvent",
       "position": {
-        "x": 3478.830256691762,
-        "y": -444.0764206430445
+        "x": 2731.3302566917623,
+        "y": -325.3264206430446
       },
       "data": {
         "standardId": "EVT-03",
@@ -559,8 +559,8 @@
       "id": "node-gtw-respuesta-usuario",
       "type": "ExclusiveGateway",
       "position": {
-        "x": 1329.5710048737567,
-        "y": -558.7389824856572
+        "x": 820.8210048737571,
+        "y": -637.4889824856572
       },
       "selected": false,
       "data": {
@@ -598,8 +598,8 @@
       "id": "node-end-inactividad",
       "type": "EndEvent",
       "position": {
-        "x": 1596.1024502451075,
-        "y": -657.4959162581545
+        "x": 1069.852450245108,
+        "y": -741.2459162581545
       },
       "selected": false,
       "data": {
@@ -633,8 +633,8 @@
       "id": "usertask_1790087870808_0",
       "type": "UserTask",
       "position": {
-        "x": 2729.3453764222,
-        "y": -516.6029763350177
+        "x": 1954.3453764222006,
+        "y": -457.85297633501773
       },
       "data": {
         "standardId": "TSK-08",
@@ -678,8 +678,8 @@
       "id": "node_1790088628610",
       "type": "ServiceTask",
       "position": {
-        "x": 2975.4619958362023,
-        "y": -512.42198853839
+        "x": 2192.9619958362027,
+        "y": -442.42198853839005
       },
       "zIndex": 1,
       "data": {
@@ -712,8 +712,8 @@
       "id": "node_1790088757378",
       "type": "ExclusiveGateway",
       "position": {
-        "x": 3191.0088704517884,
-        "y": -535.3919332435028
+        "x": 2414.758870451789,
+        "y": -401.6419332435029
       },
       "zIndex": 1,
       "data": {
@@ -750,8 +750,8 @@
       "id": "timerboundaryevent_1790091653336_0",
       "type": "TimerBoundaryEvent",
       "position": {
-        "x": 3362.3613686057174,
-        "y": -606.1557463078303
+        "x": 2598.6113686057183,
+        "y": -488.6557463078304
       },
       "zIndex": 1,
       "data": {
@@ -794,8 +794,8 @@
       "id": "node-task-solicitud-datos",
       "type": "UserTask",
       "position": {
-        "x": 813.6966666544232,
-        "y": -615.1123333419035
+        "x": 439.94666665442344,
+        "y": -612.6123333419035
       },
       "selected": false,
       "width": 201,
@@ -833,8 +833,8 @@
       "id": "timerboundaryevent_1790091295465_0",
       "type": "TimerBoundaryEvent",
       "position": {
-        "x": 1176.696666654423,
-        "y": -644.1123333419035
+        "x": 700.4466666544234,
+        "y": -649.1123333419035
       },
       "selected": false,
       "data": {

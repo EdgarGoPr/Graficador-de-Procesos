@@ -23,7 +23,9 @@ import {
   Flame,
   GitCompare,
   ArrowDownToLine,
-  ShieldAlert
+  ShieldAlert,
+  Tv,
+  Sparkles
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -52,6 +54,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
     setExportCenterModalOpen,
     setSimulationModalOpen,
     setVersionDiffModalOpen,
+    setPresentationModalOpen,
     toggleTheme,
     showNotification,
     isPropertiesPanelOpen,
@@ -97,11 +100,14 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
       ) {
         e.preventDefault();
         handleRedo();
+      } else if (e.key === 'F5' || ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'p' || e.key === 'P'))) {
+        e.preventDefault();
+        setPresentationModalOpen(true);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [currentProject, hasUnsavedChanges, canUndo, canRedo, undo, redo]);
+  }, [currentProject, hasUnsavedChanges, canUndo, canRedo, undo, redo, setPresentationModalOpen]);
 
   const handleSave = async () => {
     if (!currentProject) return;
@@ -286,9 +292,19 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
           </div>
         )}
 
-        {/* Quality Audit, Simulation, Diff, and Export Tools */}
+        {/* Quality Audit, Presentation, Simulation, Diff, and Export Tools */}
         {currentProject && (
           <>
+            <button
+              onClick={() => setPresentationModalOpen(true)}
+              className="flex items-center space-x-1.5 px-2.5 py-1.5 bg-gradient-to-r from-theme-accent/20 to-sky-500/20 hover:from-theme-accent/30 hover:to-sky-500/30 text-theme-accent rounded-lg text-xs font-bold border border-theme-accent/40 shadow-sm transition-all hover:scale-105 group"
+              title="Modo Presentación Dinámica e Interactiva tipo Prezi con Zoom Paso a Paso (F5)"
+            >
+              <Tv className="w-3.5 h-3.5 text-theme-accent group-hover:scale-110 transition-transform" />
+              <span className="hidden md:inline">Presentación</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-theme-accent animate-pulse" />
+            </button>
+
             <button
               onClick={() => setQualityAuditModalOpen(true)}
               className="flex items-center space-x-1.5 px-2.5 py-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-[#10B981] rounded-lg text-xs font-semibold border border-emerald-500/30 transition-colors"

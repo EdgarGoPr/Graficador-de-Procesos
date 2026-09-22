@@ -299,6 +299,15 @@ const userStories = [
     criteriosAceptacion: '1. Motor de enrutamiento ortogonal A* integrado que detecta cajas delimitadoras de tarjetas con margen de seguridad de 22px.\n2. Evasión reactiva y suave en tiempo real al arrastrar, crear o desplazar nodos y compuertas.\n3. Esquinas con redondeo ergonómico (fillets de 10px) y trayectorias sin cruces invasivos sobre elementos.\n4. Soporte unificado en lienzo interactivo y vista de impresión/exportación multi-página a PDF.\n5. Exclusión inteligente de contenedores de carril (PoolLanes) para permitir que los flujos transiten libremente por el fondo de los carriles.',
     fechaImplementacion: '2026-09-22',
     estado: 'Implementado / Producción'
+  },
+  {
+    id: 'PST-034',
+    modulo: 'Presentación & Navegación',
+    titulo: 'Modo Presentación Dinámica e Interactiva tipo Prezi con Zoom Animado y Panel de Contenido Ordenado',
+    historiaUsuario: 'Como expositor, auditor o analista de procesos, quiero una sección de presentación inmersiva que recorra el diagrama paso a paso con animaciones de cámara cinemáticas (zoom dinámico centrado en cada tarjeta) y un panel lateral derecho estructurado con todo el contenido del paso (responsable, SLA, sistemas TI, entradas/salidas, riesgos y normativa), para exponer y capacitar sobre los flujos de trabajo de forma clara, ordenada y profesional.',
+    criteriosAceptacion: '1. Extractor de secuencia topológica automática que ordena las actividades desde el Evento de Inicio hasta el Fin respetando bifurcaciones y carriles.\n2. Animación fluida de cámara (ReactFlow setCenter con zoom 1.35) y resplandor focal (spotlight) sobre la tarjeta activa con atenuación del entorno.\n3. Panel lateral derecho estructurado con código estándar, rol, título, descripción, métricas de tiempo/SLA, sistemas TI, entradas (inputs), entregables (outputs), marco legal/ISO 9001, riesgos operativos y enlaces de navegación del flujo.\n4. Barra de reproducción flotante con controles de Inicio, Anterior, Siguiente, selector de diapositivas y modo Auto-Play con temporizador configurable.\n5. Control completo por teclado (←, →, Espacio para pausar/reanudar, Home, End, F para pantalla completa, Esc para salir y F5/Shift+P para abrir desde el lienzo).',
+    fechaImplementacion: '2026-09-22',
+    estado: 'Implementado / Producción'
   }
 ];
 

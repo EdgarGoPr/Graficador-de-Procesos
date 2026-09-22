@@ -22,6 +22,7 @@ interface UiStoreState {
   isExportCenterModalOpen: boolean;
   isSimulationModalOpen: boolean;
   isVersionDiffModalOpen: boolean;
+  isPresentationModalOpen: boolean;
 
   setActiveView: (view: ActiveView) => void;
   setTheme: (theme: ThemeMode) => void;
@@ -33,6 +34,7 @@ interface UiStoreState {
   setExportCenterModalOpen: (open: boolean) => void;
   setSimulationModalOpen: (open: boolean) => void;
   setVersionDiffModalOpen: (open: boolean) => void;
+  setPresentationModalOpen: (open: boolean) => void;
   toggleTheme: () => void;
   toggleSidebar: () => void;
   togglePropertiesPanel: () => void;
@@ -107,6 +109,7 @@ export const useUiStore = create<UiStoreState>((set, get) => ({
   isExportCenterModalOpen: false,
   isSimulationModalOpen: false,
   isVersionDiffModalOpen: false,
+  isPresentationModalOpen: false,
 
   setActiveView: (view) => set({ activeView: view }),
 
@@ -180,6 +183,7 @@ export const useUiStore = create<UiStoreState>((set, get) => ({
   setExportCenterModalOpen: (open) => set({ isExportCenterModalOpen: open }),
   setSimulationModalOpen: (open) => set({ isSimulationModalOpen: open }),
   setVersionDiffModalOpen: (open) => set({ isVersionDiffModalOpen: open }),
+  setPresentationModalOpen: (open) => set({ isPresentationModalOpen: open }),
 
   toggleTheme: () => {
     const isCurrentlyDark = get().theme === 'dark';
