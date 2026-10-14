@@ -22,6 +22,218 @@ import {
   pasteClipboardPayload,
   ValidationResult
 } from '../services/subprocessService';
+import type { ProcessProjectFile } from '../types/project';
+
+export interface SubProcessPathItem {
+  id: string;
+  title: string;
+  standardId: string;
+}
+
+// Helper: Traverse down the tree to get the active nodes and edges for the given subProcessPath
+export function getGraphForPath(
+  project: ProcessProjectFile | null,
+  path: SubProcessPathItem[]
+): { nodes: Node<BpmnNodeData>[]; edges: Edge<SequenceFlowData>[] } {
+  if (!project) return { nodes: [], edges: [] };
+  if (!path || path.length === 0) {
+    return { nodes: project.nodes || [], edges: project.edges || [] };
+  }
+
+  let currentNodes: Node<BpmnNodeData>[] = project.nodes || [];
+  let currentEdges: Edge<SequenceFlowData>[] = project.edges || [];
+
+  for (let i = 0; i < path.length; i++) {
+    const step = path[i];
+    const subNode = currentNodes.find((n) => n.id === step.id);
+    if (!subNode) {
+      return { nodes: [], edges: [] };
+    }
+
+    if (subNode.data.subProcessCanvas && subNode.data.subProcessCanvas.nodes?.length) {
+      currentNodes = subNode.data.subProcessCanvas.nodes;
+      currentEdges = subNode.data.subProcessCanvas.edges || [];
+    } else if (subNode.data.compressedSnapshot && subNode.data.compressedSnapshot.nodes?.length) {
+      const snap = subNode.data.compressedSnapshot;
+      currentNodes = snap.nodes.map((sn) => ({
+        id: sn.id,
+        type: sn.type || (sn.data?.nodeType as any) || 'UserTask',
+        position: { x: sn.relativeX, y: sn.relativeY },
+        style: sn.width && sn.height ? { width: sn.width, height: sn.height } : undefined,
+        data: sn.data,
+      }));
+      currentEdges = (snap.internalEdges || []).map((se) => ({
+        id: se.id,
+        source: se.source,
+        target: se.target,
+        type: 'sequenceFlow',
+        data: se.data,
+      }));
+    } else {
+      // Empty or newly created subprocess: generate initial standard flow
+      const startId = `start_${subNode.id}_${Date.now()}`;
+      const taskId = `task_${subNode.id}_${Date.now()}`;
+      const endId = `end_${subNode.id}_${Date.now()}`;
+      currentNodes = [
+        {
+          id: startId,
+          type: 'StartEvent',
+          position: { x: 100, y: 160 },
+          data: {
+            standardId: 'INI-01',
+            title: `Inicio de ${step.title}`,
+            description: 'Disparador formal de ingreso a este subproceso',
+            nodeType: 'StartEvent',
+            laneId: subNode.data.laneId || 'lane_1',
+            itSystem: subNode.data.itSystem || 'Gestión',
+            legalFramework: subNode.data.legalFramework || '',
+            inputs: [],
+            outputs: [],
+            operationalRisks: [],
+            tags: ['Subproceso'],
+          },
+        },
+        {
+          id: taskId,
+          type: 'UserTask',
+          position: { x: 280, y: 130 },
+          data: {
+            standardId: 'TSK-01',
+            title: 'Ejecución de Etapa Principal',
+            description: 'Procedimiento operativo interno',
+            nodeType: 'UserTask',
+            laneId: subNode.data.laneId || 'lane_1',
+            itSystem: subNode.data.itSystem || 'Gestión',
+            legalFramework: subNode.data.legalFramework || '',
+            inputs: [],
+            outputs: [],
+            operationalRisks: [],
+            tags: ['Subproceso'],
+          },
+        },
+        {
+          id: endId,
+          type: 'EndEvent',
+          position: { x: 560, y: 160 },
+          data: {
+            standardId: 'FIN-01',
+            title: `Fin de ${step.title}`,
+            description: 'Culminación de la etapa',
+            nodeType: 'EndEvent',
+            laneId: subNode.data.laneId || 'lane_1',
+            itSystem: subNode.data.itSystem || 'Gestión',
+            legalFramework: subNode.data.legalFramework || '',
+            inputs: [],
+            outputs: [],
+            operationalRisks: [],
+            tags: ['Subproceso'],
+          },
+        },
+      ];
+      currentEdges = [
+        {
+          id: `flow_${startId}_${taskId}`,
+          source: startId,
+          target: taskId,
+          type: 'sequenceFlow',
+          data: { id: `flow_${startId}_${taskId}`, source: startId, target: taskId },
+        },
+        {
+          id: `flow_${taskId}_${endId}`,
+          source: taskId,
+          target: endId,
+          type: 'sequenceFlow',
+          data: { id: `flow_${taskId}_${endId}`, source: taskId, target: endId },
+        },
+      ];
+    }
+  }
+
+  return { nodes: currentNodes, edges: currentEdges };
+}
+
+// Helper: Immutably update the active level in project recursively
+export function updateGraphForPath(
+  project: ProcessProjectFile,
+  path: SubProcessPathItem[],
+  newNodes: Node<BpmnNodeData>[],
+  newEdges: Edge<SequenceFlowData>[]
+): ProcessProjectFile {
+  if (!path || path.length === 0) {
+    return {
+      ...project,
+      nodes: newNodes,
+      edges: newEdges,
+    };
+  }
+
+  function updateRecursive(
+    nodes: Node<BpmnNodeData>[],
+    edges: Edge<SequenceFlowData>[],
+    pathIndex: number
+  ): { nodes: Node<BpmnNodeData>[]; edges: Edge<SequenceFlowData>[] } {
+    const currentStep = path[pathIndex];
+    const isLeaf = pathIndex === path.length - 1;
+
+    const updatedNodes = nodes.map((node) => {
+      if (node.id !== currentStep.id) return node;
+
+      if (isLeaf) {
+        const steps = newNodes
+          .filter((n) => n.type !== 'PoolLane')
+          .map((n, idx) => ({
+            id: `step_${n.id}`,
+            stepNumber: idx + 1,
+            title: n.data?.title || `Paso ${idx + 1}`,
+            description: n.data?.description || '',
+            role: n.data?.roleName || 'Operador',
+            system: n.data?.itSystem || 'Sistema Interno',
+            duration: n.data?.slaDuration?.iso8601String || 'P1D',
+            inputs: n.data?.inputs || [],
+            outputs: n.data?.outputs || [],
+            qualityCheck: n.data?.qualityCheckpoint?.inspectionCriteria,
+            risk: n.data?.operationalRisks?.[0]?.description,
+          }));
+
+        return {
+          ...node,
+          data: {
+            ...node.data,
+            subProcessCanvas: {
+              nodes: newNodes,
+              edges: newEdges,
+            },
+            subProcessSteps: steps,
+          },
+        };
+      } else {
+        const childCanvas =
+          node.data.subProcessCanvas || getGraphForPath(project, path.slice(0, pathIndex + 1));
+        const updatedChild = updateRecursive(childCanvas.nodes, childCanvas.edges, pathIndex + 1);
+
+        return {
+          ...node,
+          data: {
+            ...node.data,
+            subProcessCanvas: {
+              nodes: updatedChild.nodes,
+              edges: updatedChild.edges,
+            },
+          },
+        };
+      }
+    });
+
+    return { nodes: updatedNodes, edges };
+  }
+
+  const result = updateRecursive(project.nodes, project.edges, 0);
+  return {
+    ...project,
+    nodes: result.nodes,
+    edges: result.edges,
+  };
+}
 
 interface CanvasStoreState {
   selectedNodeId: string | null;
@@ -31,6 +243,14 @@ interface CanvasStoreState {
   isCompressModalOpen: boolean;
   isCanvasLocked: boolean; // Modo fijado global: ningún elemento se desplaza y arrastrar sobre ellos desplaza el mapa
   isPrintOverlayVisible: boolean; // Visibilidad de recuadros punteados de impresión
+
+  // Hierarchical SubProcess Navigation (Recursive N-levels)
+  subProcessPath: SubProcessPathItem[];
+  enterSubProcess: (subProcessNodeId: string) => void;
+  leaveSubProcess: () => void;
+  jumpToSubProcessLevel: (levelIndex: number) => void;
+  getActiveGraph: () => { nodes: Node<BpmnNodeData>[]; edges: Edge<SequenceFlowData>[] };
+  setActiveGraph: (nodes: Node<BpmnNodeData>[], edges: Edge<SequenceFlowData>[]) => void;
 
   // React Flow Handlers
   onNodesChange: OnNodesChange<Node<BpmnNodeData>>;
@@ -90,6 +310,83 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
   isCompressModalOpen: false,
   isCanvasLocked: false,
   isPrintOverlayVisible: false,
+  subProcessPath: [],
+
+  getActiveGraph: () => {
+    const project = useProjectStore.getState().currentProject;
+    const path = get().subProcessPath;
+    return getGraphForPath(project, path);
+  },
+
+  setActiveGraph: (nodes: Node<BpmnNodeData>[], edges: Edge<SequenceFlowData>[]) => {
+    const projectStore = useProjectStore.getState();
+    const project = projectStore.currentProject;
+    if (!project) return;
+    const path = get().subProcessPath;
+    const nextProject = updateGraphForPath(project, path, nodes, edges);
+    projectStore.setProjectData(nextProject);
+  },
+
+  enterSubProcess: (nodeId: string) => {
+    const project = useProjectStore.getState().currentProject;
+    if (!project) return;
+    const active = get().getActiveGraph();
+    const targetNode = active.nodes.find((n) => n.id === nodeId);
+    if (!targetNode) return;
+
+    useProjectStore.getState().pushSnapshot(`Ingresar al subproceso ${targetNode.data.title}`);
+
+    const newPathItem: SubProcessPathItem = {
+      id: targetNode.id,
+      title: targetNode.data.title || 'Subproceso',
+      standardId: targetNode.data.standardId || 'SUB',
+    };
+    const nextPath = [...get().subProcessPath, newPathItem];
+
+    // Ensure child canvas is initialized in project
+    const subGraph = getGraphForPath(project, nextPath);
+    const updatedProject = updateGraphForPath(project, nextPath, subGraph.nodes, subGraph.edges);
+    useProjectStore.getState().setProjectData(updatedProject);
+
+    set({
+      subProcessPath: nextPath,
+      selectedNodeId: null,
+      selectedNodeIds: [],
+      selectedEdgeId: null,
+    });
+  },
+
+  leaveSubProcess: () => {
+    const path = get().subProcessPath;
+    if (path.length === 0) return;
+    set({
+      subProcessPath: path.slice(0, -1),
+      selectedNodeId: null,
+      selectedNodeIds: [],
+      selectedEdgeId: null,
+    });
+  },
+
+  jumpToSubProcessLevel: (levelIndex: number) => {
+    if (levelIndex < 0) {
+      set({
+        subProcessPath: [],
+        selectedNodeId: null,
+        selectedNodeIds: [],
+        selectedEdgeId: null,
+      });
+      return;
+    }
+    const path = get().subProcessPath;
+    if (levelIndex < path.length) {
+      set({
+        subProcessPath: path.slice(0, levelIndex + 1),
+        selectedNodeId: null,
+        selectedNodeIds: [],
+        selectedEdgeId: null,
+      });
+    }
+  },
 
   togglePrintOverlay: () => {
     const current = get().isPrintOverlayVisible;
@@ -203,12 +500,13 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
     if (!currentProject) return;
 
     const { isCanvasLocked } = get();
+    const activeGraph = get().getActiveGraph();
 
     // Filter out drag position changes if canvas is locked or if the specific node is locked
     const validChanges = changes.filter((change) => {
       if (change.type === 'position' && change.dragging) {
         if (isCanvasLocked) return false;
-        const draggingNode = currentProject.nodes.find((n) => n.id === change.id);
+        const draggingNode = activeGraph.nodes.find((n) => n.id === change.id);
         if (draggingNode?.data?.isLocked) return false;
       }
       return true;
@@ -222,7 +520,7 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
 
     const modifiedChanges = validChanges.map((change) => {
       if (change.type === 'position' && change.position && change.dragging) {
-        const draggingNode = currentProject.nodes.find((n) => n.id === change.id);
+        const draggingNode = activeGraph.nodes.find((n) => n.id === change.id);
         if (!draggingNode) return change;
 
         const isDraggingLane = draggingNode.type === 'PoolLane';
@@ -234,7 +532,7 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
 
         if (isDraggingLane) {
           // --- LANE TO LANE SNAPPING ---
-          const otherLanes = currentProject.nodes.filter(
+          const otherLanes = activeGraph.nodes.filter(
             (n) => n.id !== change.id && n.type === 'PoolLane'
           );
 
@@ -277,7 +575,7 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
           }
         } else {
           // --- ACTIVITY CARD TO CARD SNAPPING ---
-          const otherNodes = currentProject.nodes.filter(
+          const otherNodes = activeGraph.nodes.filter(
             (n) => n.id !== change.id && n.type !== 'PoolLane'
           );
 
@@ -326,7 +624,7 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
       return change;
     });
 
-    const nextNodes = applyNodeChanges(modifiedChanges, currentProject.nodes);
+    const nextNodes = applyNodeChanges(modifiedChanges, activeGraph.nodes);
     
     // Update selectedNodeIds based on node selection status
     const selected = nextNodes.filter((n) => n.selected).map((n) => n.id);
@@ -337,30 +635,20 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
       selectedNodeId: singleSelected
     });
 
-    projectStore.setProjectData({
-      ...currentProject,
-      nodes: nextNodes
-    });
+    get().setActiveGraph(nextNodes, activeGraph.edges);
   },
 
   onEdgesChange: (changes) => {
-    const projectStore = useProjectStore.getState();
-    const currentProject = projectStore.currentProject;
-    if (!currentProject) return;
-
-    const nextEdges = applyEdgeChanges(changes, currentProject.edges);
-    projectStore.setProjectData({
-      ...currentProject,
-      edges: nextEdges
-    });
+    const activeGraph = get().getActiveGraph();
+    const nextEdges = applyEdgeChanges(changes, activeGraph.edges);
+    get().setActiveGraph(activeGraph.nodes, nextEdges);
   },
 
   onConnect: (connection: Connection) => {
-    const projectStore = useProjectStore.getState();
-    const currentProject = projectStore.currentProject;
-    if (!currentProject || !connection.source || !connection.target) return;
+    const activeGraph = get().getActiveGraph();
+    if (!connection.source || !connection.target) return;
 
-    projectStore.pushSnapshot('Crear conexión');
+    useProjectStore.getState().pushSnapshot('Crear conexión');
 
     const newEdge: Edge<SequenceFlowData> = {
       id: `e_${connection.source}_${connection.target}_${Date.now()}`,
@@ -375,11 +663,8 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
       }
     };
 
-    const nextEdges = addEdge(newEdge, currentProject.edges);
-    projectStore.setProjectData({
-      ...currentProject,
-      edges: nextEdges
-    });
+    const nextEdges = addEdge(newEdge, activeGraph.edges);
+    get().setActiveGraph(activeGraph.nodes, nextEdges);
   },
 
   selectNode: (nodeId: string | null) => {
@@ -594,6 +879,7 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
 
     projectStore.pushSnapshot('Agregar elemento');
 
+    const active = get().getActiveGraph();
     const firstLane = currentProject.pools[0]?.lanes[0];
     const targetLaneId = laneId || firstLane?.id || 'lane-default';
     const targetLane = currentProject.pools[0]?.lanes.find(l => l.id === targetLaneId);
@@ -608,7 +894,7 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
     else if (nodeType === BPMN_NODE_TYPES.POOL_LANE) prefix = 'LANE';
     else if (nodeType === BPMN_NODE_TYPES.STICKY_NOTE) prefix = 'NOTE';
 
-    const count = currentProject.nodes.filter(n => n.data.nodeType === nodeType).length + 1;
+    const count = active.nodes.filter(n => n.data.nodeType === nodeType).length + 1;
     const standardId = `${prefix}-${count < 10 ? '0' + count : count}`;
 
     const defaultTitle = {
@@ -654,22 +940,14 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
       }
     };
 
-    projectStore.setProjectData({
-      ...currentProject,
-      nodes: [...currentProject.nodes, newNode]
-    });
-
+    get().setActiveGraph([...active.nodes, newNode], active.edges);
     set({ selectedNodeId: newNodeId, selectedNodeIds: [newNodeId], selectedEdgeId: null });
   },
 
   updateNodeData: (nodeId: string, updates: Partial<BpmnNodeData>) => {
-    const projectStore = useProjectStore.getState();
-    const currentProject = projectStore.currentProject;
-    if (!currentProject) return;
-
-    projectStore.pushSnapshot('Modificar elemento');
-
-    const nextNodes = currentProject.nodes.map((node) => {
+    useProjectStore.getState().pushSnapshot('Modificar elemento');
+    const active = get().getActiveGraph();
+    const nextNodes = active.nodes.map((node) => {
       if (node.id === nodeId) {
         return {
           ...node,
@@ -682,25 +960,19 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
       return node;
     });
 
-    projectStore.setProjectData({
-      ...currentProject,
-      nodes: nextNodes
-    });
+    get().setActiveGraph(nextNodes, active.edges);
   },
 
   applyCardStyleToScope: (targetNodeId: string, scope: 'single' | 'same_type' | 'all', styleChanges: Partial<BpmnNodeData>) => {
-    const projectStore = useProjectStore.getState();
-    const currentProject = projectStore.currentProject;
-    if (!currentProject) return;
-
-    const targetNode = currentProject.nodes.find((n) => n.id === targetNodeId);
+    const active = get().getActiveGraph();
+    const targetNode = active.nodes.find((n) => n.id === targetNodeId);
     if (!targetNode && scope !== 'all') return;
 
-    projectStore.pushSnapshot('Aplicar estilo');
+    useProjectStore.getState().pushSnapshot('Aplicar estilo');
 
     const targetType = targetNode?.data?.nodeType;
 
-    const nextNodes = currentProject.nodes.map((node) => {
+    const nextNodes = active.nodes.map((node) => {
       let shouldApply = false;
       if (scope === 'single') {
         shouldApply = node.id === targetNodeId;
@@ -722,20 +994,13 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
       return node;
     });
 
-    projectStore.setProjectData({
-      ...currentProject,
-      nodes: nextNodes
-    });
+    get().setActiveGraph(nextNodes, active.edges);
   },
 
   updateEdgeData: (edgeId: string, updates: Partial<SequenceFlowData>) => {
-    const projectStore = useProjectStore.getState();
-    const currentProject = projectStore.currentProject;
-    if (!currentProject) return;
-
-    projectStore.pushSnapshot('Modificar conector');
-
-    const nextEdges = currentProject.edges.map((edge) => {
+    useProjectStore.getState().pushSnapshot('Modificar conector');
+    const active = get().getActiveGraph();
+    const nextEdges = active.edges.map((edge) => {
       if (edge.id === edgeId) {
         return {
           ...edge,
@@ -751,10 +1016,7 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
       return edge;
     });
 
-    projectStore.setProjectData({
-      ...currentProject,
-      edges: nextEdges
-    });
+    get().setActiveGraph(active.nodes, nextEdges);
   },
 
   bulkUpdateNodeColors: (filter, colors) => {
@@ -827,23 +1089,18 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
     if (targetNodeIds.length > 0) {
       projectStore.pushSnapshot('Eliminar selección');
       const deleteSet = new Set(targetNodeIds);
-      const nextNodes = currentProject.nodes.filter(n => !deleteSet.has(n.id));
-      const nextEdges = currentProject.edges.filter(
+      const active = get().getActiveGraph();
+      const nextNodes = active.nodes.filter(n => !deleteSet.has(n.id));
+      const nextEdges = active.edges.filter(
         e => !deleteSet.has(e.source) && !deleteSet.has(e.target)
       );
-      projectStore.setProjectData({
-        ...currentProject,
-        nodes: nextNodes,
-        edges: nextEdges
-      });
+      get().setActiveGraph(nextNodes, nextEdges);
       set({ selectedNodeId: null, selectedNodeIds: [] });
     } else if (selectedEdgeId) {
-      projectStore.pushSnapshot('Eliminar conector');
-      const nextEdges = currentProject.edges.filter(e => e.id !== selectedEdgeId);
-      projectStore.setProjectData({
-        ...currentProject,
-        edges: nextEdges
-      });
+      useProjectStore.getState().pushSnapshot('Eliminar conector');
+      const active = get().getActiveGraph();
+      const nextEdges = active.edges.filter(e => e.id !== selectedEdgeId);
+      get().setActiveGraph(active.nodes, nextEdges);
       set({ selectedEdgeId: null });
     }
   },

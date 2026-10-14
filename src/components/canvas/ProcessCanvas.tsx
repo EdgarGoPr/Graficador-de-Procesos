@@ -31,7 +31,9 @@ import { SelectionToolbar } from './SelectionToolbar';
 import { AlignmentGuidesOverlay, AlignmentGuide } from './AlignmentGuidesOverlay';
 import { PrintFrameOverlay } from './PrintFrameOverlay';
 import { NewerVersionBanner } from './NewerVersionBanner';
+import { SubProcessBreadcrumbs } from './SubProcessBreadcrumbs';
 import { CustomMiniMapNode } from './CustomMiniMapNode';
+import { getGraphForPath } from '../../store/useCanvasStore';
 import { BpmnNodeType, BpmnNodeData } from '../../types/process';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -71,7 +73,8 @@ const ProcessCanvasInternal: React.FC = () => {
     copySelection,
     pasteSelection,
     selectedNodeIds,
-    isCanvasLocked
+    isCanvasLocked,
+    subProcessPath
   } = useCanvasStore();
 
   const {
@@ -342,11 +345,15 @@ const ProcessCanvasInternal: React.FC = () => {
     );
   }
 
+  const activeGraph = React.useMemo(() => {
+    return getGraphForPath(currentProject, subProcessPath);
+  }, [currentProject, subProcessPath]);
+
   // Stable hierarchical sorting so sections/lanes are rendered in background (first in array),
   // and tasks, gateways, and events are rendered on top (foreground).
   // Dynamically set draggable to false if the canvas is locked or if the node is individually locked.
   const hierarchicalNodes = React.useMemo(() => {
-    if (!currentProject?.nodes) return [];
+    if (!activeGraph?.nodes) return [];
     const getHierarchyLevel = (type?: string) => {
       if (type === 'PoolLane') return 0; // Jerarquía más básica (fondo)
       if (type === 'SubProcess') return 1; // Subprocesos contenedores
@@ -355,13 +362,13 @@ const ProcessCanvasInternal: React.FC = () => {
       if (type?.includes('Event')) return 4; // Eventos inicio, fin, calidad, timer
       return 2;
     };
-    return [...currentProject.nodes]
+    return [...activeGraph.nodes]
       .map((node) => ({
         ...node,
         draggable: !isCanvasLocked && !node.data?.isLocked
       }))
       .sort((a, b) => getHierarchyLevel(a.type) - getHierarchyLevel(b.type));
-  }, [currentProject?.nodes, isCanvasLocked]);
+  }, [activeGraph?.nodes, isCanvasLocked]);
 
   return (
     <div
@@ -375,7 +382,7 @@ const ProcessCanvasInternal: React.FC = () => {
 
       <ReactFlow
         nodes={hierarchicalNodes}
-        edges={currentProject.edges}
+        edges={activeGraph.edges}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
@@ -413,6 +420,7 @@ const ProcessCanvasInternal: React.FC = () => {
         <AlignmentGuidesOverlay guides={alignmentGuides} />
         <PrintFrameOverlay />
         <NewerVersionBanner />
+        <SubProcessBreadcrumbs />
         <Controls className="!bg-theme-surface !border-theme-border !text-theme-text fill-current shadow-lg" />
         <MiniMap
           pannable={true}

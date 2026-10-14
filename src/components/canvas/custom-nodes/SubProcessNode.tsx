@@ -4,12 +4,17 @@ import { BpmnNodeData } from '../../../types/process';
 import { hexToRgba } from '../../../types/theme';
 import { useUiStore } from '../../../store/useUiStore';
 import { useCanvasStore } from '../../../store/useCanvasStore';
-import { Layers, Maximize2, ListOrdered, FolderOpen } from 'lucide-react';
+import { Layers, Maximize2, ListOrdered, FolderOpen, Plus, FolderInput } from 'lucide-react';
 
 export const SubProcessNode = memo(({ id, data, selected }: NodeProps<any>) => {
   const nodeData = data as BpmnNodeData;
   const { openSubProcessDetail, showNotification } = useUiStore();
-  const { decompressSubProcess } = useCanvasStore();
+  const { decompressSubProcess, enterSubProcess } = useCanvasStore();
+
+  const handleEnterSubProcess = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    enterSubProcess(id);
+  };
 
   const handleExpand = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -49,7 +54,9 @@ export const SubProcessNode = memo(({ id, data, selected }: NodeProps<any>) => {
   return (
     <div
       style={customContainerStyle}
-      className={`group relative w-full h-full ${isTitleOnly ? 'min-w-[180px] min-h-[75px]' : 'min-w-[220px] min-h-[130px]'} flex flex-col justify-between rounded-xl bg-theme-surface/95 backdrop-blur-sm border-2 border-indigo-400/50 transition-all duration-150 shadow-md ${
+      onDoubleClick={handleEnterSubProcess}
+      title="Doble clic o clic en [+] para ingresar al subproceso"
+      className={`group relative w-full h-full ${isTitleOnly ? 'min-w-[180px] min-h-[75px]' : 'min-w-[230px] min-h-[135px]'} flex flex-col justify-between rounded-xl bg-theme-surface/95 backdrop-blur-sm border-2 border-indigo-400/50 transition-all duration-150 shadow-md ${
         selected
           ? '!ring-2 !ring-indigo-400 !border-indigo-400 shadow-2xl scale-[1.01]'
           : 'hover:border-indigo-400/80 hover:shadow-lg'
@@ -97,7 +104,7 @@ export const SubProcessNode = memo(({ id, data, selected }: NodeProps<any>) => {
           <div className="overflow-hidden">
             <h4
               style={{ fontSize: titleFontSize }}
-              className="text-xs font-semibold text-theme-text leading-snug line-clamp-2 mb-1 group-hover:text-indigo-300 transition-colors break-words overflow-hidden text-ellipsis"
+              className="text-xs font-semibold text-theme-text leading-snug line-clamp-2 mb-1 group-hover:text-indigo-300 transition-colors break-words overflow-hidden text-ellipsis cursor-pointer"
             >
               {nodeData.title}
             </h4>
@@ -111,7 +118,7 @@ export const SubProcessNode = memo(({ id, data, selected }: NodeProps<any>) => {
             )}
           </div>
 
-          {/* Steps indicator and Expand / Decompress Buttons */}
+          {/* Steps indicator and Action Buttons */}
           <div className="flex items-center justify-between pt-1.5 border-t border-theme-border text-[10px] overflow-hidden">
             <div className="flex items-center text-theme-text-muted truncate">
               <ListOrdered className="w-3 h-3 mr-1 text-indigo-400 shrink-0" />
@@ -121,9 +128,10 @@ export const SubProcessNode = memo(({ id, data, selected }: NodeProps<any>) => {
             <div className="flex items-center space-x-1 shrink-0">
               {stepsCount > 0 && (
                 <button
+                  type="button"
                   onClick={handleDecompress}
                   className="flex items-center space-x-0.5 px-1.5 py-0.5 rounded bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/25 text-[9px] font-medium transition-all"
-                  title="Descomprimir y desplegar actividades en el lienzo"
+                  title="Descomprimir y desplegar actividades en el lienzo actual"
                 >
                   <FolderOpen className="w-2.5 h-2.5" />
                   <span>Descomprimir</span>
@@ -131,17 +139,38 @@ export const SubProcessNode = memo(({ id, data, selected }: NodeProps<any>) => {
               )}
 
               <button
+                type="button"
                 onClick={handleExpand}
-                className="flex items-center space-x-0.5 px-2 py-0.5 rounded bg-indigo-500/15 hover:bg-indigo-500/30 text-indigo-300 hover:text-white border border-indigo-500/30 text-[9px] font-semibold transition-all shadow-sm"
-                title="Ampliar y ver el flujo detallado de este subproceso"
+                className="flex items-center space-x-0.5 px-1.5 py-0.5 rounded bg-theme-surface-subtle hover:bg-theme-surface text-theme-text-muted hover:text-theme-text border border-theme-border text-[9px] font-medium transition-all"
+                title="Ver resumen y propiedades del subproceso"
               >
                 <Maximize2 className="w-2.5 h-2.5" />
-                <span>Ampliar</span>
+                <span>Detalle</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleEnterSubProcess}
+                className="flex items-center space-x-0.5 px-2 py-0.5 rounded bg-indigo-500/20 hover:bg-indigo-600 text-indigo-300 hover:text-white border border-indigo-500/40 text-[9px] font-semibold transition-all shadow-sm"
+                title="Ingresar y editar el diagrama interno de este subproceso (Doble clic)"
+              >
+                <FolderInput className="w-2.5 h-2.5" />
+                <span>Ingresar</span>
               </button>
             </div>
           </div>
         </div>
       </div>
+
+      {/* BPMN 2.0 Standard Collapsed Sub-Process [+] Marker */}
+      <button
+        type="button"
+        onClick={handleEnterSubProcess}
+        className="absolute -bottom-3 left-1/2 -translate-x-1/2 z-30 flex items-center justify-center w-6 h-6 rounded bg-slate-900 border-2 border-indigo-400 text-indigo-300 hover:bg-indigo-600 hover:text-white shadow-lg hover:scale-110 active:scale-95 transition-all group-hover:border-indigo-300"
+        title="BPMN 2.0 [+] Entrar al diagrama de este subproceso (o doble clic)"
+      >
+        <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+      </button>
 
       {/* Source Handle (Right) */}
       <Handle

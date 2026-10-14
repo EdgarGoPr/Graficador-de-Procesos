@@ -2,6 +2,8 @@
  * ISO/IEC 19510 (BPMN 2.0) & ISO/IEC 11179 Strict Process Taxonomy & Model
  */
 
+import type { Node, Edge } from '@xyflow/react';
+
 export const BPMN_NODE_TYPES = {
   START_EVENT: 'StartEvent',
   END_EVENT: 'EndEvent',
@@ -112,6 +114,11 @@ export interface CompressedSubProcessSnapshot {
   }>;
 }
 
+export interface SubProcessCanvasData {
+  nodes: Node<BpmnNodeData>[];
+  edges: Edge<SequenceFlowData>[];
+}
+
 export interface BpmnNodeData {
   standardId: string; // e.g. "TSK-01", "GTW-01", "QC-01", "TMR-01", "SUB-01"
   title: string;
@@ -130,6 +137,8 @@ export interface BpmnNodeData {
   qualityCheckpoint?: QualityCheckpointConfig;
   operationalRisks: OperationalRiskConfig[];
   subProcessSteps?: SubProcessStep[]; // Pasos internos detallados del subproceso
+  subProcessCanvas?: SubProcessCanvasData; // Lienzo interactivo interno multinivel (recursivo N niveles)
+  compressedSnapshot?: CompressedSubProcessSnapshot;
   customBgColor?: string; // Color personalizado de fondo de la tarjeta (HEX/RGB)
   customBgOpacity?: number; // Nivel de opacidad / transparencia (0 a 100)
   customBorderColor?: string; // Color personalizado de borde de la tarjeta

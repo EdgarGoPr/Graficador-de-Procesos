@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { useCanvasStore } from '../../store/useCanvasStore';
 import { useProjectStore } from '../../store/useProjectStore';
+import { useReactFlow } from '@xyflow/react';
 
 interface PaletteItem {
   type: BpmnNodeType;
@@ -163,10 +164,35 @@ const PALETTE_GROUPS: { groupName: string; items: PaletteItem[] }[] = [
 export const SidebarPalette: React.FC = () => {
   const { addNode, addLane } = useCanvasStore();
   const { currentProject } = useProjectStore();
+  const { screenToFlowPosition } = useReactFlow();
 
   const [width, setWidth] = useState<number>(260);
   const [isCollapsed, setIsCollapsed] = useState<boolean>(false);
   const isResizingRef = useRef<boolean>(false);
+
+  // Computes the exact center of the visible canvas viewport dynamically
+  const getCanvasCenter = useCallback(() => {
+    try {
+      const pane = document.querySelector('.react-flow__pane') || document.querySelector('.react-flow');
+      let x = window.innerWidth / 2;
+      let y = window.innerHeight / 2;
+      if (pane) {
+        const rect = pane.getBoundingClientRect();
+        x = rect.left + rect.width / 2;
+        y = rect.top + rect.height / 2;
+      }
+      const flowPos = screenToFlowPosition({ x, y });
+      return {
+        x: Math.round(flowPos.x + (Math.random() - 0.5) * 60),
+        y: Math.round(flowPos.y + (Math.random() - 0.5) * 60),
+      };
+    } catch {
+      return {
+        x: 350 + (Math.random() - 0.5) * 50,
+        y: 180 + (Math.random() - 0.5) * 50,
+      };
+    }
+  }, [screenToFlowPosition]);
 
   const handleDragStart = (e: React.DragEvent, nodeType: BpmnNodeType) => {
     e.dataTransfer.setData('application/reactflow-nodetype', nodeType);
@@ -232,7 +258,7 @@ export const SidebarPalette: React.FC = () => {
                 key={item.type}
                 draggable
                 onDragStart={(e) => handleDragStart(e, item.type)}
-                onClick={() => addNode(item.type, { x: 350 + Math.random() * 40, y: 180 + Math.random() * 40 })}
+                onClick={() => addNode(item.type, getCanvasCenter())}
                 className={`p-2 rounded-lg border cursor-grab active:cursor-grabbing ${item.bgClass} ${item.colorClass} transition-transform hover:scale-110`}
                 title={`${item.title} (${item.subtitle}) - Arrastrar al lienzo`}
               >
@@ -293,7 +319,7 @@ export const SidebarPalette: React.FC = () => {
                     key={item.type}
                     draggable
                     onDragStart={(e) => handleDragStart(e, item.type)}
-                    onClick={() => addNode(item.type, { x: 320 + Math.random() * 50, y: 160 + Math.random() * 50 })}
+                    onClick={() => addNode(item.type, getCanvasCenter())}
                     className={`flex items-center p-2 rounded-lg border transition-all cursor-grab active:cursor-grabbing shadow-sm hover:shadow-md ${item.bgClass} ${item.colorClass}`}
                   >
                     <div className="p-1.5 rounded-md bg-theme-surface mr-2.5 shrink-0 shadow-sm border border-theme-border/50">
