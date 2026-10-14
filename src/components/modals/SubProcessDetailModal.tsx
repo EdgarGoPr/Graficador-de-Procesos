@@ -152,7 +152,7 @@ export const SubProcessDetailModal: React.FC<SubProcessDetailModalProps> = ({
               </span>
             </div>
             <div>
-              <span className="text-[10px] text-theme-text-muted font-mono block">MARCO LEGAL</span>
+              <span className="text-[10px] text-theme-text-muted font-mono block">MARCO</span>
               <span className="font-bold text-theme-text truncate block mt-0.5">
                 {subProcessNode.data.legalFramework || 'Norma general'}
               </span>

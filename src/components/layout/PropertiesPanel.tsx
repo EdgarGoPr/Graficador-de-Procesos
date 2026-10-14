@@ -1002,7 +1002,7 @@ export const PropertiesPanel: React.FC = () => {
           <div>
             <label className="text-[10px] font-bold uppercase tracking-wider text-theme-text-muted font-mono flex items-center space-x-1">
               <Scale className="w-3 h-3 text-[#F59E0B] mr-1" />
-              <span>Marco Legal</span>
+              <span>Marco</span>
             </label>
             <input
               type="text"

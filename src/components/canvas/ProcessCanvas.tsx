@@ -31,6 +31,7 @@ import { SelectionToolbar } from './SelectionToolbar';
 import { AlignmentGuidesOverlay, AlignmentGuide } from './AlignmentGuidesOverlay';
 import { PrintFrameOverlay } from './PrintFrameOverlay';
 import { NewerVersionBanner } from './NewerVersionBanner';
+import { CustomMiniMapNode } from './CustomMiniMapNode';
 import { BpmnNodeType, BpmnNodeData } from '../../types/process';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -56,7 +57,7 @@ const EDGE_TYPES: any = {
 
 const ProcessCanvasInternal: React.FC = () => {
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
-  const { screenToFlowPosition } = useReactFlow();
+  const { screenToFlowPosition, setCenter } = useReactFlow();
 
   const { currentProject } = useProjectStore();
   const {
@@ -133,6 +134,25 @@ const ProcessCanvasInternal: React.FC = () => {
     selectNode(null);
     selectEdge(null);
   }, [selectNode, selectEdge]);
+
+  // MiniMap navigation handlers: Smoothly center canvas on clicked location or node
+  const handleMiniMapClick = useCallback(
+    (_event: React.MouseEvent, position: { x: number; y: number }) => {
+      setCenter(position.x, position.y, { duration: 400 });
+    },
+    [setCenter]
+  );
+
+  const handleMiniMapNodeClick = useCallback(
+    (_event: React.MouseEvent, node: any) => {
+      const x = (node.position?.x ?? 0) + (node.measured?.width ?? node.width ?? 100) / 2;
+      const y = (node.position?.y ?? 0) + (node.measured?.height ?? node.height ?? 60) / 2;
+      setCenter(x, y, { duration: 400 });
+      selectNode(node.id);
+      setPropertiesPanelOpen(true);
+    },
+    [setCenter, selectNode, setPropertiesPanelOpen]
+  );
 
   // Keydown global shortcuts (Delete, Ctrl+C, Ctrl+V)
   const onKeyDown = useCallback(
@@ -395,6 +415,11 @@ const ProcessCanvasInternal: React.FC = () => {
         <NewerVersionBanner />
         <Controls className="!bg-theme-surface !border-theme-border !text-theme-text fill-current shadow-lg" />
         <MiniMap
+          pannable={true}
+          zoomable={true}
+          onClick={handleMiniMapClick}
+          onNodeClick={handleMiniMapNodeClick}
+          nodeComponent={CustomMiniMapNode}
           nodeColor={(node) => {
             // 1. Jerarquía base: Carril / Sección (Fondo traslúcido suave con borde distintivo para no tapar los elementos de encima)
             if (node.type === 'PoolLane') {
@@ -438,7 +463,7 @@ const ProcessCanvasInternal: React.FC = () => {
           }}
           nodeStrokeWidth={1.5}
           nodeBorderRadius={4}
-          className="!bg-theme-surface/90 !border-theme-border !rounded-xl shadow-2xl backdrop-blur-md"
+          className="!bg-theme-surface/90 !border-theme-border !rounded-xl shadow-2xl backdrop-blur-md cursor-pointer"
           maskColor={activeColors.isDark ? 'rgba(15, 23, 42, 0.70)' : 'rgba(241, 245, 249, 0.70)'}
           maskStrokeColor={activeColors.accent}
           maskStrokeWidth={1.5}

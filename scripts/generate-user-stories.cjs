@@ -362,6 +362,15 @@ const userStories = [
     criteriosAceptacion: '1. Configuración de directivas en .gitignore para ignorar archivos en MiAppProcesos_USB/Proyectos/* y Proyectos/*.\n2. Conservación del directorio en el repositorio mediante el marcador .gitkeep.\n3. Desindexación en Git de los archivos JSON de proyectos previamente rastreados sin borrarlos del disco local (git rm --cached).\n4. Verificación de que crear o editar proyectos JSON no genere avisos en git status.\n5. Preservación física intacta de los archivos existentes en la máquina local.',
     fechaImplementacion: '2026-10-14',
     estado: 'Implementado / Producción'
+  },
+  {
+    id: 'PST-041',
+    modulo: 'Lienzo BPMN & Minimapa / UI',
+    titulo: 'Navegación Interactiva por Clic en Minimapa, Representación Geométrica BPMN Fiel y Ajuste de Etiqueta Marco',
+    historiaUsuario: 'Como modelador de procesos, quiero navegar por el lienzo haciendo clic o arrastrando directamente en el minimapa, ver la silueta geométrica real de cada elemento (círculos para eventos, rombos para compuertas y rectángulos para tareas) e identificar el marco legal como "Marco" en las propiedades de la tarjeta, para tener una orientación espacial precisa y una interfaz limpia.',
+    criteriosAceptacion: '1. Clic en cualquier área del minimapa desplaza y centra suavemente la vista del lienzo hacia esas coordenadas (setCenter con animación).\n2. Clic directo sobre un nodo en el minimapa centra la vista en dicho nodo y lo selecciona automáticamente abriendo su panel de propiedades.\n3. Soporte para arrastre (pannable) y zoom con la rueda del ratón (zoomable) directo en el minimapa.\n4. Eventos de inicio, fin, checkpoint de calidad y temporizador se representan con silueta circular concéntrica en el minimapa.\n5. Compuertas exclusivas y paralelas se representan fielmente como rombos/diamantes.\n6. Nodos seleccionados muestran contorno activo y resplandor de alta visibilidad.\n7. La etiqueta "Marco Legal" en el panel lateral de propiedades se actualiza a "Marco".',
+    fechaImplementacion: '2026-10-14',
+    estado: 'Implementado / Producción'
   }
 ];
 
