@@ -123,7 +123,7 @@ export const ExportCenterModal: React.FC<ExportCenterModalProps> = ({ isOpen, on
                 Diagrama en PDF (Multi-Página)
               </h3>
               <p className="text-xs text-theme-text-muted mt-1 leading-relaxed">
-                Exporta el mapa del proceso en páginas A4/Carta/A3 con encuadre de recuadros punteados y membrete ISO 9001.
+                Exporta el mapa del proceso en páginas A4/Carta/A3 con encuadre de recuadros punteados y membrete formal.
               </p>
             </div>
             <div className="mt-4 pt-3 border-t border-theme-border flex items-center text-xs font-semibold text-sky-400">
@@ -201,7 +201,7 @@ export const ExportCenterModal: React.FC<ExportCenterModalProps> = ({ isOpen, on
                 </span>
               </div>
               <h3 className="text-sm font-bold text-theme-text group-hover:text-[#F59E0B] transition-colors">
-                BPMN 2.0 Estándar ISO 19510
+                BPMN 2.0 Estándar XML
               </h3>
               <p className="text-xs text-theme-text-muted mt-1 leading-relaxed">
                 XML oficial estándar OMG para abrir o importar en Camunda, Bizagi, Signavio o BonitaBPM.

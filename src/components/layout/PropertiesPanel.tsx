@@ -29,7 +29,9 @@ import {
   Tv,
   Settings,
   Edit2,
-  Check
+  Check,
+  Wrench,
+  User
 } from 'lucide-react';
 import {
   BpmnNodeData,
@@ -188,13 +190,13 @@ export const PropertiesPanel: React.FC = () => {
             </label>
             <input
               type="text"
-              placeholder="ej: Admite trámite / Pago voluntario / No subsanado"
+              placeholder="Condición o etiqueta del flujo..."
               value={edge.data?.conditionText || ''}
               onChange={(e) => updateEdgeData(edge.id, { conditionText: e.target.value })}
               className="w-full bg-theme-surface-subtle border border-theme-border rounded px-2 py-1.5 text-theme-accent font-mono text-xs focus:border-theme-accent outline-none mt-0.5"
             />
             <p className="text-[10px] text-theme-text-muted leading-relaxed">
-              Este texto se mostrará sobre la flecha en el lienzo BPMN y se exportará en la Ficha Técnica ISO 9001.
+              Este texto se mostrará sobre la flecha en el lienzo BPMN y en la ficha técnica.
             </p>
           </div>
 
@@ -341,14 +343,19 @@ export const PropertiesPanel: React.FC = () => {
     updateNodeData(node.id, updates);
   };
 
-  const handleSlaChange = (value: number, unit: TimeUnitType, isPeremptory: boolean) => {
+  const handleSlaChange = (value: number, unit: TimeUnitType, isPeremptory: boolean, enabled: boolean = true) => {
+    if (!enabled) {
+      handleUpdate({ slaDuration: undefined });
+      return;
+    }
     const isoString = buildIsoDurationString(value, unit);
     handleUpdate({
       slaDuration: {
         value,
         unit,
         iso8601String: isoString,
-        isPeremptory
+        isPeremptory,
+        enabled: true
       }
     });
   };
@@ -959,10 +966,11 @@ export const PropertiesPanel: React.FC = () => {
         <div className="grid grid-cols-3 gap-2">
           <div>
             <label className="text-[10px] font-bold uppercase tracking-wider text-theme-text-muted font-mono">
-              ID Estándar
+              ID
             </label>
             <input
               type="text"
+              placeholder="ID"
               value={data.standardId || ''}
               onChange={(e) => handleUpdate({ standardId: e.target.value })}
               className="w-full bg-theme-surface-subtle border border-theme-border rounded px-2 py-1.5 text-theme-text font-mono text-xs focus:border-theme-accent outline-none mt-0.5"
@@ -974,6 +982,7 @@ export const PropertiesPanel: React.FC = () => {
             </label>
             <input
               type="text"
+              placeholder="Título de la actividad"
               value={data.title || ''}
               onChange={(e) => handleUpdate({ title: e.target.value })}
               className="w-full bg-theme-surface-subtle border border-theme-border rounded px-2 py-1.5 text-theme-text text-xs focus:border-theme-accent outline-none mt-0.5 font-medium"
@@ -984,10 +993,11 @@ export const PropertiesPanel: React.FC = () => {
         {/* Description */}
         <div>
           <label className="text-[10px] font-bold uppercase tracking-wider text-theme-text-muted font-mono">
-            Descripción Detallada (ISO 9001)
+            Descripción
           </label>
           <textarea
             rows={3}
+            placeholder="Descripción de la actividad"
             value={data.description || ''}
             onChange={(e) => handleUpdate({ description: e.target.value })}
             className="w-full bg-theme-surface-subtle border border-theme-border rounded px-2 py-1.5 text-theme-text text-xs focus:border-theme-accent outline-none mt-0.5 resize-none leading-relaxed"
@@ -1263,43 +1273,16 @@ export const PropertiesPanel: React.FC = () => {
 
               <div>
                 <label className="text-[9px] font-bold uppercase tracking-wider text-theme-text-muted font-mono block mb-0.5">
-                  Nombre del Área / Carril *
+                  Título del Carril *
                 </label>
                 <input
                   type="text"
-                  placeholder="ej: Mesa de Entradas"
+                  placeholder="Título del carril"
                   value={newLaneForm.name}
                   onChange={(e) => setNewLaneForm({ ...newLaneForm, name: e.target.value })}
                   className="w-full bg-theme-surface-subtle border border-theme-border rounded px-2 py-1 text-theme-text text-xs focus:border-theme-accent outline-none"
                   autoFocus
                 />
-              </div>
-
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="text-[9px] font-bold uppercase tracking-wider text-theme-text-muted font-mono block mb-0.5">
-                    Rol Responsable
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="ej: Inspector / Operador"
-                    value={newLaneForm.role}
-                    onChange={(e) => setNewLaneForm({ ...newLaneForm, role: e.target.value })}
-                    className="w-full bg-theme-surface-subtle border border-theme-border rounded px-2 py-1 text-theme-text text-xs focus:border-theme-accent outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="text-[9px] font-bold uppercase tracking-wider text-theme-text-muted font-mono block mb-0.5">
-                    Sistema TI
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="ej: SAM"
-                    value={newLaneForm.system}
-                    onChange={(e) => setNewLaneForm({ ...newLaneForm, system: e.target.value })}
-                    className="w-full bg-theme-surface-subtle border border-theme-border rounded px-2 py-1 text-theme-text text-xs focus:border-theme-accent outline-none font-mono"
-                  />
-                </div>
               </div>
 
               <div>
@@ -1339,21 +1322,20 @@ export const PropertiesPanel: React.FC = () => {
                   type="button"
                   onClick={() => {
                     if (!newLaneForm.name.trim()) {
-                      showNotification('Ingrese el nombre del carril', 'error');
+                      showNotification('Ingrese el título del carril', 'error');
                       return;
                     }
                     const newId = addLane(
                       pool?.id,
                       newLaneForm.name.trim(),
-                      newLaneForm.role.trim() || 'Responsable',
-                      newLaneForm.system.trim(),
+                      '',
+                      '',
                       newLaneForm.colorHex
                     );
                     if (newId) {
                       handleUpdate({
                         laneId: newId,
-                        laneName: newLaneForm.name.trim(),
-                        roleName: newLaneForm.role.trim() || 'Responsable'
+                        laneName: newLaneForm.name.trim()
                       });
                       showNotification(`Carril "${newLaneForm.name}" creado y asignado`, 'success');
                     }
@@ -1369,20 +1351,35 @@ export const PropertiesPanel: React.FC = () => {
           )}
         </div>
 
-        {/* IT System & Legal Framework */}
-        <div className="grid grid-cols-2 gap-2">
-          <div>
-            <label className="text-[10px] font-bold uppercase tracking-wider text-theme-text-muted font-mono flex items-center space-x-1">
-              <Server className="w-3 h-3 text-theme-accent mr-1" />
-              <span>Sistema TI</span>
-            </label>
-            <input
-              type="text"
-              placeholder="ej: SAM, VUPRA, GDE"
-              value={data.itSystem || ''}
-              onChange={(e) => handleUpdate({ itSystem: e.target.value })}
-              className="w-full bg-theme-surface-subtle border border-theme-border rounded px-2 py-1 text-theme-text text-xs focus:border-theme-accent outline-none mt-0.5 font-mono"
-            />
+        {/* Herramienta, Responsable & Marco */}
+        <div className="space-y-2">
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="text-[10px] font-bold uppercase tracking-wider text-theme-text-muted font-mono flex items-center space-x-1">
+                <Wrench className="w-3 h-3 text-theme-accent mr-1" />
+                <span>Herramienta</span>
+              </label>
+              <input
+                type="text"
+                placeholder="Herramienta utilizada"
+                value={data.itSystem || ''}
+                onChange={(e) => handleUpdate({ itSystem: e.target.value })}
+                className="w-full bg-theme-surface-subtle border border-theme-border rounded px-2 py-1 text-theme-text text-xs focus:border-theme-accent outline-none mt-0.5"
+              />
+            </div>
+            <div>
+              <label className="text-[10px] font-bold uppercase tracking-wider text-theme-text-muted font-mono flex items-center space-x-1">
+                <User className="w-3 h-3 text-[#3B82F6] mr-1" />
+                <span>Responsable</span>
+              </label>
+              <input
+                type="text"
+                placeholder="Responsable de la tarea"
+                value={data.responsible || ''}
+                onChange={(e) => handleUpdate({ responsible: e.target.value })}
+                className="w-full bg-theme-surface-subtle border border-theme-border rounded px-2 py-1 text-theme-text text-xs focus:border-theme-accent outline-none mt-0.5"
+              />
+            </div>
           </div>
           <div>
             <label className="text-[10px] font-bold uppercase tracking-wider text-theme-text-muted font-mono flex items-center space-x-1">
@@ -1391,7 +1388,7 @@ export const PropertiesPanel: React.FC = () => {
             </label>
             <input
               type="text"
-              placeholder="ej: Art. 45 Ord. 123"
+              placeholder="Norma, instructivo o procedimiento"
               value={data.legalFramework || ''}
               onChange={(e) => handleUpdate({ legalFramework: e.target.value })}
               className="w-full bg-theme-surface-subtle border border-theme-border rounded px-2 py-1 text-theme-text text-xs focus:border-theme-accent outline-none mt-0.5"
@@ -1399,76 +1396,103 @@ export const PropertiesPanel: React.FC = () => {
           </div>
         </div>
 
-        {/* SLA Duration Configuration (ISO 8601) */}
+        {/* Plazo de Ejecución (Activable / Desactivable) */}
         {!isGateway && (
           <div className="p-3 bg-theme-surface-subtle border border-theme-border rounded-xl space-y-2">
             <div className="flex items-center justify-between">
-              <label className="text-[10px] font-bold uppercase tracking-wider text-theme-text font-mono flex items-center space-x-1">
-                <Clock className="w-3.5 h-3.5 text-[#F59E0B] mr-1" />
-                <span>Tiempo de Ciclo / SLA (ISO 8601)</span>
+              <label className="text-[10px] font-bold uppercase tracking-wider text-theme-text font-mono flex items-center space-x-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={Boolean(data.slaDuration?.enabled ?? (data.slaDuration && data.slaDuration.value > 0))}
+                  onChange={(e) => {
+                    const isEnabled = e.target.checked;
+                    if (isEnabled) {
+                      handleSlaChange(
+                        data.slaDuration?.value || 1,
+                        data.slaDuration?.unit || 'BUSINESS_DAYS',
+                        data.slaDuration?.isPeremptory || false,
+                        true
+                      );
+                    } else {
+                      handleUpdate({ slaDuration: undefined });
+                    }
+                  }}
+                  className="rounded text-theme-accent focus:ring-0 bg-theme-surface border-theme-border cursor-pointer"
+                />
+                <span className="flex items-center gap-1">
+                  <Clock className="w-3.5 h-3.5 text-[#F59E0B]" />
+                  <span>Habilitar Plazo de Ejecución</span>
+                </span>
               </label>
-              {data.slaDuration?.iso8601String && (
+              {data.slaDuration && (data.slaDuration.enabled ?? data.slaDuration.value > 0) && (
                 <span className="text-[10px] font-mono text-[#F59E0B] font-bold">
-                  {data.slaDuration.iso8601String}
+                  {data.slaDuration.value} {data.slaDuration.unit === 'BUSINESS_DAYS' ? 'días hábiles' : data.slaDuration.unit === 'CALENDAR_DAYS' ? 'días corridos' : 'horas'}
                 </span>
               )}
             </div>
 
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <span className="text-[10px] text-theme-text-muted block mb-0.5">Plazo Numérico:</span>
-                <input
-                  type="number"
-                  min="0"
-                  value={data.slaDuration?.value ?? 0}
-                  onChange={(e) =>
-                    handleSlaChange(
-                      Number(e.target.value),
-                      data.slaDuration?.unit || 'BUSINESS_DAYS',
-                      data.slaDuration?.isPeremptory || false
-                    )
-                  }
-                  className="w-full bg-theme-surface border border-theme-border rounded px-2 py-1 text-xs text-theme-text font-mono outline-none"
-                />
-              </div>
+            {Boolean(data.slaDuration?.enabled ?? (data.slaDuration && data.slaDuration.value > 0)) && (
+              <div className="space-y-2 pt-1 animate-fadeIn">
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <span className="text-[10px] text-theme-text-muted block mb-0.5">Plazo Numérico:</span>
+                    <input
+                      type="number"
+                      min="1"
+                      value={data.slaDuration?.value ?? 1}
+                      onChange={(e) =>
+                        handleSlaChange(
+                          Math.max(1, Number(e.target.value)),
+                          data.slaDuration?.unit || 'BUSINESS_DAYS',
+                          data.slaDuration?.isPeremptory || false,
+                          true
+                        )
+                      }
+                      className="w-full bg-theme-surface border border-theme-border rounded px-2 py-1 text-xs text-theme-text font-mono outline-none"
+                    />
+                  </div>
 
-              <div>
-                <span className="text-[10px] text-theme-text-muted block mb-0.5">Unidad de Cómputo:</span>
-                <select
-                  value={data.slaDuration?.unit || 'BUSINESS_DAYS'}
-                  onChange={(e) =>
-                    handleSlaChange(
-                      data.slaDuration?.value ?? 0,
-                      e.target.value as TimeUnitType,
-                      data.slaDuration?.isPeremptory || false
-                    )
-                  }
-                  className="w-full bg-theme-surface border border-theme-border rounded px-2 py-1 text-xs text-theme-text outline-none"
-                >
-                  <option value={TIME_UNIT_TYPES.BUSINESS_DAYS}>Días Hábiles</option>
-                  <option value={TIME_UNIT_TYPES.CALENDAR_DAYS}>Días Corridos</option>
-                  <option value={TIME_UNIT_TYPES.HOURS}>Horas Directas</option>
-                </select>
-              </div>
-            </div>
+                  <div>
+                    <span className="text-[10px] text-theme-text-muted block mb-0.5">Unidad de Cómputo:</span>
+                    <select
+                      value={data.slaDuration?.unit || 'BUSINESS_DAYS'}
+                      onChange={(e) =>
+                        handleSlaChange(
+                          data.slaDuration?.value ?? 1,
+                          e.target.value as TimeUnitType,
+                          data.slaDuration?.isPeremptory || false,
+                          true
+                        )
+                      }
+                      className="w-full bg-theme-surface border border-theme-border rounded px-2 py-1 text-xs text-theme-text outline-none"
+                    >
+                      <option value={TIME_UNIT_TYPES.BUSINESS_DAYS}>Días Hábiles</option>
+                      <option value={TIME_UNIT_TYPES.CALENDAR_DAYS}>Días Corridos</option>
+                      <option value={TIME_UNIT_TYPES.HOURS}>Horas Directas</option>
+                    </select>
+                  </div>
+                </div>
 
-            <label className="flex items-center space-x-2 pt-1 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={data.slaDuration?.isPeremptory || false}
-                onChange={(e) =>
-                  handleSlaChange(
-                    data.slaDuration?.value ?? 0,
-                    data.slaDuration?.unit || 'BUSINESS_DAYS',
-                    e.target.checked
-                  )
-                }
-                className="rounded text-[#F59E0B] focus:ring-0 bg-theme-surface border-theme-border"
-              />
-              <span className="text-[11px] text-[#F59E0B] font-semibold">
-                Plazo Perentorio / Fatal (Prescripción legal)
-              </span>
-            </label>
+                <label className="flex items-center space-x-2 pt-1 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={data.slaDuration?.isPeremptory || false}
+                    onChange={(e) =>
+                      handleSlaChange(
+                        data.slaDuration?.value ?? 1,
+                        data.slaDuration?.unit || 'BUSINESS_DAYS',
+                        e.target.checked,
+                        true
+                      )
+                    }
+                    className="rounded text-[#F59E0B] focus:ring-0 bg-theme-surface border-theme-border cursor-pointer"
+                  />
+                  <span className="text-[11px] text-[#F59E0B] font-semibold">
+                    Plazo Estricto / Crítico
+                  </span>
+                </label>
+              </div>
+            )}
           </div>
         )}
 
@@ -1478,7 +1502,7 @@ export const PropertiesPanel: React.FC = () => {
             <div className="flex items-center justify-between text-[#10B981]">
               <span className="text-[10px] font-bold uppercase tracking-wider font-mono flex items-center space-x-1">
                 <ShieldCheck className="w-3.5 h-3.5 mr-1" />
-                <span>Punto de Control de Calidad (ISO 9001)</span>
+                <span>Punto de Control de Calidad</span>
               </span>
             </div>
 
@@ -1486,7 +1510,7 @@ export const PropertiesPanel: React.FC = () => {
               <label className="text-[10px] text-theme-text-muted block">Criterio de Inspección:</label>
               <input
                 type="text"
-                placeholder="ej: Firma de auditor, sello de mesa de entradas..."
+                placeholder="Criterio de inspección o aceptación..."
                 value={data.qualityCheckpoint?.inspectionCriteria || ''}
                 onChange={(e) =>
                   handleUpdate({
@@ -1579,7 +1603,7 @@ export const PropertiesPanel: React.FC = () => {
         <div className="space-y-2 pt-3 border-t border-theme-border">
           <label className="text-[10px] font-bold uppercase tracking-wider text-[#EF4444] font-mono flex items-center space-x-1">
             <AlertTriangle className="w-3.5 h-3.5 mr-1" />
-            <span>Gestión de Riesgos Operativos (ISO 9001:2015)</span>
+            <span>Gestión de Riesgos Operativos</span>
           </label>
 
           <div className="space-y-1.5 mb-2">

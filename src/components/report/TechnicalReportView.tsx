@@ -133,7 +133,7 @@ export const TechnicalReportView: React.FC = () => {
                 <div>
                   <div className="flex items-center space-x-2 text-theme-accent font-mono text-xs font-bold uppercase tracking-wider print:text-slate-800">
                     <Shield className="w-4 h-4" />
-                    <span>Manual de Procedimientos &bull; ISO 9001:2015 / BPMN 2.0</span>
+                    <span>Manual de Procedimientos &bull; BPMN 2.0</span>
                   </div>
                   <h1 className="text-2xl md:text-3xl font-extrabold text-theme-text mt-1 print:text-black">
                     {report.projectTitle}
@@ -218,7 +218,7 @@ export const TechnicalReportView: React.FC = () => {
                   {report.riskMatrix.length} Riesgos / {report.chronologicalSteps.filter(s => s.qualityCheck).length} QC
                 </div>
                 <div className="text-[10px] text-theme-text-muted mt-0.5 font-mono print:text-slate-600">
-                  (Controles Mitigantes ISO 9001)
+                  (Controles Mitigantes)
                 </div>
               </div>
             </div>
@@ -446,7 +446,7 @@ export const TechnicalReportView: React.FC = () => {
               <div className="page-break-avoid">
                 <h3 className="text-sm font-bold uppercase tracking-wider text-[#EF4444] mb-3 font-mono print:text-slate-900 flex items-center">
                   <AlertTriangle className="w-4 h-4 mr-1.5" />
-                  4. Matriz de Riesgos Operativos y Controles Mitigantes (ISO 9001:2015 Cláusula 6.1)
+                  4. Matriz de Riesgos Operativos y Controles Mitigantes
                 </h3>
                 <div className="overflow-x-auto rounded-xl border border-theme-border print:border-slate-300">
                   <table className="w-full text-left text-xs border-collapse">
@@ -521,7 +521,7 @@ export const TechnicalReportView: React.FC = () => {
             <div className="pt-6 border-t-2 border-theme-border print:border-slate-900 space-y-6 page-break-avoid">
               <div>
                 <h4 className="text-xs font-mono font-bold uppercase text-theme-text-muted print:text-slate-800 mb-2">
-                  Historial Formal de Revisiones (Control de Cambios ISO 9001)
+                  Historial Formal de Revisiones (Control de Cambios)
                 </h4>
                 <div className="overflow-x-auto rounded-lg border border-theme-border print:border-slate-300">
                   <table className="w-full text-left text-xs border-collapse">

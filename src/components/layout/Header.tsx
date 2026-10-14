@@ -305,7 +305,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
                     <FileCheck className="w-4 h-4 text-amber-400" />
                     <div>
                       <div className="font-medium">Documento & Reporte Técnico</div>
-                      <div className="text-[10px] text-theme-text-muted">Memoria técnica e ISO 9001</div>
+                      <div className="text-[10px] text-theme-text-muted">Memoria técnica y especificaciones</div>
                     </div>
                   </div>
                   {activeView === 'REPORT' && <Check className="w-3.5 h-3.5 text-theme-accent" />}
@@ -372,7 +372,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
                     <Shield className="w-4 h-4 text-emerald-400 group-hover:scale-110 transition-transform" />
                     <div>
                       <div className="font-semibold">Auditor de Calidad</div>
-                      <div className="text-[10px] text-theme-text-muted">Linter BPMN 2.0 / ISO 9001</div>
+                      <div className="text-[10px] text-theme-text-muted">Auditoría y Linter BPMN 2.0</div>
                     </div>
                   </div>
                 </button>

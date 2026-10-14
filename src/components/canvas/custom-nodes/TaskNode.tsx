@@ -102,7 +102,7 @@ export const TaskNode = memo(({ data, selected }: NodeProps<any>) => {
               style={{ fontSize: titleFontSize }}
               className="text-xs font-semibold text-theme-text leading-snug line-clamp-2 mb-1 break-words overflow-hidden text-ellipsis"
             >
-              {nodeData.title}
+              {nodeData.title ? nodeData.title : <span className="text-theme-text-muted/50 italic font-normal">Sin título</span>}
             </h4>
 
             {!isTitleOnly && nodeData.description && (
@@ -121,15 +121,21 @@ export const TaskNode = memo(({ data, selected }: NodeProps<any>) => {
               <div className="space-y-1 pt-1.5 border-t border-theme-border text-[10px] overflow-hidden">
                 {nodeData.itSystem && (
                   <div className="flex items-center text-theme-text-muted truncate">
-                    <Server className="w-3 h-3 text-sky-400 mr-1.5 shrink-0" />
+                    <Wrench className="w-3 h-3 text-sky-400 mr-1.5 shrink-0" />
                     <span className="truncate">{nodeData.itSystem}</span>
                   </div>
                 )}
-                {nodeData.slaDuration && (
+                {nodeData.responsible && (
+                  <div className="flex items-center text-theme-text-muted truncate">
+                    <User className="w-3 h-3 text-indigo-400 mr-1.5 shrink-0" />
+                    <span className="truncate">{nodeData.responsible}</span>
+                  </div>
+                )}
+                {nodeData.slaDuration && (nodeData.slaDuration.enabled ?? nodeData.slaDuration.value > 0) && (
                   <div className="flex items-center text-theme-text-muted truncate">
                     <Clock className="w-3 h-3 text-amber-400 mr-1.5 shrink-0" />
-                    <span className="truncate">
-                      SLA: {nodeData.slaDuration.value} {nodeData.slaDuration.unit.toLowerCase()}
+                    <span className="truncate font-mono">
+                      {nodeData.slaDuration.value} {nodeData.slaDuration.unit === 'BUSINESS_DAYS' ? 'días hábiles' : nodeData.slaDuration.unit === 'CALENDAR_DAYS' ? 'días corridos' : 'horas'}
                     </span>
                   </div>
                 )}

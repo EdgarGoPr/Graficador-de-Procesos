@@ -164,32 +164,7 @@ export const useProjectStore = create<ProjectStoreState>((set, get) => ({
           id: 'pool_1',
           name: title,
           organization: orgUnit || 'Unidad Organizativa',
-          lanes: [
-            {
-              id: 'lane_1',
-              name: 'Mesa de Entradas / Inspectoría',
-              role: 'Inspector / Operador',
-              system: 'SAM / VUPRA',
-              colorHex: '#10B981',
-              order: 0
-            },
-            {
-              id: 'lane_2',
-              name: 'Área Legal / Notificaciones',
-              role: 'Oficial Notificador / Asesor',
-              system: 'GDE / Notificaciones',
-              colorHex: '#3B82F6',
-              order: 1
-            },
-            {
-              id: 'lane_3',
-              name: 'Juzgado / Resolución Final',
-              role: 'Juez de Faltas / Resolutor',
-              system: 'Sistema de Sentencias',
-              colorHex: '#8B5CF6',
-              order: 2
-            }
-          ]
+          lanes: []
         }
       ],
       nodes: [
@@ -200,15 +175,16 @@ export const useProjectStore = create<ProjectStoreState>((set, get) => ({
           data: {
             standardId: 'INI-01',
             title: 'Inicio del Proceso',
-            description: 'Disparador formal de ingreso del trámite o expediente.',
+            description: '',
             nodeType: 'StartEvent',
-            laneId: 'lane_1',
-            laneName: 'Mesa de Entradas / Inspectoría',
-            roleName: 'Inspector / Operador',
-            itSystem: 'SAM / VUPRA',
-            legalFramework: 'Reglamento General',
-            inputs: ['Formulario de Solicitud / Acta'],
-            outputs: ['Expediente Iniciado'],
+            laneId: '',
+            laneName: '',
+            roleName: '',
+            responsible: '',
+            itSystem: '',
+            legalFramework: '',
+            inputs: [],
+            outputs: [],
             operationalRisks: [],
             tags: ['Inicio']
           }

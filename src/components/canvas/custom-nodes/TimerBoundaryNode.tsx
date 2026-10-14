@@ -55,7 +55,7 @@ export const TimerBoundaryNode = memo(({ data, selected }: NodeProps<any>) => {
         {!isTitleOnly && sla?.isPeremptory && (
           <span className="flex items-center text-[8px] font-bold text-amber-400 mt-0.5 truncate">
             <AlertCircle className="w-2 h-2 mr-0.5 shrink-0" />
-            <span>PERENTORIO</span>
+            <span>ESTRICTO</span>
           </span>
         )}
       </div>

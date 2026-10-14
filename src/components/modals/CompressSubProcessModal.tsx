@@ -117,7 +117,7 @@ export const CompressSubProcessModal: React.FC = () => {
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="ej: Trámite de Regularización y Descargo"
+                placeholder="Título o denominación del subproceso"
                 className="w-full bg-theme-surface-subtle border border-theme-border rounded-lg px-3 py-2 text-xs font-semibold text-theme-text outline-none focus:border-theme-accent"
                 autoFocus
               />

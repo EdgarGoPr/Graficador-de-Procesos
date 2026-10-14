@@ -34,7 +34,7 @@ interface PaletteItem {
 
 const PALETTE_GROUPS: { groupName: string; items: PaletteItem[] }[] = [
   {
-    groupName: 'Eventos (ISO 19510)',
+    groupName: 'Eventos',
     items: [
       {
         type: BPMN_NODE_TYPES.START_EVENT,
@@ -47,7 +47,7 @@ const PALETTE_GROUPS: { groupName: string; items: PaletteItem[] }[] = [
       {
         type: BPMN_NODE_TYPES.END_EVENT,
         title: 'End Event',
-        subtitle: 'Fin / Archivo formal',
+        subtitle: 'Fin / Cierre formal',
         icon: Square,
         colorClass: 'text-[#EF4444] border-[#EF4444]/40',
         bgClass: 'bg-[#EF4444]/10 hover:bg-[#EF4444]/20'
@@ -68,7 +68,7 @@ const PALETTE_GROUPS: { groupName: string; items: PaletteItem[] }[] = [
       {
         type: BPMN_NODE_TYPES.SERVICE_TASK,
         title: 'Service Task',
-        subtitle: 'Servicio / Sistema TI',
+        subtitle: 'Servicio / Herramienta',
         icon: Cpu,
         colorClass: 'text-[#3B82F6] border-[#3B82F6]/40',
         bgClass: 'bg-[#3B82F6]/10 hover:bg-[#3B82F6]/20'
@@ -92,20 +92,20 @@ const PALETTE_GROUPS: { groupName: string; items: PaletteItem[] }[] = [
     ]
   },
   {
-    groupName: 'Calidad y Plazos (ISO 9001 / 8601)',
+    groupName: 'Calidad y Plazos',
     items: [
       {
         type: BPMN_NODE_TYPES.QUALITY_CHECKPOINT_EVENT,
         title: 'Quality Checkpoint',
-        subtitle: 'Punto de inspección ISO 9001',
+        subtitle: 'Punto de inspección y control',
         icon: ShieldCheck,
         colorClass: 'text-[#10B981] border-[#10B981]/40',
         bgClass: 'bg-[#10B981]/10 hover:bg-[#10B981]/20'
       },
       {
         type: BPMN_NODE_TYPES.TIMER_BOUNDARY_EVENT,
-        title: 'Timer / Plazo SLA',
-        subtitle: 'Cómputo perentorio ISO 8601',
+        title: 'Temporizador / Plazo',
+        subtitle: 'Control de plazo y vencimiento',
         icon: Clock,
         colorClass: 'text-[#F59E0B] border-[#F59E0B]/40',
         bgClass: 'bg-[#F59E0B]/10 hover:bg-[#F59E0B]/20'

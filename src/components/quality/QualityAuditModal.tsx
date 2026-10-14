@@ -126,7 +126,7 @@ export const QualityAuditModal: React.FC<QualityAuditModalProps> = ({ isOpen, on
           </div>
 
           <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-center">
-            <div className="text-[10px] font-mono uppercase text-emerald-400 font-bold">Sugerencias ISO</div>
+            <div className="text-[10px] font-mono uppercase text-emerald-400 font-bold">Sugerencias de Mejora</div>
             <div className="text-2xl font-black text-emerald-400 mt-0.5 font-mono">
               {report.suggestionCount}
             </div>

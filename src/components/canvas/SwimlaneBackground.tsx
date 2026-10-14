@@ -81,8 +81,8 @@ export const SwimlaneBackground: React.FC<SwimlaneBackgroundProps> = ({
     if (editingLane) {
       updateLane(editingLane.id, {
         name: formData.name.trim() || editingLane.name,
-        role: formData.role.trim() || editingLane.role,
-        system: formData.system.trim() || editingLane.system,
+        role: formData.role.trim(),
+        system: formData.system.trim(),
         colorHex: formData.colorHex
       });
       setEditingLane(null);
@@ -90,8 +90,8 @@ export const SwimlaneBackground: React.FC<SwimlaneBackgroundProps> = ({
       addLane(
         activePoolId,
         formData.name.trim() || 'Nuevo Carril',
-        formData.role.trim() || 'Responsable de Área',
-        formData.system.trim() || 'Sistema Informático',
+        '',
+        '',
         formData.colorHex
       );
       setIsCreatingLane(false);
@@ -100,10 +100,6 @@ export const SwimlaneBackground: React.FC<SwimlaneBackgroundProps> = ({
 
   const handleDelete = (lane: LaneDefinition, totalLanes: number, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
-    if (totalLanes <= 1) {
-      alert('El proceso debe conservar al menos un carril operativo.');
-      return;
-    }
     if (window.confirm(`¿Desea eliminar el carril "${lane.name}"? Los nodos que contenga serán reasignados al carril adyacente.`)) {
       deleteLane(lane.id);
     }
@@ -326,45 +322,47 @@ export const SwimlaneBackground: React.FC<SwimlaneBackgroundProps> = ({
             <form onSubmit={handleSave} className="mt-4 space-y-3.5">
               <div>
                 <label className="block text-xs font-semibold text-theme-text-muted mb-1">
-                  Nombre del Carril / Unidad Funcional:
+                  Título del Carril / Unidad Funcional:
                 </label>
                 <input
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="Ej: Mesa de Entradas / Inspectoría"
+                  placeholder="Título del carril u organización"
                   required
                   className="w-full px-3 py-1.5 rounded-lg bg-theme-canvas border border-theme-border text-sm text-theme-text focus:outline-none focus:border-sky-400 transition-colors"
                 />
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-theme-text-muted mb-1">
-                  Rol o Cargo Responsable:
-                </label>
-                <input
-                  type="text"
-                  value={formData.role}
-                  onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                  placeholder="Ej: Inspector / Oficial Notificador"
-                  required
-                  className="w-full px-3 py-1.5 rounded-lg bg-theme-canvas border border-theme-border text-sm text-theme-text focus:outline-none focus:border-sky-400 transition-colors"
-                />
-              </div>
+              {editingLane && (
+                <>
+                  <div>
+                    <label className="block text-xs font-semibold text-theme-text-muted mb-1">
+                      Rol o Cargo Responsable:
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.role}
+                      onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                      placeholder="Rol o puesto responsable"
+                      className="w-full px-3 py-1.5 rounded-lg bg-theme-canvas border border-theme-border text-sm text-theme-text focus:outline-none focus:border-sky-400 transition-colors"
+                    />
+                  </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-theme-text-muted mb-1">
-                  Sistema Informático TI Asociado:
-                </label>
-                <input
-                  type="text"
-                  value={formData.system}
-                  onChange={(e) => setFormData({ ...formData, system: e.target.value })}
-                  placeholder="Ej: SAM / VUPRA / GDE / SIGEF"
-                  required
-                  className="w-full px-3 py-1.5 rounded-lg bg-theme-canvas border border-theme-border text-sm text-theme-text focus:outline-none focus:border-sky-400 transition-colors"
-                />
-              </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-theme-text-muted mb-1">
+                      Herramienta:
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.system}
+                      onChange={(e) => setFormData({ ...formData, system: e.target.value })}
+                      placeholder="Herramienta de software o soporte"
+                      className="w-full px-3 py-1.5 rounded-lg bg-theme-canvas border border-theme-border text-sm text-theme-text focus:outline-none focus:border-sky-400 transition-colors"
+                    />
+                  </div>
+                </>
+              )}
 
               <div>
                 <label className="block text-xs font-semibold text-theme-text-muted mb-1.5 flex items-center space-x-1">

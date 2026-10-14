@@ -176,7 +176,7 @@ export function runQualityAudit(
         category: 'BPMN_STANDARDS',
         nodeId: node.id,
         nodeTitle: data.title,
-        suggestion: 'Agrega las conexiones hacia los caminos alternativos (ej: Aprobado / Rechazado).'
+        suggestion: 'Agrega las conexiones hacia los caminos alternativos.'
       });
     }
 
@@ -193,7 +193,7 @@ export function runQualityAudit(
           category: 'BPMN_STANDARDS',
           nodeId: node.id,
           nodeTitle: data.title,
-          suggestion: 'Haz clic en las flechas salientes y define su condición (ej: "Si cumple requisitos", "Rechazado").'
+          suggestion: 'Haz clic en las flechas salientes y define su condición de bifurcación.'
         });
       }
     }
@@ -202,14 +202,14 @@ export function runQualityAudit(
     if (isTask && (!data.roleName || data.roleName.trim() === '' || data.roleName === 'Responsable de Área')) {
       issues.push({
         id: `task-no-role-${node.id}`,
-        code: 'WARN-ISO-001',
+        code: 'WARN-QUAL-001',
         title: `Tarea sin Rol Específico: ${data.title || data.standardId}`,
         description: 'La actividad no tiene especificado el puesto o rol exacto que debe ejecutarla.',
         severity: 'WARNING',
         category: 'ISO_9001_QUALITY',
         nodeId: node.id,
         nodeTitle: data.title,
-        suggestion: 'Edita la tarjeta y asigna el puesto exacto (ej: Inspector Técnico, Abogado Dictaminante).'
+        suggestion: 'Edita la tarjeta y asigna el puesto o rol exacto.'
       });
     }
 
@@ -217,14 +217,14 @@ export function runQualityAudit(
     if (isTask && (!data.itSystem || data.itSystem.trim() === '')) {
       issues.push({
         id: `task-no-sys-${node.id}`,
-        code: 'SUGG-ISO-002',
-        title: `Sin Sistema TI: ${data.title || data.standardId}`,
-        description: 'No se definió qué sistema informático o método de registro se utiliza en este paso.',
+        code: 'SUGG-QUAL-002',
+        title: `Sin Herramienta Asignada: ${data.title || data.standardId}`,
+        description: 'No se definió qué herramienta, software o método de soporte se utiliza en este paso.',
         severity: 'SUGGESTION',
         category: 'ISO_9001_QUALITY',
         nodeId: node.id,
         nodeTitle: data.title,
-        suggestion: 'Especifica la herramienta o sistema utilizado (ej: GDE, SAM, SAP, Excel).'
+        suggestion: 'Especifica la herramienta o soporte utilizado en el panel de propiedades.'
       });
     }
 
@@ -232,14 +232,14 @@ export function runQualityAudit(
     if (isTask && (!data.slaDuration || data.slaDuration.value <= 0)) {
       issues.push({
         id: `task-no-sla-${node.id}`,
-        code: 'SUGG-ISO-003',
-        title: `Sin Tiempo de Ciclo (SLA): ${data.title || data.standardId}`,
-        description: 'La tarea no tiene estimación de tiempo de ejecución para el cálculo de Lead Time.',
+        code: 'SUGG-QUAL-003',
+        title: `Sin Plazo Estimado: ${data.title || data.standardId}`,
+        description: 'La tarea no tiene estimación de plazo de ejecución.',
         severity: 'SUGGESTION',
         category: 'ISO_9001_QUALITY',
         nodeId: node.id,
         nodeTitle: data.title,
-        suggestion: 'Indica el tiempo promedio estimado (horas o días hábiles) en el panel de propiedades.'
+        suggestion: 'Indica el plazo estimado (horas o días hábiles) en el panel de propiedades.'
       });
     }
 
@@ -251,7 +251,7 @@ export function runQualityAudit(
             id: `risk-unmitigated-${node.id}-${rIdx}`,
             code: 'WARN-RSK-001',
             title: `Riesgo sin Control Mitigante: ${data.standardId}`,
-            description: `El riesgo "${risk.description || risk.riskId}" no tiene definido un control obligatorio (Cláusula 6.1 ISO 9001).`,
+            description: `El riesgo "${risk.description || risk.riskId}" no tiene definido un control de mitigación.`,
             severity: 'WARNING',
             category: 'OPERATIONAL_RISK',
             nodeId: node.id,

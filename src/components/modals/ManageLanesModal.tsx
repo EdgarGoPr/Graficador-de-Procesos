@@ -13,7 +13,7 @@ import {
   ChevronUp,
   ChevronDown,
   Palette,
-  Server,
+  Wrench,
   UserCheck,
   ShieldAlert
 } from 'lucide-react';
@@ -55,8 +55,8 @@ export const ManageLanesModal: React.FC = () => {
   const lanes = pool?.lanes || [];
 
   const handleStartAdd = () => {
-    setNewName(`Carril Operativo ${lanes.length + 1}`);
-    setNewRole('Responsable de Área');
+    setNewName('');
+    setNewRole('');
     setNewSystem('');
     setNewColor(PRESET_COLORS[lanes.length % PRESET_COLORS.length].hex);
     setIsAddingLane(true);
@@ -71,8 +71,8 @@ export const ManageLanesModal: React.FC = () => {
     const createdId = addLane(
       pool?.id,
       newName.trim(),
-      newRole.trim() || 'Responsable',
-      newSystem.trim() || 'Sistema TI',
+      '',
+      '',
       newColor
     );
     showNotification(`Carril "${newName}" creado correctamente`, 'success');
@@ -98,7 +98,7 @@ export const ManageLanesModal: React.FC = () => {
     }
     updateLane(laneId, {
       name: editName.trim(),
-      role: editRole.trim() || 'Responsable',
+      role: editRole.trim(),
       system: editSystem.trim(),
       colorHex: editColor
     });
@@ -107,10 +107,6 @@ export const ManageLanesModal: React.FC = () => {
   };
 
   const handleDelete = (lane: LaneDefinition) => {
-    if (lanes.length <= 1) {
-      showNotification('El proceso debe mantener al menos un carril organizativo.', 'error');
-      return;
-    }
     if (window.confirm(`¿Desea eliminar el carril "${lane.name}"? Las actividades asociadas se reasignarán a otro carril automáticamente.`)) {
       deleteLane(lane.id);
       showNotification(`Carril "${lane.name}" eliminado`, 'info');
@@ -173,42 +169,18 @@ export const ManageLanesModal: React.FC = () => {
                 </button>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5 text-xs">
+              <div className="text-xs">
                 <div>
                   <label className="text-[10px] font-bold uppercase tracking-wider text-theme-text-muted font-mono block mb-1">
-                    Nombre del Área / Carril *
+                    Título del Carril / Área *
                   </label>
                   <input
                     type="text"
                     value={newName}
                     onChange={(e) => setNewName(e.target.value)}
-                    placeholder="ej: Mesa de Entradas"
+                    placeholder="Título del carril u organización"
                     className="w-full bg-theme-surface border border-theme-border rounded-lg px-2.5 py-1.5 text-theme-text text-xs focus:border-theme-accent outline-none font-medium"
                     autoFocus
-                  />
-                </div>
-                <div>
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-theme-text-muted font-mono block mb-1">
-                    Rol / Puesto Responsable *
-                  </label>
-                  <input
-                    type="text"
-                    value={newRole}
-                    onChange={(e) => setNewRole(e.target.value)}
-                    placeholder="ej: Inspector / Operador"
-                    className="w-full bg-theme-surface border border-theme-border rounded-lg px-2.5 py-1.5 text-theme-text text-xs focus:border-theme-accent outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-theme-text-muted font-mono block mb-1">
-                    Sistema Informático
-                  </label>
-                  <input
-                    type="text"
-                    value={newSystem}
-                    onChange={(e) => setNewSystem(e.target.value)}
-                    placeholder="ej: SAM, SIGAF, GDE"
-                    className="w-full bg-theme-surface border border-theme-border rounded-lg px-2.5 py-1.5 text-theme-text text-xs focus:border-theme-accent outline-none font-mono"
                   />
                 </div>
               </div>
@@ -299,12 +271,13 @@ export const ManageLanesModal: React.FC = () => {
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-xs">
                       <div>
                         <label className="text-[9px] font-bold uppercase tracking-wider text-theme-text-muted font-mono block mb-1">
-                          Nombre
+                          Título del Carril
                         </label>
                         <input
                           type="text"
                           value={editName}
                           onChange={(e) => setEditName(e.target.value)}
+                          placeholder="Título del carril u organización"
                           className="w-full bg-theme-surface border border-theme-border rounded px-2 py-1 text-theme-text text-xs focus:border-theme-accent outline-none"
                         />
                       </div>
@@ -316,17 +289,19 @@ export const ManageLanesModal: React.FC = () => {
                           type="text"
                           value={editRole}
                           onChange={(e) => setEditRole(e.target.value)}
+                          placeholder="Rol o puesto responsable"
                           className="w-full bg-theme-surface border border-theme-border rounded px-2 py-1 text-theme-text text-xs focus:border-theme-accent outline-none"
                         />
                       </div>
                       <div>
                         <label className="text-[9px] font-bold uppercase tracking-wider text-theme-text-muted font-mono block mb-1">
-                          Sistema TI
+                          Herramienta
                         </label>
                         <input
                           type="text"
                           value={editSystem}
                           onChange={(e) => setEditSystem(e.target.value)}
+                          placeholder="Herramienta de software o soporte"
                           className="w-full bg-theme-surface border border-theme-border rounded px-2 py-1 text-theme-text text-xs focus:border-theme-accent outline-none font-mono"
                         />
                       </div>
@@ -403,7 +378,7 @@ export const ManageLanesModal: React.FC = () => {
                         </span>
                         {lane.system && (
                           <span className="flex items-center gap-1 font-mono text-[10px]">
-                            <Server className="w-3 h-3 text-theme-text-muted" />
+                            <Wrench className="w-3 h-3 text-theme-text-muted" />
                             <span>{lane.system}</span>
                           </span>
                         )}

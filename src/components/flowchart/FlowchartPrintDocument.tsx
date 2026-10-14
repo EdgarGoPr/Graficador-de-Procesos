@@ -135,7 +135,7 @@ export const FlowchartPrintDocument: React.FC<FlowchartPrintDocumentProps> = ({ 
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <div className="text-xs font-mono font-bold uppercase tracking-wider text-slate-700">
-              Flujograma de Proceso &bull; ISO 9001:2015 / BPMN 2.0
+              Flujograma de Proceso &bull; BPMN 2.0
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-black mt-1 leading-tight">
               {project.documentControl.documentTitle}

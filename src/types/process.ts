@@ -42,8 +42,9 @@ export type GatewayResolutionType = typeof GATEWAY_RESOLUTION_TYPES[keyof typeof
 export interface IsoDuration {
   value: number;
   unit: TimeUnitType;
-  iso8601String: string; // e.g. "P5D", "PT48H"
-  isPeremptory: boolean; // Plazo perentorio / fatal legal
+  iso8601String: string;
+  isPeremptory: boolean; // Plazo estricto / prioritario
+  enabled?: boolean; // Control de activación / desactivación
 }
 
 export interface LaneDefinition {
@@ -127,8 +128,9 @@ export interface BpmnNodeData {
   laneId: string;
   laneName?: string;
   roleName?: string;
-  itSystem: string; // e.g. "SAM", "VUPRA", "Expediente Electrónico", "Manual/Papel"
-  legalFramework: string; // e.g. "Ord. Municipal 12.345 Art. 45"
+  responsible?: string; // Responsable directo de la actividad
+  itSystem: string; // Herramienta utilizada (software, planilla o manual)
+  legalFramework: string; // Marco normativo, instructivo o procedimiento
   slaDuration?: IsoDuration;
   gatewayResolutionType?: GatewayResolutionType;
   conditionLabel?: string;

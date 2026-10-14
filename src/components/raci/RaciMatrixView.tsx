@@ -129,7 +129,7 @@ export const RaciMatrixView: React.FC = () => {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <div className="text-xs font-mono font-bold uppercase tracking-wider text-theme-accent print:text-slate-800">
-                  Responsabilidad y Rendición de Cuentas &bull; ISO 9001:2015
+                  Responsabilidad y Rendición de Cuentas Operativa
                 </div>
                 <h1 className="text-2xl font-extrabold text-theme-text mt-1 print:text-black">
                   Matriz RACI: {currentProject.documentControl.documentTitle}

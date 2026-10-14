@@ -895,7 +895,7 @@ export const ProcessPresentationModal: React.FC = () => {
               <div className="space-y-1.5 bg-red-500/5 p-3 rounded-xl border border-red-500/20">
                 <div className="flex items-center space-x-1.5 text-[10px] font-mono font-bold text-red-400 uppercase tracking-wider">
                   <AlertTriangle className="w-3 h-3" />
-                  <span>Riesgos Operacionales (ISO 9001)</span>
+                  <span>Riesgos Operacionales</span>
                 </div>
                 <div className="space-y-1">
                   {nodeData.operationalRisks.map((risk, i) => (

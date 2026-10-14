@@ -95,7 +95,7 @@ export const SipocMatrixView: React.FC = () => {
           <div>
             <div className="flex items-center space-x-2 text-[#10B981] text-xs font-mono font-bold uppercase tracking-wider mb-1">
               <ShieldCheck className="w-4 h-4" />
-              <span>ISO 9001:2015 &bull; Cláusula 4.4 (Enfoque por Procesos)</span>
+              <span>Matriz SIPOC &bull; Enfoque por Procesos y Flujo Operativo</span>
             </div>
             <h2 className="text-2xl font-extrabold text-theme-text">
               Matriz SIPOC Sincronizada

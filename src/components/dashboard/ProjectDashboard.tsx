@@ -133,7 +133,7 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ onOpenNewMod
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-theme-text-muted" />
             <input
               type="text"
-              placeholder="Buscar por título, código (ej: PRC-1511), autor o archivo..."
+              placeholder="Buscar por título, código, autor o archivo..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-9 pr-4 py-2 bg-theme-surface border border-theme-border rounded-xl text-xs text-theme-text placeholder-theme-text-muted focus:border-theme-accent outline-none"

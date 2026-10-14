@@ -68,7 +68,7 @@ export const NewProjectModal: React.FC<NewProjectModalProps> = ({ isOpen, onClos
             <input
               type="text"
               required
-              placeholder="ej: Procedimiento Sancionatorio por Obras Clandestinas"
+              placeholder="Título del procedimiento o proceso"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               className="w-full bg-theme-surface-subtle border border-theme-border rounded-xl px-3 py-2 text-theme-text placeholder-theme-text-muted focus:border-theme-accent outline-none text-xs"
@@ -82,7 +82,7 @@ export const NewProjectModal: React.FC<NewProjectModalProps> = ({ isOpen, onClos
             </label>
             <input
               type="text"
-              placeholder="ej: Lic. Fernando Gómez (Analista de Procesos)"
+              placeholder="Nombre del responsable o autor"
               value={author}
               onChange={(e) => setAuthor(e.target.value)}
               className="w-full bg-theme-surface-subtle border border-theme-border rounded-xl px-3 py-2 text-theme-text placeholder-theme-text-muted focus:border-[#3B82F6] outline-none text-xs"
@@ -96,7 +96,7 @@ export const NewProjectModal: React.FC<NewProjectModalProps> = ({ isOpen, onClos
             </label>
             <input
               type="text"
-              placeholder="ej: Dirección de Obras Privadas / Tribunal de Faltas"
+              placeholder="Unidad organizativa o área"
               value={orgUnit}
               onChange={(e) => setOrgUnit(e.target.value)}
               className="w-full bg-theme-surface-subtle border border-theme-border rounded-xl px-3 py-2 text-theme-text placeholder-theme-text-muted focus:border-[#F59E0B] outline-none text-xs"

@@ -240,7 +240,7 @@ export const SubProcessDetailModal: React.FC<SubProcessDetailModalProps> = ({
                 </label>
                 <input
                   type="text"
-                  placeholder="ej: Validar comprobante de pago en caja..."
+                  placeholder="Nombre o descripción de la acción..."
                   value={newStepTitle}
                   onChange={(e) => setNewStepTitle(e.target.value)}
                   className="w-full px-3 py-1.5 bg-theme-surface-subtle border border-theme-border rounded-lg text-xs text-theme-text placeholder-theme-text-muted outline-none focus:border-theme-accent"
@@ -254,7 +254,7 @@ export const SubProcessDetailModal: React.FC<SubProcessDetailModalProps> = ({
                 </label>
                 <input
                   type="text"
-                  placeholder="ej: Cajero / Inspector"
+                  placeholder="Rol o puesto responsable..."
                   value={newStepRole}
                   onChange={(e) => setNewStepRole(e.target.value)}
                   className="w-full px-3 py-1.5 bg-theme-surface-subtle border border-theme-border rounded-lg text-xs text-theme-text placeholder-theme-text-muted outline-none focus:border-theme-accent"
@@ -267,7 +267,7 @@ export const SubProcessDetailModal: React.FC<SubProcessDetailModalProps> = ({
                 </label>
                 <input
                   type="text"
-                  placeholder="ej: 1 Día Hábil / 4h"
+                  placeholder="Plazo estimado..."
                   value={newStepDuration}
                   onChange={(e) => setNewStepDuration(e.target.value)}
                   className="w-full px-3 py-1.5 bg-theme-surface-subtle border border-theme-border rounded-lg text-xs text-theme-text placeholder-theme-text-muted outline-none focus:border-theme-accent"
@@ -312,7 +312,7 @@ export const SubProcessDetailModal: React.FC<SubProcessDetailModalProps> = ({
               </button>
             )}
             <span className="text-[11px] text-theme-text-muted font-mono hidden sm:inline">
-              Subproceso BPMN 2.0 (ISO 19510)
+              Subproceso BPMN 2.0
             </span>
           </div>
 

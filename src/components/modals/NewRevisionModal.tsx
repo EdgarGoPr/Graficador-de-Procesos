@@ -204,13 +204,13 @@ export const NewRevisionModal: React.FC<NewRevisionModalProps> = ({ isOpen, onCl
           {/* Change Description */}
           <div>
             <label className="block text-xs font-semibold text-theme-text mb-1">
-              Descripción del Cambio (Historial de Revisiones ISO 9001)
+              Descripción del Cambio (Historial de Revisiones)
             </label>
             <input
               type="text"
               value={changeDescription}
               onChange={(e) => setChangeDescription(e.target.value)}
-              placeholder="Ej. Se agregaron compuertas de control y roles SAM..."
+              placeholder="Descripción detallada de la modificación realizada..."
               className="w-full px-3 py-2 rounded-xl bg-theme-surface-subtle border border-theme-border text-xs text-theme-text focus:outline-none focus:ring-2 focus:ring-theme-accent"
             />
           </div>

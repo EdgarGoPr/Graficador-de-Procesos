@@ -70,7 +70,7 @@ export const CARD_THEME_PRESETS: CardThemePreset[] = [
   {
     id: 'forest-sage',
     name: 'Salvia Forestal',
-    description: 'Verde salvia institucional para procesos ISO 9001.',
+    description: 'Verde salvia institucional y balance cromático armónico.',
     bgColor: '#162522',
     bgOpacity: 95,
     borderColor: '#34D399',
@@ -180,9 +180,9 @@ export const PRESET_THEMES: Record<AppThemeId, AppThemeDefinition> = {
   },
   'antigravity-emerald': {
     id: 'antigravity-emerald',
-    name: 'Forest Sage ISO',
+    name: 'Forest Sage',
     description: 'Gris bosque con acento salvia y esmeralda mate relajante.',
-    badge: '🌿 Salvia ISO',
+    badge: '🌿 Salvia Forestal',
     category: 'dark',
     colors: {
       appBg: '#0D1514',

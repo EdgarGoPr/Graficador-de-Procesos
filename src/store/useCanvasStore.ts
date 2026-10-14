@@ -935,11 +935,12 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
           position: { x: 100, y: 160 },
           data: {
             standardId: 'INI-01',
-            title: `Inicio de ${defaultTitle}`,
-            description: 'Disparador formal de ingreso a este subproceso',
+            title: 'Inicio',
+            description: '',
             nodeType: BPMN_NODE_TYPES.START_EVENT,
-            laneId: targetLaneId,
-            itSystem: targetLane?.system || 'Gestión',
+            laneId: targetLaneId || '',
+            itSystem: '',
+            responsible: '',
             legalFramework: '',
             inputs: [],
             outputs: [],
@@ -953,11 +954,12 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
           position: { x: 280, y: 130 },
           data: {
             standardId: 'TSK-01',
-            title: 'Ejecución de Etapa Principal',
-            description: 'Procedimiento operativo interno',
+            title: 'Actividad Principal',
+            description: '',
             nodeType: BPMN_NODE_TYPES.USER_TASK,
-            laneId: targetLaneId,
-            itSystem: targetLane?.system || 'Gestión',
+            laneId: targetLaneId || '',
+            itSystem: '',
+            responsible: '',
             legalFramework: '',
             inputs: [],
             outputs: [],
@@ -971,11 +973,12 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
           position: { x: 560, y: 160 },
           data: {
             standardId: 'FIN-01',
-            title: `Fin de ${defaultTitle}`,
-            description: 'Culminación de la etapa',
+            title: 'Fin',
+            description: '',
             nodeType: BPMN_NODE_TYPES.END_EVENT,
-            laneId: targetLaneId,
-            itSystem: targetLane?.system || 'Gestión',
+            laneId: targetLaneId || '',
+            itSystem: '',
+            responsible: '',
             legalFramework: '',
             inputs: [],
             outputs: [],
@@ -1007,10 +1010,10 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
         {
           id: `step_${taskId}`,
           stepNumber: 1,
-          title: 'Ejecución de Etapa Principal',
-          description: 'Procedimiento operativo interno',
-          role: targetLane?.role || 'Responsable',
-          system: targetLane?.system || 'Gestión',
+          title: 'Actividad Principal',
+          description: '',
+          role: targetLane?.role || '',
+          system: targetLane?.system || '',
           duration: 'P1D',
           inputs: [],
           outputs: []
@@ -1026,14 +1029,15 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
       zIndex: isLane ? -1 : isSticky ? 10 : 1,
       data: {
         standardId,
-        title: defaultTitle,
-        description: isLane ? 'Carril contenedor de actividades' : isSticky ? '' : 'Descripción operativa de la actividad...',
+        title: isLane ? defaultTitle : isSticky ? '' : '',
+        description: '',
         nodeType,
-        laneId: isLane ? newNodeId : targetLaneId,
-        laneName: targetLane?.name,
-        roleName: isSticky ? 'Auditor / Analista' : (targetLane?.role || 'Responsable de Área'),
-        itSystem: isSticky ? '' : (targetLane?.system || 'SAM / VUPRA'),
-        legalFramework: isSticky ? '' : 'Marco normativo general',
+        laneId: isLane ? newNodeId : (targetLaneId || ''),
+        laneName: targetLane?.name || '',
+        roleName: targetLane?.role || '',
+        responsible: '',
+        itSystem: '',
+        legalFramework: '',
         customBgColor: isSticky ? 'yellow' : undefined,
         customBorderColor: isLane ? '#38bdf8' : undefined,
         inputs: [],
@@ -1226,9 +1230,9 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
 
     const newLane = {
       id: newLaneId,
-      name: name || `Nuevo Carril ${pool.lanes.length + 1}`,
-      role: role || 'Responsable de Área',
-      system: system || 'Sistema Informático',
+      name: name || `Carril ${pool.lanes.length + 1}`,
+      role: role || '',
+      system: system || '',
       colorHex: chosenColor,
       order: pool.lanes.length
     };
@@ -1370,11 +1374,6 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
     if (!currentProject || !currentProject.pools[0]?.lanes) return;
 
     const pool = currentProject.pools[0];
-    if (pool.lanes.length <= 1) {
-      alert('El proceso debe tener al menos un carril operativo.');
-      return;
-    }
-
     const deletedIndex = pool.lanes.findIndex(l => l.id === laneId);
     if (deletedIndex === -1) return;
 
@@ -1383,8 +1382,10 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
     const remainingLanes = pool.lanes.filter(l => l.id !== laneId);
     remainingLanes.forEach((l, i) => { l.order = i; });
 
-    // Target lane for reassignment
-    const targetLane = remainingLanes[Math.min(deletedIndex, remainingLanes.length - 1)];
+    // Target lane for reassignment (if any remain)
+    const targetLane = remainingLanes.length > 0
+      ? remainingLanes[Math.min(deletedIndex, remainingLanes.length - 1)]
+      : null;
 
     // Shift up all nodes in subsequent lanes and reassign nodes in deleted lane
     const nextNodes = currentProject.nodes
@@ -1395,9 +1396,9 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
             ...node,
             data: {
               ...node.data,
-              laneId: targetLane.id,
-              laneName: targetLane.name,
-              roleName: targetLane.role
+              laneId: targetLane ? targetLane.id : '',
+              laneName: targetLane ? targetLane.name : '',
+              roleName: targetLane ? targetLane.role : ''
             }
           };
         }

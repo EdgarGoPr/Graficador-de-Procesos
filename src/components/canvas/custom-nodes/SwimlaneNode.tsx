@@ -216,7 +216,7 @@ export const SwimlaneNode = memo(({ id, data, selected }: NodeProps<any>) => {
                   type="text"
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  placeholder="Ej: Mesa de Entradas / Inspectoría"
+                  placeholder="Título del carril u organización"
                   required
                   className="w-full px-3 py-1.5 rounded-lg bg-theme-canvas border border-theme-border text-sm text-theme-text focus:outline-none focus:border-sky-400 transition-colors"
                 />
@@ -230,7 +230,7 @@ export const SwimlaneNode = memo(({ id, data, selected }: NodeProps<any>) => {
                   type="text"
                   value={formData.roleName}
                   onChange={(e) => setFormData({ ...formData, roleName: e.target.value })}
-                  placeholder="Ej: Inspector / Oficial Notificador"
+                  placeholder="Rol o puesto responsable"
                   required
                   className="w-full px-3 py-1.5 rounded-lg bg-theme-canvas border border-theme-border text-sm text-theme-text focus:outline-none focus:border-sky-400 transition-colors"
                 />
@@ -238,13 +238,13 @@ export const SwimlaneNode = memo(({ id, data, selected }: NodeProps<any>) => {
 
               <div>
                 <label className="block text-xs font-semibold text-theme-text-muted mb-1">
-                  Sistema Informático TI Asociado:
+                  Herramienta Asociada:
                 </label>
                 <input
                   type="text"
                   value={formData.itSystem}
                   onChange={(e) => setFormData({ ...formData, itSystem: e.target.value })}
-                  placeholder="Ej: SAM / VUPRA / GDE / SIGEF"
+                  placeholder="Herramienta de software o soporte"
                   required
                   className="w-full px-3 py-1.5 rounded-lg bg-theme-canvas border border-theme-border text-sm text-theme-text focus:outline-none focus:border-sky-400 transition-colors"
                 />
