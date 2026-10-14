@@ -20,6 +20,7 @@ import { ExportCenterModal } from './components/export/ExportCenterModal';
 import { SimulationModal } from './components/simulation/SimulationModal';
 import { VersionDiffModal } from './components/diff/VersionDiffModal';
 import { ProcessPresentationModal } from './components/presentation/ProcessPresentationModal';
+import { ManageLanesModal } from './components/modals/ManageLanesModal';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
 import { CheckCircle2, Info, AlertCircle, X } from 'lucide-react';
 
@@ -161,6 +162,9 @@ export const App: React.FC = () => {
 
         {/* Process Presentation (Prezi Mode) Modal */}
         <ProcessPresentationModal />
+
+        {/* Manage Lanes (Swimlanes) Modal */}
+        <ManageLanesModal />
       </div>
     </ErrorBoundary>
   );

@@ -297,7 +297,7 @@ interface CanvasStoreState {
   deleteSelected: () => void;
   
   // Lane & Pool management
-  addLane: (poolId?: string, name?: string, role?: string, system?: string, colorHex?: string) => void;
+  addLane: (poolId?: string, name?: string, role?: string, system?: string, colorHex?: string) => string | undefined;
   updateLane: (laneId: string, updates: { name?: string; role?: string; system?: string; colorHex?: string }) => void;
   moveLane: (laneId: string, direction: 'up' | 'down') => void;
   deleteLane: (laneId: string) => void;
@@ -1210,13 +1210,13 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
     }
   },
 
-  addLane: (poolId?: string, name?: string, role?: string, system?: string, colorHex?: string) => {
+  addLane: (poolId?: string, name?: string, role?: string, system?: string, colorHex?: string): string | undefined => {
     const projectStore = useProjectStore.getState();
     const currentProject = projectStore.currentProject;
-    if (!currentProject) return;
+    if (!currentProject) return undefined;
 
     const pool = currentProject.pools.find(p => p.id === poolId) || currentProject.pools[0];
-    if (!pool) return;
+    if (!pool) return undefined;
 
     projectStore.pushSnapshot('Agregar carril');
 
@@ -1247,6 +1247,8 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
       ...currentProject,
       pools: nextPools
     });
+
+    return newLaneId;
   },
 
   updateLane: (laneId: string, updates: { name?: string; role?: string; system?: string; colorHex?: string }) => {
@@ -1261,9 +1263,42 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
       lanes: p.lanes.map(l => (l.id === laneId ? { ...l, ...updates } : l))
     }));
 
+    // Cascade updates to all matching activity nodes and canvas PoolLane nodes
+    const nextNodes = currentProject.nodes.map(node => {
+      let nodeUpdates: any = null;
+      if (node.data?.laneId === laneId) {
+        nodeUpdates = {
+          ...(nodeUpdates || {}),
+          ...(updates.name ? { laneName: updates.name } : {}),
+          ...(updates.role ? { roleName: updates.role } : {})
+        };
+      }
+      if (node.type === 'PoolLane' && (node.id === laneId || node.data?.laneId === laneId)) {
+        nodeUpdates = {
+          ...(nodeUpdates || {}),
+          ...(updates.name ? { title: updates.name, laneName: updates.name } : {}),
+          ...(updates.role ? { roleName: updates.role } : {}),
+          ...(updates.system ? { itSystem: updates.system } : {}),
+          ...(updates.colorHex ? { customBorderColor: updates.colorHex } : {})
+        };
+      }
+
+      if (nodeUpdates) {
+        return {
+          ...node,
+          data: {
+            ...node.data,
+            ...nodeUpdates
+          }
+        };
+      }
+      return node;
+    });
+
     projectStore.setProjectData({
       ...currentProject,
-      pools: nextPools
+      pools: nextPools,
+      nodes: nextNodes
     });
   },
 
@@ -1352,29 +1387,33 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
     const targetLane = remainingLanes[Math.min(deletedIndex, remainingLanes.length - 1)];
 
     // Shift up all nodes in subsequent lanes and reassign nodes in deleted lane
-    const nextNodes = currentProject.nodes.map(node => {
-      if (node.data?.laneId === laneId) {
-        return {
-          ...node,
-          data: {
-            ...node.data,
-            laneId: targetLane.id
-          }
-        };
-      }
+    const nextNodes = currentProject.nodes
+      .filter(node => !(node.type === 'PoolLane' && node.id === laneId))
+      .map(node => {
+        if (node.data?.laneId === laneId) {
+          return {
+            ...node,
+            data: {
+              ...node.data,
+              laneId: targetLane.id,
+              laneName: targetLane.name,
+              roleName: targetLane.role
+            }
+          };
+        }
 
-      const originalLaneIndex = pool.lanes.findIndex(l => l.id === node.data?.laneId);
-      if (originalLaneIndex > deletedIndex) {
-        return {
-          ...node,
-          position: {
-            ...node.position,
-            y: node.position.y - 140
-          }
-        };
-      }
-      return node;
-    });
+        const originalLaneIndex = pool.lanes.findIndex(l => l.id === node.data?.laneId);
+        if (originalLaneIndex > deletedIndex) {
+          return {
+            ...node,
+            position: {
+              ...node.position,
+              y: node.position.y - 140
+            }
+          };
+        }
+        return node;
+      });
 
     const nextPools = currentProject.pools.map(p => {
       if (p.id === pool.id) {

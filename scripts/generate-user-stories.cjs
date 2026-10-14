@@ -389,6 +389,15 @@ const userStories = [
     criteriosAceptacion: '1. La acción de comprimir actividades seleccionadas en un subproceso (compressSelection) opera sobre el grafo del nivel activo (getActiveGraph) reemplazando los nodos únicamente dentro del subproceso actual mediante updateGraphForPath.\n2. La descompresión de subprocesos (decompressSubProcess) despliega las actividades directamente en el nivel donde se encuentra ubicado el nodo.\n3. La creación de nuevos subprocesos (addNode) pre-inicializa de inmediato su estructura interna subProcessCanvas y subProcessSteps con flujo estándar inicial persistido.\n4. El panel lateral de propiedades (PropertiesPanel) lee y edita los nodos y conectores del grafo activo sin importar el nivel de profundidad del subproceso.\n5. La barra de herramientas de selección (SelectionToolbar), las acciones de copiar/pegar y el modal de compresión respetan el contexto del subproceso activo.',
     fechaImplementacion: '2026-10-14',
     estado: 'Implementado / Producción'
+  },
+  {
+    id: 'PST-044',
+    modulo: 'Carriles Organizativos & Swimlanes',
+    titulo: 'Personalización Integral y Gestión Dinámica de Carriles Organizativos (Swimlanes)',
+    historiaUsuario: 'Como modelador y analista de procesos, quiero personalizar libremente las opciones de carriles organizativos (swimlanes), pudiendo crear nuevos carriles, editar nombres de áreas, roles responsables, sistemas TI y colores tanto desde el panel de propiedades como desde un modal centralizado de gestión, para reflejar fielmente la estructura departamental y organizativa de la institución.',
+    criteriosAceptacion: '1. El selector de Carril Organizativo (Swimlane) en el panel de propiedades incluye acciones rápidas para crear nuevo carril (+ Nuevo), editar el carril activo (Editar) y acceder a la administración global (⚙ Gestionar).\n2. El menú desplegable incorpora las opciones interactivas "+ Crear nuevo carril..." y "⚙ Gestionar y reordenar carriles...".\n3. Editor rápido en línea en el panel de propiedades para modificar nombre de área, rol/puesto responsable, sistema informático y color de carril con actualización en tiempo real.\n4. Formulario en línea para crear y asignar un nuevo carril directamente a la actividad seleccionada en un solo paso.\n5. Modal integral de gestión (ManageLanesModal) con listado completo de carriles, reordenamiento vertical (subir/bajar), edición detallada, alta de nuevos carriles con selector de paleta y eliminación segura con reasignación automática de actividades.\n6. Sincronización bidireccional automática: los cambios de carriles impactan en cascada en todas las tarjetas de actividad vinculadas, en los carriles de fondo del lienzo y en las matrices SIPOC y RACI.',
+    fechaImplementacion: '2026-10-14',
+    estado: 'Implementado / Producción'
   }
 ];
 

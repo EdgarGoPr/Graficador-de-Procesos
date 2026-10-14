@@ -26,7 +26,10 @@ import {
   Layout,
   Lock,
   Unlock,
-  Tv
+  Tv,
+  Settings,
+  Edit2,
+  Check
 } from 'lucide-react';
 import {
   BpmnNodeData,
@@ -72,11 +75,13 @@ export const PropertiesPanel: React.FC = () => {
     bulkUpdateNodeColors,
     bulkUpdateEdgeColors,
     decompressSubProcess,
-    deleteSelected
+    deleteSelected,
+    addLane,
+    updateLane
   } = useCanvasStore();
 
   const { currentProject } = useProjectStore();
-  const { setPropertiesPanelOpen, setActiveRightTab, openSubProcessDetail, showNotification } = useUiStore();
+  const { setPropertiesPanelOpen, setActiveRightTab, openSubProcessDetail, showNotification, setManageLanesModalOpen } = useUiStore();
 
   const [activeSection, setActiveSection] = useState<'content' | 'style'>('content');
   const [cardStyleScope, setCardStyleScope] = useState<'single' | 'same_type' | 'all'>('single');
@@ -84,6 +89,12 @@ export const PropertiesPanel: React.FC = () => {
   const [newOutputText, setNewOutputText] = useState('');
   const [newRiskDesc, setNewRiskDesc] = useState('');
   const [newMitigation, setNewMitigation] = useState('');
+
+  // Inline Swimlane Customization State
+  const [isInlineLaneEditing, setIsInlineLaneEditing] = useState(false);
+  const [isInlineLaneCreating, setIsInlineLaneCreating] = useState(false);
+  const [editLaneForm, setEditLaneForm] = useState({ name: '', role: '', system: '', colorHex: '#38bdf8' });
+  const [newLaneForm, setNewLaneForm] = useState({ name: '', role: '', system: '', colorHex: '#38bdf8' });
 
   if (!currentProject) return null;
 
@@ -302,7 +313,29 @@ export const PropertiesPanel: React.FC = () => {
 
   const data = node.data as BpmnNodeData;
   const pool = currentProject.pools[0];
-  const lanes = pool?.lanes || [];
+  const poolLanes = pool?.lanes || [];
+
+  // Gather canvas PoolLane nodes to ensure complete synchronization
+  const canvasLaneNodes = (activeGraph.nodes || [])
+    .filter((n) => n.type === 'PoolLane')
+    .map((n) => ({
+      id: n.id,
+      name: n.data?.title || (n.data as any)?.laneName || 'Carril en Lienzo',
+      role: n.data?.roleName || 'Responsable de Área',
+      system: n.data?.itSystem || '',
+      colorHex: n.data?.customBorderColor || '#38bdf8',
+      order: 999
+    }));
+
+  const lanesMap = new Map<string, { id: string; name: string; role: string; system?: string; colorHex?: string; order?: number }>();
+  poolLanes.forEach((l) => lanesMap.set(l.id, l));
+  canvasLaneNodes.forEach((l) => {
+    if (!lanesMap.has(l.id)) {
+      lanesMap.set(l.id, l);
+    }
+  });
+  const lanes = Array.from(lanesMap.values());
+  const selectedLane = lanes.find((l) => l.id === data.laneId);
 
   const handleUpdate = (updates: Partial<BpmnNodeData>) => {
     updateNodeData(node.id, updates);
@@ -962,29 +995,378 @@ export const PropertiesPanel: React.FC = () => {
         </div>
 
         {/* Carril / Swimlane Asignado */}
-        <div>
-          <label className="text-[10px] font-bold uppercase tracking-wider text-theme-text-muted font-mono">
-            Carril Organizativo (Swimlane)
-          </label>
-          <select
-            value={data.laneId || ''}
-            onChange={(e) => {
-              const lane = lanes.find((l) => l.id === e.target.value);
-              handleUpdate({
-                laneId: e.target.value,
-                laneName: lane?.name,
-                roleName: lane?.role
-              });
-            }}
-            className="w-full bg-theme-surface-subtle border border-theme-border rounded px-2 py-1.5 text-theme-text text-xs focus:border-theme-accent outline-none mt-0.5"
-          >
-            <option value="">-- Sin Carril Asignado --</option>
-            {lanes.map((l) => (
-              <option key={l.id} value={l.id}>
-                {l.name} ({l.role})
-              </option>
-            ))}
-          </select>
+        <div className="space-y-1.5 p-2.5 rounded-xl bg-theme-surface-subtle border border-theme-border">
+          <div className="flex items-center justify-between">
+            <label className="text-[10px] font-bold uppercase tracking-wider text-theme-text-muted font-mono flex items-center gap-1">
+              <Layers className="w-3 h-3 text-theme-accent" />
+              <span>Carril Organizativo (Swimlane)</span>
+            </label>
+            <div className="flex items-center gap-1">
+              {selectedLane && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditLaneForm({
+                      name: selectedLane.name,
+                      role: selectedLane.role,
+                      system: selectedLane.system || '',
+                      colorHex: selectedLane.colorHex || '#38bdf8'
+                    });
+                    setIsInlineLaneEditing(!isInlineLaneEditing);
+                    setIsInlineLaneCreating(false);
+                  }}
+                  title="Editar este carril (nombre, rol, sistema, color)"
+                  className={`px-1.5 py-0.5 rounded text-[10px] font-medium transition-colors flex items-center gap-1 ${
+                    isInlineLaneEditing
+                      ? 'bg-theme-accent text-slate-900 font-bold'
+                      : 'text-theme-text-muted hover:text-theme-accent hover:bg-theme-surface'
+                  }`}
+                >
+                  <Edit2 className="w-3 h-3" />
+                  <span>Editar</span>
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => {
+                  setNewLaneForm({
+                    name: `Carril Operativo ${lanes.length + 1}`,
+                    role: 'Responsable de Área',
+                    system: '',
+                    colorHex: '#38bdf8'
+                  });
+                  setIsInlineLaneCreating(!isInlineLaneCreating);
+                  setIsInlineLaneEditing(false);
+                }}
+                title="Crear nuevo carril"
+                className={`px-1.5 py-0.5 rounded text-[10px] font-medium transition-colors flex items-center gap-1 ${
+                  isInlineLaneCreating
+                    ? 'bg-theme-accent text-slate-900 font-bold'
+                    : 'text-theme-text-muted hover:text-theme-accent hover:bg-theme-surface'
+                }`}
+              >
+                <Plus className="w-3 h-3" />
+                <span>Nuevo</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setManageLanesModalOpen(true)}
+                title="Gestionar todos los carriles (reordenar, eliminar, editar)"
+                className="p-1 rounded text-theme-text-muted hover:text-theme-accent hover:bg-theme-surface transition-colors"
+              >
+                <Settings className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+
+          {/* Select Dropdown with custom option triggers */}
+          <div className="relative">
+            <select
+              value={data.laneId || ''}
+              onChange={(e) => {
+                const val = e.target.value;
+                if (val === '__NEW__') {
+                  setNewLaneForm({
+                    name: `Carril Operativo ${lanes.length + 1}`,
+                    role: 'Responsable de Área',
+                    system: '',
+                    colorHex: '#38bdf8'
+                  });
+                  setIsInlineLaneCreating(true);
+                  setIsInlineLaneEditing(false);
+                  return;
+                }
+                if (val === '__MANAGE__') {
+                  setManageLanesModalOpen(true);
+                  return;
+                }
+                const lane = lanes.find((l) => l.id === val);
+                handleUpdate({
+                  laneId: val,
+                  laneName: lane?.name,
+                  roleName: lane?.role
+                });
+                setIsInlineLaneEditing(false);
+              }}
+              className="w-full bg-theme-surface border border-theme-border rounded-lg px-2.5 py-1.5 text-theme-text text-xs focus:border-theme-accent outline-none font-medium"
+            >
+              <option value="">-- Sin Carril Asignado --</option>
+              {lanes.map((l) => (
+                <option key={l.id} value={l.id}>
+                  {l.name} ({l.role})
+                </option>
+              ))}
+              <option disabled>──────────────</option>
+              <option value="__NEW__">+ Crear nuevo carril...</option>
+              <option value="__MANAGE__">⚙ Gestionar y reordenar carriles...</option>
+            </select>
+          </div>
+
+          {/* Indicator of Selected Lane */}
+          {selectedLane && !isInlineLaneEditing && !isInlineLaneCreating && (
+            <div className="flex items-center justify-between px-2 py-1 bg-theme-surface rounded-lg border border-theme-border text-[10px]">
+              <div className="flex items-center space-x-1.5 overflow-hidden">
+                <span
+                  className="w-2.5 h-2.5 rounded-full shrink-0"
+                  style={{ backgroundColor: selectedLane.colorHex || '#38bdf8' }}
+                />
+                <span className="font-semibold text-theme-text truncate">{selectedLane.name}</span>
+                <span className="text-theme-text-muted truncate">({selectedLane.role})</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setEditLaneForm({
+                    name: selectedLane.name,
+                    role: selectedLane.role,
+                    system: selectedLane.system || '',
+                    colorHex: selectedLane.colorHex || '#38bdf8'
+                  });
+                  setIsInlineLaneEditing(true);
+                }}
+                className="text-theme-accent hover:underline text-[9px] shrink-0 ml-1 font-mono"
+              >
+                Personalizar
+              </button>
+            </div>
+          )}
+
+          {/* Inline Edit Form */}
+          {isInlineLaneEditing && selectedLane && (
+            <div className="p-2.5 bg-theme-surface rounded-lg border border-theme-accent/50 space-y-2 mt-2 animate-fadeIn text-xs">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-bold text-theme-accent uppercase font-mono flex items-center gap-1">
+                  <Edit2 className="w-3 h-3" />
+                  <span>Personalizar Carril Actual</span>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setIsInlineLaneEditing(false)}
+                  className="text-theme-text-muted hover:text-theme-text p-0.5"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </div>
+
+              <div>
+                <label className="text-[9px] font-bold uppercase tracking-wider text-theme-text-muted font-mono block mb-0.5">
+                  Nombre del Carril
+                </label>
+                <input
+                  type="text"
+                  value={editLaneForm.name}
+                  onChange={(e) => setEditLaneForm({ ...editLaneForm, name: e.target.value })}
+                  className="w-full bg-theme-surface-subtle border border-theme-border rounded px-2 py-1 text-theme-text text-xs focus:border-theme-accent outline-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-[9px] font-bold uppercase tracking-wider text-theme-text-muted font-mono block mb-0.5">
+                    Rol Responsable
+                  </label>
+                  <input
+                    type="text"
+                    value={editLaneForm.role}
+                    onChange={(e) => setEditLaneForm({ ...editLaneForm, role: e.target.value })}
+                    className="w-full bg-theme-surface-subtle border border-theme-border rounded px-2 py-1 text-theme-text text-xs focus:border-theme-accent outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="text-[9px] font-bold uppercase tracking-wider text-theme-text-muted font-mono block mb-0.5">
+                    Sistema TI
+                  </label>
+                  <input
+                    type="text"
+                    value={editLaneForm.system}
+                    onChange={(e) => setEditLaneForm({ ...editLaneForm, system: e.target.value })}
+                    className="w-full bg-theme-surface-subtle border border-theme-border rounded px-2 py-1 text-theme-text text-xs focus:border-theme-accent outline-none font-mono"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[9px] font-bold uppercase tracking-wider text-theme-text-muted font-mono block mb-1">
+                  Color del Carril
+                </label>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  {['#38bdf8', '#818cf8', '#34d399', '#f59e0b', '#ec4899', '#06b6d4', '#a855f7', '#64748b'].map((color) => (
+                    <button
+                      key={color}
+                      type="button"
+                      onClick={() => setEditLaneForm({ ...editLaneForm, colorHex: color })}
+                      className={`w-4 h-4 rounded-full border transition-transform ${
+                        editLaneForm.colorHex === color ? 'scale-125 border-white ring-1 ring-sky-400' : 'border-transparent hover:scale-110'
+                      }`}
+                      style={{ backgroundColor: color }}
+                    />
+                  ))}
+                  <input
+                    type="color"
+                    value={editLaneForm.colorHex}
+                    onChange={(e) => setEditLaneForm({ ...editLaneForm, colorHex: e.target.value })}
+                    className="w-4 h-4 bg-transparent border-0 cursor-pointer rounded ml-1"
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-1.5 pt-1.5 border-t border-theme-border">
+                <button
+                  type="button"
+                  onClick={() => setIsInlineLaneEditing(false)}
+                  className="px-2 py-1 text-[11px] text-theme-text-muted hover:text-theme-text"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!editLaneForm.name.trim()) return;
+                    updateLane(selectedLane.id, {
+                      name: editLaneForm.name.trim(),
+                      role: editLaneForm.role.trim() || 'Responsable',
+                      system: editLaneForm.system.trim(),
+                      colorHex: editLaneForm.colorHex
+                    });
+                    handleUpdate({
+                      laneName: editLaneForm.name.trim(),
+                      roleName: editLaneForm.role.trim() || 'Responsable'
+                    });
+                    showNotification('Carril actualizado exitosamente', 'success');
+                    setIsInlineLaneEditing(false);
+                  }}
+                  className="px-3 py-1 bg-theme-accent hover:brightness-110 text-slate-900 rounded text-[11px] font-bold shadow flex items-center gap-1"
+                >
+                  <Check className="w-3 h-3" />
+                  <span>Guardar Carril</span>
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Inline Create Form */}
+          {isInlineLaneCreating && (
+            <div className="p-2.5 bg-theme-surface rounded-lg border border-theme-accent/50 space-y-2 mt-2 animate-fadeIn text-xs">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-bold text-theme-accent uppercase font-mono flex items-center gap-1">
+                  <Plus className="w-3 h-3" />
+                  <span>Nuevo Carril Organizativo</span>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setIsInlineLaneCreating(false)}
+                  className="text-theme-text-muted hover:text-theme-text p-0.5"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </div>
+
+              <div>
+                <label className="text-[9px] font-bold uppercase tracking-wider text-theme-text-muted font-mono block mb-0.5">
+                  Nombre del Área / Carril *
+                </label>
+                <input
+                  type="text"
+                  placeholder="ej: Mesa de Entradas"
+                  value={newLaneForm.name}
+                  onChange={(e) => setNewLaneForm({ ...newLaneForm, name: e.target.value })}
+                  className="w-full bg-theme-surface-subtle border border-theme-border rounded px-2 py-1 text-theme-text text-xs focus:border-theme-accent outline-none"
+                  autoFocus
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-[9px] font-bold uppercase tracking-wider text-theme-text-muted font-mono block mb-0.5">
+                    Rol Responsable
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="ej: Inspector / Operador"
+                    value={newLaneForm.role}
+                    onChange={(e) => setNewLaneForm({ ...newLaneForm, role: e.target.value })}
+                    className="w-full bg-theme-surface-subtle border border-theme-border rounded px-2 py-1 text-theme-text text-xs focus:border-theme-accent outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="text-[9px] font-bold uppercase tracking-wider text-theme-text-muted font-mono block mb-0.5">
+                    Sistema TI
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="ej: SAM"
+                    value={newLaneForm.system}
+                    onChange={(e) => setNewLaneForm({ ...newLaneForm, system: e.target.value })}
+                    className="w-full bg-theme-surface-subtle border border-theme-border rounded px-2 py-1 text-theme-text text-xs focus:border-theme-accent outline-none font-mono"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[9px] font-bold uppercase tracking-wider text-theme-text-muted font-mono block mb-1">
+                  Color del Carril
+                </label>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  {['#38bdf8', '#818cf8', '#34d399', '#f59e0b', '#ec4899', '#06b6d4', '#a855f7', '#64748b'].map((color) => (
+                    <button
+                      key={color}
+                      type="button"
+                      onClick={() => setNewLaneForm({ ...newLaneForm, colorHex: color })}
+                      className={`w-4 h-4 rounded-full border transition-transform ${
+                        newLaneForm.colorHex === color ? 'scale-125 border-white ring-1 ring-sky-400' : 'border-transparent hover:scale-110'
+                      }`}
+                      style={{ backgroundColor: color }}
+                    />
+                  ))}
+                  <input
+                    type="color"
+                    value={newLaneForm.colorHex}
+                    onChange={(e) => setNewLaneForm({ ...newLaneForm, colorHex: e.target.value })}
+                    className="w-4 h-4 bg-transparent border-0 cursor-pointer rounded ml-1"
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-1.5 pt-1.5 border-t border-theme-border">
+                <button
+                  type="button"
+                  onClick={() => setIsInlineLaneCreating(false)}
+                  className="px-2 py-1 text-[11px] text-theme-text-muted hover:text-theme-text"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!newLaneForm.name.trim()) {
+                      showNotification('Ingrese el nombre del carril', 'error');
+                      return;
+                    }
+                    const newId = addLane(
+                      pool?.id,
+                      newLaneForm.name.trim(),
+                      newLaneForm.role.trim() || 'Responsable',
+                      newLaneForm.system.trim(),
+                      newLaneForm.colorHex
+                    );
+                    if (newId) {
+                      handleUpdate({
+                        laneId: newId,
+                        laneName: newLaneForm.name.trim(),
+                        roleName: newLaneForm.role.trim() || 'Responsable'
+                      });
+                      showNotification(`Carril "${newLaneForm.name}" creado y asignado`, 'success');
+                    }
+                    setIsInlineLaneCreating(false);
+                  }}
+                  className="px-3 py-1 bg-theme-accent hover:brightness-110 text-slate-900 rounded text-[11px] font-bold shadow flex items-center gap-1"
+                >
+                  <Plus className="w-3 h-3" />
+                  <span>Crear y Asignar</span>
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* IT System & Legal Framework */}
