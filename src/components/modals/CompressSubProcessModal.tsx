@@ -10,7 +10,8 @@ export const CompressSubProcessModal: React.FC = () => {
     setCompressModalOpen,
     selectedNodeIds,
     validateSelectionForCompression,
-    compressSelection
+    compressSelection,
+    getActiveGraph
   } = useCanvasStore();
 
   const { showNotification } = useUiStore();
@@ -26,13 +27,14 @@ export const CompressSubProcessModal: React.FC = () => {
       const val = validateSelectionForCompression();
       setValidation(val);
 
-      const existingSubsCount = currentProject?.nodes.filter((n) => n.type === 'SubProcess').length || 0;
+      const activeNodes = getActiveGraph().nodes;
+      const existingSubsCount = activeNodes.filter((n) => n.type === 'SubProcess').length || 0;
       const nextNum = existingSubsCount + 1;
       setStandardId(`SUB-${nextNum < 10 ? '0' + nextNum : nextNum}`);
       setTitle(`Subproceso Operativo ${nextNum}`);
       setDescription(`Subproceso integrado que encapsula ${selectedNodeIds.length} actividades operativas.`);
     }
-  }, [isCompressModalOpen, selectedNodeIds, validateSelectionForCompression, currentProject]);
+  }, [isCompressModalOpen, selectedNodeIds, validateSelectionForCompression, currentProject, getActiveGraph]);
 
   if (!isCompressModalOpen) return null;
 

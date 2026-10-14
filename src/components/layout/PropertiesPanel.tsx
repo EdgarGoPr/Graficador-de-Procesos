@@ -65,6 +65,7 @@ export const PropertiesPanel: React.FC = () => {
   const {
     selectedNodeId,
     selectedEdgeId,
+    getActiveGraph,
     updateNodeData,
     applyCardStyleToScope,
     updateEdgeData,
@@ -85,6 +86,8 @@ export const PropertiesPanel: React.FC = () => {
   const [newMitigation, setNewMitigation] = useState('');
 
   if (!currentProject) return null;
+
+  const activeGraph = getActiveGraph();
 
   // Render Empty State if nothing is selected
   if (!selectedNodeId && !selectedEdgeId) {
@@ -112,11 +115,11 @@ export const PropertiesPanel: React.FC = () => {
 
   // Render Edge Properties if an Edge is selected
   if (selectedEdgeId) {
-    const edge = currentProject.edges.find((e) => e.id === selectedEdgeId);
+    const edge = activeGraph.edges.find((e) => e.id === selectedEdgeId);
     if (!edge) return null;
 
-    const sourceNode = currentProject.nodes.find((n) => n.id === edge.source);
-    const targetNode = currentProject.nodes.find((n) => n.id === edge.target);
+    const sourceNode = activeGraph.nodes.find((n) => n.id === edge.source);
+    const targetNode = activeGraph.nodes.find((n) => n.id === edge.target);
 
     const currentStroke = edge.data?.strokeColor || '#38BDF8';
     const currentWidth = edge.data?.strokeWidth || 2;
@@ -294,7 +297,7 @@ export const PropertiesPanel: React.FC = () => {
     );
   }
 
-  const node = currentProject.nodes.find((n) => n.id === selectedNodeId);
+  const node = activeGraph.nodes.find((n) => n.id === selectedNodeId);
   if (!node) return null;
 
   const data = node.data as BpmnNodeData;

@@ -380,6 +380,15 @@ const userStories = [
     criteriosAceptacion: '1. Los nuevos elementos creados desde la barra lateral se ubican dinámicamente en el centro exacto de la pantalla/viewport actual del usuario considerando el nivel de zoom y desplazamiento (pan) mediante screenToFlowPosition.\n2. Ingreso a subprocesos con doble clic sobre la tarjeta, mediante el botón estándar BPMN [+] en la base o mediante la acción explícita "Ingresar" en el pie de la tarjeta.\n3. Soporte multinivel recursivo para anidar subprocesos dentro de otros subprocesos hasta N niveles de profundidad sin restricciones de arquitectura.\n4. Al ingresar a un subproceso comprimido previamente, se restauran las tarjetas en su distribución y coordenadas relativas espaciales originales.\n5. Barra de navegación jerárquica (Breadcrumbs) superior fija en el lienzo que muestra la ruta completa de niveles (Inicio > Subproceso A > Subproceso B...), botón de retorno rápido al nivel anterior y salto directo a cualquier nivel intermedio.\n6. Plena capacidad de edición en cualquier nivel interno del subproceso: agregar actividades, conectar flechas, editar propiedades, crear nuevos subprocesos internos y eliminar elementos.\n7. Cumplimiento de estándares de modelado BPMN 2.0: marcador oficial [+] en base de subprocesos colapsados, eventos de inicio en círculo simple, eventos de fin en círculo grueso y compuertas en rombo.',
     fechaImplementacion: '2026-10-14',
     estado: 'Implementado / Producción'
+  },
+  {
+    id: 'PST-043',
+    modulo: 'Subprocesos & Jerarquías Recursivas',
+    titulo: 'Aislamiento Contextual de Creación, Compresión y Edición en Subprocesos Anidados (N Niveles)',
+    historiaUsuario: 'Como modelador de procesos, quiero que al crear, comprimir, descomprimir o editar subprocesos y elementos estando dentro de un subproceso, los cambios se apliquen estricta y exclusivamente en el lienzo del subproceso activo actual en vez de volcarse sobre el proceso principal raíz, para garantizar la consistencia jerárquica de diagramas anidados complejos.',
+    criteriosAceptacion: '1. La acción de comprimir actividades seleccionadas en un subproceso (compressSelection) opera sobre el grafo del nivel activo (getActiveGraph) reemplazando los nodos únicamente dentro del subproceso actual mediante updateGraphForPath.\n2. La descompresión de subprocesos (decompressSubProcess) despliega las actividades directamente en el nivel donde se encuentra ubicado el nodo.\n3. La creación de nuevos subprocesos (addNode) pre-inicializa de inmediato su estructura interna subProcessCanvas y subProcessSteps con flujo estándar inicial persistido.\n4. El panel lateral de propiedades (PropertiesPanel) lee y edita los nodos y conectores del grafo activo sin importar el nivel de profundidad del subproceso.\n5. La barra de herramientas de selección (SelectionToolbar), las acciones de copiar/pegar y el modal de compresión respetan el contexto del subproceso activo.',
+    fechaImplementacion: '2026-10-14',
+    estado: 'Implementado / Producción'
   }
 ];
 

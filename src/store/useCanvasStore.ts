@@ -18,6 +18,8 @@ import {
   validateSubProcessCompression,
   compressNodesToSubProcess,
   decompressSubProcessToCanvas,
+  compressNodesInGraph,
+  decompressSubProcessInGraph,
   createClipboardPayload,
   pasteClipboardPayload,
   ValidationResult
@@ -50,7 +52,7 @@ export function getGraphForPath(
       return { nodes: [], edges: [] };
     }
 
-    if (subNode.data.subProcessCanvas && subNode.data.subProcessCanvas.nodes?.length) {
+    if (subNode.data.subProcessCanvas && subNode.data.subProcessCanvas.nodes !== undefined) {
       currentNodes = subNode.data.subProcessCanvas.nodes;
       currentEdges = subNode.data.subProcessCanvas.edges || [];
     } else if (subNode.data.compressedSnapshot && subNode.data.compressedSnapshot.nodes?.length) {
@@ -759,37 +761,31 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
   // CLIPBOARD OPERATIONS
   copySelection: () => {
     const { selectedNodeIds, selectedNodeId } = get();
-    const project = useProjectStore.getState().currentProject;
-    if (!project) return false;
+    const active = get().getActiveGraph();
 
     const targetIds = selectedNodeIds.length > 0 ? selectedNodeIds : (selectedNodeId ? [selectedNodeId] : []);
     if (targetIds.length === 0) return false;
 
-    const payload = createClipboardPayload(targetIds, project.nodes, project.edges);
+    const payload = createClipboardPayload(targetIds, active.nodes, active.edges);
     set({ clipboardPayload: payload });
     return true;
   },
 
   pasteSelection: () => {
     const { clipboardPayload } = get();
-    const projectStore = useProjectStore.getState();
-    const currentProject = projectStore.currentProject;
-    if (!clipboardPayload || !currentProject || clipboardPayload.nodes.length === 0) return false;
+    if (!clipboardPayload || clipboardPayload.nodes.length === 0) return false;
 
-    projectStore.pushSnapshot('Pegar elementos');
+    useProjectStore.getState().pushSnapshot('Pegar elementos');
+    const active = get().getActiveGraph();
 
     const { newNodes, newEdges } = pasteClipboardPayload(clipboardPayload, { x: 40, y: 40 });
 
     // Deselect current and select newly pasted items
-    const updatedExistingNodes = currentProject.nodes.map((n) => ({ ...n, selected: false }));
+    const updatedExistingNodes = active.nodes.map((n) => ({ ...n, selected: false }));
     const finalNodes = [...updatedExistingNodes, ...newNodes];
-    const finalEdges = [...currentProject.edges, ...newEdges];
+    const finalEdges = [...active.edges, ...newEdges];
 
-    projectStore.setProjectData({
-      ...currentProject,
-      nodes: finalNodes,
-      edges: finalEdges
-    });
+    get().setActiveGraph(finalNodes, finalEdges);
 
     const newIds = newNodes.map((n) => n.id);
     set({
@@ -803,18 +799,18 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
   // SUBPROCESS COMPRESSION & DECOMPRESSION
   validateSelectionForCompression: () => {
     const { selectedNodeIds } = get();
-    const project = useProjectStore.getState().currentProject;
-    if (!project) {
+    const active = get().getActiveGraph();
+    if (!active.nodes.length) {
       return {
         isValid: false,
         incomingEdges: [],
         outgoingEdges: [],
         internalEdges: [],
-        error: 'No hay ningún proyecto activo.'
+        error: 'No hay elementos en el lienzo actual.'
       };
     }
 
-    return validateSubProcessCompression(selectedNodeIds, project.nodes, project.edges);
+    return validateSubProcessCompression(selectedNodeIds, active.nodes, active.edges);
   },
 
   compressSelection: (title: string, standardId: string, description: string) => {
@@ -827,19 +823,24 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
 
     projectStore.pushSnapshot('Comprimir subproceso');
 
-    const result = compressNodesToSubProcess(
+    const active = get().getActiveGraph();
+    const result = compressNodesInGraph(
       selectedNodeIds,
       title,
       standardId,
       description,
-      currentProject
+      active.nodes,
+      active.edges,
+      currentProject.pools[0]?.lanes[0]?.id,
+      currentProject.pools[0]?.lanes[0]?.name,
+      currentProject.pools[0]?.lanes[0]?.role
     );
 
     if ('error' in result) {
       return { success: false, error: result.error };
     }
 
-    projectStore.setProjectData(result.project);
+    get().setActiveGraph(result.nodes, result.edges);
     set({
       selectedNodeId: result.newSubProcessId,
       selectedNodeIds: [result.newSubProcessId],
@@ -858,12 +859,13 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
 
     projectStore.pushSnapshot('Descomprimir subproceso');
 
-    const result = decompressSubProcessToCanvas(subProcessNodeId, currentProject);
+    const active = get().getActiveGraph();
+    const result = decompressSubProcessInGraph(subProcessNodeId, active.nodes, active.edges);
     if ('error' in result) {
       return { success: false, error: result.error };
     }
 
-    projectStore.setProjectData(result.project);
+    get().setActiveGraph(result.nodes, result.edges);
     set({
       selectedNodeIds: result.unpackedNodeIds,
       selectedNodeId: result.unpackedNodeIds[0] || null
@@ -914,7 +916,108 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
 
     const isLane = nodeType === BPMN_NODE_TYPES.POOL_LANE;
     const isSticky = nodeType === BPMN_NODE_TYPES.STICKY_NOTE;
-    const newNodeId = isLane ? `lane_node_${Date.now()}` : isSticky ? `note_${Date.now()}` : `node_${Date.now()}`;
+    const isSubProcess = nodeType === BPMN_NODE_TYPES.SUB_PROCESS;
+    const newNodeId = isLane ? `lane_node_${Date.now()}` : isSticky ? `note_${Date.now()}` : isSubProcess ? `subproc_${Date.now()}` : `node_${Date.now()}`;
+
+    // Pre-populate initial internal diagram for new SubProcesses
+    let initialSubProcessCanvas = undefined;
+    let initialSubProcessSteps = undefined;
+
+    if (isSubProcess) {
+      const startId = `start_${newNodeId}`;
+      const taskId = `task_${newNodeId}`;
+      const endId = `end_${newNodeId}`;
+
+      const starterNodes: Node<BpmnNodeData>[] = [
+        {
+          id: startId,
+          type: 'StartEvent',
+          position: { x: 100, y: 160 },
+          data: {
+            standardId: 'INI-01',
+            title: `Inicio de ${defaultTitle}`,
+            description: 'Disparador formal de ingreso a este subproceso',
+            nodeType: BPMN_NODE_TYPES.START_EVENT,
+            laneId: targetLaneId,
+            itSystem: targetLane?.system || 'Gestión',
+            legalFramework: '',
+            inputs: [],
+            outputs: [],
+            operationalRisks: [],
+            tags: ['Subproceso']
+          }
+        },
+        {
+          id: taskId,
+          type: 'UserTask',
+          position: { x: 280, y: 130 },
+          data: {
+            standardId: 'TSK-01',
+            title: 'Ejecución de Etapa Principal',
+            description: 'Procedimiento operativo interno',
+            nodeType: BPMN_NODE_TYPES.USER_TASK,
+            laneId: targetLaneId,
+            itSystem: targetLane?.system || 'Gestión',
+            legalFramework: '',
+            inputs: [],
+            outputs: [],
+            operationalRisks: [],
+            tags: ['Subproceso']
+          }
+        },
+        {
+          id: endId,
+          type: 'EndEvent',
+          position: { x: 560, y: 160 },
+          data: {
+            standardId: 'FIN-01',
+            title: `Fin de ${defaultTitle}`,
+            description: 'Culminación de la etapa',
+            nodeType: BPMN_NODE_TYPES.END_EVENT,
+            laneId: targetLaneId,
+            itSystem: targetLane?.system || 'Gestión',
+            legalFramework: '',
+            inputs: [],
+            outputs: [],
+            operationalRisks: [],
+            tags: ['Subproceso']
+          }
+        }
+      ];
+
+      const starterEdges: Edge<SequenceFlowData>[] = [
+        {
+          id: `flow_${startId}_${taskId}`,
+          source: startId,
+          target: taskId,
+          type: 'sequenceFlow',
+          data: { id: `flow_${startId}_${taskId}`, source: startId, target: taskId }
+        },
+        {
+          id: `flow_${taskId}_${endId}`,
+          source: taskId,
+          target: endId,
+          type: 'sequenceFlow',
+          data: { id: `flow_${taskId}_${endId}`, source: taskId, target: endId }
+        }
+      ];
+
+      initialSubProcessCanvas = { nodes: starterNodes, edges: starterEdges };
+      initialSubProcessSteps = [
+        {
+          id: `step_${taskId}`,
+          stepNumber: 1,
+          title: 'Ejecución de Etapa Principal',
+          description: 'Procedimiento operativo interno',
+          role: targetLane?.role || 'Responsable',
+          system: targetLane?.system || 'Gestión',
+          duration: 'P1D',
+          inputs: [],
+          outputs: []
+        }
+      ];
+    }
+
     const newNode: Node<BpmnNodeData> = {
       id: newNodeId,
       type: nodeType,
@@ -936,7 +1039,9 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
         inputs: [],
         outputs: [],
         operationalRisks: [],
-        tags: []
+        tags: isSubProcess ? ['Subproceso'] : [],
+        subProcessCanvas: initialSubProcessCanvas,
+        subProcessSteps: initialSubProcessSteps
       }
     };
 

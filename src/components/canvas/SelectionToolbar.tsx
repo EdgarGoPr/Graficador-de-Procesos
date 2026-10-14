@@ -18,17 +18,19 @@ export const SelectionToolbar: React.FC = () => {
     toggleCanvasLock,
     toggleLockSelected,
     isPrintOverlayVisible,
-    togglePrintOverlay
+    togglePrintOverlay,
+    getActiveGraph
   } = useCanvasStore();
 
   const { currentProject } = useProjectStore();
   const { showNotification } = useUiStore();
 
+  const activeGraph = getActiveGraph();
   const hasSelection = selectedNodeIds.length > 0;
   const hasMultiple = selectedNodeIds.length >= 2;
   const hasClipboard = Boolean(clipboardPayload && clipboardPayload.nodes.length > 0);
-  const hasLanes = currentProject?.nodes.some((n) => n.type === 'PoolLane') ?? false;
-  const isSelectionLocked = hasSelection && (currentProject?.nodes.some((n) => selectedNodeIds.includes(n.id) && n.data?.isLocked) ?? false);
+  const hasLanes = activeGraph.nodes.some((n) => n.type === 'PoolLane');
+  const isSelectionLocked = hasSelection && (activeGraph.nodes.some((n) => selectedNodeIds.includes(n.id) && n.data?.isLocked) ?? false);
 
   if (!hasSelection && !hasClipboard && !hasLanes && !isCanvasLocked && !isPrintOverlayVisible) return null;
 
@@ -49,7 +51,7 @@ export const SelectionToolbar: React.FC = () => {
   const handleToggleOrientation = () => {
     if (!currentProject) return;
     selectedNodeIds.forEach((id) => {
-      const node = currentProject.nodes.find((n) => n.id === id);
+      const node = activeGraph.nodes.find((n) => n.id === id);
       if (node) {
         const nextOrientation = node.data.orientation === 'vertical' ? 'horizontal' : 'vertical';
         updateNodeData(id, { orientation: nextOrientation });

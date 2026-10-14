@@ -32,10 +32,11 @@ export const SubProcessDetailModal: React.FC<SubProcessDetailModalProps> = ({
   onFocusNode
 }) => {
   const { currentProject } = useProjectStore();
-  const { updateNodeData, decompressSubProcess } = useCanvasStore();
+  const { updateNodeData, decompressSubProcess, getActiveGraph } = useCanvasStore();
   const { showNotification } = useUiStore();
 
-  const subProcessNode = currentProject?.nodes.find((n) => n.id === nodeId);
+  const activeGraph = getActiveGraph();
+  const subProcessNode = activeGraph.nodes.find((n) => n.id === nodeId) || currentProject?.nodes.find((n) => n.id === nodeId);
 
   const [newStepTitle, setNewStepTitle] = useState('');
   const [newStepRole, setNewStepRole] = useState(subProcessNode?.data.roleName || '');

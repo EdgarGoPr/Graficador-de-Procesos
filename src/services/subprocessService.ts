@@ -81,23 +81,27 @@ export function validateSubProcessCompression(
 }
 
 /**
- * Compresses multiple nodes into a single encapsulated SubProcess node,
- * storing a snapshot of exact node types, custom colors, relative coordinates, and internal flows.
+ * Compresses multiple nodes in an arbitrary graph (active canvas level) into a single encapsulated SubProcess node,
+ * storing a snapshot of exact node types, custom colors, relative coordinates, internal flows and subProcessCanvas.
  */
-export function compressNodesToSubProcess(
+export function compressNodesInGraph(
   nodeIds: string[],
   title: string,
   standardId: string,
   description: string,
-  project: ProcessProjectFile
-): { project: ProcessProjectFile; newSubProcessId: string } | { error: string } {
-  const validation = validateSubProcessCompression(nodeIds, project.nodes, project.edges);
+  currentNodes: Node<BpmnNodeData>[],
+  currentEdges: Edge<SequenceFlowData>[],
+  fallbackLaneId?: string,
+  fallbackLaneName?: string,
+  fallbackRoleName?: string
+): { nodes: Node<BpmnNodeData>[]; edges: Edge<SequenceFlowData>[]; newSubProcessId: string } | { error: string } {
+  const validation = validateSubProcessCompression(nodeIds, currentNodes, currentEdges);
   if (!validation.isValid) {
     return { error: validation.error || 'La selección no cumple los requisitos de compresión.' };
   }
 
   const selectedSet = new Set(nodeIds);
-  const selectedNodes = project.nodes.filter((n) => selectedSet.has(n.id));
+  const selectedNodes = currentNodes.filter((n) => selectedSet.has(n.id));
 
   // Sort nodes horizontally left to right
   const sortedNodes = [...selectedNodes].sort((a, b) => a.position.x - b.position.x);
@@ -160,10 +164,29 @@ export function compressNodesToSubProcess(
     };
   });
 
-  const primaryLaneId = sortedNodes[0]?.data?.laneId || project.pools[0]?.lanes[0]?.id || 'lane_1';
-  const primaryLane = project.pools[0]?.lanes.find((l) => l.id === primaryLaneId);
+  const primaryLaneId = sortedNodes[0]?.data?.laneId || fallbackLaneId || 'lane_1';
+  const primaryLaneName = sortedNodes[0]?.data?.laneName || fallbackLaneName;
+  const primaryRoleName = sortedNodes[0]?.data?.roleName || fallbackRoleName;
 
   const newSubProcessId = `subproc_${Date.now()}`;
+
+  // Pre-populate internal canvas so entering into this new subprocess works seamlessly
+  const internalCanvasNodes: Node<BpmnNodeData>[] = snapshotNodes.map((sn) => ({
+    id: sn.id,
+    type: sn.type as any,
+    position: { x: sn.relativeX + 280, y: sn.relativeY + 160 },
+    width: sn.width,
+    height: sn.height,
+    data: sn.data
+  }));
+
+  const internalCanvasEdges: Edge<SequenceFlowData>[] = snapshotEdges.map((se) => ({
+    id: se.id,
+    source: se.source,
+    target: se.target,
+    type: 'sequenceFlow',
+    data: se.data
+  }));
 
   const newSubProcessNode: Node<BpmnNodeData> = {
     id: newSubProcessId,
@@ -176,8 +199,8 @@ export function compressNodesToSubProcess(
       description: description || `Subproceso integrado que encapsula ${subProcessSteps.length} etapas internas.`,
       nodeType: BPMN_NODE_TYPES.SUB_PROCESS,
       laneId: primaryLaneId,
-      laneName: primaryLane?.name || sortedNodes[0]?.data?.laneName,
-      roleName: primaryLane?.role || sortedNodes[0]?.data?.roleName,
+      laneName: primaryLaneName || sortedNodes[0]?.data?.laneName,
+      roleName: primaryRoleName || sortedNodes[0]?.data?.roleName,
       itSystem: sortedNodes[0]?.data?.itSystem || 'Sistema Integrado',
       legalFramework: sortedNodes[0]?.data?.legalFramework || 'Procedimiento Administrativo',
       inputs: sortedNodes[0]?.data?.inputs || [],
@@ -185,6 +208,10 @@ export function compressNodesToSubProcess(
       operationalRisks: sortedNodes.flatMap((n) => n.data.operationalRisks || []),
       subProcessSteps: subProcessSteps,
       compressedSnapshot: compressedSnapshot,
+      subProcessCanvas: {
+        nodes: internalCanvasNodes,
+        edges: internalCanvasEdges
+      },
       tags: ['Subproceso', 'Encapsulado']
     }
   };
@@ -192,7 +219,7 @@ export function compressNodesToSubProcess(
   // Rewire external connections preserving stroke colors and styles
   const remainingEdges: Edge<SequenceFlowData>[] = [];
 
-  for (const edge of project.edges) {
+  for (const edge of currentEdges) {
     const isSourceSelected = selectedSet.has(edge.source);
     const isTargetSelected = selectedSet.has(edge.target);
 
@@ -244,29 +271,62 @@ export function compressNodesToSubProcess(
   }
 
   // Remove old compressed nodes and append new Subprocess node
-  const remainingNodes = project.nodes.filter((n) => !selectedSet.has(n.id));
+  const remainingNodes = currentNodes.filter((n) => !selectedSet.has(n.id));
   remainingNodes.push(newSubProcessNode);
 
   return {
-    project: {
-      ...project,
-      nodes: remainingNodes,
-      edges: remainingEdges
-    },
+    nodes: remainingNodes,
+    edges: remainingEdges,
     newSubProcessId
   };
 }
 
 /**
- * Decompresses an existing SubProcess node back into the canvas, restoring the EXACT original spatial layout
- * and node types (StartEvent, EndEvent, Gateways, etc.) relative to the current position of the subprocess,
- * and selecting all unpacked nodes for synchronized block movement.
+ * Backward compatibility wrapper for project-level compression
  */
-export function decompressSubProcessToCanvas(
-  subProcessNodeId: string,
+export function compressNodesToSubProcess(
+  nodeIds: string[],
+  title: string,
+  standardId: string,
+  description: string,
   project: ProcessProjectFile
-): { project: ProcessProjectFile; unpackedNodeIds: string[] } | { error: string } {
-  const subProcessNode = project.nodes.find((n) => n.id === subProcessNodeId);
+): { project: ProcessProjectFile; newSubProcessId: string } | { error: string } {
+  const result = compressNodesInGraph(
+    nodeIds,
+    title,
+    standardId,
+    description,
+    project.nodes,
+    project.edges,
+    project.pools[0]?.lanes[0]?.id,
+    project.pools[0]?.lanes[0]?.name,
+    project.pools[0]?.lanes[0]?.role
+  );
+
+  if ('error' in result) {
+    return result;
+  }
+
+  return {
+    project: {
+      ...project,
+      nodes: result.nodes,
+      edges: result.edges
+    },
+    newSubProcessId: result.newSubProcessId
+  };
+}
+
+/**
+ * Decompresses an existing SubProcess node in an arbitrary graph (active canvas level),
+ * restoring the EXACT original spatial layout and rewiring outer edges.
+ */
+export function decompressSubProcessInGraph(
+  subProcessNodeId: string,
+  currentNodes: Node<BpmnNodeData>[],
+  currentEdges: Edge<SequenceFlowData>[]
+): { nodes: Node<BpmnNodeData>[]; edges: Edge<SequenceFlowData>[]; unpackedNodeIds: string[] } | { error: string } {
+  const subProcessNode = currentNodes.find((n) => n.id === subProcessNodeId);
   if (!subProcessNode) {
     return { error: 'No se encontró el nodo de subproceso a descomprimir.' };
   }
@@ -274,6 +334,7 @@ export function decompressSubProcessToCanvas(
   const currentX = subProcessNode.position.x;
   const currentY = subProcessNode.position.y;
   const snapshot = subProcessNode.data?.compressedSnapshot as CompressedSubProcessSnapshot | undefined;
+  const subCanvas = subProcessNode.data?.subProcessCanvas;
 
   let unpackedNodes: Node<BpmnNodeData>[] = [];
   let internalEdges: Edge<SequenceFlowData>[] = [];
@@ -328,6 +389,15 @@ export function decompressSubProcessToCanvas(
     const endEventNode = unpackedNodes.find((n) => n.type === 'EndEvent' || n.data?.nodeType === 'EndEvent');
     const exitCandidate = endEventNode || unpackedNodes.find((n) => !sourceSet.has(n.id)) || unpackedNodes[unpackedNodes.length - 1];
     exitNodeId = exitCandidate.id;
+  } else if (subCanvas && subCanvas.nodes && subCanvas.nodes.length > 0) {
+    unpackedNodes = subCanvas.nodes.map((sn) => ({
+      ...sn,
+      position: { x: currentX + sn.position.x - 280, y: currentY + sn.position.y - 160 },
+      selected: true
+    }));
+    internalEdges = subCanvas.edges || [];
+    entryNodeId = unpackedNodes[0]?.id || '';
+    exitNodeId = unpackedNodes[unpackedNodes.length - 1]?.id || '';
   } else {
     // FALLBACK: Decompress from subProcessSteps
     const steps = subProcessNode.data?.subProcessSteps || [];
@@ -399,7 +469,7 @@ export function decompressSubProcessToCanvas(
   // Rewire outer edges preserving stroke colors and styles
   const updatedEdges: Edge<SequenceFlowData>[] = [];
 
-  for (const edge of project.edges) {
+  for (const edge of currentEdges) {
     if (edge.target === subProcessNodeId) {
       // Incoming to subprocess -> connect to entry node
       updatedEdges.push({
@@ -438,7 +508,7 @@ export function decompressSubProcessToCanvas(
   }
 
   // Deselect all existing nodes so ONLY the newly unpacked group is selected
-  const updatedExistingNodes: Node<BpmnNodeData>[] = project.nodes
+  const updatedExistingNodes: Node<BpmnNodeData>[] = currentNodes
     .filter((n) => n.id !== subProcessNodeId)
     .map((n) => ({ ...n, selected: false }));
 
@@ -446,12 +516,31 @@ export function decompressSubProcessToCanvas(
   const finalEdges: Edge<SequenceFlowData>[] = [...updatedEdges, ...internalEdges];
 
   return {
+    nodes: finalNodes,
+    edges: finalEdges,
+    unpackedNodeIds: unpackedNodes.map((n) => n.id)
+  };
+}
+
+/**
+ * Backward compatibility wrapper for project-level decompression
+ */
+export function decompressSubProcessToCanvas(
+  subProcessNodeId: string,
+  project: ProcessProjectFile
+): { project: ProcessProjectFile; unpackedNodeIds: string[] } | { error: string } {
+  const result = decompressSubProcessInGraph(subProcessNodeId, project.nodes, project.edges);
+  if ('error' in result) {
+    return result;
+  }
+
+  return {
     project: {
       ...project,
-      nodes: finalNodes,
-      edges: finalEdges
+      nodes: result.nodes,
+      edges: result.edges
     },
-    unpackedNodeIds: unpackedNodes.map((n) => n.id)
+    unpackedNodeIds: result.unpackedNodeIds
   };
 }
 
