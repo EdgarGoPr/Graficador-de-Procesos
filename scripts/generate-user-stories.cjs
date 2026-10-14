@@ -353,6 +353,15 @@ const userStories = [
     criteriosAceptacion: '1. Propiedades de nodo presentationOrder (número de orden secuencial) y presentationDurationSeconds (duración en segundos) en BpmnNodeData.\n2. Extractor de secuencia topológica que prioriza los números de orden manuales cuando están definidos y utiliza el orden de flujo y geometría por defecto cuando no lo están.\n3. Panel de Propiedades del Nodo en la pestaña "Contenido & Datos" con sección dedicada "Modo Presentación (Secuencia & Tiempo)".\n4. Panel lateral del Modo Presentación con control directo en vivo para ajustar el número de orden y tiempo de permanencia del paso activo.\n5. Temporizador dinámico de Auto-Play que sincroniza automáticamente el tiempo restante con la duración individual de cada tarjeta o el tiempo base global seleccionado.\n6. Línea de tiempo con scrubber dots diferenciados para pasos con duración individual e indicador de tiempo restante vs tiempo total del paso.',
     fechaImplementacion: '2026-09-22',
     estado: 'Implementado / Producción'
+  },
+  {
+    id: 'PST-040',
+    modulo: 'Gestión de Versiones y Repositorio / Proyectos',
+    titulo: 'Exclusión de Archivos de Proyectos Locales de Git (.gitignore)',
+    historiaUsuario: 'Como usuario y desarrollador de ProcesStudio, quiero que Git ignore y desindexe los archivos JSON de proyectos de procesos en la carpeta de proyectos, para evitar que el trabajo y modificaciones locales de proyectos generen cambios o conflictos innecesarios en el control de versiones del código fuente.',
+    criteriosAceptacion: '1. Configuración de directivas en .gitignore para ignorar archivos en MiAppProcesos_USB/Proyectos/* y Proyectos/*.\n2. Conservación del directorio en el repositorio mediante el marcador .gitkeep.\n3. Desindexación en Git de los archivos JSON de proyectos previamente rastreados sin borrarlos del disco local (git rm --cached).\n4. Verificación de que crear o editar proyectos JSON no genere avisos en git status.\n5. Preservación física intacta de los archivos existentes en la máquina local.',
+    fechaImplementacion: '2026-10-14',
+    estado: 'Implementado / Producción'
   }
 ];
 
