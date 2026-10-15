@@ -25,6 +25,12 @@ import {
   ValidationResult
 } from '../services/subprocessService';
 import type { ProcessProjectFile } from '../types/project';
+import {
+  getCurrentProcessInfo,
+  getNextSubProcessCode,
+  formatHierarchicalStandardId,
+  getAllProjectProcesses
+} from '../services/processHierarchyService';
 
 export interface SubProcessPathItem {
   id: string;
@@ -73,6 +79,11 @@ export function getGraphForPath(
       }));
     } else {
       // Empty or newly created subprocess: generate initial standard flow
+      const allProc = getAllProjectProcesses(project);
+      const matched = allProc.find((p) => p.id === subNode.id);
+      const procCode = subNode.data?.processCode || matched?.code || `P${(i + 2) < 10 ? '0' + (i + 2) : i + 2}`;
+      const lvlCode = `N${(i + 1) < 10 ? '0' + (i + 1) : i + 1}`;
+
       const startId = `start_${subNode.id}_${Date.now()}`;
       const taskId = `task_${subNode.id}_${Date.now()}`;
       const endId = `end_${subNode.id}_${Date.now()}`;
@@ -82,7 +93,7 @@ export function getGraphForPath(
           type: 'StartEvent',
           position: { x: 100, y: 160 },
           data: {
-            standardId: 'INI-01',
+            standardId: `${procCode}-${lvlCode}-EVT-01`,
             title: `Inicio de ${step.title}`,
             description: 'Disparador formal de ingreso a este subproceso',
             nodeType: 'StartEvent',
@@ -100,7 +111,7 @@ export function getGraphForPath(
           type: 'UserTask',
           position: { x: 280, y: 130 },
           data: {
-            standardId: 'TSK-01',
+            standardId: `${procCode}-${lvlCode}-TSK-01`,
             title: 'Ejecución de Etapa Principal',
             description: 'Procedimiento operativo interno',
             nodeType: 'UserTask',
@@ -118,7 +129,7 @@ export function getGraphForPath(
           type: 'EndEvent',
           position: { x: 560, y: 160 },
           data: {
-            standardId: 'FIN-01',
+            standardId: `${procCode}-${lvlCode}-EVT-02`,
             title: `Fin de ${step.title}`,
             description: 'Culminación de la etapa',
             nodeType: 'EndEvent',
@@ -251,6 +262,7 @@ interface CanvasStoreState {
   enterSubProcess: (subProcessNodeId: string) => void;
   leaveSubProcess: () => void;
   jumpToSubProcessLevel: (levelIndex: number) => void;
+  navigateToSubProcessPath: (path: SubProcessPathItem[]) => void;
   getActiveGraph: () => { nodes: Node<BpmnNodeData>[]; edges: Edge<SequenceFlowData>[] };
   setActiveGraph: (nodes: Node<BpmnNodeData>[], edges: Edge<SequenceFlowData>[]) => void;
 
@@ -388,6 +400,33 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
         selectedEdgeId: null,
       });
     }
+  },
+
+  navigateToSubProcessPath: (targetPath: SubProcessPathItem[]) => {
+    const project = useProjectStore.getState().currentProject;
+    if (!project) return;
+
+    if (!targetPath || targetPath.length === 0) {
+      set({
+        subProcessPath: [],
+        selectedNodeId: null,
+        selectedNodeIds: [],
+        selectedEdgeId: null,
+      });
+      return;
+    }
+
+    // Ensure child canvas is initialized in project
+    const subGraph = getGraphForPath(project, targetPath);
+    const updatedProject = updateGraphForPath(project, targetPath, subGraph.nodes, subGraph.edges);
+    useProjectStore.getState().setProjectData(updatedProject);
+
+    set({
+      subProcessPath: targetPath,
+      selectedNodeId: null,
+      selectedNodeIds: [],
+      selectedEdgeId: null,
+    });
   },
 
   togglePrintOverlay: () => {
@@ -886,18 +925,17 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
     const targetLaneId = laneId || firstLane?.id || 'lane-default';
     const targetLane = currentProject.pools[0]?.lanes.find(l => l.id === targetLaneId);
 
-    // Standard ID prefix
-    let prefix = 'TSK';
-    if (nodeType === BPMN_NODE_TYPES.START_EVENT || nodeType === BPMN_NODE_TYPES.END_EVENT) prefix = 'EVT';
-    else if (nodeType.includes('Gateway')) prefix = 'GTW';
-    else if (nodeType === BPMN_NODE_TYPES.QUALITY_CHECKPOINT_EVENT) prefix = 'QC';
-    else if (nodeType === BPMN_NODE_TYPES.TIMER_BOUNDARY_EVENT) prefix = 'TMR';
-    else if (nodeType === BPMN_NODE_TYPES.SUB_PROCESS) prefix = 'SUB';
-    else if (nodeType === BPMN_NODE_TYPES.POOL_LANE) prefix = 'LANE';
-    else if (nodeType === BPMN_NODE_TYPES.STICKY_NOTE) prefix = 'NOTE';
+    // Hierarchical Standard ID
+    const currentPath = get().subProcessPath;
+    const processInfo = getCurrentProcessInfo(currentProject, currentPath);
+    const standardId = formatHierarchicalStandardId(
+      processInfo.code,
+      processInfo.levelCode,
+      nodeType,
+      active.nodes
+    );
 
     const count = active.nodes.filter(n => n.data.nodeType === nodeType).length + 1;
-    const standardId = `${prefix}-${count < 10 ? '0' + count : count}`;
 
     const defaultTitle = {
       [BPMN_NODE_TYPES.START_EVENT]: 'Nuevo Evento de Inicio',
@@ -922,8 +960,16 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
     // Pre-populate initial internal diagram for new SubProcesses
     let initialSubProcessCanvas = undefined;
     let initialSubProcessSteps = undefined;
+    let subProcessAssignedCode: string | undefined = undefined;
+    let subProcessAssignedLevel: number | undefined = undefined;
 
     if (isSubProcess) {
+      const nextProc = getNextSubProcessCode(currentProject);
+      const childLevel = processInfo.level + 1;
+      const childLevelCode = `N${childLevel < 10 ? '0' + childLevel : childLevel}`;
+      subProcessAssignedCode = nextProc.code;
+      subProcessAssignedLevel = childLevel;
+
       const startId = `start_${newNodeId}`;
       const taskId = `task_${newNodeId}`;
       const endId = `end_${newNodeId}`;
@@ -934,7 +980,7 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
           type: 'StartEvent',
           position: { x: 100, y: 160 },
           data: {
-            standardId: 'INI-01',
+            standardId: `${nextProc.code}-${childLevelCode}-EVT-01`,
             title: 'Inicio',
             description: '',
             nodeType: BPMN_NODE_TYPES.START_EVENT,
@@ -953,7 +999,7 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
           type: 'UserTask',
           position: { x: 280, y: 130 },
           data: {
-            standardId: 'TSK-01',
+            standardId: `${nextProc.code}-${childLevelCode}-TSK-01`,
             title: 'Actividad Principal',
             description: '',
             nodeType: BPMN_NODE_TYPES.USER_TASK,
@@ -972,7 +1018,7 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
           type: 'EndEvent',
           position: { x: 560, y: 160 },
           data: {
-            standardId: 'FIN-01',
+            standardId: `${nextProc.code}-${childLevelCode}-EVT-02`,
             title: 'Fin',
             description: '',
             nodeType: BPMN_NODE_TYPES.END_EVENT,
@@ -1038,6 +1084,8 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
         responsible: '',
         itSystem: '',
         legalFramework: '',
+        processCode: subProcessAssignedCode,
+        processLevel: subProcessAssignedLevel,
         customBgColor: isSticky ? 'yellow' : undefined,
         customBorderColor: isLane ? '#38bdf8' : undefined,
         inputs: [],

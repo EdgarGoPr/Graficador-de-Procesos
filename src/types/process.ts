@@ -134,6 +134,9 @@ export interface BpmnNodeData {
   slaDuration?: IsoDuration;
   gatewayResolutionType?: GatewayResolutionType;
   conditionLabel?: string;
+  link?: string; // Enlace o URL externa asociada a la tarjeta
+  processCode?: string; // Código de proceso asignado (e.g. "P01", "P02")
+  processLevel?: number; // Nivel jerárquico del proceso (0 = Padre, 1 = N01, 2 = N02, etc.)
   inputs: string[]; // Insumos / Requisitos previos
   outputs: string[]; // Entregables / Salidas formales
   qualityCheckpoint?: QualityCheckpointConfig;

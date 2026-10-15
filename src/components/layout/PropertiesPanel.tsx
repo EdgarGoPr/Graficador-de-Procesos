@@ -31,7 +31,9 @@ import {
   Edit2,
   Check,
   Wrench,
-  User
+  User,
+  Link2,
+  ExternalLink
 } from 'lucide-react';
 import {
   BpmnNodeData,
@@ -1393,6 +1395,36 @@ export const PropertiesPanel: React.FC = () => {
               onChange={(e) => handleUpdate({ legalFramework: e.target.value })}
               className="w-full bg-theme-surface-subtle border border-theme-border rounded px-2 py-1 text-theme-text text-xs focus:border-theme-accent outline-none mt-0.5"
             />
+          </div>
+          <div>
+            <label className="text-[10px] font-bold uppercase tracking-wider text-theme-text-muted font-mono flex items-center space-x-1">
+              <Link2 className="w-3 h-3 text-sky-400 mr-1" />
+              <span>Link / Enlace Web</span>
+            </label>
+            <div className="flex items-center space-x-1 mt-0.5">
+              <input
+                type="text"
+                placeholder="https://ejemplo.com/recurso"
+                value={data.link || ''}
+                onChange={(e) => handleUpdate({ link: e.target.value })}
+                className="w-full bg-theme-surface-subtle border border-theme-border rounded px-2 py-1 text-theme-text text-xs focus:border-theme-accent outline-none"
+              />
+              {data.link && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const raw = data.link?.trim() || '';
+                    if (!raw) return;
+                    const href = raw.startsWith('http://') || raw.startsWith('https://') ? raw : `https://${raw}`;
+                    window.open(href, '_blank', 'noopener,noreferrer');
+                  }}
+                  title="Abrir enlace en navegador"
+                  className="p-1.5 bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 border border-sky-500/30 rounded transition-colors shrink-0"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
           </div>
         </div>
 

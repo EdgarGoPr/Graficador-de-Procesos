@@ -4,12 +4,21 @@ import { BpmnNodeData } from '../../../types/process';
 import { hexToRgba } from '../../../types/theme';
 import { useUiStore } from '../../../store/useUiStore';
 import { useCanvasStore } from '../../../store/useCanvasStore';
-import { Layers, Maximize2, ListOrdered, FolderOpen, Plus, FolderInput } from 'lucide-react';
+import { Layers, Maximize2, ListOrdered, FolderOpen, Plus, FolderInput, ExternalLink } from 'lucide-react';
 
 export const SubProcessNode = memo(({ id, data, selected }: NodeProps<any>) => {
   const nodeData = data as BpmnNodeData;
   const { openSubProcessDetail, showNotification } = useUiStore();
   const { decompressSubProcess, enterSubProcess } = useCanvasStore();
+
+  const handleOpenLink = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!nodeData.link) return;
+    const raw = nodeData.link.trim();
+    if (!raw) return;
+    const href = raw.startsWith('http://') || raw.startsWith('https://') ? raw : `https://${raw}`;
+    window.open(href, '_blank', 'noopener,noreferrer');
+  };
 
   const handleEnterSubProcess = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -93,6 +102,16 @@ export const SubProcessNode = memo(({ id, data, selected }: NodeProps<any>) => {
             </span>
           </div>
           <div className="flex items-center space-x-1 shrink-0">
+            {nodeData.link && (
+              <button
+                type="button"
+                onClick={handleOpenLink}
+                title={`Abrir enlace: ${nodeData.link}`}
+                className="p-1 rounded bg-indigo-500/15 hover:bg-indigo-500/30 text-indigo-300 hover:text-indigo-200 border border-indigo-500/30 transition-all hover:scale-110 shadow-xs cursor-pointer flex items-center justify-center"
+              >
+                <ExternalLink className="w-2.5 h-2.5" />
+              </button>
+            )}
             <span className="text-[9px] font-medium px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-300 border border-indigo-500/25">
               Subproceso
             </span>

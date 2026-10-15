@@ -2,10 +2,19 @@ import React, { memo } from 'react';
 import { Handle, Position, NodeProps, NodeResizer } from '@xyflow/react';
 import { BpmnNodeData, BPMN_NODE_TYPES } from '../../../types/process';
 import { hexToRgba } from '../../../types/theme';
-import { User, Cpu, Wrench, Clock, AlertTriangle, ShieldCheck, Server } from 'lucide-react';
+import { User, Cpu, Wrench, Clock, AlertTriangle, ShieldCheck, Server, ExternalLink } from 'lucide-react';
 
 export const TaskNode = memo(({ data, selected }: NodeProps<any>) => {
   const nodeData = data as BpmnNodeData;
+
+  const handleOpenLink = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!nodeData.link) return;
+    const raw = nodeData.link.trim();
+    if (!raw) return;
+    const href = raw.startsWith('http://') || raw.startsWith('https://') ? raw : `https://${raw}`;
+    window.open(href, '_blank', 'noopener,noreferrer');
+  };
 
   const isUserTask = nodeData.nodeType === BPMN_NODE_TYPES.USER_TASK;
   const isServiceTask = nodeData.nodeType === BPMN_NODE_TYPES.SERVICE_TASK;
@@ -90,9 +99,21 @@ export const TaskNode = memo(({ data, selected }: NodeProps<any>) => {
               {nodeData.standardId || 'TSK-00'}
             </span>
           </div>
-          <span className={`text-[9px] font-medium px-2 py-0.5 rounded-full shrink-0 ${typeConfig.badge}`}>
-            {typeConfig.label}
-          </span>
+          <div className="flex items-center space-x-1 shrink-0">
+            {nodeData.link && (
+              <button
+                type="button"
+                onClick={handleOpenLink}
+                title={`Abrir enlace: ${nodeData.link}`}
+                className="p-1 rounded bg-sky-500/15 hover:bg-sky-500/30 text-sky-400 hover:text-sky-300 border border-sky-500/30 transition-all hover:scale-110 shadow-xs cursor-pointer flex items-center justify-center"
+              >
+                <ExternalLink className="w-2.5 h-2.5" />
+              </button>
+            )}
+            <span className={`text-[9px] font-medium px-2 py-0.5 rounded-full shrink-0 ${typeConfig.badge}`}>
+              {typeConfig.label}
+            </span>
+          </div>
         </div>
 
         {/* Body */}
