@@ -25,6 +25,97 @@ export interface SmartRoutingOptions {
   sourceNodeId?: string;
   targetNodeId?: string;
   padding?: number;
+  controlPoint?: Point;
+}
+
+/**
+ * Calculates a smooth C1-continuous curve governed by a manual control point,
+ * allowing users to adjust the inflection bend (contracurva) or arch over/under obstacles.
+ */
+export function getControlledEdgePath(
+  sourceX: number,
+  sourceY: number,
+  sourcePosition: Position = Position.Right,
+  targetX: number,
+  targetY: number,
+  targetPosition: Position = Position.Left,
+  cp: Point
+): [pathString: string, labelX: number, labelY: number] {
+  const sx = sourceX;
+  const sy = sourceY;
+  const tx = targetX;
+  const ty = targetY;
+  const cx = cp.x;
+  const cy = cp.y;
+
+  const isSourceHorizontal = sourcePosition === Position.Left || sourcePosition === Position.Right;
+  const isTargetHorizontal = targetPosition === Position.Left || targetPosition === Position.Right;
+
+  if (isSourceHorizontal && isTargetHorizontal) {
+    const dx1 = Math.max(10, Math.abs(cx - sx));
+    const dx2 = Math.max(10, Math.abs(tx - cx));
+
+    const secant1 = (cy - sy) / dx1;
+    const secant2 = (ty - cy) / dx2;
+
+    let slopeY = 0;
+    if (secant1 * secant2 > 0) {
+      slopeY = (2 * secant1 * secant2) / (secant1 + secant2);
+    } else {
+      slopeY = 0;
+    }
+
+    const k1 = Math.max(20, Math.min(dx1 * 0.45, 160));
+    const k2 = Math.max(20, Math.min(dx2 * 0.45, 160));
+
+    const srcDir = sourcePosition === Position.Right ? 1 : -1;
+    const tgtDir = targetPosition === Position.Left ? -1 : 1;
+
+    const cp1x = sx + srcDir * k1;
+    const cp1y = sy;
+    const cp2x = cx - k1;
+    const cp2y = cy - k1 * slopeY;
+
+    const cp3x = cx + k2;
+    const cp3y = cy + k2 * slopeY;
+    const cp4x = tx + tgtDir * k2;
+    const cp4y = ty;
+
+    const path = `M ${sx} ${sy} C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${cx} ${cy} C ${cp3x} ${cp3y}, ${cp4x} ${cp4y}, ${tx} ${ty}`;
+    return [path, cx, cy];
+  } else {
+    const dy1 = Math.max(10, Math.abs(cy - sy));
+    const dy2 = Math.max(10, Math.abs(ty - cy));
+
+    const secant1 = (cx - sx) / dy1;
+    const secant2 = (tx - cx) / dy2;
+
+    let slopeX = 0;
+    if (secant1 * secant2 > 0) {
+      slopeX = (2 * secant1 * secant2) / (secant1 + secant2);
+    } else {
+      slopeX = 0;
+    }
+
+    const k1 = Math.max(20, Math.min(dy1 * 0.45, 160));
+    const k2 = Math.max(20, Math.min(dy2 * 0.45, 160));
+
+    const srcDir = sourcePosition === Position.Bottom ? 1 : -1;
+    const tgtDir = targetPosition === Position.Top ? -1 : 1;
+
+    const cp1x = sx;
+    const cp1y = sy + srcDir * k1;
+    const cp2x = cx - k1 * slopeX;
+    const cp2y = cy - k1;
+
+    const cp3x = cx + k2 * slopeX;
+    const cp3y = cy + k2;
+    const cp4x = tx;
+    const cp4y = ty + tgtDir * k2;
+
+    const path = `M ${sx} ${sy} C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${cx} ${cy} C ${cp3x} ${cp3y}, ${cp4x} ${cp4y}, ${tx} ${ty}`;
+    return [path, cx, cy];
+  }
 }
 
 /**
@@ -42,8 +133,22 @@ export function getSmartEdgePath(options: SmartRoutingOptions): [pathString: str
     nodes = [],
     sourceNodeId,
     targetNodeId,
-    padding = 16
+    padding = 16,
+    controlPoint
   } = options;
+
+  // 0. If a manual control point is specified, use controlled trajectory immediately
+  if (controlPoint) {
+    return getControlledEdgePath(
+      sourceX,
+      sourceY,
+      sourcePosition,
+      targetX,
+      targetY,
+      targetPosition,
+      controlPoint
+    );
+  }
 
   // 1. Collect third-party obstacles (strictly excluding source, target, and swimlanes)
   const obstacles: Box[] = [];

@@ -170,5 +170,6 @@ export interface SequenceFlowData {
   isAnimated?: boolean; // Animación de flujo
   isDefault?: boolean;
   isProbationOrAppeal?: boolean;
+  controlPoint?: { x: number; y: number }; // Punto de control para contracurva / esquiva
   [key: string]: unknown;
 }

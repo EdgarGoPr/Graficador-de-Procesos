@@ -1,4 +1,6 @@
 import { ProcessProjectFile } from '../types/project';
+import { Position } from '@xyflow/react';
+import { getControlledEdgePath } from '../utils/smartRouting';
 
 /**
  * Generates an SVG string representation of the process diagram
@@ -72,17 +74,38 @@ export function generateProcessSvg(project: ProcessProjectFile): string {
     const x2 = tNode.position.x;
     const y2 = tNode.position.y + tHeight / 2;
 
-    const dx = Math.abs(x2 - x1) / 2;
     const edgeData = edge.data as Record<string, any> | undefined;
     const color = edgeData?.strokeColor || '#38BDF8';
+    const controlPoint = edgeData?.controlPoint as { x: number; y: number } | undefined;
 
-    svg += `  <path d="M ${x1} ${y1} C ${x1 + dx} ${y1}, ${x2 - dx} ${y2}, ${x2} ${y2}" fill="none" stroke="${color}" stroke-width="2.5" marker-end="url(#arrow)" />\n`;
+    let pathD = '';
+    let labelMidX = (x1 + x2) / 2;
+    let labelMidY = (y1 + y2) / 2;
+
+    if (controlPoint) {
+      const [controlledPath, lx, ly] = getControlledEdgePath(
+        x1,
+        y1,
+        Position.Right,
+        x2,
+        y2,
+        Position.Left,
+        controlPoint
+      );
+      pathD = controlledPath;
+      labelMidX = lx;
+      labelMidY = ly;
+    } else {
+      const dx = Math.abs(x2 - x1) / 2;
+      pathD = `M ${x1} ${y1} C ${x1 + dx} ${y1}, ${x2 - dx} ${y2}, ${x2} ${y2}`;
+    }
+
+    svg += `  <path d="${pathD}" fill="none" stroke="${color}" stroke-width="2.5" marker-end="url(#arrow)" />\n`;
 
     if (edgeData?.conditionText) {
-      const midX = (x1 + x2) / 2;
-      const midY = (y1 + y2) / 2 - 8;
-      svg += `  <rect x="${midX - 35}" y="${midY - 10}" width="70" height="18" rx="4" fill="#1E293B" stroke="${color}" stroke-width="1" />
-  <text x="${midX}" y="${midY + 3}" text-anchor="middle" fill="#E2E8F0" font-size="10" font-weight="bold">${edgeData.conditionText}</text>\n`;
+      const tagY = labelMidY - 10;
+      svg += `  <rect x="${labelMidX - 35}" y="${tagY - 10}" width="70" height="18" rx="4" fill="#1E293B" stroke="${color}" stroke-width="1" />
+  <text x="${labelMidX}" y="${tagY + 3}" text-anchor="middle" fill="#E2E8F0" font-size="10" font-weight="bold">${edgeData.conditionText}</text>\n`;
     }
   });
 

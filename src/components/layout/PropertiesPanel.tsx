@@ -202,6 +202,47 @@ export const PropertiesPanel: React.FC = () => {
             </p>
           </div>
 
+          {/* Curvatura y Contracurva Manual */}
+          <div className="space-y-2.5 pt-3 border-t border-theme-border">
+            <div className="flex items-center justify-between">
+              <label className="text-[10px] font-bold uppercase tracking-wider text-theme-text font-mono flex items-center space-x-1">
+                <Compass className="w-3.5 h-3.5 text-theme-accent mr-1" />
+                <span>Curvatura y Contracurva</span>
+              </label>
+              {edge.data?.controlPoint && (
+                <button
+                  onClick={() => updateEdgeData(edge.id, { controlPoint: undefined })}
+                  className="text-[10px] text-theme-accent hover:underline flex items-center space-x-1"
+                  title="Restablecer a trazado automático"
+                >
+                  <RotateCcw className="w-3 h-3" />
+                  <span>Restablecer</span>
+                </button>
+              )}
+            </div>
+
+            <div className="p-2 rounded-lg bg-theme-surface-subtle border border-theme-border text-[11px] space-y-1.5">
+              <div className="flex items-center justify-between">
+                <span className="text-theme-text-muted">Estado del Trazo:</span>
+                <span className={`font-mono text-xs font-semibold ${edge.data?.controlPoint ? 'text-amber-400' : 'text-emerald-400'}`}>
+                  {edge.data?.controlPoint ? 'Manual (Personalizado)' : 'Automático'}
+                </span>
+              </div>
+              {edge.data?.controlPoint && (
+                <div className="flex items-center justify-between font-mono text-[10px] text-theme-text-muted pt-1 border-t border-theme-border/50">
+                  <span>Punto Inflexión:</span>
+                  <span className="text-theme-text font-semibold">
+                    X: {Math.round(edge.data.controlPoint.x)}px | Y: {Math.round(edge.data.controlPoint.y)}px
+                  </span>
+                </div>
+              )}
+            </div>
+
+            <p className="text-[10px] text-theme-text-muted leading-relaxed">
+              Arrastra el <strong>punto circular</strong> en el centro de la línea en el lienzo para controlar dónde realiza el quiebre (alinear caídas verticales) o arquear la curva para esquivar tarjetas. Doble clic para restablecer.
+            </p>
+          </div>
+
           {/* Personalización Cromática de la Conexión */}
           <div className="space-y-3 pt-3 border-t border-theme-border">
             <div className="flex items-center justify-between">

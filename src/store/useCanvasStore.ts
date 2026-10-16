@@ -303,7 +303,7 @@ interface CanvasStoreState {
   addNode: (nodeType: BpmnNodeType, position: { x: number; y: number }, laneId?: string) => void;
   updateNodeData: (nodeId: string, updates: Partial<BpmnNodeData>) => void;
   applyCardStyleToScope: (targetNodeId: string, scope: 'single' | 'same_type' | 'all', styleChanges: Partial<BpmnNodeData>) => void;
-  updateEdgeData: (edgeId: string, updates: Partial<SequenceFlowData>) => void;
+  updateEdgeData: (edgeId: string, updates: Partial<SequenceFlowData>, pushSnapshot?: boolean) => void;
   bulkUpdateNodeColors: (filter: { nodeType?: BpmnNodeType; laneId?: string } | 'ALL', colors: { customBgColor?: string; customBorderColor?: string; customTextColor?: string }) => void;
   bulkUpdateEdgeColors: (colors: { strokeColor?: string; strokeWidth?: number; isAnimated?: boolean }) => void;
   deleteSelected: () => void;
@@ -1154,8 +1154,10 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
     get().setActiveGraph(nextNodes, active.edges);
   },
 
-  updateEdgeData: (edgeId: string, updates: Partial<SequenceFlowData>) => {
-    useProjectStore.getState().pushSnapshot('Modificar conector');
+  updateEdgeData: (edgeId: string, updates: Partial<SequenceFlowData>, pushSnapshot: boolean = true) => {
+    if (pushSnapshot) {
+      useProjectStore.getState().pushSnapshot('Modificar conector');
+    }
     const active = get().getActiveGraph();
     const nextEdges = active.edges.map((edge) => {
       if (edge.id === edgeId) {
