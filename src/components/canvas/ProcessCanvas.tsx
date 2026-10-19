@@ -371,6 +371,22 @@ const ProcessCanvasInternal: React.FC = () => {
       const currentViewport = getViewport();
       const zoom = currentViewport.zoom || 1;
 
+      // Check if returning to a specific subProcess card (PST-058)
+      const pendingFocusId = useCanvasStore.getState().pendingFocusNodeId;
+      if (pendingFocusId) {
+        useCanvasStore.getState().setPendingFocusNodeId(null);
+        const focusNode = processNodes.find((n) => n.id === pendingFocusId);
+        if (focusNode) {
+          const focusW = (focusNode.measured?.width || focusNode.width || (focusNode.type === 'SubProcess' ? 240 : 210)) as number;
+          const focusH = (focusNode.measured?.height || focusNode.height || (focusNode.type === 'SubProcess' ? 120 : 120)) as number;
+          const nodeCenterX = focusNode.position.x + focusW / 2;
+          const nodeCenterY = focusNode.position.y + focusH / 2;
+          setCenter(nodeCenterX, nodeCenterY, { zoom, duration: 450 });
+          selectNode(focusNode.id);
+          return;
+        }
+      }
+
       let minX = Infinity;
       let maxX = -Infinity;
       let minY = Infinity;

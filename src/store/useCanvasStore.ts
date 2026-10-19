@@ -265,6 +265,8 @@ interface CanvasStoreState {
   navigateToSubProcessPath: (path: SubProcessPathItem[]) => void;
   getActiveGraph: () => { nodes: Node<BpmnNodeData>[]; edges: Edge<SequenceFlowData>[] };
   setActiveGraph: (nodes: Node<BpmnNodeData>[], edges: Edge<SequenceFlowData>[]) => void;
+  pendingFocusNodeId: string | null;
+  setPendingFocusNodeId: (id: string | null) => void;
 
   // React Flow Handlers
   onNodesChange: OnNodesChange<Node<BpmnNodeData>>;
@@ -326,6 +328,8 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
   isCanvasLocked: false,
   isPrintOverlayVisible: false,
   subProcessPath: [],
+  pendingFocusNodeId: null,
+  setPendingFocusNodeId: (id: string | null) => set({ pendingFocusNodeId: id }),
 
   getActiveGraph: () => {
     const project = useProjectStore.getState().currentProject;
@@ -374,45 +378,58 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
   leaveSubProcess: () => {
     const path = get().subProcessPath;
     if (path.length === 0) return;
+    const lastStep = path[path.length - 1];
     set({
       subProcessPath: path.slice(0, -1),
-      selectedNodeId: null,
-      selectedNodeIds: [],
+      selectedNodeId: lastStep?.id || null,
+      selectedNodeIds: lastStep?.id ? [lastStep.id] : [],
       selectedEdgeId: null,
+      pendingFocusNodeId: lastStep?.id || null,
     });
   },
 
   jumpToSubProcessLevel: (levelIndex: number) => {
+    const path = get().subProcessPath;
     if (levelIndex < 0) {
+      const focusId = path[0]?.id || null;
       set({
         subProcessPath: [],
-        selectedNodeId: null,
-        selectedNodeIds: [],
+        selectedNodeId: focusId,
+        selectedNodeIds: focusId ? [focusId] : [],
         selectedEdgeId: null,
+        pendingFocusNodeId: focusId,
       });
       return;
     }
-    const path = get().subProcessPath;
     if (levelIndex < path.length) {
+      const focusId = path[levelIndex + 1]?.id || null;
       set({
         subProcessPath: path.slice(0, levelIndex + 1),
-        selectedNodeId: null,
-        selectedNodeIds: [],
+        selectedNodeId: focusId,
+        selectedNodeIds: focusId ? [focusId] : [],
         selectedEdgeId: null,
+        pendingFocusNodeId: focusId,
       });
     }
   },
 
   navigateToSubProcessPath: (targetPath: SubProcessPathItem[]) => {
+    const currentPath = get().subProcessPath;
     const project = useProjectStore.getState().currentProject;
     if (!project) return;
+
+    let focusId: string | null = null;
+    if (targetPath.length < currentPath.length) {
+      focusId = currentPath[targetPath.length]?.id || null;
+    }
 
     if (!targetPath || targetPath.length === 0) {
       set({
         subProcessPath: [],
-        selectedNodeId: null,
-        selectedNodeIds: [],
+        selectedNodeId: focusId,
+        selectedNodeIds: focusId ? [focusId] : [],
         selectedEdgeId: null,
+        pendingFocusNodeId: focusId,
       });
       return;
     }
@@ -424,9 +441,10 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
 
     set({
       subProcessPath: targetPath,
-      selectedNodeId: null,
-      selectedNodeIds: [],
+      selectedNodeId: focusId,
+      selectedNodeIds: focusId ? [focusId] : [],
       selectedEdgeId: null,
+      pendingFocusNodeId: focusId,
     });
   },
 

@@ -34,6 +34,30 @@ export const SubProcessBreadcrumbs: React.FC = () => {
       className="absolute top-3 left-4 z-30 flex items-center bg-theme-surface/95 border border-theme-border/80 backdrop-blur-md px-3.5 py-1.5 rounded-xl shadow-xl space-x-1.5 text-xs select-none animate-in fade-in slide-in-from-top-2 duration-200 max-w-[calc(100vw-360px)] overflow-x-auto no-scrollbar"
       title="Navegación entre Procesos y Subprocesos Anidados"
     >
+      {/* Botón Volver a la izquierda de P01N00 (PST-058) */}
+      <button
+        type="button"
+        disabled={isAtRoot}
+        onClick={leaveSubProcess}
+        className={`flex items-center space-x-1 px-2.5 py-1 rounded-md border transition-all shadow-xs active:scale-95 shrink-0 text-[11px] font-bold ${
+          isAtRoot
+            ? 'opacity-35 cursor-not-allowed border-theme-border/40 text-theme-text-muted bg-theme-surface-subtle/30'
+            : isDark
+            ? 'bg-slate-800/90 hover:bg-slate-700 text-slate-100 border-slate-700 hover:text-indigo-300 ring-1 ring-white/10'
+            : 'bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-300 hover:text-indigo-700 shadow-sm'
+        }`}
+        title={
+          isAtRoot
+            ? 'Ya se encuentra en el proceso principal (raíz)'
+            : 'Volver al proceso anterior y enfocar tarjeta de subproceso asociada'
+        }
+      >
+        <ArrowLeft className="w-3.5 h-3.5" />
+        <span>Volver</span>
+      </button>
+
+      <div className="w-[1px] h-4 bg-theme-border/80 mx-1 shrink-0" />
+
       {allProcesses.map((proc, index) => {
         const isCurrent = isAtRoot
           ? proc.id === 'root'
@@ -138,26 +162,6 @@ export const SubProcessBreadcrumbs: React.FC = () => {
           </React.Fragment>
         );
       })}
-
-      {/* Volver / Step up button when nested */}
-      {!isAtRoot && (
-        <>
-          <div className="w-[1px] h-4 bg-theme-border mx-1 shrink-0" />
-          <button
-            type="button"
-            onClick={leaveSubProcess}
-            className={`flex items-center space-x-1 px-2.5 py-1 rounded-md border transition-all shadow-xs active:scale-95 shrink-0 text-[11px] font-bold ${
-              isDark
-                ? 'bg-slate-800/80 hover:bg-slate-700 text-slate-100 border-slate-700 hover:text-indigo-300'
-                : 'bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-300 hover:text-indigo-700'
-            }`}
-            title="Subir un nivel (Regresar al proceso contenedor)"
-          >
-            <ArrowLeft className="w-3 h-3" />
-            <span>Volver</span>
-          </button>
-        </>
-      )}
     </div>
   );
 };
