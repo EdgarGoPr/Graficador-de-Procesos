@@ -30,6 +30,73 @@ export interface SmartRoutingOptions {
   controlPointsCount?: number;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function getNodeBox(node: Node<any>, padding: number = 0): Box {
+  const posX = node.position?.x ?? 0;
+  const posY = node.position?.y ?? 0;
+
+  let w = (node.measured?.width ?? node.width) as number;
+  let h = (node.measured?.height ?? node.height) as number;
+
+  if (node.type === 'ExclusiveGateway' || node.type === 'ParallelGateway') {
+    w = Math.max(w || 0, 130);
+    h = Math.max(h || 0, 125);
+  } else if (
+    node.type === 'StartEvent' ||
+    node.type === 'EndEvent' ||
+    node.type === 'TimerBoundaryEvent' ||
+    node.type === 'QualityCheckpointEvent'
+  ) {
+    w = Math.max(w || 0, 100);
+    h = Math.max(h || 0, 120);
+  } else if (node.type === 'StickyNote') {
+    w = Math.max(w || 0, 200);
+    h = Math.max(h || 0, 150);
+  } else {
+    w = Math.max(w || 0, 220);
+    h = Math.max(h || 0, 140);
+  }
+
+  return {
+    id: node.id,
+    minX: posX - padding,
+    maxX: posX + w + padding,
+    minY: posY - padding,
+    maxY: posY + h + padding,
+  };
+}
+
+/**
+ * Checks if a connection is backward / retrograde
+ * (e.g. target is before source in the workflow direction).
+ */
+export function isBackwardConnection(
+  sourceX: number,
+  sourceY: number,
+  sourcePosition: Position,
+  targetX: number,
+  targetY: number,
+  targetPosition: Position,
+  isSelfLoop?: boolean
+): boolean {
+  if (isSelfLoop) return true;
+  const isSourceHorizontal = sourcePosition === Position.Left || sourcePosition === Position.Right;
+  const isTargetHorizontal = targetPosition === Position.Left || targetPosition === Position.Right;
+
+  if (isSourceHorizontal && isTargetHorizontal) {
+    if (sourcePosition === Position.Right && targetPosition === Position.Left) {
+      return targetX <= sourceX + 40;
+    }
+    return targetX < sourceX;
+  } else if (!isSourceHorizontal && !isTargetHorizontal) {
+    if (sourcePosition === Position.Bottom && targetPosition === Position.Top) {
+      return targetY <= sourceY + 40;
+    }
+    return targetY < sourceY;
+  }
+  return false;
+}
+
 /**
  * Calculates a smooth C1-continuous curve governed by a single manual control point.
  */
@@ -40,7 +107,9 @@ export function getControlledEdgePath(
   targetX: number,
   targetY: number,
   targetPosition: Position = Position.Left,
-  cp: Point
+  cp: Point,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  nodes?: Node<any>[]
 ): [pathString: string, labelX: number, labelY: number] {
   const sx = sourceX;
   const sy = sourceY;
@@ -51,6 +120,73 @@ export function getControlledEdgePath(
 
   const isSourceHorizontal = sourcePosition === Position.Left || sourcePosition === Position.Right;
   const isTargetHorizontal = targetPosition === Position.Left || targetPosition === Position.Right;
+  const backward = isBackwardConnection(sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition);
+
+  if (backward) {
+    if (isSourceHorizontal && isTargetHorizontal) {
+      // In a horizontal backward connection (e.g. from right of card to left of card):
+      // The curve exits source to the right (+x), loops around through cp (traveling -x, westwards),
+      // and enters target from the left (+x).
+      let allMaxX = sx;
+      let allMinX = tx;
+      if (nodes && nodes.length > 0) {
+        for (const n of nodes) {
+          if (!n || n.hidden || n.type === 'PoolLane') continue;
+          const b = getNodeBox(n, 10);
+          if (b.maxX >= Math.min(tx, sx) - 20 && b.minX <= Math.max(tx, sx) + 20) {
+            allMaxX = Math.max(allMaxX, b.maxX);
+            allMinX = Math.min(allMinX, b.minX);
+          }
+        }
+      }
+
+      const rightStubX = Math.max(allMaxX + 35, sx + 45, cx + 35);
+      const leftStubX = Math.min(allMinX - 35, tx - 45, cx - 35);
+
+      const cp1x = rightStubX;
+      const cp1y = sy;
+      const cp2x = rightStubX;
+      const cp2y = cy;
+
+      const cp3x = leftStubX;
+      const cp3y = cy;
+      const cp4x = leftStubX;
+      const cp4y = ty;
+
+      const path = `M ${sx} ${sy} C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${cx} ${cy} C ${cp3x} ${cp3y}, ${cp4x} ${cp4y}, ${tx} ${ty}`;
+      return [path, cx, cy];
+    } else {
+      // In a vertical backward connection (e.g. from bottom to top):
+      let allMaxY = sy;
+      let allMinY = ty;
+      if (nodes && nodes.length > 0) {
+        for (const n of nodes) {
+          if (!n || n.hidden || n.type === 'PoolLane') continue;
+          const b = getNodeBox(n, 10);
+          if (b.maxY >= Math.min(ty, sy) - 20 && b.minY <= Math.max(ty, sy) + 20) {
+            allMaxY = Math.max(allMaxY, b.maxY);
+            allMinY = Math.min(allMinY, b.minY);
+          }
+        }
+      }
+
+      const bottomStubY = Math.max(allMaxY + 35, sy + 45, cy + 35);
+      const topStubY = Math.min(allMinY - 35, ty - 45, cy - 35);
+
+      const cp1x = sx;
+      const cp1y = bottomStubY;
+      const cp2x = cx;
+      const cp2y = bottomStubY;
+
+      const cp3x = cx;
+      const cp3y = topStubY;
+      const cp4x = tx;
+      const cp4y = topStubY;
+
+      const path = `M ${sx} ${sy} C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${cx} ${cy} C ${cp3x} ${cp3y}, ${cp4x} ${cp4y}, ${tx} ${ty}`;
+      return [path, cx, cy];
+    }
+  }
 
   if (isSourceHorizontal && isTargetHorizontal) {
     const dx1 = Math.max(10, Math.abs(cx - sx));
@@ -227,70 +363,7 @@ export function getMultiControlledEdgePath(
   return [path, labelX, labelY];
 }
 
-/**
- * Checks if a connection is backward / retrograde
- * (e.g. target is before source in the workflow direction).
- */
-export function isBackwardConnection(
-  sourceX: number,
-  sourceY: number,
-  sourcePosition: Position,
-  targetX: number,
-  targetY: number,
-  targetPosition: Position
-): boolean {
-  const isSourceHorizontal = sourcePosition === Position.Left || sourcePosition === Position.Right;
-  const isTargetHorizontal = targetPosition === Position.Left || targetPosition === Position.Right;
 
-  if (isSourceHorizontal && isTargetHorizontal) {
-    if (sourcePosition === Position.Right && targetPosition === Position.Left) {
-      return targetX <= sourceX + 40;
-    }
-    return targetX < sourceX;
-  } else if (!isSourceHorizontal && !isTargetHorizontal) {
-    if (sourcePosition === Position.Bottom && targetPosition === Position.Top) {
-      return targetY <= sourceY + 40;
-    }
-    return targetY < sourceY;
-  }
-  return false;
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function getNodeBox(node: Node<any>, padding: number = 0): Box {
-  const posX = node.position?.x ?? 0;
-  const posY = node.position?.y ?? 0;
-
-  let w = (node.measured?.width ?? node.width) as number;
-  let h = (node.measured?.height ?? node.height) as number;
-
-  if (node.type === 'ExclusiveGateway' || node.type === 'ParallelGateway') {
-    w = Math.max(w || 0, 130);
-    h = Math.max(h || 0, 125);
-  } else if (
-    node.type === 'StartEvent' ||
-    node.type === 'EndEvent' ||
-    node.type === 'TimerBoundaryEvent' ||
-    node.type === 'QualityCheckpointEvent'
-  ) {
-    w = Math.max(w || 0, 100);
-    h = Math.max(h || 0, 120);
-  } else if (node.type === 'StickyNote') {
-    w = Math.max(w || 0, 200);
-    h = Math.max(h || 0, 150);
-  } else {
-    w = Math.max(w || 0, 220);
-    h = Math.max(h || 0, 140);
-  }
-
-  return {
-    id: node.id,
-    minX: posX - padding,
-    maxX: posX + w + padding,
-    minY: posY - padding,
-    maxY: posY + h + padding,
-  };
-}
 
 /**
  * Calculates a clean bypass route that completely surrounds (rodea)
@@ -430,7 +503,8 @@ export function getSmartEdgePath(options: SmartRoutingOptions): [pathString: str
         targetX,
         targetY,
         targetPosition,
-        manualPoints[0]
+        manualPoints[0],
+        nodes
       );
     }
     return getMultiControlledEdgePath(
