@@ -96,7 +96,7 @@ export const TaskNode = memo(({ data, selected }: NodeProps<any>) => {
               <Icon className="w-3 h-3" />
             </div>
             <span className="text-[10px] font-mono font-bold tracking-wider text-theme-text truncate">
-              {nodeData.standardId || 'TSK-00'}
+              {nodeData.standardId || (isServiceTask ? 'SRV-01' : isManualTask ? 'MNL-01' : 'TSK-01')}
             </span>
           </div>
           <div className="flex items-center space-x-1 shrink-0">

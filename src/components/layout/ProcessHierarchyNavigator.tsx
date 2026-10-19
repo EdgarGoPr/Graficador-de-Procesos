@@ -61,7 +61,7 @@ export const ProcessHierarchyNavigator: React.FC = () => {
         node.data.nodeType === BPMN_NODE_TYPES.MANUAL_TASK
       );
     if (filterType === 'GATEWAY') return node.data.nodeType.includes('Gateway');
-    if (filterType === 'QC') return node.data.nodeType === BPMN_NODE_TYPES.QUALITY_CHECKPOINT_EVENT;
+    if (filterType === 'QC' || filterType === 'QCP') return node.data.nodeType === BPMN_NODE_TYPES.QUALITY_CHECKPOINT_EVENT;
     if (filterType === 'EVENTS')
       return (
         node.data.nodeType === BPMN_NODE_TYPES.START_EVENT ||
@@ -239,7 +239,7 @@ export const ProcessHierarchyNavigator: React.FC = () => {
             { id: 'SUB', label: 'Subprocesos' },
             { id: 'TASK', label: 'Tareas' },
             { id: 'GATEWAY', label: 'Decisiones' },
-            { id: 'QC', label: 'Calidad QC' },
+            { id: 'QCP', label: 'Calidad QCP' },
             { id: 'EVENTS', label: 'Inicios/Fin' },
           ].map((f) => (
             <button

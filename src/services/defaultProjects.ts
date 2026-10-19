@@ -75,7 +75,7 @@ export const sampleProjects: ProcessProjectFile[] = [
         type: 'StartEvent',
         position: { x: 50, y: 80 },
         data: {
-          standardId: 'EVT-01',
+          standardId: 'INI-01',
           title: 'Notificación de Acta de Infracción',
           description: 'El ciudadano recibe la cédula de notificación del acta de infracción vial o constata acta en el sistema.',
           nodeType: BPMN_NODE_TYPES.START_EVENT,
@@ -135,7 +135,7 @@ export const sampleProjects: ProcessProjectFile[] = [
         type: 'QualityCheckpointEvent',
         position: { x: 500, y: 220 },
         data: {
-          standardId: 'QC-01',
+          standardId: 'QCP-01',
           title: 'Control de Admisibilidad y Plazo Legal',
           description: 'Mesa de Entradas verifica la legitimación activa, personería, cumplimiento del plazo de 10 días hábiles e integridad de la documentación.',
           nodeType: BPMN_NODE_TYPES.QUALITY_CHECKPOINT_EVENT,
@@ -143,7 +143,7 @@ export const sampleProjects: ProcessProjectFile[] = [
           itSystem: 'Expediente Electrónico (SAM)',
           legalFramework: 'Ord. 12.850 Art. 26',
           qualityCheckpoint: {
-            checkpointCode: 'QC-01',
+            checkpointCode: 'QCP-01',
             inspectionCriteria: 'Verificación 100% de legitimación, firma digital/ológrafa válida y plazo perentorio.',
             severity: 'CRITICAL',
             sampleRatePercentage: 100,
@@ -168,7 +168,7 @@ export const sampleProjects: ProcessProjectFile[] = [
           laneId: 'lane-mesa',
           itSystem: 'SAM',
           legalFramework: 'Ord. 12.850 Art. 27',
-          inputs: ['Resultado de QC-01'],
+          inputs: ['Resultado de QCP-01'],
           outputs: ['Ruta admitida a juzgado o rechazo'],
           operationalRisks: [],
           tags: ['Compuerta', 'Admisibilidad']
@@ -369,7 +369,7 @@ export const sampleProjects: ProcessProjectFile[] = [
         type: 'EndEvent',
         position: { x: 1950, y: 360 },
         data: {
-          standardId: 'EVT-02',
+          standardId: 'FIN-01',
           title: 'Conclusión y Archivo del Expediente Contravencional',
           description: 'Cancelación de la multa, cumplimiento del plan de probation o ejecución de sentencia con cancelación registral de antecedentes.',
           nodeType: BPMN_NODE_TYPES.END_EVENT,
@@ -548,7 +548,7 @@ export const sampleProjects: ProcessProjectFile[] = [
         type: 'StartEvent',
         position: { x: 50, y: 80 },
         data: {
-          standardId: 'EVT-01',
+          standardId: 'INI-01',
           title: 'Constatación de Infracción Grave o Riesgo Inminente',
           description: 'Detección in situ de actividad no autorizada, falta de medidas de seguridad contra incendios o adulteración de alimentos.',
           nodeType: BPMN_NODE_TYPES.START_EVENT,
@@ -599,7 +599,7 @@ export const sampleProjects: ProcessProjectFile[] = [
         type: 'QualityCheckpointEvent',
         position: { x: 520, y: 220 },
         data: {
-          standardId: 'QC-01',
+          standardId: 'QCP-01',
           title: 'Auditoría de Actuaciones y Cadena de Custodia',
           description: 'Supervisión de calidad para verificar legibilidad, congruencia de testimonios y correcta tipificación de artículos.',
           nodeType: BPMN_NODE_TYPES.QUALITY_CHECKPOINT_EVENT,
@@ -607,7 +607,7 @@ export const sampleProjects: ProcessProjectFile[] = [
           itSystem: 'SAM Inspección',
           legalFramework: 'Manual de Calidad ISO 9001 - MC-INS-04',
           qualityCheckpoint: {
-            checkpointCode: 'QC-01',
+            checkpointCode: 'QCP-01',
             inspectionCriteria: '100% de actas revisadas antes de elevación al Juez de Turno.',
             severity: 'CRITICAL',
             sampleRatePercentage: 100,
@@ -649,7 +649,7 @@ export const sampleProjects: ProcessProjectFile[] = [
         type: 'EndEvent',
         position: { x: 1040, y: 350 },
         data: {
-          standardId: 'EVT-02',
+          standardId: 'FIN-01',
           title: 'Resolución Definitiva de Habilitación / Sanción',
           description: 'Regularización de observaciones técnicas o clausura definitiva con revocación de licencia.',
           nodeType: BPMN_NODE_TYPES.END_EVENT,

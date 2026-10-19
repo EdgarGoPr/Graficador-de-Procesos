@@ -65,7 +65,7 @@ export const GatewayNode = memo(({ data, selected }: NodeProps<any>) => {
           <div className="flex items-center justify-center space-x-1 truncate">
             <GitBranch className="w-2.5 h-2.5 text-amber-400 shrink-0" />
             <span className="text-[9px] font-mono font-bold text-amber-400 truncate">
-              {nodeData.standardId || 'GTW'}
+              {nodeData.standardId || (isExclusive ? 'GTW' : 'PAR')}
             </span>
           </div>
         )}

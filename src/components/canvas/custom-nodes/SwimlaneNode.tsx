@@ -98,7 +98,7 @@ export const SwimlaneNode = memo(({ id, data, selected }: NodeProps<any>) => {
               className="text-[10px] font-mono font-bold px-2 py-0.5 rounded text-white shadow-sm"
               style={{ backgroundColor: accentColor }}
             >
-              {nodeData.standardId || 'LANE'}
+              {nodeData.standardId || 'CAR'}
             </span>
             <span className="text-[10px] text-theme-text-muted font-mono uppercase tracking-wider">
               {isVertical ? 'Columna' : 'Carril'}

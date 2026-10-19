@@ -42,7 +42,7 @@ export const EndEventNode = memo(({ data, selected }: NodeProps<any>) => {
         </div>
         {!isTitleOnly && (
           <span className="text-[9px] font-mono font-bold text-rose-400 tracking-wider truncate max-w-[78px]">
-            {nodeData.standardId || 'END'}
+            {nodeData.standardId || 'FIN'}
           </span>
         )}
         <span

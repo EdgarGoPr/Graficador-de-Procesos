@@ -90,7 +90,7 @@ export const StickyNoteNode: React.FC<NodeProps<any>> = ({ id, data, selected })
       {/* Footer / Author */}
       <div className="pt-1.5 border-t border-black/10 flex items-center justify-between text-[10px] font-mono opacity-75">
         <span className="truncate max-w-[120px]">{data?.roleName || 'Auditor / Analista'}</span>
-        <span>{data?.standardId || 'POST-IT'}</span>
+        <span>{data?.standardId || 'NOT'}</span>
       </div>
 
       <Handle

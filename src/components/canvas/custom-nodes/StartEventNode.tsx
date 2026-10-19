@@ -36,7 +36,7 @@ export const StartEventNode = memo(({ data, selected }: NodeProps<any>) => {
         </div>
         {!isTitleOnly && (
           <span className="text-[9px] font-mono font-bold text-teal-400 tracking-wider truncate max-w-[78px]">
-            {nodeData.standardId || 'START'}
+            {nodeData.standardId || 'INI'}
           </span>
         )}
         <span

@@ -19,16 +19,19 @@ export interface ProcessHierarchyItem {
  * Specifically distinguishes ServiceTask ('SRV') from UserTask ('TSK').
  */
 export function getNodeTypePrefix(nodeType: string): string {
+  if (nodeType === BPMN_NODE_TYPES.START_EVENT) return 'INI';
+  if (nodeType === BPMN_NODE_TYPES.END_EVENT) return 'FIN';
   if (nodeType === BPMN_NODE_TYPES.SERVICE_TASK) return 'SRV';
   if (nodeType === BPMN_NODE_TYPES.USER_TASK) return 'TSK';
   if (nodeType === BPMN_NODE_TYPES.MANUAL_TASK) return 'MNL';
-  if (nodeType === BPMN_NODE_TYPES.START_EVENT || nodeType === BPMN_NODE_TYPES.END_EVENT) return 'EVT';
-  if (nodeType.includes('Gateway') || nodeType === BPMN_NODE_TYPES.EXCLUSIVE_GATEWAY || nodeType === BPMN_NODE_TYPES.PARALLEL_GATEWAY) return 'GTW';
-  if (nodeType === BPMN_NODE_TYPES.QUALITY_CHECKPOINT_EVENT) return 'QC';
+  if (nodeType === BPMN_NODE_TYPES.EXCLUSIVE_GATEWAY) return 'GTW';
+  if (nodeType === BPMN_NODE_TYPES.PARALLEL_GATEWAY) return 'PAR';
+  if (nodeType.includes('Gateway')) return 'GTW';
+  if (nodeType === BPMN_NODE_TYPES.QUALITY_CHECKPOINT_EVENT) return 'QCP';
   if (nodeType === BPMN_NODE_TYPES.TIMER_BOUNDARY_EVENT) return 'TMR';
   if (nodeType === BPMN_NODE_TYPES.SUB_PROCESS) return 'SUB';
-  if (nodeType === BPMN_NODE_TYPES.POOL_LANE) return 'LANE';
-  if (nodeType === BPMN_NODE_TYPES.STICKY_NOTE) return 'NOTE';
+  if (nodeType === BPMN_NODE_TYPES.POOL_LANE) return 'CAR';
+  if (nodeType === BPMN_NODE_TYPES.STICKY_NOTE) return 'NOT';
   return 'TSK';
 }
 

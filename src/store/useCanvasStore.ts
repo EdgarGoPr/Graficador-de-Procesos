@@ -93,7 +93,7 @@ export function getGraphForPath(
           type: 'StartEvent',
           position: { x: 100, y: 160 },
           data: {
-            standardId: `${procCode}-${lvlCode}-EVT-01`,
+            standardId: `${procCode}-${lvlCode}-INI-01`,
             title: `Inicio de ${step.title}`,
             description: 'Disparador formal de ingreso a este subproceso',
             nodeType: 'StartEvent',
@@ -129,7 +129,7 @@ export function getGraphForPath(
           type: 'EndEvent',
           position: { x: 560, y: 160 },
           data: {
-            standardId: `${procCode}-${lvlCode}-EVT-02`,
+            standardId: `${procCode}-${lvlCode}-FIN-01`,
             title: `Fin de ${step.title}`,
             description: 'Culminación de la etapa',
             nodeType: 'EndEvent',
@@ -980,7 +980,7 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
           type: 'StartEvent',
           position: { x: 100, y: 160 },
           data: {
-            standardId: `${nextProc.code}-${childLevelCode}-EVT-01`,
+            standardId: `${nextProc.code}-${childLevelCode}-INI-01`,
             title: 'Inicio',
             description: '',
             nodeType: BPMN_NODE_TYPES.START_EVENT,
@@ -1018,7 +1018,7 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
           type: 'EndEvent',
           position: { x: 560, y: 160 },
           data: {
-            standardId: `${nextProc.code}-${childLevelCode}-EVT-02`,
+            standardId: `${nextProc.code}-${childLevelCode}-FIN-01`,
             title: 'Fin',
             description: '',
             nodeType: BPMN_NODE_TYPES.END_EVENT,

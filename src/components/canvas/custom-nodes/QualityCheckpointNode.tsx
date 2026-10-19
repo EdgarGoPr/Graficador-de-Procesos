@@ -57,7 +57,7 @@ export const QualityCheckpointNode = memo(({ data, selected }: NodeProps<any>) =
               <ShieldCheck className="w-3.5 h-3.5" />
             </div>
             <span className="text-[10px] font-mono font-bold tracking-wider text-emerald-400 truncate">
-              {qc?.checkpointCode || nodeData.standardId || 'QC-01'}
+              {qc?.checkpointCode || nodeData.standardId || 'QCP-01'}
             </span>
           </div>
           <span className="text-[9px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/25 uppercase shrink-0">
