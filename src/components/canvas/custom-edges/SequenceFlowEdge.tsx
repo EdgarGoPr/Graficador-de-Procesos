@@ -172,7 +172,9 @@ export const SequenceFlowEdge = memo(({
     updateEdgeData(id, { controlPoints: undefined, controlPoint: undefined }, true);
   }, [id, updateEdgeData]);
 
-  const showHandles = selected || isHovered || draggingIndex !== null || existingPoints.length > 0;
+  const selectedEdgeId = useCanvasStore((state) => state.selectedEdgeId);
+  const isEdgeSelected = Boolean(selected || selectedEdgeId === id);
+  const showHandles = isEdgeSelected || draggingIndex !== null;
 
   return (
     <>
