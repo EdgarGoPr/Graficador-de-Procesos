@@ -27,7 +27,6 @@ import { SubProcessNode } from './custom-nodes/SubProcessNode';
 import { SwimlaneNode } from './custom-nodes/SwimlaneNode';
 import { StickyNoteNode } from './custom-nodes/StickyNoteNode';
 import { SequenceFlowEdge } from './custom-edges/SequenceFlowEdge';
-import { SelectionToolbar } from './SelectionToolbar';
 import { AlignmentGuidesOverlay, AlignmentGuide } from './AlignmentGuidesOverlay';
 import { PrintFrameOverlay } from './PrintFrameOverlay';
 import { NewerVersionBanner } from './NewerVersionBanner';
@@ -378,8 +377,6 @@ const ProcessCanvasInternal: React.FC = () => {
       onKeyDown={onKeyDown}
       tabIndex={0}
     >
-      <SelectionToolbar />
-
       <ReactFlow
         nodes={hierarchicalNodes}
         edges={activeGraph.edges}

@@ -470,6 +470,15 @@ const userStories = [
     criteriosAceptacion: '1. Enrutamiento en tarjetas cercanas: las conexiones horizontales estándar (Right -> Left) con targetX > sourceX se procesan siempre como flujo directo hacia adelante sin importar la proximidad entre tarjetas.\n2. Supresión de falsos bucles retrógrados: isBackwardConnection solo se activa cuando la tarjeta destino está efectivamente situada detrás de la de origen (targetX <= sourceX).\n3. Cálculo proporcional de curvatura: los puntos de control Bezier escalan con la distancia efectiva (Math.max(4, Math.min(distance * 0.45, 140))), evitando sobrepasos o nudos cuando las tarjetas están pegadas.\n4. Movimiento fluido 60 FPS: eliminación de la atracción magnética invasiva que forzaba a las tarjetas de actividad a saltar bruscamente entre ranuras predefinidas durante el arrastre.\n5. Posicionamiento milimétrico exacto: las tarjetas quedan colocadas exactamente donde el usuario suelta el cursor del ratón.\n6. Supresión de latencia CSS: eliminación de transition-all en contenedores de nodos y desactivación de transiciones espaciales en .react-flow__node, logrando una respuesta 1:1 instantánea.\n7. Preservación del acoplamiento 0px entre carriles (PoolLane) y de las guías visuales punteadas de alineación (AlignmentGuidesOverlay).',
     fechaImplementacion: '2026-10-19',
     estado: 'Implementado / Producción'
+  },
+  {
+    id: 'PST-053',
+    modulo: 'Lienzo BPMN 2.0 & Barra de Navegación',
+    titulo: 'Eliminación de Barra Flotante Superpuesta para Despeje de la Navegación de Procesos',
+    historiaUsuario: 'Como usuario y diagramador de procesos, quiero que al copiar elementos o interactuar con el lienzo no aparezca una barra flotante superpuesta sobre la barra de navegación de procesos (breadcrumbs), para que el hilo jerárquico de procesos se mantenga siempre visible y despejado sin obstrucciones visuales.',
+    criteriosAceptacion: '1. Desmontaje completo de SelectionToolbar: eliminación del componente flotante en ProcessCanvas, suprimiendo la barra persistente que emergía al poblar el portapapeles.\n2. Despeje total de la barra de navegación: los breadcrumbs de subprocesos (SubProcessBreadcrumbs) permanecen 100% visibles y libres de superposición en toda su extensión horizontal.\n3. Preservación integral de atajos de copiar y pegar: las combinaciones universales Ctrl+C y Ctrl+V continúan funcionando fluidamente con notificaciones toast informativas.\n4. Mantenimiento de acciones de control: las funciones de fijado, compresión de subprocesos, orientación y eliminación permanecen plenamente disponibles en el panel de propiedades lateral (PropertiesPanel) y controles superiores.',
+    fechaImplementacion: '2026-10-19',
+    estado: 'Implementado / Producción'
   }
 ];
 
