@@ -1,8 +1,9 @@
 import React, { memo, useState, useRef, useCallback } from 'react';
 import { BaseEdge, EdgeLabelRenderer, EdgeProps, useNodes, useReactFlow } from '@xyflow/react';
-import { getSmartEdgePath } from '../../../utils/smartRouting';
+import { getSmartEdgePath, getPointOnSvgPath, getClosestRatioOnSvgPath } from '../../../utils/smartRouting';
 import { useCanvasStore } from '../../../store/useCanvasStore';
 import { useProjectStore } from '../../../store/useProjectStore';
+import { GripVertical } from 'lucide-react';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const SequenceFlowEdge = memo(({
@@ -172,6 +173,57 @@ export const SequenceFlowEdge = memo(({
     updateEdgeData(id, { controlPoints: undefined, controlPoint: undefined }, true);
   }, [id, updateEdgeData]);
 
+  // Label drag & drop along the edge path
+  const [isDraggingLabel, setIsDraggingLabel] = useState(false);
+  const isDraggingLabelRef = useRef(false);
+
+  const labelPosRatio = data?.labelPosition;
+  let finalLabelX = labelX;
+  let finalLabelY = labelY;
+
+  if (typeof labelPosRatio === 'number') {
+    const ptOnPath = getPointOnSvgPath(edgePath, labelPosRatio);
+    if (ptOnPath) {
+      finalLabelX = ptOnPath.x;
+      finalLabelY = ptOnPath.y;
+    }
+  }
+
+  const handleLabelPointerDown = useCallback((e: React.PointerEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    try {
+      (e.target as HTMLElement).setPointerCapture(e.pointerId);
+    } catch {}
+    setIsDraggingLabel(true);
+    isDraggingLabelRef.current = true;
+    useProjectStore.getState().pushSnapshot('Mover etiqueta de conexión');
+    selectEdge(id);
+  }, [id, selectEdge]);
+
+  const handleLabelPointerMove = useCallback((e: React.PointerEvent) => {
+    if (!isDraggingLabelRef.current) return;
+    e.stopPropagation();
+    const flowPos = screenToFlowPosition({ x: e.clientX, y: e.clientY });
+    const ratio = getClosestRatioOnSvgPath(edgePath, flowPos);
+    updateEdgeData(id, { labelPosition: ratio }, false);
+  }, [id, edgePath, screenToFlowPosition, updateEdgeData]);
+
+  const handleLabelPointerUp = useCallback((e: React.PointerEvent) => {
+    if (isDraggingLabelRef.current) {
+      setIsDraggingLabel(false);
+      isDraggingLabelRef.current = false;
+      try {
+        (e.target as HTMLElement).releasePointerCapture(e.pointerId);
+      } catch {}
+    }
+  }, []);
+
+  const handleLabelDoubleClick = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    updateEdgeData(id, { labelPosition: undefined }, true);
+  }, [id, updateEdgeData]);
+
   const selectedEdgeId = useCanvasStore((state) => state.selectedEdgeId);
   const isEdgeSelected = Boolean(selected || selectedEdgeId === id);
   const showHandles = isEdgeSelected || draggingIndex !== null;
@@ -187,7 +239,7 @@ export const SequenceFlowEdge = memo(({
         className="cursor-pointer"
         onPointerEnter={() => setIsHovered(true)}
         onPointerLeave={() => {
-          if (draggingIndexRef.current === null) setIsHovered(false);
+          if (draggingIndexRef.current === null && !isDraggingLabelRef.current) setIsHovered(false);
         }}
         onClick={(e) => {
           e.stopPropagation();
@@ -206,7 +258,7 @@ export const SequenceFlowEdge = memo(({
           stroke: defaultStroke,
           strokeDasharray: isAnimated ? '5,5' : style.strokeDasharray,
           animation: isAnimated ? 'flowAnimation 1s linear infinite' : undefined,
-          transition: draggingIndex !== null ? 'none' : 'stroke 0.15s, stroke-width 0.15s',
+          transition: draggingIndex !== null || isDraggingLabel ? 'none' : 'stroke 0.15s, stroke-width 0.15s',
         }}
       />
 
@@ -227,7 +279,7 @@ export const SequenceFlowEdge = memo(({
                 className="nodrag nopan"
                 onPointerEnter={() => setIsHovered(true)}
                 onPointerLeave={() => {
-                  if (draggingIndexRef.current === null) setIsHovered(false);
+                  if (draggingIndexRef.current === null && !isDraggingLabelRef.current) setIsHovered(false);
                 }}
               >
                 <div
@@ -255,21 +307,38 @@ export const SequenceFlowEdge = memo(({
         </EdgeLabelRenderer>
       )}
 
-      {/* Condition / Label Text */}
+      {/* Condition / Label Text - Interactive & Draggable along the line */}
       {conditionText && (
         <EdgeLabelRenderer>
           <div
             style={{
               position: 'absolute',
-              transform: showHandles
-                ? `translate(-50%, -140%) translate(${labelX}px,${labelY}px)`
-                : `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
+              transform: `translate(-50%, -50%) translate(${finalLabelX}px,${finalLabelY}px)`,
               pointerEvents: 'all',
-              zIndex: 30,
+              zIndex: isDraggingLabel ? 70 : (isEdgeSelected ? 48 : 32),
+              cursor: isDraggingLabel ? 'grabbing' : 'grab',
             }}
-            className="nodrag nopan px-2 py-0.5 rounded bg-theme-surface/95 border border-theme-border text-[9px] font-mono text-theme-accent shadow-sm backdrop-blur-sm pointer-events-none select-none"
+            onPointerDown={handleLabelPointerDown}
+            onPointerMove={handleLabelPointerMove}
+            onPointerUp={handleLabelPointerUp}
+            onDoubleClick={handleLabelDoubleClick}
+            onPointerEnter={() => setIsHovered(true)}
+            onPointerLeave={() => {
+              if (!isDraggingLabelRef.current && draggingIndexRef.current === null) {
+                setIsHovered(false);
+              }
+            }}
+            title="Arrastra para mover la etiqueta a lo largo de la línea. Doble clic para centrar."
+            className={`nodrag nopan px-2 py-0.5 rounded border text-[9px] font-mono shadow-sm backdrop-blur-sm select-none transition-all duration-75 flex items-center space-x-1 ${
+              isDraggingLabel
+                ? 'bg-amber-400 border-slate-900 text-slate-950 ring-2 ring-amber-400/60 shadow-lg scale-110'
+                : isEdgeSelected
+                ? 'bg-theme-surface/95 border-theme-accent text-theme-accent hover:border-theme-accent hover:scale-105 shadow-md'
+                : 'bg-theme-surface/95 border-theme-border text-theme-accent hover:border-theme-accent/60'
+            }`}
           >
-            {conditionText}
+            <GripVertical className="w-2.5 h-2.5 opacity-40 shrink-0" />
+            <span className="truncate max-w-[140px]">{conditionText}</span>
           </div>
         </EdgeLabelRenderer>
       )}

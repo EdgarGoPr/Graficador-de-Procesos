@@ -173,5 +173,6 @@ export interface SequenceFlowData {
   controlPointsCount?: number; // Cantidad de puntos de ajuste (1 a 4, por defecto 1)
   controlPoints?: Array<{ x: number; y: number }>; // Coordenadas de hasta 4 puntos de control manuales
   controlPoint?: { x: number; y: number }; // Punto de control para contracurva (retrocompatibilidad)
+  labelPosition?: number; // Posición relativa de la etiqueta a lo largo de la línea (0.05 a 0.95)
   [key: string]: unknown;
 }

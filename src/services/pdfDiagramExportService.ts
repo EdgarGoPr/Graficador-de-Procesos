@@ -162,8 +162,24 @@ export function generateFrameSvg(
     svg += `  <path d="M ${x1} ${y1} C ${x1 + dx} ${y1}, ${x2 - dx} ${y2}, ${x2} ${y2}" fill="none" stroke="${strokeColor}" stroke-width="${strokeWidth}" marker-end="url(#arrow_frame_${frame.id})" />\n`;
 
     if (edgeData?.conditionText) {
-      const midX = (x1 + x2) / 2;
-      const midY = (y1 + y2) / 2 - 10;
+      let midX = (x1 + x2) / 2;
+      let midY = (y1 + y2) / 2 - 10;
+
+      if (typeof edgeData.labelPosition === 'number') {
+        const t = Math.max(0.05, Math.min(0.95, edgeData.labelPosition));
+        const u = 1 - t;
+        const tt = t * t;
+        const uu = u * u;
+        const uuu = uu * u;
+        const ttt = tt * t;
+        const c1x = x1 + dx;
+        const c1y = y1;
+        const c2x = x2 - dx;
+        const c2y = y2;
+        midX = Math.round(uuu * x1 + 3 * uu * t * c1x + 3 * u * tt * c2x + ttt * x2);
+        midY = Math.round(uuu * y1 + 3 * uu * t * c1y + 3 * u * tt * c2y + ttt * y2) - 10;
+      }
+
       const condText = String(edgeData.conditionText).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
       const labelWidth = Math.max(condText.length * 6.5 + 16, 60);
 

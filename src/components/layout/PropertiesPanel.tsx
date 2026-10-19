@@ -200,6 +200,63 @@ export const PropertiesPanel: React.FC = () => {
             <p className="text-[10px] text-theme-text-muted leading-relaxed">
               Este texto se mostrará sobre la flecha en el lienzo BPMN y en la ficha técnica.
             </p>
+
+            {/* Posición de la etiqueta a lo largo de la línea */}
+            {edge.data?.conditionText && (
+              <div className="space-y-1.5 pt-2 border-t border-theme-border/60">
+                <div className="flex items-center justify-between text-[10px] font-mono text-theme-text-muted">
+                  <span>Posición en la línea:</span>
+                  <div className="flex items-center space-x-1.5">
+                    <span className="text-theme-accent font-semibold">
+                      {Math.round((edge.data?.labelPosition ?? 0.5) * 100)}%
+                    </span>
+                    {edge.data?.labelPosition !== undefined && (
+                      <button
+                        type="button"
+                        onClick={() => updateEdgeData(edge.id, { labelPosition: undefined })}
+                        className="text-[10px] text-theme-accent hover:underline flex items-center space-x-0.5"
+                        title="Restablecer posición al centro (50%)"
+                      >
+                        <RotateCcw className="w-2.5 h-2.5" />
+                        <span>Centrar</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+                <input
+                  type="range"
+                  min="5"
+                  max="95"
+                  step="1"
+                  value={Math.round((edge.data?.labelPosition ?? 0.5) * 100)}
+                  onChange={(e) => updateEdgeData(edge.id, { labelPosition: Number(e.target.value) / 100 }, false)}
+                  className="w-full h-1.5 bg-theme-surface-subtle border border-theme-border rounded-lg appearance-none cursor-pointer accent-theme-accent"
+                />
+                <div className="grid grid-cols-3 gap-1 pt-0.5">
+                  {[
+                    { label: 'Inicio', val: 0.2 },
+                    { label: 'Centro', val: 0.5 },
+                    { label: 'Final', val: 0.8 },
+                  ].map((btn) => (
+                    <button
+                      key={btn.label}
+                      type="button"
+                      onClick={() => updateEdgeData(edge.id, { labelPosition: btn.val })}
+                      className={`py-0.5 text-[9px] font-mono rounded border transition-colors ${
+                        Math.abs((edge.data?.labelPosition ?? 0.5) - btn.val) < 0.05
+                          ? 'bg-theme-accent text-white border-theme-accent font-bold'
+                          : 'bg-theme-surface-subtle border-theme-border text-theme-text-muted hover:text-theme-text'
+                      }`}
+                    >
+                      {btn.label}
+                    </button>
+                  ))}
+                </div>
+                <p className="text-[9px] text-theme-text-muted italic">
+                  💡 También puedes arrastrar la etiqueta directamente sobre la línea en el lienzo.
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Curvatura y Puntos de Ajuste de la Conexión */}

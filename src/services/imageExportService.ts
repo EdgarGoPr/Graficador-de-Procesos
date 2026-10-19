@@ -1,6 +1,6 @@
 import { ProcessProjectFile } from '../types/project';
 import { Position } from '@xyflow/react';
-import { getSmartEdgePath } from '../utils/smartRouting';
+import { getSmartEdgePath, getPointOnSvgPath } from '../utils/smartRouting';
 
 /**
  * Generates an SVG string representation of the process diagram
@@ -96,9 +96,20 @@ export function generateProcessSvg(project: ProcessProjectFile): string {
     svg += `  <path d="${pathD}" fill="none" stroke="${color}" stroke-width="2.5" marker-end="url(#arrow)" />\n`;
 
     if (edgeData?.conditionText) {
-      const tagY = labelMidY - 10;
-      svg += `  <rect x="${labelMidX - 35}" y="${tagY - 10}" width="70" height="18" rx="4" fill="#1E293B" stroke="${color}" stroke-width="1" />
-  <text x="${labelMidX}" y="${tagY + 3}" text-anchor="middle" fill="#E2E8F0" font-size="10" font-weight="bold">${edgeData.conditionText}</text>\n`;
+      let finalMidX = labelMidX;
+      let finalMidY = labelMidY;
+      if (typeof edgeData.labelPosition === 'number') {
+        const pt = getPointOnSvgPath(pathD, edgeData.labelPosition);
+        if (pt) {
+          finalMidX = pt.x;
+          finalMidY = pt.y;
+        }
+      }
+      const tagY = finalMidY;
+      const condText = String(edgeData.conditionText).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      const labelW = Math.max(condText.length * 7 + 16, 60);
+      svg += `  <rect x="${finalMidX - labelW / 2}" y="${tagY - 9}" width="${labelW}" height="18" rx="4" fill="#1E293B" stroke="${color}" stroke-width="1" />
+  <text x="${finalMidX}" y="${tagY + 4}" text-anchor="middle" fill="#E2E8F0" font-size="10" font-weight="bold">${condText}</text>\n`;
     }
   });
 

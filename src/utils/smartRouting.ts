@@ -732,3 +732,90 @@ function calculateCleanBypass(
 
   return [path, lx, ly];
 }
+
+/**
+ * Computes the exact (x, y) coordinates on an SVG path string for a given ratio (0 to 1).
+ * Always returns a point that lies strictly on the connection path.
+ */
+export function getPointOnSvgPath(
+  pathD: string,
+  ratio: number
+): { x: number; y: number } | null {
+  if (!pathD) return null;
+  const clampedRatio = Math.max(0.02, Math.min(0.98, ratio));
+
+  if (typeof document !== 'undefined') {
+    try {
+      const pathEl = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      pathEl.setAttribute('d', pathD);
+      const totalLen = pathEl.getTotalLength();
+      if (totalLen && !isNaN(totalLen)) {
+        const pt = pathEl.getPointAtLength(clampedRatio * totalLen);
+        return { x: Math.round(pt.x), y: Math.round(pt.y) };
+      }
+    } catch {
+      // Fallback to null
+    }
+  }
+  return null;
+}
+
+/**
+ * Projects a target canvas coordinate (flow position) onto an SVG path string,
+ * finding the closest ratio along the path (clamped between 0.05 and 0.95).
+ */
+export function getClosestRatioOnSvgPath(
+  pathD: string,
+  target: { x: number; y: number }
+): number {
+  if (!pathD) return 0.5;
+
+  if (typeof document !== 'undefined') {
+    try {
+      const pathEl = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      pathEl.setAttribute('d', pathD);
+      const totalLen = pathEl.getTotalLength();
+      if (!totalLen || isNaN(totalLen)) return 0.5;
+
+      const SAMPLES = 80;
+      let bestDistSq = Infinity;
+      let bestLen = totalLen * 0.5;
+
+      for (let i = 1; i <= SAMPLES; i++) {
+        const len = (i / (SAMPLES + 1)) * totalLen;
+        const pt = pathEl.getPointAtLength(len);
+        const dx = pt.x - target.x;
+        const dy = pt.y - target.y;
+        const dSq = dx * dx + dy * dy;
+        if (dSq < bestDistSq) {
+          bestDistSq = dSq;
+          bestLen = len;
+        }
+      }
+
+      // Local refinement: search +/- 1 step with 10 fine steps
+      const step = totalLen / (SAMPLES + 1);
+      const fineStart = Math.max(0.03 * totalLen, bestLen - step);
+      const fineEnd = Math.min(0.97 * totalLen, bestLen + step);
+      const FINE_SAMPLES = 10;
+
+      for (let j = 0; j <= FINE_SAMPLES; j++) {
+        const len = fineStart + (j / FINE_SAMPLES) * (fineEnd - fineStart);
+        const pt = pathEl.getPointAtLength(len);
+        const dx = pt.x - target.x;
+        const dy = pt.y - target.y;
+        const dSq = dx * dx + dy * dy;
+        if (dSq < bestDistSq) {
+          bestDistSq = dSq;
+          bestLen = len;
+        }
+      }
+
+      return Math.max(0.05, Math.min(0.95, Math.round((bestLen / totalLen) * 100) / 100));
+    } catch {
+      return 0.5;
+    }
+  }
+
+  return 0.5;
+}
