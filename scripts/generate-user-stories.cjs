@@ -479,6 +479,15 @@ const userStories = [
     criteriosAceptacion: '1. Desmontaje completo de SelectionToolbar: eliminación del componente flotante en ProcessCanvas, suprimiendo la barra persistente que emergía al poblar el portapapeles.\n2. Despeje total de la barra de navegación: los breadcrumbs de subprocesos (SubProcessBreadcrumbs) permanecen 100% visibles y libres de superposición en toda su extensión horizontal.\n3. Preservación integral de atajos de copiar y pegar: las combinaciones universales Ctrl+C y Ctrl+V continúan funcionando fluidamente con notificaciones toast informativas.\n4. Mantenimiento de acciones de control: las funciones de fijado, compresión de subprocesos, orientación y eliminación permanecen plenamente disponibles en el panel de propiedades lateral (PropertiesPanel) y controles superiores.',
     fechaImplementacion: '2026-10-19',
     estado: 'Implementado / Producción'
+  },
+  {
+    id: 'PST-054',
+    modulo: 'Lienzo BPMN 2.0 & Enfoque de Subprocesos',
+    titulo: 'Centrado Inteligente y Enfoque en Start Event al Entrar a un Subproceso',
+    historiaUsuario: 'Como analista y diagramador de procesos, quiero que siempre que ingrese o navegue a un subproceso la vista del lienzo centre automáticamente el proceso lo más posible, y en caso de que el proceso sea muy largo para el nivel de zoom actual, sitúe automáticamente la primera ficha de evento de inicio (Start Event) al centro vertical y a la izquierda de la pantalla, para visualizar de forma óptima e inmediata la secuencia del flujo de trabajo.',
+    criteriosAceptacion: '1. Detección automática al navegar en subprocesos: el visor ejecuta el centrado inteligente al ingresar a un subproceso o cambiar de nivel jerárquico (subProcessPath.length > 0).\n2. Exclusión de carriles organizacionales: el cálculo del cuadro delimitador del proceso (bounding box) excluye los nodos PoolLane de fondo, considerando únicamente las tarjetas operativas (tareas, compuertas, eventos y notas).\n3. Centrado suave en procesos que caben en pantalla: si el ancho del proceso cabe dentro del ancho visible de la ventana al nivel de zoom actual, la cámara se centra suavemente (setCenter) en el punto medio exacto del proceso sin alterar el zoom.\n4. Enfoque al centro a la izquierda para procesos extensos: si el proceso es más largo que el ancho disponible de la pantalla al zoom actual, la primera ficha Start Event (o el nodo más a la izquierda si no hubiese evento de inicio) se posiciona centrada en el eje Y (viewportHeight / 2) y a la izquierda en el eje X con margen visual cómodo (~140-180px).\n5. Respeto al zoom del usuario: se preserva el nivel de zoom actual del lienzo sin reducciones forzadas ni saltos abruptos.\n6. Estabilidad de edición: el efecto no interfiere ni reposiciona la cámara mientras el usuario arrastra nodos, edita propiedades o modela dentro del subproceso.\n7. Transición animada fluida: la transición de cámara se realiza con una interpolación suave (duration: 400ms).',
+    fechaImplementacion: '2026-10-19',
+    estado: 'Implementado / Producción'
   }
 ];
 

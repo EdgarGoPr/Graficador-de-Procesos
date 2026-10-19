@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import {
   ReactFlow,
   Controls,
@@ -58,7 +58,8 @@ const EDGE_TYPES: any = {
 
 const ProcessCanvasInternal: React.FC = () => {
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
-  const { screenToFlowPosition, setCenter } = useReactFlow();
+  const { screenToFlowPosition, setCenter, setViewport, getViewport } = useReactFlow();
+  const prevSubProcessPathRef = useRef<string>('');
 
   const { currentProject } = useProjectStore();
   const {
@@ -336,17 +337,87 @@ const ProcessCanvasInternal: React.FC = () => {
     setAlignmentGuides([]);
   }, []);
 
-  if (!currentProject) {
-    return (
-      <div className="flex-1 flex items-center justify-center bg-theme-bg text-theme-text-muted">
-        No hay proyecto cargado.
-      </div>
-    );
-  }
-
   const activeGraph = React.useMemo(() => {
     return getGraphForPath(currentProject, subProcessPath);
   }, [currentProject, subProcessPath]);
+
+  // Intelligent auto-centering or left-aligning the first StartEvent when entering a subprocess (PST-054)
+  useEffect(() => {
+    const currentPathKey = (subProcessPath || []).map((p) => p.id).join('->');
+    const wasPathKey = prevSubProcessPathRef.current;
+    prevSubProcessPathRef.current = currentPathKey;
+
+    // Only trigger when entering or navigating between subprocesses (path length > 0)
+    if (!subProcessPath || subProcessPath.length === 0 || currentPathKey === wasPathKey) {
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      const currentProj = useProjectStore.getState().currentProject;
+      const currentPath = useCanvasStore.getState().subProcessPath;
+      const graph = getGraphForPath(currentProj, currentPath);
+      const processNodes = (graph?.nodes || []).filter((n) => n.type !== 'PoolLane');
+      if (processNodes.length === 0) return;
+
+      const wrapperRect = reactFlowWrapper.current?.getBoundingClientRect();
+      const viewportWidth = wrapperRect?.width || window.innerWidth;
+      const viewportHeight = wrapperRect?.height || window.innerHeight;
+
+      const currentViewport = getViewport();
+      const zoom = currentViewport.zoom || 1;
+
+      let minX = Infinity;
+      let maxX = -Infinity;
+      let minY = Infinity;
+      let maxY = -Infinity;
+
+      for (const n of processNodes) {
+        const w = (n.measured?.width || n.width || (n.type === 'StartEvent' || n.type === 'EndEvent' ? 96 : 210)) as number;
+        const h = (n.measured?.height || n.height || (n.type === 'StartEvent' || n.type === 'EndEvent' ? 96 : 120)) as number;
+        const x = n.position.x;
+        const y = n.position.y;
+        if (x < minX) minX = x;
+        if (x + w > maxX) maxX = x + w;
+        if (y < minY) minY = y;
+        if (y + h > maxY) maxY = y + h;
+      }
+
+      const diagramWidth = maxX - minX;
+      // Available width at current zoom, reserving comfortable margins
+      const availableWidth = (viewportWidth - 180) / zoom;
+      const isTooLong = diagramWidth > availableWidth;
+
+      if (!isTooLong) {
+        // Fits comfortably: center the entire diagram bounding box smoothly
+        const centerX = (minX + maxX) / 2;
+        const centerY = (minY + maxY) / 2;
+        setCenter(centerX, centerY, { zoom, duration: 400 });
+      } else {
+        // Diagram is too long horizontally for the current zoom:
+        // Position the first StartEvent vertically centered and on the left
+        const startNodes = processNodes.filter((n) => n.type === 'StartEvent');
+        const startNode =
+          startNodes.length > 0
+            ? startNodes.sort((a, b) => a.position.x - b.position.x)[0]
+            : processNodes.slice().sort((a, b) => a.position.x - b.position.x)[0];
+
+        const startW = (startNode.measured?.width || startNode.width || 96) as number;
+        const startH = (startNode.measured?.height || startNode.height || 96) as number;
+        const nodeCenterX = startNode.position.x + startW / 2;
+        const nodeCenterY = startNode.position.y + startH / 2;
+
+        const desiredScreenX = Math.max(140, Math.min(180, viewportWidth * 0.12));
+        const desiredScreenY = viewportHeight / 2;
+
+        const nextX = desiredScreenX - nodeCenterX * zoom;
+        const nextY = desiredScreenY - nodeCenterY * zoom;
+
+        setViewport({ x: nextX, y: nextY, zoom }, { duration: 400 });
+      }
+    }, 60);
+
+    return () => clearTimeout(timer);
+  }, [subProcessPath, setCenter, setViewport, getViewport]);
 
   // Stable hierarchical sorting so sections/lanes are rendered in background (first in array),
   // and tasks, gateways, and events are rendered on top (foreground).
@@ -368,6 +439,14 @@ const ProcessCanvasInternal: React.FC = () => {
       }))
       .sort((a, b) => getHierarchyLevel(a.type) - getHierarchyLevel(b.type));
   }, [activeGraph?.nodes, isCanvasLocked]);
+
+  if (!currentProject) {
+    return (
+      <div className="flex-1 flex items-center justify-center bg-theme-bg text-theme-text-muted">
+        No hay proyecto cargado.
+      </div>
+    );
+  }
 
   return (
     <div
