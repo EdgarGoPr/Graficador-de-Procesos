@@ -85,12 +85,14 @@ export function isBackwardConnection(
 
   if (isSourceHorizontal && isTargetHorizontal) {
     if (sourcePosition === Position.Right && targetPosition === Position.Left) {
-      return targetX <= sourceX + 40;
+      // True backward only when target is at or to the left of source handle
+      return targetX <= sourceX;
     }
     return targetX < sourceX;
   } else if (!isSourceHorizontal && !isTargetHorizontal) {
     if (sourcePosition === Position.Bottom && targetPosition === Position.Top) {
-      return targetY <= sourceY + 40;
+      // True backward only when target is at or above source handle
+      return targetY <= sourceY;
     }
     return targetY < sourceY;
   }
@@ -593,7 +595,7 @@ function calculateBezierControlPoints(
   const dx = Math.abs(tgt.x - src.x);
   const dy = Math.abs(tgt.y - src.y);
   const distance = Math.hypot(dx, dy);
-  const offset = Math.max(25, Math.min(distance * 0.5, 150));
+  const offset = Math.max(4, Math.min(distance * 0.45, 140));
 
   let c1: Point = { ...src };
   switch (srcPos) {

@@ -56,7 +56,7 @@ export const TaskNode = memo(({ data, selected }: NodeProps<any>) => {
           : isTitleOnly
           ? 'min-w-[170px] min-h-[70px]'
           : 'min-w-[210px] min-h-[120px]'
-      } flex flex-col justify-between rounded-xl bg-theme-surface/95 backdrop-blur-sm border transition-all duration-150 shadow-md ${
+      } flex flex-col justify-between rounded-xl bg-theme-surface/95 backdrop-blur-sm border transition-colors transition-shadow duration-150 shadow-md ${
         selected
           ? '!ring-2 !ring-sky-400 !border-sky-400 shadow-2xl scale-[1.01]'
           : (!nodeData.customBorderColor ? typeConfig.color : '') + ' hover:border-sky-400/70 hover:shadow-lg'

@@ -26,7 +26,7 @@ export const QualityCheckpointNode = memo(({ data, selected }: NodeProps<any>) =
   return (
     <div
       style={customContainerStyle}
-      className={`group relative w-full h-full ${isTitleOnly ? 'min-w-[170px] min-h-[70px]' : 'min-w-[200px] min-h-[110px]'} flex flex-col justify-between rounded-xl bg-theme-surface/95 backdrop-blur-sm border-2 border-emerald-500/40 transition-all duration-150 shadow-md ${
+      className={`group relative w-full h-full ${isTitleOnly ? 'min-w-[170px] min-h-[70px]' : 'min-w-[200px] min-h-[110px]'} flex flex-col justify-between rounded-xl bg-theme-surface/95 backdrop-blur-sm border-2 border-emerald-500/40 transition-colors transition-shadow duration-150 shadow-md ${
         selected ? '!ring-2 !ring-emerald-400 !border-emerald-400 shadow-2xl scale-[1.01]' : 'hover:border-emerald-400/80 hover:shadow-lg'
       }`}
     >

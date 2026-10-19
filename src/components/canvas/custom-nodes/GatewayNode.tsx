@@ -26,7 +26,7 @@ export const GatewayNode = memo(({ data, selected }: NodeProps<any>) => {
     <div className="relative group flex flex-col items-center">
       <div
         style={customContainerStyle}
-        className={`relative w-16 h-16 rotate-45 rounded-lg bg-theme-surface/95 backdrop-blur-sm border-2 transition-all duration-150 shadow-md flex items-center justify-center border-amber-500/50 bg-amber-500/10 ${
+        className={`relative w-16 h-16 rotate-45 rounded-lg bg-theme-surface/95 backdrop-blur-sm border-2 transition-colors transition-shadow duration-150 shadow-md flex items-center justify-center border-amber-500/50 bg-amber-500/10 ${
           selected
             ? '!ring-2 !ring-amber-400 !border-amber-400 shadow-2xl scale-110'
             : 'hover:border-amber-400/80 hover:shadow-lg'

@@ -60,6 +60,11 @@
   }
 }
 
+/* Zero-delay node dragging (prevents lag and rubber-banding during pointermove) */
+.react-flow__node {
+  transition: none !important;
+}
+
 /* Custom Scrollbars */
 ::-webkit-scrollbar {
   width: 6px;

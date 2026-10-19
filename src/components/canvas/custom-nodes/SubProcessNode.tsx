@@ -65,7 +65,7 @@ export const SubProcessNode = memo(({ id, data, selected }: NodeProps<any>) => {
       style={customContainerStyle}
       onDoubleClick={handleEnterSubProcess}
       title="Doble clic o clic en [+] para ingresar al subproceso"
-      className={`group relative w-full h-full ${isTitleOnly ? 'min-w-[180px] min-h-[75px]' : 'min-w-[230px] min-h-[135px]'} flex flex-col justify-between rounded-xl bg-theme-surface/95 backdrop-blur-sm border-2 border-indigo-400/50 transition-all duration-150 shadow-md ${
+      className={`group relative w-full h-full ${isTitleOnly ? 'min-w-[180px] min-h-[75px]' : 'min-w-[230px] min-h-[135px]'} flex flex-col justify-between rounded-xl bg-theme-surface/95 backdrop-blur-sm border-2 border-indigo-400/50 transition-colors transition-shadow duration-150 shadow-md ${
         selected
           ? '!ring-2 !ring-indigo-400 !border-indigo-400 shadow-2xl scale-[1.01]'
           : 'hover:border-indigo-400/80 hover:shadow-lg'

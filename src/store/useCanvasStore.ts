@@ -573,7 +573,7 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
         let snapY = change.position.y;
 
         if (isDraggingLane) {
-          // --- LANE TO LANE SNAPPING ---
+          // --- LANE TO LANE SNAPPING (Carriles funcionales que se apilan con contacto 0px) ---
           const otherLanes = activeGraph.nodes.filter(
             (n) => n.id !== change.id && n.type === 'PoolLane'
           );
@@ -615,45 +615,9 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
               snapY = oY;
             }
           }
-        } else {
-          // --- ACTIVITY CARD TO CARD SNAPPING ---
-          const otherNodes = activeGraph.nodes.filter(
-            (n) => n.id !== change.id && n.type !== 'PoolLane'
-          );
-
-          for (const other of otherNodes) {
-            const oWidth = (other.measured?.width || other.width || 210) as number;
-            const oHeight = (other.measured?.height || other.height || 120) as number;
-            const oX = other.position.x;
-            const oY = other.position.y;
-
-            // --- HORIZONTAL AXIS SNAP (X) ---
-            if (Math.abs((snapX + dWidth / 2) - (oX + oWidth / 2)) <= SNAP_RADIUS) {
-              snapX = oX + oWidth / 2 - dWidth / 2;
-            } else if (Math.abs(snapX - oX) <= SNAP_RADIUS) {
-              snapX = oX;
-            } else if (Math.abs((snapX + dWidth) - (oX + oWidth)) <= SNAP_RADIUS) {
-              snapX = oX + oWidth - dWidth;
-            } else if (Math.abs(snapX - (oX + oWidth + GAP_X)) <= SNAP_RADIUS) {
-              snapX = oX + oWidth + GAP_X;
-            } else if (Math.abs((snapX + dWidth) - (oX - GAP_X)) <= SNAP_RADIUS) {
-              snapX = oX - GAP_X - dWidth;
-            }
-
-            // --- VERTICAL AXIS SNAP (Y) ---
-            if (Math.abs((snapY + dHeight / 2) - (oY + oHeight / 2)) <= SNAP_RADIUS) {
-              snapY = oY + oHeight / 2 - dHeight / 2;
-            } else if (Math.abs(snapY - oY) <= SNAP_RADIUS) {
-              snapY = oY;
-            } else if (Math.abs((snapY + dHeight) - (oY + oHeight)) <= SNAP_RADIUS) {
-              snapY = oY + oHeight - dHeight;
-            } else if (Math.abs(snapY - (oY + oHeight + GAP_Y)) <= SNAP_RADIUS) {
-              snapY = oY + oHeight + GAP_Y;
-            } else if (Math.abs((snapY + dHeight) - (oY - GAP_Y)) <= SNAP_RADIUS) {
-              snapY = oY - GAP_Y - dHeight;
-            }
-          }
         }
+        // Las tarjetas regulares se mueven de forma 100% fluida, suave y continua,
+        // quedando exactamente en las coordenadas donde el usuario las suelta.
 
         return {
           ...change,

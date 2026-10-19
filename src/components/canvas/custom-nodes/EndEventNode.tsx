@@ -24,7 +24,7 @@ export const EndEventNode = memo(({ data, selected }: NodeProps<any>) => {
   return (
     <div
       style={customContainerStyle}
-      className={`group relative flex flex-col items-center justify-center w-24 h-24 rounded-full bg-theme-surface/95 backdrop-blur-sm border-[3px] transition-all duration-150 shadow-md ${
+      className={`group relative flex flex-col items-center justify-center w-24 h-24 rounded-full bg-theme-surface/95 backdrop-blur-sm border-[3px] transition-colors transition-shadow duration-150 shadow-md ${
         selected
           ? '!border-rose-400 !ring-2 !ring-rose-400 shadow-2xl scale-[1.03]'
           : 'border-rose-500/80 hover:border-rose-400 hover:shadow-lg'

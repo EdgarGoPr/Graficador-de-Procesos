@@ -25,7 +25,7 @@ export const TimerBoundaryNode = memo(({ data, selected }: NodeProps<any>) => {
   return (
     <div
       style={customContainerStyle}
-      className={`group relative flex flex-col items-center justify-center w-24 h-24 rounded-full bg-theme-surface/95 backdrop-blur-sm border-2 border-dashed transition-all duration-150 shadow-md border-amber-500/50 ${
+      className={`group relative flex flex-col items-center justify-center w-24 h-24 rounded-full bg-theme-surface/95 backdrop-blur-sm border-2 border-dashed transition-colors transition-shadow duration-150 shadow-md border-amber-500/50 ${
         selected
           ? '!border-amber-400 !ring-2 !ring-amber-400 shadow-2xl scale-105'
           : 'hover:border-amber-400/80 hover:shadow-lg'
