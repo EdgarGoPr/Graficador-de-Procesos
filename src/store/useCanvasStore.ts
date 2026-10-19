@@ -1153,37 +1153,120 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
   },
 
   applyCardStyleToScope: (targetNodeId: string, scope: 'single' | 'same_type' | 'all', styleChanges: Partial<BpmnNodeData>) => {
+    const projectStore = useProjectStore.getState();
+    const project = projectStore.currentProject;
+    if (!project) return;
+
     const active = get().getActiveGraph();
-    const targetNode = active.nodes.find((n) => n.id === targetNodeId);
+    const targetNode =
+      active.nodes.find((n) => n.id === targetNodeId) ||
+      project.nodes.find((n) => n.id === targetNodeId);
+
     if (!targetNode && scope !== 'all') return;
 
-    useProjectStore.getState().pushSnapshot('Aplicar estilo');
+    useProjectStore.getState().pushSnapshot(
+      scope === 'same_type'
+        ? `Aplicar estilo a tarjetas de tipo ${targetNode?.data?.nodeType || 'mismo tipo'}`
+        : 'Aplicar estilo'
+    );
 
-    const targetType = targetNode?.data?.nodeType;
+    if (scope === 'single') {
+      const nextNodes = active.nodes.map((node) => {
+        if (node.id === targetNodeId) {
+          return {
+            ...node,
+            data: {
+              ...node.data,
+              ...styleChanges
+            }
+          };
+        }
+        return node;
+      });
+      get().setActiveGraph(nextNodes, active.edges);
+      return;
+    }
 
-    const nextNodes = active.nodes.map((node) => {
-      let shouldApply = false;
-      if (scope === 'single') {
-        shouldApply = node.id === targetNodeId;
-      } else if (scope === 'same_type') {
-        shouldApply = node.data.nodeType === targetType;
-      } else if (scope === 'all') {
-        shouldApply = true;
+    const targetType = targetNode?.data?.nodeType || targetNode?.type;
+
+    const shouldApply = (n: { type?: string; data?: { nodeType?: string } }) => {
+      const nType = n.data?.nodeType || n.type;
+      if (scope === 'same_type') {
+        return nType === targetType;
       }
-
-      if (shouldApply) {
-        return {
-          ...node,
-          data: {
-            ...node.data,
-            ...styleChanges
-          }
-        };
+      if (scope === 'all') {
+        return nType !== 'PoolLane' && n.type !== 'PoolLane';
       }
-      return node;
-    });
+      return false;
+    };
 
-    get().setActiveGraph(nextNodes, active.edges);
+    // Recursive deep updater across all hierarchical levels (root, parent processes, and nested subprocesses)
+    function updateNodesDeep(nodes: Node<BpmnNodeData>[]): Node<BpmnNodeData>[] {
+      if (!nodes) return [];
+      return nodes.map((node) => {
+        let updatedNode = node;
+        if (shouldApply(node)) {
+          updatedNode = {
+            ...node,
+            data: {
+              ...node.data,
+              ...styleChanges
+            }
+          };
+        }
+
+        // Recursively traverse into subProcessCanvas if present
+        if (updatedNode.data?.subProcessCanvas?.nodes) {
+          const childNodes = updateNodesDeep(updatedNode.data.subProcessCanvas.nodes);
+          updatedNode = {
+            ...updatedNode,
+            data: {
+              ...updatedNode.data,
+              subProcessCanvas: {
+                ...updatedNode.data.subProcessCanvas,
+                nodes: childNodes
+              }
+            }
+          };
+        }
+
+        // Recursively traverse into compressedSnapshot if present
+        if (updatedNode.data?.compressedSnapshot?.nodes) {
+          const childSnapNodes = updatedNode.data.compressedSnapshot.nodes.map((sn) => {
+            if (shouldApply(sn)) {
+              return {
+                ...sn,
+                data: {
+                  ...sn.data,
+                  ...styleChanges
+                }
+              };
+            }
+            return sn;
+          });
+          updatedNode = {
+            ...updatedNode,
+            data: {
+              ...updatedNode.data,
+              compressedSnapshot: {
+                ...updatedNode.data.compressedSnapshot,
+                nodes: childSnapNodes
+              }
+            }
+          };
+        }
+
+        return updatedNode;
+      });
+    }
+
+    const nextRootNodes = updateNodesDeep(project.nodes || []);
+    const nextProject: ProcessProjectFile = {
+      ...project,
+      nodes: nextRootNodes
+    };
+
+    projectStore.setProjectData(nextProject);
   },
 
   updateEdgeData: (edgeId: string, updates: Partial<SequenceFlowData>, pushSnapshot: boolean = true) => {
