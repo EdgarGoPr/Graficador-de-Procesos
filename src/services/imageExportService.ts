@@ -93,7 +93,10 @@ export function generateProcessSvg(project: ProcessProjectFile): string {
       controlPoints,
     });
 
-    svg += `  <path d="${pathD}" fill="none" stroke="${color}" stroke-width="2.5" marker-end="url(#arrow)" />\n`;
+    const isAssoc = !!edgeData?.isAssociation;
+    const markerEndAttr = isAssoc ? '' : 'marker-end="url(#arrow)"';
+    const dashAttr = isAssoc ? 'stroke-dasharray="4,4"' : '';
+    svg += `  <path d="${pathD}" fill="none" stroke="${color}" stroke-width="${isAssoc ? 1.8 : 2.5}" ${dashAttr} ${markerEndAttr} />\n`;
 
     if (edgeData?.conditionText) {
       let finalMidX = labelMidX;
@@ -119,8 +122,8 @@ export function generateProcessSvg(project: ProcessProjectFile): string {
     .forEach((node) => {
       const nodeData = node.data as Record<string, any> | undefined;
       const isSticky = node.type === 'StickyNote';
-      const w = isSticky ? 220 : ((node.measured?.width || node.width || 210) as number);
-      const h = isSticky ? 140 : ((node.measured?.height || node.height || 120) as number);
+      const w = (node.style?.width as number) || (node.measured?.width || node.width || (isSticky ? 220 : 210)) as number;
+      const h = (node.style?.height as number) || (node.measured?.height || node.height || (isSticky ? 140 : 120)) as number;
       const x = node.position.x;
       const y = node.position.y;
       const title = String(nodeData?.title || 'Actividad').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -128,10 +131,14 @@ export function generateProcessSvg(project: ProcessProjectFile): string {
       const role = String(nodeData?.roleName || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
       if (isSticky) {
+        const relatedNode = nodeData?.relatedNodeId ? nodes.find((n) => n.id === nodeData.relatedNodeId) : null;
+        const relData = relatedNode?.data as Record<string, any> | undefined;
+        const effectiveResp = String(relData?.responsible || relData?.roleName || nodeData?.responsible || nodeData?.roleName || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
         svg += `  <g id="${node.id}">
     <rect x="${x}" y="${y}" width="${w}" height="${h}" rx="8" fill="#FEF9C3" stroke="#FDE047" stroke-width="2" />
     <text x="${x + 12}" y="${y + 22}" fill="#713F12" font-weight="bold" font-size="12">${title}</text>
     <text x="${x + 12}" y="${y + 44}" fill="#854D0E" font-size="10">${String(nodeData?.description || '').substring(0, 70)}...</text>
+    <text x="${x + 12}" y="${y + h - 12}" fill="#713F12" font-size="9" font-family="monospace">${effectiveResp ? `Resp: ${effectiveResp}` : idCode}</text>
   </g>\n`;
       } else {
         const isStart = node.type === 'StartEvent';

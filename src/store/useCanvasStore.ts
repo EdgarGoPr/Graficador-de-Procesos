@@ -307,6 +307,7 @@ interface CanvasStoreState {
   bulkUpdateNodeColors: (filter: { nodeType?: BpmnNodeType; laneId?: string } | 'ALL', colors: { customBgColor?: string; customBorderColor?: string; customTextColor?: string }) => void;
   bulkUpdateEdgeColors: (colors: { strokeColor?: string; strokeWidth?: number; isAnimated?: boolean }) => void;
   deleteSelected: () => void;
+  setNodeRelatedCard: (noteId: string, targetNodeId: string | null) => void;
   
   // Lane & Pool management
   addLane: (poolId?: string, name?: string, role?: string, system?: string, colorHex?: string) => string | undefined;
@@ -691,21 +692,42 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
 
     useProjectStore.getState().pushSnapshot('Crear conexión');
 
+    const sourceNode = activeGraph.nodes.find((n) => n.id === connection.source);
+    const targetNode = activeGraph.nodes.find((n) => n.id === connection.target);
+    const isStickySource = sourceNode?.type === 'StickyNote';
+    const isStickyTarget = targetNode?.type === 'StickyNote';
+    const isAssociation = isStickySource || isStickyTarget;
+
     const newEdge: Edge<SequenceFlowData> = {
       id: `e_${connection.source}_${connection.target}_${Date.now()}`,
       source: connection.source,
       target: connection.target,
+      sourceHandle: connection.sourceHandle,
+      targetHandle: connection.targetHandle,
       type: 'sequenceFlow',
+      style: isAssociation ? { strokeDasharray: '4,4' } : undefined,
       data: {
         id: `e_${connection.source}_${connection.target}`,
         source: connection.source,
         target: connection.target,
-        conditionText: ''
+        conditionText: '',
+        isAssociation
       }
     };
 
+    let nextNodes = activeGraph.nodes;
+    if (isStickySource && targetNode && !isStickyTarget) {
+      nextNodes = nextNodes.map((n) =>
+        n.id === sourceNode.id ? { ...n, data: { ...n.data, relatedNodeId: targetNode.id } } : n
+      );
+    } else if (isStickyTarget && sourceNode && !isStickySource) {
+      nextNodes = nextNodes.map((n) =>
+        n.id === targetNode.id ? { ...n, data: { ...n.data, relatedNodeId: sourceNode.id } } : n
+      );
+    }
+
     const nextEdges = addEdge(newEdge, activeGraph.edges);
-    get().setActiveGraph(activeGraph.nodes, nextEdges);
+    get().setActiveGraph(nextNodes, nextEdges);
   },
 
   selectNode: (nodeId: string | null) => {
@@ -1071,7 +1093,7 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
       id: newNodeId,
       type: nodeType,
       position,
-      style: isLane ? { width: 2200, height: 160, zIndex: -1 } : isSticky ? { zIndex: 10 } : undefined,
+      style: isLane ? { width: 2200, height: 160, zIndex: -1 } : isSticky ? { width: 220, height: 140, zIndex: 10 } : undefined,
       zIndex: isLane ? -1 : isSticky ? 10 : 1,
       data: {
         standardId,
@@ -1118,6 +1140,52 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
     });
 
     get().setActiveGraph(nextNodes, active.edges);
+  },
+
+  setNodeRelatedCard: (noteId: string, targetNodeId: string | null) => {
+    useProjectStore.getState().pushSnapshot('Vincular nota a tarjeta');
+    const active = get().getActiveGraph();
+
+    // 1. Update node data relatedNodeId
+    const nextNodes = active.nodes.map((n) => {
+      if (n.id === noteId) {
+        return {
+          ...n,
+          data: {
+            ...n.data,
+            relatedNodeId: targetNodeId || undefined
+          }
+        };
+      }
+      return n;
+    });
+
+    // 2. Remove any previous association edge attached to this note
+    let nextEdges = active.edges.filter(
+      (e) => !(e.data?.isAssociation && (e.source === noteId || e.target === noteId))
+    );
+
+    // 3. If targetNodeId provided, create a new dashed association edge
+    if (targetNodeId) {
+      const assocEdgeId = `assoc_${noteId}_${targetNodeId}`;
+      const assocEdge: Edge<SequenceFlowData> = {
+        id: assocEdgeId,
+        source: noteId,
+        target: targetNodeId,
+        type: 'sequenceFlow',
+        style: { strokeDasharray: '4,4' },
+        data: {
+          id: assocEdgeId,
+          source: noteId,
+          target: targetNodeId,
+          conditionText: '',
+          isAssociation: true
+        }
+      };
+      nextEdges = [...nextEdges, assocEdge];
+    }
+
+    get().setActiveGraph(nextNodes, nextEdges);
   },
 
   applyCardStyleToScope: (targetNodeId: string, scope: 'single' | 'same_type' | 'all', styleChanges: Partial<BpmnNodeData>) => {
@@ -1249,7 +1317,20 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
       projectStore.pushSnapshot('Eliminar selección');
       const deleteSet = new Set(targetNodeIds);
       const active = get().getActiveGraph();
-      const nextNodes = active.nodes.filter(n => !deleteSet.has(n.id));
+      const nextNodes = active.nodes
+        .filter((n) => !deleteSet.has(n.id))
+        .map((n) => {
+          if (n.data?.relatedNodeId && deleteSet.has(n.data.relatedNodeId)) {
+            return {
+              ...n,
+              data: {
+                ...n.data,
+                relatedNodeId: undefined
+              }
+            };
+          }
+          return n;
+        });
       const nextEdges = active.edges.filter(
         e => !deleteSet.has(e.source) && !deleteSet.has(e.target)
       );

@@ -159,7 +159,10 @@ export function generateFrameSvg(
     const strokeColor = edgeData?.strokeColor || '#0284C7';
     const strokeWidth = edgeData?.strokeWidth || 2.2;
 
-    svg += `  <path d="M ${x1} ${y1} C ${x1 + dx} ${y1}, ${x2 - dx} ${y2}, ${x2} ${y2}" fill="none" stroke="${strokeColor}" stroke-width="${strokeWidth}" marker-end="url(#arrow_frame_${frame.id})" />\n`;
+    const isAssoc = !!edgeData?.isAssociation;
+    const markerEndAttr = isAssoc ? '' : `marker-end="url(#arrow_frame_${frame.id})"`;
+    const dashAttr = isAssoc ? 'stroke-dasharray="4,4"' : '';
+    svg += `  <path d="M ${x1} ${y1} C ${x1 + dx} ${y1}, ${x2 - dx} ${y2}, ${x2} ${y2}" fill="none" stroke="${strokeColor}" stroke-width="${isAssoc ? 1.8 : strokeWidth}" ${dashAttr} ${markerEndAttr} />\n`;
 
     if (edgeData?.conditionText) {
       let midX = (x1 + x2) / 2;
@@ -196,8 +199,8 @@ export function generateFrameSvg(
     .forEach((node) => {
       const nodeData = node.data as Record<string, any> | undefined;
       const isSticky = node.type === 'StickyNote';
-      const w = isSticky ? 220 : ((node.measured?.width || node.width || 210) as number);
-      const h = isSticky ? 140 : ((node.measured?.height || node.height || 120) as number);
+      const w = (node.style?.width as number) || (node.measured?.width || node.width || (isSticky ? 220 : 210)) as number;
+      const h = (node.style?.height as number) || (node.measured?.height || node.height || (isSticky ? 140 : 120)) as number;
       const x = node.position.x;
       const y = node.position.y;
 
@@ -212,12 +215,16 @@ export function generateFrameSvg(
       if (isSticky) {
         const rawDesc = String(nodeData?.description || '');
         const desc = rawDesc.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        const relatedNode = nodeData?.relatedNodeId ? nodes.find((n) => n.id === nodeData.relatedNodeId) : null;
+        const relData = relatedNode?.data as Record<string, any> | undefined;
+        const effectiveResp = String(relData?.responsible || relData?.roleName || nodeData?.responsible || nodeData?.roleName || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
         svg += `  <g id="${node.id}" filter="url(#shadow_${frame.id})">
     <rect x="${x}" y="${y}" width="${w}" height="${h}" rx="8" fill="#FEF08A" stroke="#EAB308" stroke-width="1.5" />
     <text x="${x + 12}" y="${y + 22}" fill="#854D0E" font-weight="700" font-size="11.5">${title.substring(0, 26)}</text>
     <text x="${x + 12}" y="${y + 42}" fill="#713F12" font-size="9.5">${desc.substring(0, 36)}</text>
     ${desc.length > 36 ? `<text x="${x + 12}" y="${y + 56}" fill="#713F12" font-size="9.5">${desc.substring(36, 72)}</text>` : ''}
     ${desc.length > 72 ? `<text x="${x + 12}" y="${y + 70}" fill="#713F12" font-size="9.5">${desc.substring(72, 108)}...</text>` : ''}
+    <text x="${x + 12}" y="${y + h - 12}" fill="#713F12" font-size="9" font-family="monospace">${effectiveResp ? `Resp: ${effectiveResp.substring(0, 24)}` : idCode}</text>
   </g>\n`;
       } else {
         const isStart = node.type === 'StartEvent';

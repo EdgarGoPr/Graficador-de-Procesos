@@ -156,6 +156,7 @@ export interface BpmnNodeData {
   isLocked?: boolean; // Elemento fijado/bloqueado: no se arrastra y permite desplazar el lienzo al hacer clic y arrastrar sobre él
   presentationOrder?: number; // Orden secuencial manual en modo presentación (opcional)
   presentationDurationSeconds?: number; // Duración en segundos para auto-play en modo presentación (opcional)
+  relatedNodeId?: string; // ID de tarjeta vinculada (asociación para StickyNote u otros)
   tags: string[];
   [key: string]: unknown;
 }
@@ -170,6 +171,7 @@ export interface SequenceFlowData {
   isAnimated?: boolean; // Animación de flujo
   isDefault?: boolean;
   isProbationOrAppeal?: boolean;
+  isAssociation?: boolean; // Línea de asociación punteada (sin flecha)
   controlPointsCount?: number; // Cantidad de puntos de ajuste (1 a 4, por defecto 1)
   controlPoints?: Array<{ x: number; y: number }>; // Coordenadas de hasta 4 puntos de control manuales
   controlPoint?: { x: number; y: number }; // Punto de control para contracurva (retrocompatibilidad)

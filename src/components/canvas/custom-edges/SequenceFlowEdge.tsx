@@ -251,12 +251,12 @@ export const SequenceFlowEdge = memo(({
       <BaseEdge
         id={id}
         path={edgePath}
-        markerEnd={markerEnd}
+        markerEnd={data?.isAssociation ? undefined : markerEnd}
         style={{
           ...style,
           strokeWidth: customWidth,
           stroke: defaultStroke,
-          strokeDasharray: isAnimated ? '5,5' : style.strokeDasharray,
+          strokeDasharray: isAnimated ? '5,5' : (data?.isAssociation ? '4,4' : style.strokeDasharray),
           animation: isAnimated ? 'flowAnimation 1s linear infinite' : undefined,
           transition: draggingIndex !== null || isDraggingLabel ? 'none' : 'stroke 0.15s, stroke-width 0.15s',
         }}

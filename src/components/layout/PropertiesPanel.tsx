@@ -81,7 +81,8 @@ export const PropertiesPanel: React.FC = () => {
     decompressSubProcess,
     deleteSelected,
     addLane,
-    updateLane
+    updateLane,
+    setNodeRelatedCard
   } = useCanvasStore();
 
   const { currentProject } = useProjectStore();
@@ -1185,6 +1186,77 @@ export const PropertiesPanel: React.FC = () => {
           />
         </div>
 
+        {/* Vinculación con Tarjeta o Ítem (Específico para Notas Adhesivas) */}
+        {node.type === 'StickyNote' && (
+          <div className="space-y-2.5 p-3 rounded-xl bg-theme-surface-subtle border border-theme-border">
+            <div className="flex items-center justify-between">
+              <label className="text-[10px] font-bold uppercase tracking-wider text-theme-text font-mono flex items-center space-x-1">
+                <Link2 className="w-3.5 h-3.5 text-sky-400 mr-1" />
+                <span>Tarjeta o Ítem Relacionado</span>
+              </label>
+              {data.relatedNodeId && (
+                <button
+                  type="button"
+                  onClick={() => setNodeRelatedCard(node.id, null)}
+                  className="text-[10px] text-theme-text-muted hover:text-red-400 flex items-center space-x-0.5"
+                  title="Desvincular tarjeta"
+                >
+                  <X className="w-3 h-3" />
+                  <span>Desvincular</span>
+                </button>
+              )}
+            </div>
+
+            <p className="text-[10px] text-theme-text-muted leading-relaxed">
+              Asocia esta nota a una tarjeta del proceso. Se mostrará una línea punteada y la nota heredará automáticamente el Responsable de dicha tarjeta (opcional).
+            </p>
+
+            <select
+              value={data.relatedNodeId || ''}
+              onChange={(e) => setNodeRelatedCard(node.id, e.target.value || null)}
+              className="w-full bg-theme-surface border border-theme-border rounded px-2.5 py-1.5 text-theme-text text-xs focus:border-theme-accent outline-none"
+            >
+              <option value="">-- Ninguna (Nota independiente) --</option>
+              {activeGraph.nodes
+                .filter((n) => n.id !== node.id && n.type !== 'PoolLane' && n.type !== 'StickyNote')
+                .map((target) => (
+                  <option key={target.id} value={target.id}>
+                    {target.data?.standardId ? `[${target.data.standardId}] ` : ''}
+                    {target.data?.title || target.type || target.id}
+                  </option>
+                ))}
+            </select>
+
+            {(() => {
+              const relatedNode = data.relatedNodeId
+                ? activeGraph.nodes.find((n) => n.id === data.relatedNodeId)
+                : null;
+              const inheritedResp =
+                relatedNode?.data?.responsible || relatedNode?.data?.roleName || '';
+
+              if (relatedNode) {
+                return (
+                  <div className="p-2 rounded bg-sky-500/10 border border-sky-500/30 text-[11px] space-y-1">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-mono text-sky-400 font-bold flex items-center gap-1">
+                        <User className="w-3 h-3" />
+                        Responsable Heredado:
+                      </span>
+                      <span className="font-semibold text-theme-text">
+                        {inheritedResp || 'Sin responsable definido en la tarjeta'}
+                      </span>
+                    </div>
+                    <span className="text-[9px] text-theme-text-muted block">
+                      Se refleja automáticamente en el pie de la nota adhesiva.
+                    </span>
+                  </div>
+                );
+              }
+              return null;
+            })()}
+          </div>
+        )}
+
         {/* Carril / Swimlane Asignado */}
         <div className="space-y-1.5 p-2.5 rounded-xl bg-theme-surface-subtle border border-theme-border">
           <div className="flex items-center justify-between">
@@ -1553,13 +1625,32 @@ export const PropertiesPanel: React.FC = () => {
                 <User className="w-3 h-3 text-[#3B82F6] mr-1" />
                 <span>Responsable</span>
               </label>
-              <input
-                type="text"
-                placeholder="Responsable de la tarea"
-                value={data.responsible || ''}
-                onChange={(e) => handleUpdate({ responsible: e.target.value })}
-                className="w-full bg-theme-surface-subtle border border-theme-border rounded px-2 py-1 text-theme-text text-xs focus:border-theme-accent outline-none mt-0.5"
-              />
+              {(() => {
+                if (node.type === 'StickyNote' && data.relatedNodeId) {
+                  const relNode = activeGraph.nodes.find((n) => n.id === data.relatedNodeId);
+                  const inherited = relNode?.data?.responsible || relNode?.data?.roleName;
+                  if (inherited) {
+                    return (
+                      <input
+                        type="text"
+                        disabled
+                        value={`${inherited} (Heredado)`}
+                        title="Heredado automáticamente de la tarjeta vinculada"
+                        className="w-full bg-theme-surface border border-sky-500/40 rounded px-2 py-1 text-sky-400 text-xs outline-none mt-0.5 cursor-not-allowed font-medium"
+                      />
+                    );
+                  }
+                }
+                return (
+                  <input
+                    type="text"
+                    placeholder="Responsable de la tarea"
+                    value={data.responsible || ''}
+                    onChange={(e) => handleUpdate({ responsible: e.target.value })}
+                    className="w-full bg-theme-surface-subtle border border-theme-border rounded px-2 py-1 text-theme-text text-xs focus:border-theme-accent outline-none mt-0.5"
+                  />
+                );
+              })()}
             </div>
           </div>
           <div>
