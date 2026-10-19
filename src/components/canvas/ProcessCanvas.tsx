@@ -59,7 +59,7 @@ const EDGE_TYPES: any = {
 const ProcessCanvasInternal: React.FC = () => {
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
   const { screenToFlowPosition, setCenter, setViewport, getViewport } = useReactFlow();
-  const prevSubProcessPathRef = useRef<string>('');
+  const prevSubProcessPathRef = useRef<string | null>(null);
 
   const { currentProject } = useProjectStore();
   const {
@@ -341,14 +341,19 @@ const ProcessCanvasInternal: React.FC = () => {
     return getGraphForPath(currentProject, subProcessPath);
   }, [currentProject, subProcessPath]);
 
-  // Intelligent auto-centering or left-aligning the first StartEvent when entering a subprocess (PST-054)
+  // Intelligent auto-centering or left-aligning the first StartEvent when entering a subprocess, parent process, or root (PST-057)
   useEffect(() => {
-    const currentPathKey = (subProcessPath || []).map((p) => p.id).join('->');
-    const wasPathKey = prevSubProcessPathRef.current;
-    prevSubProcessPathRef.current = currentPathKey;
+    const projId = currentProject?.documentControl?.documentCode || currentProject?.fileName || 'default';
+    const subPathStr =
+      subProcessPath && subProcessPath.length > 0
+        ? subProcessPath.map((p) => p.id).join('->')
+        : 'root';
+    const currentFullKey = `${projId}:${subPathStr}`;
+    const wasFullKey = prevSubProcessPathRef.current;
+    prevSubProcessPathRef.current = currentFullKey;
 
-    // Only trigger when entering or navigating between subprocesses (path length > 0)
-    if (!subProcessPath || subProcessPath.length === 0 || currentPathKey === wasPathKey) {
+    // Trigger only when the navigation level or active project actually changes
+    if (wasFullKey === currentFullKey) {
       return;
     }
 
@@ -417,7 +422,7 @@ const ProcessCanvasInternal: React.FC = () => {
     }, 60);
 
     return () => clearTimeout(timer);
-  }, [subProcessPath, setCenter, setViewport, getViewport]);
+  }, [subProcessPath, currentProject?.documentControl?.documentCode, setCenter, setViewport, getViewport]);
 
   // Stable hierarchical sorting so sections/lanes are rendered in background (first in array),
   // and tasks, gateways, and events are rendered on top (foreground).
