@@ -1,6 +1,8 @@
 import React from 'react';
 import { useCanvasStore } from '../../store/useCanvasStore';
 import { useProjectStore } from '../../store/useProjectStore';
+import { useUiStore } from '../../store/useUiStore';
+import { PRESET_THEMES } from '../../types/theme';
 import { getAllProjectProcesses, getCurrentProcessInfo } from '../../services/processHierarchyService';
 import { Home, ChevronRight, Layers, ArrowLeft } from 'lucide-react';
 
@@ -11,10 +13,16 @@ export const SubProcessBreadcrumbs: React.FC = () => {
     leaveSubProcess,
     navigateToSubProcessPath
   } = useCanvasStore();
+  const { theme, currentThemeId, customThemeColors } = useUiStore();
 
   if (!currentProject) {
     return null;
   }
+
+  const isDark =
+    currentThemeId === 'custom'
+      ? customThemeColors.isDark
+      : (PRESET_THEMES[currentThemeId]?.colors.isDark ?? theme === 'dark');
 
   // Get all processes in the project (P01N00, P02N01, P03N01...)
   const allProcesses = getAllProjectProcesses(currentProject);
@@ -47,65 +55,83 @@ export const SubProcessBreadcrumbs: React.FC = () => {
         }
 
         const isAncestor = ancestorDistance > 0;
-        const bgOpacity = isAncestor ? Math.max(0.08, 0.26 - ancestorDistance * 0.07) : 0;
-        const borderOpacity = isAncestor ? Math.max(0.18, 0.45 - ancestorDistance * 0.12) : 0;
-        const textOpacity = isAncestor ? Math.max(0.65, 1.0 - ancestorDistance * 0.15) : 1;
+        const bgOpacity = isAncestor ? Math.max(0.12, 0.28 - ancestorDistance * 0.05) : 0;
+        const borderOpacity = isAncestor ? (isDark ? Math.max(0.3, 0.55 - ancestorDistance * 0.1) : Math.max(0.35, 0.65 - ancestorDistance * 0.1)) : 0;
+        const textOpacity = isAncestor ? Math.max(0.85, 1.0 - ancestorDistance * 0.05) : 1;
 
         return (
           <React.Fragment key={proc.id}>
             {index > 0 && (
               <ChevronRight
-                className={`w-3 h-3 shrink-0 mx-0.5 transition-colors ${
+                className={`w-3.5 h-3.5 shrink-0 mx-0.5 transition-colors ${
                   isAncestor || isCurrent
-                    ? 'text-indigo-400/60'
-                    : 'text-theme-text-muted/30'
+                    ? isDark ? 'text-indigo-400/80' : 'text-indigo-600/80'
+                    : isDark ? 'text-slate-500/50' : 'text-slate-400/60'
                 }`}
               />
             )}
 
             {isCurrent ? (
-              // Selected / Active Process: Expanded with Title and Level
-              <span className="font-bold text-theme-text flex items-center space-x-1.5 bg-indigo-500/20 text-indigo-300 px-2.5 py-1 rounded-lg border-2 border-indigo-400 shrink-0 shadow-md ring-2 ring-indigo-400/30">
+              // Selected / Active Process: Expanded with Title and Level in High Contrast
+              <span
+                className={`font-bold flex items-center space-x-1.5 px-3 py-1 rounded-lg border-2 shrink-0 shadow-md ${
+                  isDark
+                    ? 'bg-indigo-500/25 border-indigo-400 ring-2 ring-indigo-400/30'
+                    : 'bg-indigo-100/95 border-indigo-600 ring-2 ring-indigo-500/25'
+                }`}
+              >
                 {proc.level === 0 ? (
-                  <Home className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
+                  <Home className={`w-3.5 h-3.5 shrink-0 ${isDark ? 'text-indigo-300' : 'text-indigo-700'}`} />
                 ) : (
-                  <Layers className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
+                  <Layers className={`w-3.5 h-3.5 shrink-0 ${isDark ? 'text-indigo-300' : 'text-indigo-700'}`} />
                 )}
-                <span className="font-mono text-[11px] font-black">{proc.sigla}:</span>
-                <span className="truncate max-w-[200px] text-theme-text" title={proc.title}>
+                <span className={`font-mono text-[11px] font-black ${isDark ? 'text-indigo-200' : 'text-indigo-950'}`}>
+                  {proc.sigla}:
+                </span>
+                <span className={`truncate max-w-[220px] font-bold ${isDark ? 'text-white' : 'text-slate-900'}`} title={proc.title}>
                   {proc.title}
                 </span>
-                <span className="text-[10px] font-mono bg-indigo-500/30 px-1.5 py-0.2 rounded text-indigo-200 border border-indigo-500/40 shrink-0">
+                <span
+                  className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded shrink-0 shadow-xs ${
+                    isDark
+                      ? 'bg-indigo-500/40 text-indigo-100 border border-indigo-400/50'
+                      : 'bg-indigo-600 text-white border border-indigo-700'
+                  }`}
+                >
                   Nivel {proc.level}
                 </span>
               </span>
             ) : isAncestor ? (
-              // Ancestor Process in Lineage: Highlighted with fading opacity as it generalizes
+              // Ancestor Process in Lineage: Highlighted with high-contrast text and fading opacity as it generalizes
               <button
                 type="button"
                 onClick={() => navigateToSubProcessPath(proc.path)}
                 style={{
                   backgroundColor: `rgba(99, 102, 241, ${bgOpacity})`,
-                  borderColor: `rgba(99, 102, 241, ${borderOpacity})`,
-                  color: `rgba(199, 210, 254, ${textOpacity})`,
+                  borderColor: isDark ? `rgba(129, 140, 248, ${borderOpacity})` : `rgba(79, 70, 229, ${borderOpacity})`,
+                  color: isDark ? `rgba(224, 231, 255, ${textOpacity})` : `rgba(49, 46, 129, ${textOpacity})`,
                 }}
-                className="px-2.5 py-1 rounded-md border transition-all flex items-center space-x-1 shrink-0 font-mono text-[11px] font-bold hover:brightness-125 shadow-xs"
+                className="px-2.5 py-1 rounded-md border-2 transition-all flex items-center space-x-1 shrink-0 font-mono text-[11px] font-black hover:brightness-110 shadow-xs"
                 title={`Proceso contenedor (Nivel ${proc.level}) de ${currentProcess.sigla}. Clic para subir a este proceso.`}
               >
-                {proc.level === 0 && <Home className="w-3 h-3 mr-0.5 opacity-80" />}
-                {proc.level > 0 && <Layers className="w-3 h-3 mr-0.5 opacity-80" />}
+                {proc.level === 0 && <Home className={`w-3 h-3 mr-0.5 ${isDark ? 'text-indigo-200' : 'text-indigo-800'}`} />}
+                {proc.level > 0 && <Layers className={`w-3 h-3 mr-0.5 ${isDark ? 'text-indigo-200' : 'text-indigo-800'}`} />}
                 <span>{proc.sigla}</span>
               </button>
             ) : (
-              // Unselected / Inactive Process: Concise neutral acronym (P01N00, P02N01, etc.)
+              // Unselected / Inactive Process: Concise neutral acronym with high contrast
               <button
                 type="button"
                 onClick={() => navigateToSubProcessPath(proc.path)}
-                className="px-2 py-1 rounded-md text-theme-text-muted hover:text-indigo-400 hover:bg-theme-surface-hover/80 border border-transparent hover:border-theme-border transition-all flex items-center space-x-1 shrink-0 font-mono text-[11px] font-bold"
+                className={`px-2 py-1 rounded-md border transition-all flex items-center space-x-1 shrink-0 font-mono text-[11px] font-bold ${
+                  isDark
+                    ? 'text-slate-300 hover:text-indigo-300 hover:bg-white/10 border-transparent hover:border-slate-600'
+                    : 'text-slate-700 hover:text-indigo-700 hover:bg-slate-200/70 border-transparent hover:border-slate-300'
+                }`}
                 title={`Ir a ${proc.title} (Nivel ${proc.level})`}
               >
-                {proc.level === 0 && <Home className="w-3 h-3 mr-0.5 opacity-70" />}
-                {proc.level > 0 && <Layers className="w-3 h-3 mr-0.5 opacity-70" />}
+                {proc.level === 0 && <Home className="w-3 h-3 mr-0.5 opacity-80" />}
+                {proc.level > 0 && <Layers className="w-3 h-3 mr-0.5 opacity-80" />}
                 <span>{proc.sigla}</span>
               </button>
             )}
@@ -120,7 +146,11 @@ export const SubProcessBreadcrumbs: React.FC = () => {
           <button
             type="button"
             onClick={leaveSubProcess}
-            className="flex items-center space-x-1 px-2.5 py-1 rounded-md bg-theme-surface-subtle hover:bg-theme-surface-hover border border-theme-border text-theme-text hover:text-indigo-400 text-[11px] font-semibold transition-all shadow-sm active:scale-95 shrink-0"
+            className={`flex items-center space-x-1 px-2.5 py-1 rounded-md border transition-all shadow-xs active:scale-95 shrink-0 text-[11px] font-bold ${
+              isDark
+                ? 'bg-slate-800/80 hover:bg-slate-700 text-slate-100 border-slate-700 hover:text-indigo-300'
+                : 'bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-300 hover:text-indigo-700'
+            }`}
             title="Subir un nivel (Regresar al proceso contenedor)"
           >
             <ArrowLeft className="w-3 h-3" />
