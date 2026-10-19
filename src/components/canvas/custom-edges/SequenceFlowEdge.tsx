@@ -26,10 +26,24 @@ export const SequenceFlowEdge = memo(({
   const selectEdge = useCanvasStore((state) => state.selectEdge);
 
   const [isHovered, setIsHovered] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
-  const isDraggingRef = useRef(false);
+  const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
+  const draggingIndexRef = useRef<number | null>(null);
 
-  const customCp = data?.controlPoint as { x: number; y: number } | undefined;
+  const pointsCount = Math.max(
+    1,
+    Math.min(
+      4,
+      data?.controlPointsCount ||
+        (Array.isArray(data?.controlPoints) ? data.controlPoints.length : 1)
+    )
+  );
+
+  let existingPoints: Array<{ x: number; y: number }> = [];
+  if (Array.isArray(data?.controlPoints) && data.controlPoints.length > 0) {
+    existingPoints = data.controlPoints.slice(0, pointsCount);
+  } else if (data?.controlPoint) {
+    existingPoints = [data.controlPoint];
+  }
 
   const [edgePath, labelX, labelY] = getSmartEdgePath({
     sourceX,
@@ -42,7 +56,7 @@ export const SequenceFlowEdge = memo(({
     sourceNodeId: source,
     targetNodeId: target,
     padding: 24,
-    controlPoint: customCp,
+    controlPoints: existingPoints.length > 0 ? existingPoints : undefined,
   });
 
   const conditionText = data?.conditionText;
@@ -52,24 +66,51 @@ export const SequenceFlowEdge = memo(({
 
   const defaultStroke = selected ? 'var(--theme-accent)' : (customStroke || 'var(--theme-edge-color, var(--theme-border))');
 
-  const handleX = customCp ? customCp.x : labelX;
-  const handleY = customCp ? customCp.y : labelY;
+  const getDefaultPointPos = useCallback((idx: number, total: number) => {
+    if (total === 1) return { x: labelX, y: labelY };
+    const t = (idx + 1) / (total + 1);
+    if (t <= 0.5) {
+      const u = t / 0.5;
+      return {
+        x: Math.round(sourceX + (labelX - sourceX) * u),
+        y: Math.round(sourceY + (labelY - sourceY) * u),
+      };
+    } else {
+      const u = (t - 0.5) / 0.5;
+      return {
+        x: Math.round(labelX + (targetX - labelX) * u),
+        y: Math.round(labelY + (targetY - labelY) * u),
+      };
+    }
+  }, [labelX, labelY, sourceX, sourceY, targetX, targetY]);
 
-  // Pointer drag events for the control point handle
-  const handlePointerDown = useCallback((e: React.PointerEvent) => {
+  const handles = [];
+  for (let i = 0; i < pointsCount; i++) {
+    const hasCustom = !!existingPoints[i];
+    const pos = hasCustom ? existingPoints[i] : getDefaultPointPos(i, pointsCount);
+    handles.push({
+      index: i,
+      x: pos.x,
+      y: pos.y,
+      isCustom: hasCustom,
+    });
+  }
+
+  const handlePointerDown = useCallback((index: number) => (e: React.PointerEvent) => {
     e.stopPropagation();
     e.preventDefault();
     try {
       (e.target as HTMLElement).setPointerCapture(e.pointerId);
     } catch {}
-    setIsDragging(true);
-    isDraggingRef.current = true;
-    useProjectStore.getState().pushSnapshot('Ajustar curvatura de línea');
+    setDraggingIndex(index);
+    draggingIndexRef.current = index;
+    useProjectStore.getState().pushSnapshot('Ajustar punto de conexión');
     selectEdge(id);
   }, [id, selectEdge]);
 
   const handlePointerMove = useCallback((e: React.PointerEvent) => {
-    if (!isDraggingRef.current) return;
+    const idx = draggingIndexRef.current;
+    if (idx === null) return;
     e.stopPropagation();
 
     const flowPos = screenToFlowPosition({ x: e.clientX, y: e.clientY });
@@ -77,25 +118,49 @@ export const SequenceFlowEdge = memo(({
     let newY = Math.round(flowPos.y);
 
     // Magnetic Snapping in X:
-    // Attract to control points of other edges within 10px so all inflections align effortlessly
     const allEdges = getEdges();
     const SNAP_DIST = 10;
     for (const otherEdge of allEdges) {
       if (otherEdge.id === id) continue;
-      const otherCp = (otherEdge.data as any)?.controlPoint;
-      if (otherCp && Math.abs(otherCp.x - newX) <= SNAP_DIST) {
-        newX = otherCp.x;
-        break;
+      const otherCps = (otherEdge.data as any)?.controlPoints;
+      if (Array.isArray(otherCps)) {
+        for (const cp of otherCps) {
+          if (cp && Math.abs(cp.x - newX) <= SNAP_DIST) {
+            newX = cp.x;
+            break;
+          }
+        }
+      } else {
+        const otherCp = (otherEdge.data as any)?.controlPoint;
+        if (otherCp && Math.abs(otherCp.x - newX) <= SNAP_DIST) {
+          newX = otherCp.x;
+          break;
+        }
       }
     }
 
-    updateEdgeData(id, { controlPoint: { x: newX, y: newY } }, false);
-  }, [id, screenToFlowPosition, getEdges, updateEdgeData]);
+    const updatedPoints: Array<{ x: number; y: number }> = [];
+    for (let i = 0; i < pointsCount; i++) {
+      if (i === idx) {
+        updatedPoints.push({ x: newX, y: newY });
+      } else if (existingPoints[i]) {
+        updatedPoints.push({ ...existingPoints[i] });
+      } else {
+        updatedPoints.push(getDefaultPointPos(i, pointsCount));
+      }
+    }
+
+    updateEdgeData(id, {
+      controlPoints: updatedPoints,
+      controlPoint: updatedPoints[0],
+      controlPointsCount: pointsCount,
+    }, false);
+  }, [id, screenToFlowPosition, getEdges, updateEdgeData, pointsCount, existingPoints, getDefaultPointPos]);
 
   const handlePointerUp = useCallback((e: React.PointerEvent) => {
-    if (isDraggingRef.current) {
-      setIsDragging(false);
-      isDraggingRef.current = false;
+    if (draggingIndexRef.current !== null) {
+      setDraggingIndex(null);
+      draggingIndexRef.current = null;
       try {
         (e.target as HTMLElement).releasePointerCapture(e.pointerId);
       } catch {}
@@ -104,10 +169,10 @@ export const SequenceFlowEdge = memo(({
 
   const handleDoubleClick = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
-    updateEdgeData(id, { controlPoint: undefined }, true);
+    updateEdgeData(id, { controlPoints: undefined, controlPoint: undefined }, true);
   }, [id, updateEdgeData]);
 
-  const showHandle = selected || isHovered || isDragging || !!customCp;
+  const showHandles = selected || isHovered || draggingIndex !== null || existingPoints.length > 0;
 
   return (
     <>
@@ -120,7 +185,7 @@ export const SequenceFlowEdge = memo(({
         className="cursor-pointer"
         onPointerEnter={() => setIsHovered(true)}
         onPointerLeave={() => {
-          if (!isDraggingRef.current) setIsHovered(false);
+          if (draggingIndexRef.current === null) setIsHovered(false);
         }}
         onClick={(e) => {
           e.stopPropagation();
@@ -139,46 +204,52 @@ export const SequenceFlowEdge = memo(({
           stroke: defaultStroke,
           strokeDasharray: isAnimated ? '5,5' : style.strokeDasharray,
           animation: isAnimated ? 'flowAnimation 1s linear infinite' : undefined,
-          transition: isDragging ? 'none' : 'stroke 0.15s, stroke-width 0.15s',
+          transition: draggingIndex !== null ? 'none' : 'stroke 0.15s, stroke-width 0.15s',
         }}
       />
 
-      {/* Interactive Contracurva Control Point Handle */}
-      {showHandle && (
+      {/* Interactive Control Point Handles (1 to 4 points) */}
+      {showHandles && (
         <EdgeLabelRenderer>
-          <div
-            style={{
-              position: 'absolute',
-              transform: `translate(-50%, -50%) translate(${handleX}px,${handleY}px)`,
-              pointerEvents: 'all',
-              zIndex: selected || isDragging ? 50 : 35,
-            }}
-            className="nodrag nopan"
-            onPointerEnter={() => setIsHovered(true)}
-            onPointerLeave={() => {
-              if (!isDraggingRef.current) setIsHovered(false);
-            }}
-          >
-            <div
-              onPointerDown={handlePointerDown}
-              onPointerMove={handlePointerMove}
-              onPointerUp={handlePointerUp}
-              onDoubleClick={handleDoubleClick}
-              title="Punto de contracurva: arrastra para alinear o esquivar tarjetas. Doble clic para restablecer."
-              style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
-              className={`w-3.5 h-3.5 rounded-full border-2 transition-transform duration-100 flex items-center justify-center ${
-                isDragging
-                  ? 'bg-amber-400 border-slate-900 shadow-[0_0_10px_rgba(245,158,11,0.9)] scale-150'
-                  : selected
-                  ? 'bg-theme-accent border-slate-900 shadow-[0_0_8px_rgba(56,189,248,0.7)] scale-125 hover:scale-150'
-                  : customCp
-                  ? 'bg-amber-500/90 border-slate-900 shadow-sm hover:scale-125'
-                  : 'bg-theme-surface border-theme-accent/80 opacity-70 hover:opacity-100 hover:scale-125 shadow-sm'
-              }`}
-            >
-              <div className="w-1 h-1 rounded-full bg-slate-900/60" />
-            </div>
-          </div>
+          {handles.map((h) => {
+            const isThisDragging = draggingIndex === h.index;
+            return (
+              <div
+                key={h.index}
+                style={{
+                  position: 'absolute',
+                  transform: `translate(-50%, -50%) translate(${h.x}px,${h.y}px)`,
+                  pointerEvents: 'all',
+                  zIndex: isThisDragging ? 60 : (selected ? 50 : 35),
+                }}
+                className="nodrag nopan"
+                onPointerEnter={() => setIsHovered(true)}
+                onPointerLeave={() => {
+                  if (draggingIndexRef.current === null) setIsHovered(false);
+                }}
+              >
+                <div
+                  onPointerDown={handlePointerDown(h.index)}
+                  onPointerMove={handlePointerMove}
+                  onPointerUp={handlePointerUp}
+                  onDoubleClick={handleDoubleClick}
+                  title={`Punto ${h.index + 1} (${pointsCount} punto${pointsCount > 1 ? 's' : ''}): arrastra para moldear la conexión. Doble clic para restablecer.`}
+                  style={{ cursor: isThisDragging ? 'grabbing' : 'grab' }}
+                  className={`w-4 h-4 rounded-full border-2 transition-transform duration-100 flex items-center justify-center font-mono text-[9px] font-bold select-none ${
+                    isThisDragging
+                      ? 'bg-amber-400 border-slate-900 text-slate-950 shadow-[0_0_10px_rgba(245,158,11,0.9)] scale-150'
+                      : selected
+                      ? 'bg-theme-accent border-slate-900 text-slate-950 shadow-[0_0_8px_rgba(56,189,248,0.7)] scale-125 hover:scale-150'
+                      : h.isCustom
+                      ? 'bg-amber-500/90 border-slate-900 text-slate-950 shadow-sm hover:scale-125'
+                      : 'bg-theme-surface border-theme-accent/80 text-theme-accent opacity-75 hover:opacity-100 hover:scale-125 shadow-sm'
+                  }`}
+                >
+                  {pointsCount > 1 ? (h.index + 1) : <div className="w-1.5 h-1.5 rounded-full bg-slate-900/60" />}
+                </div>
+              </div>
+            );
+          })}
         </EdgeLabelRenderer>
       )}
 
@@ -188,9 +259,9 @@ export const SequenceFlowEdge = memo(({
           <div
             style={{
               position: 'absolute',
-              transform: showHandle
-                ? `translate(-50%, -130%) translate(${handleX}px,${handleY}px)`
-                : `translate(-50%, -50%) translate(${handleX}px,${handleY}px)`,
+              transform: showHandles
+                ? `translate(-50%, -140%) translate(${labelX}px,${labelY}px)`
+                : `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
               pointerEvents: 'all',
               zIndex: 30,
             }}

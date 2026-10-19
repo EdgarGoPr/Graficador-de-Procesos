@@ -1,6 +1,6 @@
 import { ProcessProjectFile } from '../types/project';
 import { Position } from '@xyflow/react';
-import { getControlledEdgePath } from '../utils/smartRouting';
+import { getSmartEdgePath } from '../utils/smartRouting';
 
 /**
  * Generates an SVG string representation of the process diagram
@@ -77,28 +77,21 @@ export function generateProcessSvg(project: ProcessProjectFile): string {
     const edgeData = edge.data as Record<string, any> | undefined;
     const color = edgeData?.strokeColor || '#38BDF8';
     const controlPoint = edgeData?.controlPoint as { x: number; y: number } | undefined;
+    const controlPoints = edgeData?.controlPoints as Array<{ x: number; y: number }> | undefined;
 
-    let pathD = '';
-    let labelMidX = (x1 + x2) / 2;
-    let labelMidY = (y1 + y2) / 2;
-
-    if (controlPoint) {
-      const [controlledPath, lx, ly] = getControlledEdgePath(
-        x1,
-        y1,
-        Position.Right,
-        x2,
-        y2,
-        Position.Left,
-        controlPoint
-      );
-      pathD = controlledPath;
-      labelMidX = lx;
-      labelMidY = ly;
-    } else {
-      const dx = Math.abs(x2 - x1) / 2;
-      pathD = `M ${x1} ${y1} C ${x1 + dx} ${y1}, ${x2 - dx} ${y2}, ${x2} ${y2}`;
-    }
+    const [pathD, labelMidX, labelMidY] = getSmartEdgePath({
+      sourceX: x1,
+      sourceY: y1,
+      sourcePosition: Position.Right,
+      targetX: x2,
+      targetY: y2,
+      targetPosition: Position.Left,
+      nodes,
+      sourceNodeId: edge.source,
+      targetNodeId: edge.target,
+      controlPoint,
+      controlPoints,
+    });
 
     svg += `  <path d="${pathD}" fill="none" stroke="${color}" stroke-width="2.5" marker-end="url(#arrow)" />\n`;
 

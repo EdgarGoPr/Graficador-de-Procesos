@@ -202,44 +202,125 @@ export const PropertiesPanel: React.FC = () => {
             </p>
           </div>
 
-          {/* Curvatura y Contracurva Manual */}
-          <div className="space-y-2.5 pt-3 border-t border-theme-border">
+          {/* Curvatura y Puntos de Ajuste de la Conexión */}
+          <div className="space-y-3 pt-3 border-t border-theme-border">
             <div className="flex items-center justify-between">
               <label className="text-[10px] font-bold uppercase tracking-wider text-theme-text font-mono flex items-center space-x-1">
                 <Compass className="w-3.5 h-3.5 text-theme-accent mr-1" />
-                <span>Curvatura y Contracurva</span>
+                <span>Puntos de Ajuste de la Conexión</span>
               </label>
-              {edge.data?.controlPoint && (
+              {(edge.data?.controlPoints?.length || edge.data?.controlPoint) ? (
                 <button
-                  onClick={() => updateEdgeData(edge.id, { controlPoint: undefined })}
+                  onClick={() => updateEdgeData(edge.id, { controlPoints: undefined, controlPoint: undefined })}
                   className="text-[10px] text-theme-accent hover:underline flex items-center space-x-1"
                   title="Restablecer a trazado automático"
                 >
                   <RotateCcw className="w-3 h-3" />
                   <span>Restablecer</span>
                 </button>
-              )}
+              ) : null}
             </div>
 
-            <div className="p-2 rounded-lg bg-theme-surface-subtle border border-theme-border text-[11px] space-y-1.5">
-              <div className="flex items-center justify-between">
-                <span className="text-theme-text-muted">Estado del Trazo:</span>
-                <span className={`font-mono text-xs font-semibold ${edge.data?.controlPoint ? 'text-amber-400' : 'text-emerald-400'}`}>
-                  {edge.data?.controlPoint ? 'Manual (Personalizado)' : 'Automático'}
+            {/* Selector de cantidad de puntos (1 a 4) */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between text-[10px] font-mono text-theme-text-muted">
+                <span>Cantidad de Puntos:</span>
+                <span className="text-theme-accent font-semibold">
+                  {Math.max(1, Math.min(4, edge.data?.controlPointsCount || (edge.data?.controlPoints ? edge.data.controlPoints.length : 1)))} {Math.max(1, Math.min(4, edge.data?.controlPointsCount || (edge.data?.controlPoints ? edge.data.controlPoints.length : 1))) === 1 ? 'punto' : 'puntos'}
                 </span>
               </div>
-              {edge.data?.controlPoint && (
-                <div className="flex items-center justify-between font-mono text-[10px] text-theme-text-muted pt-1 border-t border-theme-border/50">
-                  <span>Punto Inflexión:</span>
-                  <span className="text-theme-text font-semibold">
-                    X: {Math.round(edge.data.controlPoint.x)}px | Y: {Math.round(edge.data.controlPoint.y)}px
-                  </span>
-                </div>
-              )}
+              <div className="grid grid-cols-4 gap-1 p-1 rounded-lg bg-theme-surface-subtle border border-theme-border">
+                {[1, 2, 3, 4].map((num) => {
+                  const currentCount = Math.max(1, Math.min(4, edge.data?.controlPointsCount || (edge.data?.controlPoints ? edge.data.controlPoints.length : 1)));
+                  const isActive = currentCount === num;
+                  return (
+                    <button
+                      key={num}
+                      type="button"
+                      onClick={() => {
+                        const currentCps = Array.isArray(edge.data?.controlPoints)
+                          ? [...edge.data.controlPoints]
+                          : edge.data?.controlPoint
+                          ? [edge.data.controlPoint]
+                          : [];
+                        const sliced = currentCps.slice(0, num);
+                        updateEdgeData(edge.id, {
+                          controlPointsCount: num,
+                          controlPoints: sliced.length > 0 ? sliced : undefined,
+                          controlPoint: sliced[0] || undefined
+                        });
+                      }}
+                      className={`py-1 text-center font-mono text-xs font-bold rounded transition-all ${
+                        isActive
+                          ? 'bg-theme-accent text-slate-950 shadow-sm'
+                          : 'text-theme-text-muted hover:text-theme-text hover:bg-theme-surface'
+                      }`}
+                    >
+                      {num} {num === 1 ? 'Pto' : 'Ptos'}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
+            {/* Listado y estado de cada punto activo */}
+            {(() => {
+              const count = Math.max(1, Math.min(4, edge.data?.controlPointsCount || (edge.data?.controlPoints ? edge.data.controlPoints.length : 1)));
+              const currentPoints: Array<{ x: number; y: number }> = Array.isArray(edge.data?.controlPoints)
+                ? edge.data.controlPoints
+                : edge.data?.controlPoint
+                ? [edge.data.controlPoint]
+                : [];
+
+              return (
+                <div className="space-y-1.5 p-2 rounded-lg bg-theme-surface-subtle border border-theme-border text-[11px]">
+                  <div className="flex items-center justify-between font-mono text-[10px] text-theme-text-muted pb-1 border-b border-theme-border/50">
+                    <span>Estado del Trazado:</span>
+                    <span className={`font-semibold ${currentPoints.length > 0 ? 'text-amber-400' : 'text-emerald-400'}`}>
+                      {currentPoints.length > 0 ? 'Personalizado' : 'Automático'}
+                    </span>
+                  </div>
+                  {Array.from({ length: count }).map((_, idx) => {
+                    const pt = currentPoints[idx];
+                    const isCustom = Boolean(pt);
+                    return (
+                      <div key={idx} className="flex items-center justify-between text-[10px] font-mono py-0.5">
+                        <div className="flex items-center space-x-1.5">
+                          <span className={`w-4 h-4 rounded flex items-center justify-center font-bold text-[9px] ${
+                            isCustom ? 'bg-amber-400/20 text-amber-400 border border-amber-400/40' : 'bg-theme-border/50 text-theme-text-muted'
+                          }`}>
+                            P{idx + 1}
+                          </span>
+                          <span className="text-theme-text-muted">
+                            {isCustom ? `X: ${Math.round(pt.x)} | Y: ${Math.round(pt.y)}` : 'Automático (en la curva)'}
+                          </span>
+                        </div>
+                        {isCustom && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const next = [...currentPoints];
+                              next.splice(idx, 1);
+                              updateEdgeData(edge.id, {
+                                controlPoints: next.length > 0 ? next : undefined,
+                                controlPoint: next[0] || undefined,
+                              });
+                            }}
+                            className="text-[9px] text-theme-text-muted hover:text-red-400 px-1"
+                            title="Restablecer este punto"
+                          >
+                            ×
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })()}
+
             <p className="text-[10px] text-theme-text-muted leading-relaxed">
-              Arrastra el <strong>punto circular</strong> en el centro de la línea en el lienzo para controlar dónde realiza el quiebre (alinear caídas verticales) o arquear la curva para esquivar tarjetas. Doble clic para restablecer.
+              Define hasta <strong>4 puntos de ajuste</strong> para moldear libremente la trayectoria de la conexión, rodear obstáculos o alinear quiebres. Arrastra los puntos interactivos numerados en el lienzo. Doble clic para restablecer.
             </p>
           </div>
 

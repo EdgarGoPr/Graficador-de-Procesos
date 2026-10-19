@@ -170,6 +170,8 @@ export interface SequenceFlowData {
   isAnimated?: boolean; // Animación de flujo
   isDefault?: boolean;
   isProbationOrAppeal?: boolean;
-  controlPoint?: { x: number; y: number }; // Punto de control para contracurva / esquiva
+  controlPointsCount?: number; // Cantidad de puntos de ajuste (1 a 4, por defecto 1)
+  controlPoints?: Array<{ x: number; y: number }>; // Coordenadas de hasta 4 puntos de control manuales
+  controlPoint?: { x: number; y: number }; // Punto de control para contracurva (retrocompatibilidad)
   [key: string]: unknown;
 }
