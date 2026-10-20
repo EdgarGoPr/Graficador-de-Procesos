@@ -14,7 +14,8 @@ app-data/
 *.zip
 
 # Portable runtime data
-data/
+/data/
+MiAppProcesos_USB/data/
 
 # User process projects (portable runtime data)
 MiAppProcesos_USB/Proyectos/*

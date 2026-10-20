@@ -533,6 +533,15 @@ const userStories = [
     criteriosAceptacion: '1. Flujo automatizado de CI/CD en GitHub Actions (.github/workflows/deploy.yml) que compila y publica en GitHub Pages tras cada commit en main.\n2. Inmunidad a restricciones de la Red Municipal: no requiere IP pública, ni puertos abiertos en routers institucionales, ni mantener encendida la PC municipal.\n3. Base URL relativa (\'./\') compatible con ejecución en Electron portable y en la raíz o subdirectorios de GitHub Pages.\n4. Soporte nativo para importar archivos JSON en el Dashboard (botón \'Importar JSON\') permitiendo subir flujos creados en cualquier PC o pendrive.\n5. Descarga y exportación ágil de proyectos JSON directamente al computador en la versión Web.\n6. Distintivo contextual dinámico en el Dashboard que indica \'Entorno Web Cloud\' o \'Entorno Portable USB\' según la plataforma de ejecución.\n7. Persistencia segura y desacoplada en localStorage con compatibilidad total con la estructura de proyectos BPMN 2.0 e ISO 9001:2015.',
     fechaImplementacion: '2026-10-20',
     estado: 'Implementado / Producción'
+  },
+  {
+    id: 'PST-060',
+    modulo: 'Gestión de Proyectos & Datos Oficiales',
+    titulo: 'Estandarización de Proyectos Predeterminados Oficiales (Gestión de Actas y WiseCX)',
+    historiaUsuario: 'Como analista de procesos del Tribunal de Faltas y DGSTI, quiero que el sistema incluya por defecto los proyectos oficiales auténticos ("Proceso de Gestión de Actas" y "Procedimiento de Atención, Soporte y Gestión de Incidencias Técnicas - WiseCX") en lugar de datos de prueba genéricos, para que cualquier usuario o colega que acceda a la versión web o portable disponga de inmediato de los flujos de trabajo institucionales reales.',
+    criteriosAceptacion: '1. Sustitución de datos demo en defaultProjects.ts por las estructuras JSON oficiales completas de "Gestión de Actas" y "WiseCX".\n2. Depuración automática en el navegador (initializeStorage) de registros obsoletos de proyectos ficticios antiguos.\n3. Inicialización inmediata con los dos procesos reales al abrir la web en cualquier equipo nuevo o al restablecer la memoria local.\n4. Integridad total de metadatos de control documental (autor: Edgar Gonzalez de Prada, códigos PRC-3517 y PRC-DGSTI-2026-001, normativas y swimlanes operativos).\n5. Conservación de los 3 archivos JSON de proyectos oficiales en la carpeta física MiAppProcesos_USB/Proyectos/.',
+    fechaImplementacion: '2026-10-20',
+    estado: 'Implementado / Producción'
   }
 ];
 
