@@ -238,4 +238,35 @@ export class StorageService {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
   }
+
+  /**
+   * Import project from a JSON file (drag-and-drop or file selector)
+   */
+  public static async importProjectFromJsonFile(file: File): Promise<{ success: boolean; fileName?: string; error?: string }> {
+    try {
+      const text = await file.text();
+      const parsed = JSON.parse(text) as ProcessProjectFile;
+
+      if (!parsed.documentControl || !parsed.documentControl.documentTitle) {
+        return { success: false, error: 'El archivo JSON no contiene los metadatos obligatorios de control documental (documentControl).' };
+      }
+
+      if (!Array.isArray(parsed.nodes) || !Array.isArray(parsed.edges)) {
+        return { success: false, error: 'El archivo JSON no contiene la estructura válida de nodos y conexiones BPMN.' };
+      }
+
+      const fileName = parsed.fileName || sanitizeFilename(
+        parsed.documentControl.documentTitle,
+        parsed.documentControl.version || '1.0',
+        parsed.documentControl.createdAt
+      );
+
+      parsed.fileName = fileName;
+      await this.saveProject(parsed);
+      return { success: true, fileName };
+    } catch (err: unknown) {
+      console.error('Error importing project JSON:', err);
+      return { success: false, error: err instanceof Error ? err.message : 'Error desconocido al procesar el archivo JSON.' };
+    }
+  }
 }

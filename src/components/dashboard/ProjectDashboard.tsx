@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useProjectStore } from '../../store/useProjectStore';
 import { useUiStore } from '../../store/useUiStore';
 import { StorageService } from '../../services/storageService';
@@ -12,7 +12,9 @@ import {
   RefreshCw,
   FolderOpen,
   Layers,
-  Sparkles
+  Sparkles,
+  Upload,
+  Globe
 } from 'lucide-react';
 
 interface ProjectDashboardProps {
@@ -26,12 +28,14 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ onOpenNewMod
     openProject,
     duplicateProject,
     deleteProject,
+    importProjectFromFile,
     refreshProjectList,
     isLoading
   } = useProjectStore();
 
   const { setActiveView, showNotification } = useUiStore();
   const [searchTerm, setSearchTerm] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const processGroups = groupProjectsByProcess(projectList);
 
@@ -79,9 +83,31 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ onOpenNewMod
       await StorageService.openProjectsFolder();
       showNotification('Carpeta de proyectos abierta en el Explorador de Windows', 'info');
     } else {
-      showNotification('En la Web los proyectos están en el navegador. Usa la app portable (.exe) para interactuar directamente con carpetas de Windows.', 'info');
+      showNotification('En la Web los proyectos se guardan de forma segura en tu navegador. Puedes pulsar "Importar JSON" para subir procesos o descargarlos desde cada tarjeta.', 'info');
     }
   };
+
+  const handleFileInputChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const result = await importProjectFromFile(file);
+    if (result.success && result.fileName) {
+      showNotification(`✅ Proyecto "${result.fileName}" importado con éxito`, 'success');
+      // If desired, open the imported project immediately
+      const ok = await openProject(result.fileName);
+      if (ok) {
+        setActiveView('CANVAS');
+      }
+    } else {
+      showNotification(`❌ Error al importar: ${result.error || 'Archivo inválido'}`, 'error');
+    }
+
+    // Reset input so the same file can be selected again
+    e.target.value = '';
+  };
+
+  const isWebEnvironment = !StorageService.isElectron();
 
   return (
     <div className="flex-1 h-full overflow-y-auto bg-theme-bg p-6 md:p-10 select-none transition-colors">
@@ -89,19 +115,30 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ onOpenNewMod
         {/* Banner */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 rounded-2xl bg-theme-surface border border-theme-border shadow-xl">
           <div>
-            <div className="flex items-center space-x-2 text-theme-accent text-xs font-mono font-semibold uppercase tracking-wider mb-1">
-              <HardDrive className="w-4 h-4" />
-              <span>Entorno Portable USB &bull; Ruta relativa: ../Proyectos/</span>
+            <div className="flex items-center space-x-2 text-xs font-mono font-semibold uppercase tracking-wider mb-1">
+              {isWebEnvironment ? (
+                <div className="flex items-center space-x-1.5 text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">
+                  <Globe className="w-3.5 h-3.5" />
+                  <span>Entorno Web Cloud &bull; Acceso Universal Multi-Dispositivo</span>
+                </div>
+              ) : (
+                <div className="flex items-center space-x-1.5 text-theme-accent bg-theme-accent/10 px-2 py-0.5 rounded-md border border-theme-accent/20">
+                  <HardDrive className="w-3.5 h-3.5" />
+                  <span>Entorno Portable USB &bull; Ruta relativa: ../Proyectos/</span>
+                </div>
+              )}
             </div>
             <h1 className="text-2xl md:text-3xl font-extrabold text-theme-text tracking-tight">
               Gestor de Proyectos de Procesos
             </h1>
             <p className="text-sm text-theme-text-muted mt-1 max-w-2xl">
-              Agrupación inteligente de versiones y sincronización multi-equipo (Casa / Trabajo) bajo BPMN 2.0 e ISO 9001:2015.
+              {isWebEnvironment
+                ? 'Modelado, visualización y auditoría de procesos BPMN 2.0 e ISO 9001:2015 desde cualquier computador en la nube.'
+                : 'Agrupación inteligente de versiones y sincronización multi-equipo (Casa / Trabajo) bajo BPMN 2.0 e ISO 9001:2015.'}
             </p>
           </div>
 
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center flex-wrap gap-2.5">
             <button
               onClick={() => refreshProjectList()}
               className="p-2.5 rounded-xl bg-theme-surface-subtle hover:bg-theme-surface text-theme-text border border-theme-border transition-colors"
@@ -109,14 +146,35 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ onOpenNewMod
             >
               <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
             </button>
+
+            {/* Hidden File Input for JSON import */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".json,application/json"
+              className="hidden"
+              onChange={handleFileInputChange}
+            />
+
+            {/* Import JSON button */}
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="flex items-center space-x-2 px-3.5 py-2.5 rounded-xl bg-theme-surface-subtle hover:bg-theme-surface text-theme-text border border-theme-border text-sm font-semibold transition-colors hover:border-emerald-500/50"
+              title="Importar un archivo de proyecto .json desde cualquier computador o pendrive"
+            >
+              <Upload className="w-4 h-4 text-emerald-400" />
+              <span>Importar JSON</span>
+            </button>
+
             <button
               onClick={handleOpenFolder}
               className="flex items-center space-x-2 px-3.5 py-2.5 rounded-xl bg-theme-surface-subtle hover:bg-theme-surface text-theme-text border border-theme-border text-sm font-semibold transition-colors"
-              title="Abrir carpeta física en el Explorador de Windows"
+              title={isWebEnvironment ? "Ver información de almacenamiento web" : "Abrir carpeta física en el Explorador de Windows"}
             >
               <FolderOpen className="w-4 h-4 text-theme-accent" />
-              <span>Abrir Carpeta</span>
+              <span>{isWebEnvironment ? 'Almacenamiento' : 'Abrir Carpeta'}</span>
             </button>
+
             <button
               onClick={onOpenNewModal}
               className="flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#0284C7] to-[#3B82F6] hover:brightness-110 text-white text-sm font-bold shadow-lg shadow-blue-500/20 transition-all hover:scale-[1.02]"

@@ -524,6 +524,15 @@ const userStories = [
     criteriosAceptacion: '1. Reubicación del botón Volver: el botón se posiciona en el extremo izquierdo de la barra de navegación (SubProcessBreadcrumbs), antes del botón del proceso raíz P01N00.\n2. Estado contextual atenuado: cuando el usuario se encuentra en el proceso principal (raíz), el botón permanece deshabilitado (disabled) con tooltip explicativo para indicar que ya se está en el nivel superior.\n3. Activación al anidar: al ingresar a cualquier subproceso (Nivel 1 o superior), el botón Volver se habilita con contraste elevado y borde interactivo.\n4. Enfoque exacto en la tarjeta de subproceso asociada: al hacer clic en Volver, leaveSubProcess identifica el ID de la tarjeta contenedora en el proceso padre y la cámara se centra suavemente (setCenter, 450ms) en sus coordenadas exactas en lugar de reiniciarse en el Start Event del proceso padre.\n5. Selección y realce visual: la tarjeta de subproceso asociada queda automáticamente seleccionada (selectNode), destacando en el lienzo.\n6. Supresión de duplicidad: se elimina el botón Volver del extremo derecho de la barra de navegación jerárquica.\n7. Soporte para navegación por migas de pan: al hacer clic en un proceso ancestro mediante los breadcrumbs, también se preserva el enfoque en la tarjeta de subproceso correspondiente.',
     fechaImplementacion: '2026-10-19',
     estado: 'Implementado / Producción'
+  },
+  {
+    id: 'PST-059',
+    modulo: 'Despliegue Web & Portabilidad Universal',
+    titulo: 'Despliegue Web Universal en GitHub Pages y Portabilidad Multiplataforma (Zero-Config Municipal)',
+    historiaUsuario: 'Como analista y modelador de procesos, quiero poder abrir ProcesStudio desde la web en cualquier computador (en el trabajo, en mi casa o desde dispositivos móviles) mediante una URL pública con HTTPS y flujo de despliegue automatizado en GitHub Pages, para modelar y auditar procesos sin depender de la red municipal, sin requerir permisos de firewall institucional y pudiendo importar/exportar proyectos JSON con total interoperabilidad.',
+    criteriosAceptacion: '1. Flujo automatizado de CI/CD en GitHub Actions (.github/workflows/deploy.yml) que compila y publica en GitHub Pages tras cada commit en main.\n2. Inmunidad a restricciones de la Red Municipal: no requiere IP pública, ni puertos abiertos en routers institucionales, ni mantener encendida la PC municipal.\n3. Base URL relativa (\'./\') compatible con ejecución en Electron portable y en la raíz o subdirectorios de GitHub Pages.\n4. Soporte nativo para importar archivos JSON en el Dashboard (botón \'Importar JSON\') permitiendo subir flujos creados en cualquier PC o pendrive.\n5. Descarga y exportación ágil de proyectos JSON directamente al computador en la versión Web.\n6. Distintivo contextual dinámico en el Dashboard que indica \'Entorno Web Cloud\' o \'Entorno Portable USB\' según la plataforma de ejecución.\n7. Persistencia segura y desacoplada en localStorage con compatibilidad total con la estructura de proyectos BPMN 2.0 e ISO 9001:2015.',
+    fechaImplementacion: '2026-10-20',
+    estado: 'Implementado / Producción'
   }
 ];
 

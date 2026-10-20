@@ -135,20 +135,33 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
     if (!currentProject) return;
     const ok = await saveCurrentProject();
     if (ok) {
-      showNotification(`Proyecto guardado en ../Proyectos/${currentProject.fileName}`, 'success');
+      if (StorageService.isElectron()) {
+        showNotification(`Proyecto guardado en ../Proyectos/${currentProject.fileName}`, 'success');
+      } else {
+        showNotification(`Proyecto guardado en el navegador (${currentProject.fileName})`, 'success');
+      }
     }
   };
 
   const handleOpenFolder = async () => {
-    try {
-      const ok = await StorageService.openProjectsFolder();
-      if (ok) {
-        showNotification('Carpeta de proyectos abierta en el explorador', 'info');
-      } else {
+    if (StorageService.isElectron()) {
+      try {
+        const ok = await StorageService.openProjectsFolder();
+        if (ok) {
+          showNotification('Carpeta de proyectos abierta en el explorador', 'info');
+        } else {
+          showNotification('Directorio de proyectos: MiAppProcesos_USB/Proyectos/', 'info');
+        }
+      } catch {
         showNotification('Directorio de proyectos: MiAppProcesos_USB/Proyectos/', 'info');
       }
-    } catch {
-      showNotification('Directorio de proyectos: MiAppProcesos_USB/Proyectos/', 'info');
+    } else {
+      if (currentProject) {
+        StorageService.exportProjectToJsonFile(currentProject);
+        showNotification(`Archivo ${currentProject.fileName} descargado a tu computador`, 'info');
+      } else {
+        showNotification('En la Web los proyectos están guardados de forma segura en tu navegador.', 'info');
+      }
     }
   };
 

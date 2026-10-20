@@ -95,10 +95,26 @@ MiAppProcesos_USB/
 4. Abrir en el navegador: `http://localhost:5173/`
 
 ### Pasos para Generar el Paquete Portable para Pendrive USB:
-1. Compilar el frontend estático:
+1. Compilar el paquete completo y sincronizar:
    ```bash
    npm run build
    ```
-2. Copiar la carpeta `dist/` a `MiAppProcesos_USB/App/dist/`.
-3. Copiar la carpeta `MiAppProcesos_USB` directamente a la raíz del pendrive USB.
-4. En cualquier PC con Windows, hacer doble clic en `ProcesosStudio.bat` dentro de `MiAppProcesos_USB/App/`.
+2. La carpeta `MiAppProcesos_USB/` ya queda 100% sincronizada y lista.
+3. Copiar la carpeta `MiAppProcesos_USB` directamente al pendrive USB o disco externo.
+4. En cualquier PC con Windows, hacer doble clic en `ProcesStudio.exe`.
+
+---
+
+## 5. Acceso Web Universal desde Cualquier Computador (GitHub Pages)
+
+ProcesStudio cuenta con despliegue web automatizado en la nube mediante **GitHub Pages**, lo que permite utilizar el sistema desde cualquier computadora (en la oficina, en casa, notebook personal o tablet) sin requerir instalación y sin depender de la red local ni de que la PC municipal esté encendida.
+
+- **URL de Acceso Web:** `https://edgargopr.github.io/Graficador-de-Procesos/`
+- **Sincronización Multi-Equipo:**
+  - **Importar:** En el Dashboard principal, haz clic en **"Importar JSON"** para cargar cualquier archivo `.json` proveniente de la PC municipal o un pendrive.
+  - **Exportar:** En la tarjeta de cada proyecto o desde el lienzo, haz clic en **"Descargar JSON"** para guardar una copia y llevarla a la versión USB portable.
+- **Configuración de GitHub Pages (Sólo la primera vez en GitHub):**
+  1. En el repositorio de GitHub, ve a **Settings** > **Pages**.
+  2. En **Build and deployment** > **Source**, selecciona **GitHub Actions**.
+  3. Cada vez que se haga `git push` a `main`, el sistema se actualizará y publicará de forma automática en pocos segundos.
+

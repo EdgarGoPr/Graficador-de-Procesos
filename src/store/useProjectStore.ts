@@ -40,6 +40,7 @@ interface ProjectStoreState {
   saveProjectAsNewRevision: (options?: SaveRevisionOptions) => Promise<string | null>;
   duplicateProject: (fileName: string) => Promise<string | null>;
   deleteProject: (fileName: string) => Promise<boolean>;
+  importProjectFromFile: (file: File) => Promise<{ success: boolean; fileName?: string; error?: string }>;
   setProjectData: (project: ProcessProjectFile) => void;
   updateDocumentControl: (updates: Partial<ProcessProjectFile['documentControl']>) => void;
   markUnsavedChanges: () => void;
@@ -291,6 +292,16 @@ export const useProjectStore = create<ProjectStoreState>((set, get) => ({
       await get().refreshProjectList();
     }
     return success;
+  },
+
+  importProjectFromFile: async (file: File) => {
+    set({ isLoading: true });
+    const result = await StorageService.importProjectFromJsonFile(file);
+    if (result.success && result.fileName) {
+      await get().refreshProjectList();
+    }
+    set({ isLoading: false });
+    return result;
   },
 
   /**
