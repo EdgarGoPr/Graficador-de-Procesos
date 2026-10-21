@@ -542,6 +542,15 @@ const userStories = [
     criteriosAceptacion: '1. Sustitución de datos demo en defaultProjects.ts por las estructuras JSON oficiales completas de "Gestión de Actas" y "WiseCX".\n2. Depuración automática en el navegador (initializeStorage) de registros obsoletos de proyectos ficticios antiguos.\n3. Inicialización inmediata con los dos procesos reales al abrir la web en cualquier equipo nuevo o al restablecer la memoria local.\n4. Integridad total de metadatos de control documental (autor: Edgar Gonzalez de Prada, códigos PRC-3517 y PRC-DGSTI-2026-001, normativas y swimlanes operativos).\n5. Conservación de los 3 archivos JSON de proyectos oficiales en la carpeta física MiAppProcesos_USB/Proyectos/.',
     fechaImplementacion: '2026-10-20',
     estado: 'Implementado / Producción'
+  },
+  {
+    id: 'PST-061',
+    modulo: 'Persistencia Cloud & PostgreSQL Serverless',
+    titulo: 'Persistencia Cloud en PostgreSQL Administrado (Neon Serverless) con Sincronización JSON y Fallback Híbrido',
+    historiaUsuario: 'Como analista de procesos y líder de equipo, quiero que ProcesStudio soporte conexión directa a una base de datos PostgreSQL Serverless (Neon.tech) con compresión JSONB y columnas de métricas indexadas, para consultar el catálogo de procesos en tiempo real (< 2ms) desde cualquier equipo, sincronizar proyectos locales en 1 clic y mantener un respaldo offline híbrido y transparente.',
+    criteriosAceptacion: '1. Integración del cliente oficial @neondatabase/serverless comunicando consultas parametrizadas sobre HTTPS sin requerir backend intermedio.\n2. Arquitectura de datos híbrida: metadatos atómicos e indexados para el Dashboard (título, código, Lead Time, riesgos y QC) y columna graph_data JSONB comprimida con TOAST para el grafo BPMN completo.\n3. Script DDL optimizado (scripts/neon_schema.sql) con extensiones uuid-ossp, pg_trgm, índices GIN y búsqueda léxica tsvector en español.\n4. Persistencia híbrida y dual-write: los proyectos se guardan localmente (USB/localStorage) y se replican automáticamente en Neon si está configurado.\n5. Modal de Base de Datos en el Dashboard con prueba de conectividad y latencia de red en tiempo real.\n6. Sincronizador masivo de 1 clic para migrar proyectos de la unidad USB y del navegador hacia la nube.\n7. Fallback resiliente: ante ausencia de internet o credenciales, la app continúa operativa en modo local sin pérdida de funcionalidad.',
+    fechaImplementacion: '2026-10-21',
+    estado: 'Implementado / Producción'
   }
 ];
 

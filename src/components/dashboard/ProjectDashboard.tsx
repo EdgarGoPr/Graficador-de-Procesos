@@ -14,8 +14,10 @@ import {
   Layers,
   Sparkles,
   Upload,
-  Globe
+  Globe,
+  Database
 } from 'lucide-react';
+import { DatabaseConfigModal } from './DatabaseConfigModal';
 
 interface ProjectDashboardProps {
   onOpenNewModal: () => void;
@@ -35,6 +37,7 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ onOpenNewMod
 
   const { setActiveView, showNotification } = useUiStore();
   const [searchTerm, setSearchTerm] = useState('');
+  const [isDbModalOpen, setIsDbModalOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const processGroups = groupProjectsByProcess(projectList);
@@ -115,12 +118,25 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ onOpenNewMod
         {/* Banner */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 rounded-2xl bg-theme-surface border border-theme-border shadow-xl">
           <div>
-            <div className="flex items-center space-x-2 text-xs font-mono font-semibold uppercase tracking-wider mb-1">
-              {isWebEnvironment ? (
-                <div className="flex items-center space-x-1.5 text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">
+            <div className="flex items-center flex-wrap gap-2 text-xs font-mono font-semibold uppercase tracking-wider mb-1">
+              {StorageService.isNeonConfigured() ? (
+                <button
+                  onClick={() => setIsDbModalOpen(true)}
+                  className="flex items-center space-x-1.5 text-sky-400 bg-sky-500/10 hover:bg-sky-500/20 px-2.5 py-0.5 rounded-md border border-sky-500/30 transition-colors cursor-pointer"
+                  title="Base de datos Neon PostgreSQL conectada. Clic para ver detalles."
+                >
+                  <Database className="w-3.5 h-3.5" />
+                  <span>Neon PostgreSQL Cloud &bull; Activo</span>
+                </button>
+              ) : isWebEnvironment ? (
+                <button
+                  onClick={() => setIsDbModalOpen(true)}
+                  className="flex items-center space-x-1.5 text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 px-2 py-0.5 rounded-md border border-emerald-500/20 transition-colors cursor-pointer"
+                  title="Entorno Web con persistencia local. Clic para conectar a Neon PostgreSQL."
+                >
                   <Globe className="w-3.5 h-3.5" />
-                  <span>Entorno Web Cloud &bull; Acceso Universal Multi-Dispositivo</span>
-                </div>
+                  <span>Entorno Web &bull; Conectar Base de Datos</span>
+                </button>
               ) : (
                 <div className="flex items-center space-x-1.5 text-theme-accent bg-theme-accent/10 px-2 py-0.5 rounded-md border border-theme-accent/20">
                   <HardDrive className="w-3.5 h-3.5" />
@@ -155,6 +171,16 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ onOpenNewMod
               className="hidden"
               onChange={handleFileInputChange}
             />
+
+            {/* Database Settings button */}
+            <button
+              onClick={() => setIsDbModalOpen(true)}
+              className="flex items-center space-x-2 px-3.5 py-2.5 rounded-xl bg-theme-surface-subtle hover:bg-theme-surface text-theme-text border border-theme-border text-sm font-semibold transition-colors hover:border-sky-500/50"
+              title="Configurar y sincronizar base de datos PostgreSQL en Neon"
+            >
+              <Database className="w-4 h-4 text-sky-400" />
+              <span>Base de Datos</span>
+            </button>
 
             {/* Import JSON button */}
             <button
@@ -236,6 +262,12 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ onOpenNewMod
             ))}
           </div>
         )}
+
+        {/* Database Connection & Sync Modal */}
+        <DatabaseConfigModal
+          isOpen={isDbModalOpen}
+          onClose={() => setIsDbModalOpen(false)}
+        />
       </div>
     </div>
   );

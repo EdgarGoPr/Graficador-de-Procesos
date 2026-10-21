@@ -13,6 +13,7 @@
     "start:portable": "electron . --portable"
   },
   "dependencies": {
+    "@neondatabase/serverless": "^1.2.0",
     "@xyflow/react": "^12.4.4",
     "clsx": "^2.1.1",
     "jspdf": "^4.2.1",

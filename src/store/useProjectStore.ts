@@ -76,33 +76,7 @@ export const useProjectStore = create<ProjectStoreState>((set, get) => ({
   },
 
   refreshProjectList: async () => {
-    const fileNames = await StorageService.listProjects();
-    const summaries: ProjectSummary[] = [];
-
-    for (const fileName of fileNames) {
-      const proj = await StorageService.loadProject(fileName);
-      if (proj) {
-        const leadTime = calculateTotalLeadTime(proj.nodes);
-        const riskCount = proj.nodes.reduce((acc, n) => acc + (n.data?.operationalRisks?.length || 0), 0);
-        const checkpointCount = proj.nodes.filter(n => n.data?.qualityCheckpoint || n.data?.nodeType === 'QualityCheckpointEvent').length;
-
-        summaries.push({
-          fileName,
-          documentTitle: proj.documentControl.documentTitle,
-          documentCode: proj.documentControl.documentCode,
-          version: proj.documentControl.version,
-          authorName: proj.documentControl.authorName,
-          organizationUnit: proj.documentControl.organizationUnit,
-          updatedAt: proj.documentControl.updatedAt,
-          nodeCount: proj.nodes.length,
-          totalLeadTimeHours: leadTime.totalHours,
-          totalLeadTimeBusinessDays: leadTime.businessDays,
-          riskCount,
-          checkpointCount
-        });
-      }
-    }
-
+    const summaries = await StorageService.listProjectSummaries();
     set({ projectList: summaries });
   },
 

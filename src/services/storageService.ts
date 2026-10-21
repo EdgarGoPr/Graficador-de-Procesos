@@ -1,5 +1,8 @@
-import { ProcessProjectFile } from '../types/project';
+import { ProcessProjectFile, ProjectSummary } from '../types/project';
 import { sampleProjects } from './defaultProjects';
+import { NeonClient } from './neonClient';
+import { PostgresStorageService } from './postgresStorageService';
+import { calculateTotalLeadTime } from './leadTimeCalculator';
 
 /**
  * Portable POSIX-safe File Name Sanitizer
@@ -43,12 +46,18 @@ declare global {
 const LOCAL_STORAGE_KEY_PREFIX = 'procesos_studio_proj_';
 const LOCAL_STORAGE_INDEX_KEY = 'procesos_studio_project_index';
 
+export type StorageMode = 'NEON' | 'ELECTRON' | 'LOCALSTORAGE';
+
 /**
- * Universal Storage Service (Electron Portable IPC + Fallback Browser LocalStore)
+ * Universal Storage Service (Neon Cloud PostgreSQL + Electron Portable IPC + Browser LocalStorage)
  */
 export class StorageService {
   public static isElectron(): boolean {
     return typeof window !== 'undefined' && !!window.procesosStorage;
+  }
+
+  public static isNeonConfigured(): boolean {
+    return NeonClient.isConfigured();
   }
 
   /**
@@ -75,6 +84,9 @@ export class StorageService {
    * Gets absolute or relative path to the projects directory
    */
   public static async getProjectsPath(): Promise<string> {
+    if (this.isNeonConfigured()) {
+      return 'Neon Serverless PostgreSQL (Cloud)';
+    }
     if (this.isElectron()) {
       return await window.procesosStorage!.getProjectsPath();
     }
@@ -82,10 +94,9 @@ export class StorageService {
   }
 
   /**
-   * Initializes sample projects if first launch
+   * Initializes local sample projects if first launch
    */
   public static async initializeStorage(): Promise<void> {
-
     if (this.isElectron()) {
       const existing = await window.procesosStorage!.listProjects();
       if (existing.length === 0) {
@@ -133,9 +144,76 @@ export class StorageService {
   }
 
   /**
-   * List all projects in ../Proyectos/
+   * Lists project summaries:
+   * - If Neon is configured, queries indexed columns directly (< 2ms)
+   * - Otherwise, iterates local files and computes metrics
+   */
+  public static async listProjectSummaries(): Promise<ProjectSummary[]> {
+    if (this.isNeonConfigured()) {
+      try {
+        const neonSummaries = await PostgresStorageService.listProjectSummaries();
+        if (neonSummaries.length > 0) {
+          return neonSummaries;
+        }
+      } catch (err) {
+        console.warn('Neon query failed, falling back to local storage:', err);
+      }
+    }
+
+    // Local fallback: load local projects and compute summaries
+    const fileNames = await this.listLocalProjects();
+    const summaries: ProjectSummary[] = [];
+
+    for (const fileName of fileNames) {
+      const proj = await this.loadLocalProject(fileName);
+      if (proj) {
+        const leadTime = calculateTotalLeadTime(proj.nodes || []);
+        const riskCount = (proj.nodes || []).reduce((acc, n) => acc + (n.data?.operationalRisks?.length || 0), 0);
+        const checkpointCount = (proj.nodes || []).filter(
+          n => n.data?.qualityCheckpoint || n.data?.nodeType === 'QualityCheckpointEvent'
+        ).length;
+
+        summaries.push({
+          fileName,
+          documentTitle: proj.documentControl.documentTitle,
+          documentCode: proj.documentControl.documentCode,
+          version: proj.documentControl.version,
+          authorName: proj.documentControl.authorName,
+          organizationUnit: proj.documentControl.organizationUnit,
+          updatedAt: proj.documentControl.updatedAt,
+          nodeCount: proj.nodes?.length || 0,
+          totalLeadTimeHours: leadTime.totalHours,
+          totalLeadTimeBusinessDays: leadTime.businessDays,
+          riskCount,
+          checkpointCount
+        });
+      }
+    }
+
+    return summaries;
+  }
+
+  /**
+   * List all projects file names
    */
   public static async listProjects(): Promise<string[]> {
+    if (this.isNeonConfigured()) {
+      try {
+        const neonFiles = await PostgresStorageService.listProjects();
+        if (neonFiles.length > 0) {
+          return neonFiles;
+        }
+      } catch (err) {
+        console.warn('Neon listProjects failed, using local:', err);
+      }
+    }
+    return await this.listLocalProjects();
+  }
+
+  /**
+   * List projects strictly from local storage (Electron or localStorage)
+   */
+  public static async listLocalProjects(): Promise<string[]> {
     if (this.isElectron()) {
       return await window.procesosStorage!.listProjects();
     } else {
@@ -145,9 +223,26 @@ export class StorageService {
   }
 
   /**
-   * Load a project by filename
+   * Load project by fileName (Neon -> Fallback Local)
    */
   public static async loadProject(fileName: string): Promise<ProcessProjectFile | null> {
+    if (this.isNeonConfigured()) {
+      try {
+        const cloudProj = await PostgresStorageService.loadProject(fileName);
+        if (cloudProj) {
+          return cloudProj;
+        }
+      } catch (err) {
+        console.warn(`Could not load ${fileName} from Neon, trying local:`, err);
+      }
+    }
+    return await this.loadLocalProject(fileName);
+  }
+
+  /**
+   * Load project strictly from local storage
+   */
+  public static async loadLocalProject(fileName: string): Promise<ProcessProjectFile | null> {
     try {
       if (this.isElectron()) {
         return await window.procesosStorage!.readProject(fileName);
@@ -156,13 +251,14 @@ export class StorageService {
         return raw ? JSON.parse(raw) : null;
       }
     } catch (err) {
-      console.error(`Error loading project ${fileName}:`, err);
+      console.error(`Error loading local project ${fileName}:`, err);
       return null;
     }
   }
 
   /**
    * Save / Overwrite a project
+   * Persists both to local storage (for offline resilience) and to Neon (if configured)
    */
   public static async saveProject(project: ProcessProjectFile): Promise<string> {
     const updatedProject: ProcessProjectFile = {
@@ -181,14 +277,24 @@ export class StorageService {
 
     updatedProject.fileName = fileName;
 
+    // 1. Always save to local storage/Electron for offline safety
     if (this.isElectron()) {
       await window.procesosStorage!.writeProject(fileName, updatedProject);
     } else {
       localStorage.setItem(LOCAL_STORAGE_KEY_PREFIX + fileName, JSON.stringify(updatedProject));
-      const fileNames = await this.listProjects();
-      if (!fileNames.includes(fileName)) {
-        fileNames.push(fileName);
-        localStorage.setItem(LOCAL_STORAGE_INDEX_KEY, JSON.stringify(fileNames));
+      const localFiles = await this.listLocalProjects();
+      if (!localFiles.includes(fileName)) {
+        localFiles.push(fileName);
+        localStorage.setItem(LOCAL_STORAGE_INDEX_KEY, JSON.stringify(localFiles));
+      }
+    }
+
+    // 2. If Neon is configured, persist to PostgreSQL
+    if (this.isNeonConfigured()) {
+      try {
+        await PostgresStorageService.saveProject(updatedProject);
+      } catch (err) {
+        console.error('Failed to sync project to Neon:', err);
       }
     }
 
@@ -196,17 +302,30 @@ export class StorageService {
   }
 
   /**
-   * Delete a project file
+   * Delete a project file (Neon + Local)
    */
   public static async deleteProject(fileName: string): Promise<boolean> {
+    let success = true;
+
+    if (this.isNeonConfigured()) {
+      try {
+        await PostgresStorageService.deleteProject(fileName);
+      } catch (err) {
+        console.error(`Error deleting ${fileName} from Neon:`, err);
+        success = false;
+      }
+    }
+
     if (this.isElectron()) {
-      return await window.procesosStorage!.deleteProject(fileName);
+      const ok = await window.procesosStorage!.deleteProject(fileName);
+      success = success && ok;
     } else {
       localStorage.removeItem(LOCAL_STORAGE_KEY_PREFIX + fileName);
-      const fileNames = (await this.listProjects()).filter(f => f !== fileName);
+      const fileNames = (await this.listLocalProjects()).filter(f => f !== fileName);
       localStorage.setItem(LOCAL_STORAGE_INDEX_KEY, JSON.stringify(fileNames));
-      return true;
     }
+
+    return success;
   }
 
   /**
@@ -233,6 +352,40 @@ export class StorageService {
 
     await this.saveProject(duplicated);
     return newFileName;
+  }
+
+  /**
+   * Sincroniza todos los proyectos locales y de muestra a Neon en un solo paso
+   */
+  public static async syncAllLocalProjectsToNeon(): Promise<{ succeeded: number; failed: number }> {
+    if (!this.isNeonConfigured()) {
+      throw new Error('No hay base de datos Neon configurada.');
+    }
+
+    const projectsToSync: ProcessProjectFile[] = [];
+    const localFileNames = await this.listLocalProjects();
+
+    for (const fn of localFileNames) {
+      const p = await this.loadLocalProject(fn);
+      if (p) projectsToSync.push(p);
+    }
+
+    // Include sample projects if not already included
+    for (const sample of sampleProjects) {
+      const exists = projectsToSync.some(
+        p => p.documentControl.documentCode === sample.documentControl.documentCode
+      );
+      if (!exists) {
+        const fn = sanitizeFilename(
+          sample.documentControl.documentTitle,
+          sample.documentControl.version,
+          sample.documentControl.createdAt
+        );
+        projectsToSync.push({ ...sample, fileName: fn });
+      }
+    }
+
+    return await PostgresStorageService.migrateProjects(projectsToSync);
   }
 
   /**
