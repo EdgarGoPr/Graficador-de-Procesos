@@ -560,6 +560,15 @@ const userStories = [
     criteriosAceptacion: '1. Botón flotante \'+\' sincronizado en tiempo real a la derecha del nodo seleccionado mediante NodeToolbar de @xyflow/react.\n2. Exclusión automática de carriles funcionales (PoolLane) y notas adhesivas (StickyNote) para evitar interferencias.\n3. Menú radial circular de 7 opciones canónicas BPMN: Tarea de Usuario, Tarea de Servicio TI, Subproceso, Evento de Fin, Decisión Exclusiva (XOR), Bifurcación Paralela (AND) y Punto de Control de Calidad ISO.\n4. Soporte para interacción dual: clic directo para selección o arrastre con puntero/mouse con detección magnética y previsualización de etiqueta.\n5. Creación instantánea del nuevo nodo y conexión automática mediante arista SequenceFlow desde el nodo origen.\n6. Selección inmediata del nuevo nodo permitiendo modelado continuo en cadena (Fast-Flow Modeling).\n7. Registro de snapshot atómico compatible con Deshacer y Rehacer (Ctrl+Z / Ctrl+Y).',
     fechaImplementacion: '2026-10-21',
     estado: 'Implementado / Producción'
+  },
+  {
+    id: 'PST-063',
+    modulo: 'Modelado Rápido & Experiencia de Canvas (BPMN 2.0)',
+    titulo: 'Menú Radial Donut Sectorial (Pie Wheel), Supresión de Paneo de Lienzo y Exclusión de Eventos Fin',
+    historiaUsuario: 'Como modelador de procesos BPMN, quiero que el menú rápido de agregar nodo se presente como una rueda donut de sectores continuos idéntica a la referencia de diseño, que los eventos de fin no muestren el botón "+" para respetar la norma de flujo terminado, y que al arrastrar sobre las opciones la pantalla permanezca fija sin desplazarse, para diagramar de forma rápida y sin fricción.',
+    criteriosAceptacion: '1. Supresión estricta del botón "+" en nodos EndEvent (Fin de proceso).\n2. Rediseño visual en formato donut / pie wheel con sectores SVG anulares contiguos, bordes sutiles, iconos centrados y etiquetas breves.\n3. Bloqueo total de paneo del lienzo en ReactFlow mediante clases nopan nodrag y API de setPointerCapture.\n4. Detección polar matemática de ángulo y distancia para resaltar instantáneamente el sector apuntado mientras se mantiene presionado el cursor.\n5. Previsualización dinámica en el núcleo central (hub) del elemento activo.\n6. Creación y conexión inmediata del nodo al soltar el ratón sobre cualquier gajo.\n7. Modo clic simple preservado para seleccionar con tranquilidad si no se realiza arrastre.',
+    fechaImplementacion: '2026-10-21',
+    estado: 'Implementado / Producción'
   }
 ];
 

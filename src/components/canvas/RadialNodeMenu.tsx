@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { BpmnNodeType, BPMN_NODE_TYPES } from '../../types/process';
 import {
   User,
@@ -11,294 +11,313 @@ import {
   X
 } from 'lucide-react';
 
-export interface RadialNodeOption {
+export interface RadialSectorItem {
   type: BpmnNodeType;
-  label: string;
-  shortLabel: string;
-  icon: React.FC<{ className?: string }>;
+  title: string;
+  fullName: string;
+  icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>;
   color: string;
-  bgColor: string;
-  borderColor: string;
+  badgeBg: string;
   description: string;
-  angleDeg: number; // Angle in degrees relative to center (0 = right, 90 = bottom, -90 = top)
 }
 
 interface RadialNodeMenuProps {
   isOpen: boolean;
   onClose: () => void;
   onSelectOption: (nodeType: BpmnNodeType) => void;
-  isDraggingMode?: boolean;
+  hoveredType: BpmnNodeType | null;
+  onHoverTypeChange: (type: BpmnNodeType | null) => void;
+}
+
+const SECTOR_ITEMS: RadialSectorItem[] = [
+  {
+    type: BPMN_NODE_TYPES.USER_TASK,
+    title: 'Tarea',
+    fullName: 'Tarea de Usuario',
+    icon: User,
+    color: '#38BDF8',
+    badgeBg: 'rgba(56, 189, 248, 0.25)',
+    description: 'Actividad ejecutada por un rol o usuario'
+  },
+  {
+    type: BPMN_NODE_TYPES.SERVICE_TASK,
+    title: 'Servicio',
+    fullName: 'Tarea de Servicio / TI',
+    icon: Cpu,
+    color: '#06B6D4',
+    badgeBg: 'rgba(6, 182, 212, 0.25)',
+    description: 'Automatización o invocación de sistema'
+  },
+  {
+    type: BPMN_NODE_TYPES.EXCLUSIVE_GATEWAY,
+    title: 'Decisión',
+    fullName: 'Decisión Exclusiva (XOR)',
+    icon: GitBranch,
+    color: '#F59E0B',
+    badgeBg: 'rgba(245, 158, 11, 0.25)',
+    description: 'Bifurcación condicional por regla'
+  },
+  {
+    type: BPMN_NODE_TYPES.PARALLEL_GATEWAY,
+    title: 'Paralelo',
+    fullName: 'Bifurcación Paralela (AND)',
+    icon: PlusSquare,
+    color: '#D97706',
+    badgeBg: 'rgba(217, 119, 6, 0.25)',
+    description: 'Ramas concurrentes simultáneas'
+  },
+  {
+    type: BPMN_NODE_TYPES.QUALITY_CHECKPOINT_EVENT,
+    title: 'Control',
+    fullName: 'Punto de Calidad ISO',
+    icon: ShieldCheck,
+    color: '#10B981',
+    badgeBg: 'rgba(16, 185, 129, 0.25)',
+    description: 'Control de calidad o verificación legal'
+  },
+  {
+    type: BPMN_NODE_TYPES.SUB_PROCESS,
+    title: 'Subproc',
+    fullName: 'Subproceso Procedimental',
+    icon: Box,
+    color: '#A855F7',
+    badgeBg: 'rgba(168, 85, 247, 0.25)',
+    description: 'Bloque con flujo operativo interno'
+  },
+  {
+    type: BPMN_NODE_TYPES.END_EVENT,
+    title: 'Fin',
+    fullName: 'Evento de Fin',
+    icon: CircleDot,
+    color: '#EF4444',
+    badgeBg: 'rgba(239, 68, 68, 0.25)',
+    description: 'Culminación y cierre del proceso'
+  }
+];
+
+// Helper to calculate exact annular SVG sector path
+function createSectorPath(
+  cx: number,
+  cy: number,
+  rIn: number,
+  rOut: number,
+  startAngleDeg: number,
+  endAngleDeg: number,
+  offsetOut = 0
+): string {
+  const midDeg = (startAngleDeg + endAngleDeg) / 2;
+  const midRad = (midDeg * Math.PI) / 180;
+  const ox = offsetOut * Math.cos(midRad);
+  const oy = offsetOut * Math.sin(midRad);
+
+  const startRad = (startAngleDeg * Math.PI) / 180;
+  const endRad = (endAngleDeg * Math.PI) / 180;
+
+  const x1 = cx + ox + rIn * Math.cos(startRad);
+  const y1 = cy + oy + rIn * Math.sin(startRad);
+  const x2 = cx + ox + rOut * Math.cos(startRad);
+  const y2 = cy + oy + rOut * Math.sin(startRad);
+  const x3 = cx + ox + rOut * Math.cos(endRad);
+  const y3 = cy + oy + rOut * Math.sin(endRad);
+  const x4 = cx + ox + rIn * Math.cos(endRad);
+  const y4 = cy + oy + rIn * Math.sin(endRad);
+
+  const largeArc = endAngleDeg - startAngleDeg > 180 ? 1 : 0;
+
+  return `M ${x1.toFixed(2)} ${y1.toFixed(2)} L ${x2.toFixed(2)} ${y2.toFixed(2)} A ${rOut} ${rOut} 0 ${largeArc} 1 ${x3.toFixed(2)} ${y3.toFixed(2)} L ${x4.toFixed(2)} ${y4.toFixed(2)} A ${rIn} ${rIn} 0 ${largeArc} 0 ${x1.toFixed(2)} ${y1.toFixed(2)} Z`;
 }
 
 export const RadialNodeMenu: React.FC<RadialNodeMenuProps> = ({
   isOpen,
   onClose,
   onSelectOption,
-  isDraggingMode = false
+  hoveredType,
+  onHoverTypeChange
 }) => {
-  const [hoveredType, setHoveredType] = useState<BpmnNodeType | null>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  // 7 BPMN options ergonomically distributed in a forward circular arc facing right
-  const options: RadialNodeOption[] = useMemo(() => [
-    {
-      type: BPMN_NODE_TYPES.USER_TASK,
-      label: 'Tarea de Usuario',
-      shortLabel: 'Usuario',
-      icon: User,
-      color: '#38BDF8',
-      bgColor: 'rgba(56, 189, 248, 0.15)',
-      borderColor: 'rgba(56, 189, 248, 0.45)',
-      description: 'Actividad ejecutada por una persona en un sistema',
-      angleDeg: 0 // Centro a la derecha (opción más frecuente)
-    },
-    {
-      type: BPMN_NODE_TYPES.SERVICE_TASK,
-      label: 'Tarea de Servicio / TI',
-      shortLabel: 'Servicio',
-      icon: Cpu,
-      color: '#06B6D4',
-      bgColor: 'rgba(6, 182, 212, 0.15)',
-      borderColor: 'rgba(6, 182, 212, 0.45)',
-      description: 'Servicio automatizado o integración de sistema',
-      angleDeg: -35
-    },
-    {
-      type: BPMN_NODE_TYPES.SUB_PROCESS,
-      label: 'Subproceso Procedimental',
-      shortLabel: 'Subproceso',
-      icon: Box,
-      color: '#A855F7',
-      bgColor: 'rgba(168, 85, 247, 0.15)',
-      borderColor: 'rgba(168, 85, 247, 0.45)',
-      description: 'Bloque jerárquico que encapsula un flujo interno',
-      angleDeg: -70
-    },
-    {
-      type: BPMN_NODE_TYPES.END_EVENT,
-      label: 'Evento de Fin',
-      shortLabel: 'Fin',
-      icon: CircleDot,
-      color: '#EF4444',
-      bgColor: 'rgba(239, 68, 68, 0.15)',
-      borderColor: 'rgba(239, 68, 68, 0.45)',
-      description: 'Culminación y resultado final del proceso',
-      angleDeg: -105
-    },
-    {
-      type: BPMN_NODE_TYPES.EXCLUSIVE_GATEWAY,
-      label: 'Decisión Exclusiva (XOR)',
-      shortLabel: 'XOR',
-      icon: GitBranch,
-      color: '#F59E0B',
-      bgColor: 'rgba(245, 158, 11, 0.15)',
-      borderColor: 'rgba(245, 158, 11, 0.45)',
-      description: 'Bifurcación condicional basada en una regla',
-      angleDeg: 35
-    },
-    {
-      type: BPMN_NODE_TYPES.PARALLEL_GATEWAY,
-      label: 'Bifurcación Paralela (AND)',
-      shortLabel: 'AND',
-      icon: PlusSquare,
-      color: '#D97706',
-      bgColor: 'rgba(217, 119, 6, 0.15)',
-      borderColor: 'rgba(217, 119, 6, 0.45)',
-      description: 'División simultánea en ramas concurrentes',
-      angleDeg: 70
-    },
-    {
-      type: BPMN_NODE_TYPES.QUALITY_CHECKPOINT_EVENT,
-      label: 'Punto de Calidad ISO',
-      shortLabel: 'Control',
-      icon: ShieldCheck,
-      color: '#10B981',
-      bgColor: 'rgba(16, 185, 129, 0.15)',
-      borderColor: 'rgba(16, 185, 129, 0.45)',
-      description: 'Punto de control normativo y verificación ISO 9001',
-      angleDeg: 105
-    }
-  ], []);
-
-  const RADIUS = 88; // Radio en píxeles de la rueda circular
-
-  // Global mouse/pointer move and up handlers to support drag-to-select
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const handlePointerMove = (e: PointerEvent) => {
-      if (!containerRef.current) return;
-      const rect = containerRef.current.getBoundingClientRect();
-      const centerX = rect.left + rect.width / 2;
-      const centerY = rect.top + rect.height / 2;
-
-      const dx = e.clientX - centerX;
-      const dy = e.clientY - centerY;
-      const mouseDist = Math.hypot(dx, dy);
-
-      // If user is dragging near the radius ring
-      if (mouseDist >= 40 && mouseDist <= RADIUS + 50) {
-        let closestOpt: RadialNodeOption | null = null;
-        let minDiff = Infinity;
-
-        for (const opt of options) {
-          const rad = (opt.angleDeg * Math.PI) / 180;
-          const optX = Math.cos(rad) * RADIUS;
-          const optY = Math.sin(rad) * RADIUS;
-          const distToButton = Math.hypot(dx - optX, dy - optY);
-
-          if (distToButton < minDiff) {
-            minDiff = distToButton;
-            closestOpt = opt;
-          }
-        }
-
-        if (closestOpt && minDiff < 40) {
-          setHoveredType((closestOpt as RadialNodeOption).type);
-        } else {
-          setHoveredType(null);
-        }
-      } else {
-        setHoveredType(null);
-      }
-    };
-
-    const handlePointerUp = () => {
-      if (hoveredType) {
-        onSelectOption(hoveredType);
-      } else if (isDraggingMode) {
-        onClose();
-      }
-    };
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        onClose();
-      }
-    };
-
-    window.addEventListener('pointermove', handlePointerMove);
-    window.addEventListener('pointerup', handlePointerUp);
-    window.addEventListener('keydown', handleKeyDown);
-
-    return () => {
-      window.removeEventListener('pointermove', handlePointerMove);
-      window.removeEventListener('pointerup', handlePointerUp);
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [isOpen, hoveredType, isDraggingMode, onClose, onSelectOption, options]);
-
   if (!isOpen) return null;
 
-  const activeOption = options.find((o) => o.type === hoveredType);
+  const SIZE = 260;
+  const CENTER = SIZE / 2;
+  const R_IN = 46;
+  const R_OUT = 118;
+  const GAP_DEG = 3;
+  const count = SECTOR_ITEMS.length;
+  const sliceDeg = 360 / count;
+
+  const activeItem = useMemo(
+    () => SECTOR_ITEMS.find((s) => s.type === hoveredType) || null,
+    [hoveredType]
+  );
 
   return (
     <div
-      ref={containerRef}
-      className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-auto z-50 select-none animate-scaleIn"
-      style={{ width: `${RADIUS * 2 + 80}px`, height: `${RADIUS * 2 + 80}px` }}
+      className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 nodrag nopan nowheel pointer-events-auto z-50 select-none animate-scaleIn"
+      style={{ width: `${SIZE}px`, height: `${SIZE}px` }}
       onClick={(e) => e.stopPropagation()}
     >
-      {/* Background circular guide ring with glowing aura */}
+      {/* Dynamic Header pill floating above the wheel */}
+      <div className="absolute left-1/2 -translate-x-1/2 -top-10 px-3.5 py-1 rounded-xl bg-theme-surface/95 backdrop-blur-md border border-theme-border shadow-2xl flex items-center space-x-2 pointer-events-none whitespace-nowrap z-50">
+        <span
+          className="w-2.5 h-2.5 rounded-full animate-pulse shrink-0"
+          style={{ backgroundColor: activeItem ? activeItem.color : '#38BDF8' }}
+        />
+        <span className="text-xs font-bold text-theme-text font-mono">
+          {activeItem ? activeItem.fullName : 'Selecciona o arrastra al elemento'}
+        </span>
+      </div>
+
+      {/* SVG Donut / Pie Wheel */}
       <svg
-        className="absolute inset-0 w-full h-full pointer-events-none opacity-40 transition-opacity"
-        viewBox={`0 0 ${RADIUS * 2 + 80} ${RADIUS * 2 + 80}`}
+        width={SIZE}
+        height={SIZE}
+        viewBox={`0 0 ${SIZE} ${SIZE}`}
+        className="w-full h-full drop-shadow-2xl overflow-visible"
       >
+        <defs>
+          <filter id="sectorGlow" x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur stdDeviation="3" result="blur" />
+            <feComposite in="SourceGraphic" in2="blur" operator="over" />
+          </filter>
+        </defs>
+
+        {/* Outer subtle guide boundary */}
         <circle
-          cx={RADIUS + 40}
-          cy={RADIUS + 40}
-          r={RADIUS}
+          cx={CENTER}
+          cy={CENTER}
+          r={R_OUT + 1}
           fill="none"
-          stroke="currentColor"
+          stroke="rgba(255, 255, 255, 0.1)"
           strokeWidth="1.5"
-          strokeDasharray="4 4"
-          className="text-theme-border"
+          className="pointer-events-none"
+        />
+
+        {/* Donut Sectors (Wedges) */}
+        {SECTOR_ITEMS.map((item, index) => {
+          const isHovered = hoveredType === item.type;
+          const startAngle = -90 + index * sliceDeg + GAP_DEG / 2;
+          const endAngle = -90 + (index + 1) * sliceDeg - GAP_DEG / 2;
+          const midAngle = (startAngle + endAngle) / 2;
+          const midRad = (midAngle * Math.PI) / 180;
+
+          // Annular sector path with optional slight pop-out on hover
+          const pathD = createSectorPath(
+            CENTER,
+            CENTER,
+            R_IN,
+            R_OUT,
+            startAngle,
+            endAngle,
+            isHovered ? 4 : 0
+          );
+
+          // Position of icon and text inside the sector
+          const rLabel = (R_IN + R_OUT) / 2 + (isHovered ? 2 : 0);
+          const iconX = CENTER + rLabel * Math.cos(midRad);
+          const iconY = CENTER + rLabel * Math.sin(midRad);
+
+          const IconComponent = item.icon;
+
+          return (
+            <g
+              key={item.type}
+              className="cursor-pointer transition-all duration-150"
+              onMouseEnter={() => onHoverTypeChange(item.type)}
+              onMouseLeave={() => {
+                if (hoveredType === item.type) onHoverTypeChange(null);
+              }}
+              onClick={() => onSelectOption(item.type)}
+            >
+              {/* Sector slice path */}
+              <path
+                d={pathD}
+                fill={
+                  isHovered
+                    ? item.color
+                    : 'rgba(30, 41, 59, 0.94)'
+                }
+                stroke={isHovered ? '#FFFFFF' : 'rgba(255, 255, 255, 0.18)'}
+                strokeWidth={isHovered ? 2 : 1}
+                className="transition-all duration-150"
+                style={{
+                  filter: isHovered ? 'url(#sectorGlow)' : undefined,
+                  transition: 'fill 0.15s ease, stroke 0.15s ease, transform 0.15s ease'
+                }}
+              />
+
+              {/* Icon and label in sector */}
+              <g
+                transform={`translate(${iconX.toFixed(1)}, ${iconY.toFixed(1)})`}
+                className="pointer-events-none"
+              >
+                {/* HTML Icon embedded via foreignObject or SVG translation */}
+                <foreignObject
+                  x="-18"
+                  y="-20"
+                  width="36"
+                  height="40"
+                  className="overflow-visible"
+                >
+                  <div className="flex flex-col items-center justify-center w-full h-full select-none text-center">
+                    <div
+                      className={`transition-colors duration-150 ${
+                        isHovered ? 'text-slate-950 font-bold' : ''
+                      }`}
+                      style={{ color: isHovered ? '#0f172a' : item.color }}
+                    >
+                      <IconComponent className="w-4 h-4 mx-auto" />
+                    </div>
+                    <span
+                      className={`text-[9px] font-mono leading-tight tracking-tight uppercase mt-0.5 whitespace-nowrap transition-colors duration-150 ${
+                        isHovered ? 'text-slate-950 font-black' : 'text-slate-200 font-semibold'
+                      }`}
+                    >
+                      {item.title}
+                    </span>
+                  </div>
+                </foreignObject>
+              </g>
+            </g>
+          );
+        })}
+
+        {/* Center Hole Inner Circle (Hub) */}
+        <circle
+          cx={CENTER}
+          cy={CENTER}
+          r={R_IN - 2}
+          fill="rgba(15, 23, 42, 0.97)"
+          stroke={activeItem ? activeItem.color : 'rgba(255, 255, 255, 0.2)'}
+          strokeWidth="2"
+          className="transition-colors duration-150"
         />
       </svg>
 
-      {/* Central Close Button */}
-      <button
-        type="button"
-        onClick={onClose}
-        className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-theme-surface/90 hover:bg-theme-surface-subtle border border-theme-border text-theme-text-muted hover:text-theme-text flex items-center justify-center shadow-lg transition-transform hover:scale-110 active:scale-95 z-20 cursor-pointer"
-        title="Cerrar rueda"
-      >
-        <X className="w-4 h-4" />
-      </button>
-
-      {/* Dynamic Tooltip Header when hovering an option */}
-      {activeOption && (
-        <div
-          className="absolute left-1/2 -translate-x-1/2 -top-11 px-3 py-1.5 rounded-xl bg-theme-surface/95 backdrop-blur-md border shadow-2xl flex items-center space-x-2 pointer-events-none z-30 animate-fadeIn"
-          style={{ borderColor: activeOption.borderColor }}
-        >
-          <span
-            className="w-2 h-2 rounded-full animate-pulse"
-            style={{ backgroundColor: activeOption.color }}
-          />
-          <span className="text-xs font-bold text-theme-text whitespace-nowrap">
-            {activeOption.label}
-          </span>
-          <span className="text-[10px] text-theme-text-muted hidden sm:inline">
-            &bull; {activeOption.description}
-          </span>
-        </div>
-      )}
-
-      {/* Radial Options Nodes */}
-      {options.map((opt) => {
-        const rad = (opt.angleDeg * Math.PI) / 180;
-        const x = Math.round(Math.cos(rad) * RADIUS);
-        const y = Math.round(Math.sin(rad) * RADIUS);
-        const isHovered = hoveredType === opt.type;
-        const Icon = opt.icon;
-
-        return (
-          <div
-            key={opt.type}
-            style={{
-              transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`,
-            }}
-            className="absolute left-1/2 top-1/2 transition-transform duration-150 ease-out z-20"
-          >
-            <button
-              type="button"
-              onMouseEnter={() => setHoveredType(opt.type)}
-              onMouseLeave={() => setHoveredType(null)}
-              onClick={() => onSelectOption(opt.type)}
-              className={`relative flex items-center justify-center rounded-2xl p-2.5 backdrop-blur-md transition-all duration-150 shadow-xl cursor-pointer ${
-                isHovered
-                  ? 'scale-125 ring-2 shadow-2xl z-30'
-                  : 'scale-100 hover:scale-115 opacity-90 hover:opacity-100'
-              }`}
-              style={{
-                backgroundColor: isHovered ? opt.bgColor : 'var(--color-theme-surface, #1e293b)',
-                borderColor: opt.borderColor,
-                borderWidth: '1.5px',
-                color: opt.color,
-                boxShadow: isHovered ? `0 0 16px ${opt.color}40` : undefined,
-              }}
-              title={`${opt.label}: ${opt.description}`}
+      {/* Center Hub Content: Active Preview or Close Button */}
+      <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-full flex flex-col items-center justify-center pointer-events-none z-20">
+        {activeItem ? (
+          <div className="flex flex-col items-center justify-center animate-scaleIn text-center">
+            {React.createElement(activeItem.icon, {
+              className: 'w-5 h-5 transition-transform',
+              style: { color: activeItem.color }
+            })}
+            <span
+              className="text-[9px] font-mono font-bold leading-tight mt-0.5 uppercase"
+              style={{ color: activeItem.color }}
             >
-              <Icon className="w-5 h-5 transition-transform duration-150" />
-
-              {/* Mini Pill Label */}
-              <span
-                className={`absolute -bottom-5 left-1/2 -translate-x-1/2 text-[9px] font-mono font-bold px-1.5 py-0.5 rounded-md border whitespace-nowrap transition-opacity shadow-sm ${
-                  isHovered ? 'opacity-100' : 'opacity-0'
-                }`}
-                style={{
-                  backgroundColor: 'var(--color-theme-surface, #0f172a)',
-                  borderColor: opt.borderColor,
-                  color: opt.color,
-                }}
-              >
-                {opt.shortLabel}
-              </span>
-            </button>
+              {activeItem.title}
+            </span>
           </div>
-        );
-      })}
+        ) : (
+          <button
+            type="button"
+            onClick={onClose}
+            className="w-9 h-9 rounded-full bg-slate-800/80 hover:bg-slate-700 border border-slate-600 text-slate-300 hover:text-white flex items-center justify-center shadow-md transition-transform hover:scale-110 active:scale-95 pointer-events-auto cursor-pointer"
+            title="Cerrar rueda"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        )}
+      </div>
     </div>
   );
 };
