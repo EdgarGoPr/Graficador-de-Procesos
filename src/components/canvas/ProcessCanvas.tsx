@@ -32,6 +32,7 @@ import { PrintFrameOverlay } from './PrintFrameOverlay';
 import { NewerVersionBanner } from './NewerVersionBanner';
 import { SubProcessBreadcrumbs } from './SubProcessBreadcrumbs';
 import { CustomMiniMapNode } from './CustomMiniMapNode';
+import { QuickAddNodeToolbar } from './QuickAddNodeToolbar';
 import { getGraphForPath } from '../../store/useCanvasStore';
 import { BpmnNodeType, BpmnNodeData } from '../../types/process';
 
@@ -518,6 +519,7 @@ const ProcessCanvasInternal: React.FC = () => {
         <PrintFrameOverlay />
         <NewerVersionBanner />
         <SubProcessBreadcrumbs />
+        <QuickAddNodeToolbar />
         <Controls className="!bg-theme-surface !border-theme-border !text-theme-text fill-current shadow-lg" />
         <MiniMap
           pannable={true}

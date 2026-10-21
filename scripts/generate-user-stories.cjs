@@ -551,6 +551,15 @@ const userStories = [
     criteriosAceptacion: '1. Integración del cliente oficial @neondatabase/serverless comunicando consultas parametrizadas sobre HTTPS sin requerir backend intermedio.\n2. Arquitectura de datos híbrida: metadatos atómicos e indexados para el Dashboard (título, código, Lead Time, riesgos y QC) y columna graph_data JSONB comprimida con TOAST para el grafo BPMN completo.\n3. Script DDL optimizado (scripts/neon_schema.sql) con extensiones uuid-ossp, pg_trgm, índices GIN y búsqueda léxica tsvector en español.\n4. Persistencia híbrida y dual-write: los proyectos se guardan localmente (USB/localStorage) y se replican automáticamente en Neon si está configurado.\n5. Modal de Base de Datos en el Dashboard con prueba de conectividad y latencia de red en tiempo real.\n6. Sincronizador masivo de 1 clic para migrar proyectos de la unidad USB y del navegador hacia la nube.\n7. Fallback resiliente: ante ausencia de internet o credenciales, la app continúa operativa en modo local sin pérdida de funcionalidad.',
     fechaImplementacion: '2026-10-21',
     estado: 'Implementado / Producción'
+  },
+  {
+    id: 'PST-062',
+    modulo: 'Modelado Rápido & Experiencia de Canvas (BPMN 2.0)',
+    titulo: 'Botón Quick-Add \'+\' Flotante y Menú Radial Circular de Próximo Nodo con Conexión Automática',
+    historiaUsuario: 'Como modelador y analista de procesos, quiero que al seleccionar cualquier nodo operativo en el lienzo aparezca un botón \'+\' a su derecha y que al presionarlo o arrastrarlo se despliegue un menú circular con opciones de nodos BPMN para crear y conectar automáticamente el siguiente elemento del flujo con un solo gesto.',
+    criteriosAceptacion: '1. Botón flotante \'+\' sincronizado en tiempo real a la derecha del nodo seleccionado mediante NodeToolbar de @xyflow/react.\n2. Exclusión automática de carriles funcionales (PoolLane) y notas adhesivas (StickyNote) para evitar interferencias.\n3. Menú radial circular de 7 opciones canónicas BPMN: Tarea de Usuario, Tarea de Servicio TI, Subproceso, Evento de Fin, Decisión Exclusiva (XOR), Bifurcación Paralela (AND) y Punto de Control de Calidad ISO.\n4. Soporte para interacción dual: clic directo para selección o arrastre con puntero/mouse con detección magnética y previsualización de etiqueta.\n5. Creación instantánea del nuevo nodo y conexión automática mediante arista SequenceFlow desde el nodo origen.\n6. Selección inmediata del nuevo nodo permitiendo modelado continuo en cadena (Fast-Flow Modeling).\n7. Registro de snapshot atómico compatible con Deshacer y Rehacer (Ctrl+Z / Ctrl+Y).',
+    fechaImplementacion: '2026-10-21',
+    estado: 'Implementado / Producción'
   }
 ];
 

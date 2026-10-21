@@ -303,6 +303,7 @@ interface CanvasStoreState {
 
   // Node Manipulation
   addNode: (nodeType: BpmnNodeType, position: { x: number; y: number }, laneId?: string) => void;
+  addConnectedNode: (sourceNodeId: string, nodeType: BpmnNodeType, targetPosition?: { x: number; y: number }) => string | undefined;
   updateNodeData: (nodeId: string, updates: Partial<BpmnNodeData>) => void;
   applyCardStyleToScope: (targetNodeId: string, scope: 'single' | 'same_type' | 'all', styleChanges: Partial<BpmnNodeData>) => void;
   updateEdgeData: (edgeId: string, updates: Partial<SequenceFlowData>, pushSnapshot?: boolean) => void;
@@ -1103,6 +1104,201 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
 
     get().setActiveGraph([...active.nodes, newNode], active.edges);
     set({ selectedNodeId: newNodeId, selectedNodeIds: [newNodeId], selectedEdgeId: null });
+  },
+
+  addConnectedNode: (sourceNodeId: string, nodeType: BpmnNodeType, targetPosition?: { x: number; y: number }) => {
+    const projectStore = useProjectStore.getState();
+    const currentProject = projectStore.currentProject;
+    if (!currentProject) return undefined;
+
+    const active = get().getActiveGraph();
+    const sourceNode = active.nodes.find((n) => n.id === sourceNodeId);
+    if (!sourceNode) return undefined;
+
+    projectStore.pushSnapshot('Conectar próximo elemento');
+
+    // Calculate source dimensions
+    const sourceWidth = ((sourceNode.measured?.width || sourceNode.width || 210) as number);
+
+    // Determine target position: if not provided, place ~140px to the right of sourceNode, aligned with sourceNode Y
+    let finalPosition = targetPosition;
+    if (!finalPosition) {
+      finalPosition = {
+        x: sourceNode.position.x + sourceWidth + 140,
+        y: sourceNode.position.y
+      };
+    }
+
+    const targetLaneId = sourceNode.data.laneId || currentProject.pools[0]?.lanes[0]?.id || 'lane-default';
+    const targetLane = currentProject.pools[0]?.lanes.find(l => l.id === targetLaneId);
+
+    // Hierarchical Standard ID
+    const currentPath = get().subProcessPath;
+    const processInfo = getCurrentProcessInfo(currentProject, currentPath);
+    const standardId = formatHierarchicalStandardId(
+      processInfo.code,
+      processInfo.levelCode,
+      nodeType,
+      active.nodes
+    );
+
+    const isSubProcess = nodeType === BPMN_NODE_TYPES.SUB_PROCESS;
+    const newNodeId = isSubProcess ? `subproc_${Date.now()}` : `node_${Date.now()}`;
+
+    let initialSubProcessCanvas = undefined;
+    let initialSubProcessSteps = undefined;
+    let subProcessAssignedCode: string | undefined = undefined;
+    let subProcessAssignedLevel: number | undefined = undefined;
+
+    if (isSubProcess) {
+      const nextProc = getNextSubProcessCode(currentProject);
+      const childLevel = processInfo.level + 1;
+      const childLevelCode = `N${childLevel < 10 ? '0' + childLevel : childLevel}`;
+      subProcessAssignedCode = nextProc.code;
+      subProcessAssignedLevel = childLevel;
+
+      const startId = `start_${newNodeId}`;
+      const taskId = `task_${newNodeId}`;
+      const endId = `end_${newNodeId}`;
+
+      const starterNodes: Node<BpmnNodeData>[] = [
+        {
+          id: startId,
+          type: 'StartEvent',
+          position: { x: 100, y: 160 },
+          data: {
+            standardId: `${nextProc.code}-${childLevelCode}-INI-01`,
+            title: 'Inicio',
+            description: '',
+            nodeType: BPMN_NODE_TYPES.START_EVENT,
+            laneId: targetLaneId || '',
+            itSystem: '',
+            responsible: '',
+            legalFramework: '',
+            inputs: [],
+            outputs: [],
+            operationalRisks: [],
+            tags: ['Subproceso']
+          }
+        },
+        {
+          id: taskId,
+          type: 'UserTask',
+          position: { x: 280, y: 130 },
+          data: {
+            standardId: `${nextProc.code}-${childLevelCode}-TSK-01`,
+            title: 'Actividad Principal',
+            description: '',
+            nodeType: BPMN_NODE_TYPES.USER_TASK,
+            laneId: targetLaneId || '',
+            itSystem: '',
+            responsible: '',
+            legalFramework: '',
+            inputs: [],
+            outputs: [],
+            operationalRisks: [],
+            tags: ['Subproceso']
+          }
+        },
+        {
+          id: endId,
+          type: 'EndEvent',
+          position: { x: 560, y: 160 },
+          data: {
+            standardId: `${nextProc.code}-${childLevelCode}-FIN-01`,
+            title: 'Fin',
+            description: '',
+            nodeType: BPMN_NODE_TYPES.END_EVENT,
+            laneId: targetLaneId || '',
+            itSystem: '',
+            responsible: '',
+            legalFramework: '',
+            inputs: [],
+            outputs: [],
+            operationalRisks: [],
+            tags: ['Subproceso']
+          }
+        }
+      ];
+
+      const starterEdges = [
+        {
+          id: `flow_${startId}_${taskId}`,
+          source: startId,
+          target: taskId,
+          type: 'sequenceFlow',
+          data: { id: `flow_${startId}_${taskId}`, source: startId, target: taskId }
+        },
+        {
+          id: `flow_${taskId}_${endId}`,
+          source: taskId,
+          target: endId,
+          type: 'sequenceFlow',
+          data: { id: `flow_${taskId}_${endId}`, source: taskId, target: endId }
+        }
+      ];
+
+      initialSubProcessCanvas = { nodes: starterNodes, edges: starterEdges };
+      initialSubProcessSteps = [
+        {
+          id: `step_${taskId}`,
+          stepNumber: 1,
+          title: 'Actividad Principal',
+          description: '',
+          role: targetLane?.role || '',
+          system: targetLane?.system || '',
+          duration: 'P1D',
+          inputs: [],
+          outputs: []
+        }
+      ];
+    }
+
+    const newNode: Node<BpmnNodeData> = {
+      id: newNodeId,
+      type: nodeType,
+      position: finalPosition,
+      zIndex: 1,
+      data: {
+        standardId,
+        title: '',
+        description: '',
+        nodeType,
+        laneId: targetLaneId || '',
+        laneName: targetLane?.name || '',
+        roleName: targetLane?.role || '',
+        responsible: '',
+        itSystem: '',
+        legalFramework: '',
+        processCode: subProcessAssignedCode,
+        processLevel: subProcessAssignedLevel,
+        inputs: [],
+        outputs: [],
+        operationalRisks: [],
+        tags: isSubProcess ? ['Subproceso'] : [],
+        subProcessCanvas: initialSubProcessCanvas,
+        subProcessSteps: initialSubProcessSteps
+      }
+    };
+
+    const newEdgeId = `e_${sourceNodeId}_${newNodeId}_${Date.now()}`;
+    const newEdge: Edge<SequenceFlowData> = {
+      id: newEdgeId,
+      source: sourceNodeId,
+      target: newNodeId,
+      type: 'sequenceFlow',
+      data: {
+        id: `e_${sourceNodeId}_${newNodeId}`,
+        source: sourceNodeId,
+        target: newNodeId,
+        conditionText: '',
+        isAssociation: false
+      }
+    };
+
+    get().setActiveGraph([...active.nodes, newNode], [...active.edges, newEdge]);
+    set({ selectedNodeId: newNodeId, selectedNodeIds: [newNodeId], selectedEdgeId: null });
+    return newNodeId;
   },
 
   updateNodeData: (nodeId: string, updates: Partial<BpmnNodeData>) => {
