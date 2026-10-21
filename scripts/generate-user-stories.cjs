@@ -569,6 +569,24 @@ const userStories = [
     criteriosAceptacion: '1. Supresión estricta del botón "+" en nodos EndEvent (Fin de proceso).\n2. Rediseño visual en formato donut / pie wheel con sectores SVG anulares contiguos, bordes sutiles, iconos centrados y etiquetas breves.\n3. Bloqueo total de paneo del lienzo en ReactFlow mediante clases nopan nodrag y API de setPointerCapture.\n4. Detección polar matemática de ángulo y distancia para resaltar instantáneamente el sector apuntado mientras se mantiene presionado el cursor.\n5. Previsualización dinámica en el núcleo central (hub) del elemento activo.\n6. Creación y conexión inmediata del nodo al soltar el ratón sobre cualquier gajo.\n7. Modo clic simple preservado para seleccionar con tranquilidad si no se realiza arrastre.',
     fechaImplementacion: '2026-10-21',
     estado: 'Implementado / Producción'
+  },
+  {
+    id: 'PST-064',
+    modulo: 'Modelado Rápido & Experiencia de Canvas (BPMN 2.0)',
+    titulo: 'Centrado Geométrico Vectorial y Animación Limpia del Hub Central en Menú Radial',
+    historiaUsuario: 'Como modelador de procesos, quiero que el icono y texto del elemento seleccionado en el centro de la rueda radial se mantengan perfectamente centrados con precisión milimétrica sin desviarse hacia arriba o a la izquierda, para disfrutar de una interfaz premium y visualmente impecable.',
+    criteriosAceptacion: '1. Reemplazo del contenedor flotante CSS por un elemento foreignObject embebido directamente en el sistema de coordenadas nativo del SVG (CENTER=130).\n2. Creación de la animación pura @keyframes hubPop (escala 0.75 a 1.0) sin traslaciones parásitas.\n3. Alineación simétrica y equidistante del icono y del texto respecto al círculo interior de radio 44px.\n4. Centrado estable e invariable en cualquier resolución, zoom del lienzo y monitor.\n5. Preservación del botón de cierre central con interactividad pointer-events cuando ningún sector está seleccionado.',
+    fechaImplementacion: '2026-10-21',
+    estado: 'Implementado / Producción'
+  },
+  {
+    id: 'PST-065',
+    modulo: 'Accesibilidad Visual & Renderizado Adaptativo de Nodos',
+    titulo: 'Motor de Contraste Automático Adaptativo para Textos de Nodos (Blanco, Gris y Negro)',
+    historiaUsuario: 'Como analista y lector de diagramas, quiero que los textos principales e informativos de todos los nodos (títulos, descripciones, detalles) ajusten su luminosidad dinámicamente según el color de fondo en tonos de Blanco, Gris o Negro, manteniendo intactos los colores de nomenclaturas y tipos, para asegurar una legibilidad y contraste óptimos bajo cualquier tema visual o personalización cromática.',
+    criteriosAceptacion: '1. Creación del utilitario nodeContrast.ts con cálculo de luminosidad ponderada YIQ y alpha-blending sobre el lienzo.\n2. En fondos oscuros: títulos en Blanco (#FFFFFF), descripciones en Gris claro (#CBD5E1) y metadatos en Gris medio (#94A3B8).\n3. En fondos claros: títulos en Negro grafito (#0F172A), descripciones en Gris oscuro (#334155) y metadatos en Gris pizarra (#64748B).\n4. Exclusión estricta y preservación cromática de textos semánticos: nomenclaturas (TSK, SUB, QCP, FIN, INI, GTW), badges de tipo de actividad y botones de acción.\n5. Integración transversal en TaskNode, SubProcessNode, QualityCheckpointNode, GatewayNode, StartEventNode, EndEventNode y TimerBoundaryNode.',
+    fechaImplementacion: '2026-10-21',
+    estado: 'Implementado / Producción'
   }
 ];
 

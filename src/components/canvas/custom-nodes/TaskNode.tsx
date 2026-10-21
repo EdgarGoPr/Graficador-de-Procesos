@@ -2,6 +2,7 @@ import React, { memo } from 'react';
 import { Handle, Position, NodeProps, NodeResizer } from '@xyflow/react';
 import { BpmnNodeData, BPMN_NODE_TYPES } from '../../../types/process';
 import { hexToRgba } from '../../../types/theme';
+import { getNodeTextContrast } from '../../../utils/nodeContrast';
 import { User, Cpu, Wrench, Clock, AlertTriangle, ShieldCheck, Server, ExternalLink } from 'lucide-react';
 
 export const TaskNode = memo(({ data, selected }: NodeProps<any>) => {
@@ -33,10 +34,12 @@ export const TaskNode = memo(({ data, selected }: NodeProps<any>) => {
   const isVertical = nodeData.orientation === 'vertical';
 
   const opacity = nodeData.customBgOpacity ?? 95;
+  const contrast = getNodeTextContrast(nodeData.customBgColor, opacity);
+
   const customContainerStyle: React.CSSProperties = {
     backgroundColor: nodeData.customBgColor ? hexToRgba(nodeData.customBgColor, opacity) : undefined,
     borderColor: nodeData.customBorderColor || undefined,
-    color: nodeData.customTextColor || undefined,
+    color: nodeData.customTextColor || contrast.bodyColor,
   };
 
   const customHeaderStyle: React.CSSProperties = {
@@ -120,16 +123,16 @@ export const TaskNode = memo(({ data, selected }: NodeProps<any>) => {
         <div className="p-2.5 flex-1 flex flex-col justify-between overflow-hidden">
           <div className="overflow-hidden">
             <h4
-              style={{ fontSize: titleFontSize }}
-              className="text-xs font-semibold text-theme-text leading-snug line-clamp-2 mb-1 break-words overflow-hidden text-ellipsis"
+              style={{ fontSize: titleFontSize, color: nodeData.customTextColor || contrast.titleColor }}
+              className="text-xs font-semibold leading-snug line-clamp-2 mb-1 break-words overflow-hidden text-ellipsis"
             >
-              {nodeData.title ? nodeData.title : <span className="text-theme-text-muted/50 italic font-normal">Sin título</span>}
+              {nodeData.title ? nodeData.title : <span style={{ opacity: 0.5 }} className="italic font-normal">Sin título</span>}
             </h4>
 
             {!isTitleOnly && nodeData.description && (
               <p
-                style={{ fontSize: descFontSize }}
-                className="text-[11px] text-theme-text-muted line-clamp-2 leading-relaxed mb-2 break-words overflow-hidden text-ellipsis"
+                style={{ fontSize: descFontSize, color: contrast.bodyColor }}
+                className="text-[11px] line-clamp-2 leading-relaxed mb-2 break-words overflow-hidden text-ellipsis"
               >
                 {nodeData.description}
               </p>
@@ -139,21 +142,24 @@ export const TaskNode = memo(({ data, selected }: NodeProps<any>) => {
           {/* Details */}
           {!isTitleOnly && (
             <div className="overflow-hidden">
-              <div className="space-y-1 pt-1.5 border-t border-theme-border text-[10px] overflow-hidden">
+              <div
+                style={{ borderColor: contrast.borderColor }}
+                className="space-y-1 pt-1.5 border-t text-[10px] overflow-hidden"
+              >
                 {nodeData.itSystem && (
-                  <div className="flex items-center text-theme-text-muted truncate">
+                  <div style={{ color: contrast.mutedColor }} className="flex items-center truncate">
                     <Wrench className="w-3 h-3 text-sky-400 mr-1.5 shrink-0" />
                     <span className="truncate">{nodeData.itSystem}</span>
                   </div>
                 )}
                 {nodeData.responsible && (
-                  <div className="flex items-center text-theme-text-muted truncate">
+                  <div style={{ color: contrast.mutedColor }} className="flex items-center truncate">
                     <User className="w-3 h-3 text-indigo-400 mr-1.5 shrink-0" />
                     <span className="truncate">{nodeData.responsible}</span>
                   </div>
                 )}
                 {nodeData.slaDuration && (nodeData.slaDuration.enabled ?? nodeData.slaDuration.value > 0) && (
-                  <div className="flex items-center text-theme-text-muted truncate">
+                  <div style={{ color: contrast.mutedColor }} className="flex items-center truncate">
                     <Clock className="w-3 h-3 text-amber-400 mr-1.5 shrink-0" />
                     <span className="truncate font-mono">
                       {nodeData.slaDuration.value} {nodeData.slaDuration.unit === 'BUSINESS_DAYS' ? 'días hábiles' : nodeData.slaDuration.unit === 'CALENDAR_DAYS' ? 'días corridos' : 'horas'}

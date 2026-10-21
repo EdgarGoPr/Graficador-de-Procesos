@@ -2,6 +2,7 @@ import React, { memo } from 'react';
 import { Handle, Position, NodeProps } from '@xyflow/react';
 import { BpmnNodeData, BPMN_NODE_TYPES } from '../../../types/process';
 import { hexToRgba } from '../../../types/theme';
+import { getNodeTextContrast } from '../../../utils/nodeContrast';
 import { X, Plus, GitBranch } from 'lucide-react';
 
 export const GatewayNode = memo(({ data, selected }: NodeProps<any>) => {
@@ -10,6 +11,8 @@ export const GatewayNode = memo(({ data, selected }: NodeProps<any>) => {
   const isTitleOnly = nodeData.displayMode === 'title_only';
 
   const opacity = nodeData.customBgOpacity ?? 95;
+  const contrast = getNodeTextContrast(nodeData.customHeaderBgColor || nodeData.customBgColor, opacity);
+
   const customContainerStyle: React.CSSProperties = {
     backgroundColor: nodeData.customBgColor ? hexToRgba(nodeData.customBgColor, opacity) : undefined,
     borderColor: nodeData.customBorderColor || undefined,
@@ -70,8 +73,8 @@ export const GatewayNode = memo(({ data, selected }: NodeProps<any>) => {
           </div>
         )}
         <p
-          style={{ fontSize: titleFontSize }}
-          className="text-[10px] font-medium text-theme-text line-clamp-2 leading-tight mt-0.5 break-words overflow-hidden text-ellipsis"
+          style={{ fontSize: titleFontSize, color: nodeData.customTextColor || contrast.titleColor }}
+          className="text-[10px] font-medium line-clamp-2 leading-tight mt-0.5 break-words overflow-hidden text-ellipsis"
         >
           {nodeData.title}
         </p>

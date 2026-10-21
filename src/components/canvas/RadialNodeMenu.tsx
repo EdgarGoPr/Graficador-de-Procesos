@@ -290,34 +290,45 @@ export const RadialNodeMenu: React.FC<RadialNodeMenuProps> = ({
           strokeWidth="2"
           className="transition-colors duration-150"
         />
-      </svg>
 
-      {/* Center Hub Content: Active Preview or Close Button */}
-      <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-full flex flex-col items-center justify-center pointer-events-none z-20">
-        {activeItem ? (
-          <div className="flex flex-col items-center justify-center animate-scaleIn text-center">
-            {React.createElement(activeItem.icon, {
-              className: 'w-5 h-5 transition-transform',
-              style: { color: activeItem.color }
-            })}
-            <span
-              className="text-[9px] font-mono font-bold leading-tight mt-0.5 uppercase"
-              style={{ color: activeItem.color }}
-            >
-              {activeItem.title}
-            </span>
+        {/* Center Hub Content: 100% Vectorial Centered inside SVG */}
+        <foreignObject
+          x={CENTER - 40}
+          y={CENTER - 40}
+          width={80}
+          height={80}
+          className="overflow-visible pointer-events-none"
+        >
+          <div className="w-full h-full flex flex-col items-center justify-center text-center select-none">
+            {activeItem ? (
+              <div
+                key={activeItem.type}
+                className="flex flex-col items-center justify-center animate-hubPop text-center pointer-events-none"
+              >
+                {React.createElement(activeItem.icon, {
+                  className: 'w-5 h-5 shrink-0 transition-transform',
+                  style: { color: activeItem.color }
+                })}
+                <span
+                  className="text-[9px] font-mono font-bold leading-tight mt-1 uppercase tracking-tight"
+                  style={{ color: activeItem.color }}
+                >
+                  {activeItem.title}
+                </span>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={onClose}
+                className="w-8 h-8 rounded-full bg-slate-800/90 hover:bg-slate-700 border border-slate-600 text-slate-300 hover:text-white flex items-center justify-center shadow-md transition-transform hover:scale-110 active:scale-95 pointer-events-auto cursor-pointer"
+                title="Cerrar rueda"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
           </div>
-        ) : (
-          <button
-            type="button"
-            onClick={onClose}
-            className="w-9 h-9 rounded-full bg-slate-800/80 hover:bg-slate-700 border border-slate-600 text-slate-300 hover:text-white flex items-center justify-center shadow-md transition-transform hover:scale-110 active:scale-95 pointer-events-auto cursor-pointer"
-            title="Cerrar rueda"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        )}
-      </div>
+        </foreignObject>
+      </svg>
     </div>
   );
 };

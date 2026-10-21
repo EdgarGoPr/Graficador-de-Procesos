@@ -2,6 +2,7 @@ import React, { memo } from 'react';
 import { Handle, Position, NodeProps, NodeResizer } from '@xyflow/react';
 import { BpmnNodeData } from '../../../types/process';
 import { hexToRgba } from '../../../types/theme';
+import { getNodeTextContrast } from '../../../utils/nodeContrast';
 import { ShieldCheck, CheckCircle2, AlertOctagon } from 'lucide-react';
 
 export const QualityCheckpointNode = memo(({ data, selected }: NodeProps<any>) => {
@@ -10,10 +11,12 @@ export const QualityCheckpointNode = memo(({ data, selected }: NodeProps<any>) =
   const isTitleOnly = nodeData.displayMode === 'title_only';
 
   const opacity = nodeData.customBgOpacity ?? 95;
+  const contrast = getNodeTextContrast(nodeData.customBgColor, opacity);
+
   const customContainerStyle: React.CSSProperties = {
     backgroundColor: nodeData.customBgColor ? hexToRgba(nodeData.customBgColor, opacity) : undefined,
     borderColor: nodeData.customBorderColor || undefined,
-    color: nodeData.customTextColor || undefined,
+    color: nodeData.customTextColor || contrast.bodyColor,
   };
 
   const customHeaderStyle: React.CSSProperties = {
@@ -69,8 +72,8 @@ export const QualityCheckpointNode = memo(({ data, selected }: NodeProps<any>) =
         <div className="p-2.5 flex-1 flex flex-col justify-between overflow-hidden">
           <div className="overflow-hidden">
             <h4
-              style={{ fontSize: titleFontSize }}
-              className="text-xs font-semibold text-theme-text leading-snug line-clamp-2 mb-1 break-words overflow-hidden text-ellipsis"
+              style={{ fontSize: titleFontSize, color: nodeData.customTextColor || contrast.titleColor }}
+              className="text-xs font-semibold leading-snug line-clamp-2 mb-1 break-words overflow-hidden text-ellipsis"
             >
               {nodeData.title}
             </h4>
@@ -79,17 +82,20 @@ export const QualityCheckpointNode = memo(({ data, selected }: NodeProps<any>) =
           {!isTitleOnly && (
             <div className="overflow-hidden">
               {qc?.inspectionCriteria && (
-                <div className="mt-1 p-1.5 rounded bg-theme-surface-subtle border border-theme-border text-[10px] text-theme-text-muted leading-relaxed overflow-hidden">
+                <div
+                  style={{ backgroundColor: contrast.subtleBg, borderColor: contrast.borderColor }}
+                  className="mt-1 p-1.5 rounded border text-[10px] leading-relaxed overflow-hidden"
+                >
                   <div className="font-medium text-emerald-400 flex items-center mb-0.5 truncate">
                     <CheckCircle2 className="w-2.5 h-2.5 mr-1 shrink-0" />
                     <span className="truncate">Criterio de Aceptación:</span>
                   </div>
-                  <p className="line-clamp-2 overflow-hidden text-ellipsis">{qc.inspectionCriteria}</p>
+                  <p style={{ color: contrast.bodyColor }} className="line-clamp-2 overflow-hidden text-ellipsis">{qc.inspectionCriteria}</p>
                 </div>
               )}
 
               {qc?.evidenceRequired && (
-                <div className="mt-1 flex items-center text-[9px] text-theme-text-muted truncate">
+                <div style={{ color: contrast.mutedColor }} className="mt-1 flex items-center text-[9px] truncate">
                   <AlertOctagon className="w-2.5 h-2.5 text-emerald-400 mr-1 shrink-0" />
                   <span className="truncate font-mono">Reg: {qc.evidenceRequired}</span>
                 </div>

@@ -2,6 +2,7 @@ import React, { memo } from 'react';
 import { Handle, Position, NodeProps, NodeResizer } from '@xyflow/react';
 import { BpmnNodeData } from '../../../types/process';
 import { hexToRgba } from '../../../types/theme';
+import { getNodeTextContrast } from '../../../utils/nodeContrast';
 import { useUiStore } from '../../../store/useUiStore';
 import { useCanvasStore } from '../../../store/useCanvasStore';
 import { Layers, Maximize2, ListOrdered, FolderOpen, Plus, FolderInput, ExternalLink } from 'lucide-react';
@@ -46,10 +47,12 @@ export const SubProcessNode = memo(({ id, data, selected }: NodeProps<any>) => {
   const isTitleOnly = nodeData.displayMode === 'title_only';
 
   const opacity = nodeData.customBgOpacity ?? 95;
+  const contrast = getNodeTextContrast(nodeData.customBgColor, opacity);
+
   const customContainerStyle: React.CSSProperties = {
     backgroundColor: nodeData.customBgColor ? hexToRgba(nodeData.customBgColor, opacity) : undefined,
     borderColor: nodeData.customBorderColor || undefined,
-    color: nodeData.customTextColor || undefined,
+    color: nodeData.customTextColor || contrast.bodyColor,
   };
 
   const customHeaderStyle: React.CSSProperties = {
@@ -122,15 +125,15 @@ export const SubProcessNode = memo(({ id, data, selected }: NodeProps<any>) => {
         <div className="p-2.5 flex-1 flex flex-col justify-between overflow-hidden">
           <div className="overflow-hidden">
             <h4
-              style={{ fontSize: titleFontSize }}
-              className="text-xs font-semibold text-theme-text leading-snug line-clamp-2 mb-1 group-hover:text-indigo-300 transition-colors break-words overflow-hidden text-ellipsis cursor-pointer"
+              style={{ fontSize: titleFontSize, color: nodeData.customTextColor || contrast.titleColor }}
+              className="text-xs font-semibold leading-snug line-clamp-2 mb-1 group-hover:text-indigo-300 transition-colors break-words overflow-hidden text-ellipsis cursor-pointer"
             >
               {nodeData.title}
             </h4>
             {!isTitleOnly && nodeData.description && (
               <p
-                style={{ fontSize: descFontSize }}
-                className="text-[11px] text-theme-text-muted line-clamp-2 leading-relaxed mb-2 break-words overflow-hidden text-ellipsis"
+                style={{ fontSize: descFontSize, color: contrast.bodyColor }}
+                className="text-[11px] line-clamp-2 leading-relaxed mb-2 break-words overflow-hidden text-ellipsis"
               >
                 {nodeData.description}
               </p>
@@ -138,8 +141,11 @@ export const SubProcessNode = memo(({ id, data, selected }: NodeProps<any>) => {
           </div>
 
           {/* Steps indicator and Action Buttons */}
-          <div className="flex items-center justify-between pt-1.5 border-t border-theme-border text-[10px] overflow-hidden">
-            <div className="flex items-center text-theme-text-muted truncate">
+          <div
+            style={{ borderColor: contrast.borderColor }}
+            className="flex items-center justify-between pt-1.5 border-t text-[10px] overflow-hidden"
+          >
+            <div style={{ color: contrast.mutedColor }} className="flex items-center truncate">
               <ListOrdered className="w-3 h-3 mr-1 text-indigo-400 shrink-0" />
               <span className="truncate">{stepsCount > 0 ? `${stepsCount} etapas` : 'Detalle'}</span>
             </div>

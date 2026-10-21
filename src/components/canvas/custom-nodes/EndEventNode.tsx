@@ -2,6 +2,7 @@ import React, { memo } from 'react';
 import { Handle, Position, NodeProps } from '@xyflow/react';
 import { BpmnNodeData } from '../../../types/process';
 import { hexToRgba } from '../../../types/theme';
+import { getNodeTextContrast } from '../../../utils/nodeContrast';
 import { Square } from 'lucide-react';
 
 export const EndEventNode = memo(({ data, selected }: NodeProps<any>) => {
@@ -9,6 +10,8 @@ export const EndEventNode = memo(({ data, selected }: NodeProps<any>) => {
   const isTitleOnly = nodeData.displayMode === 'title_only';
 
   const opacity = nodeData.customBgOpacity ?? 95;
+  const contrast = getNodeTextContrast(nodeData.customBgColor, opacity);
+
   const customContainerStyle: React.CSSProperties = {
     backgroundColor: nodeData.customBgColor ? hexToRgba(nodeData.customBgColor, opacity) : undefined,
     borderColor: nodeData.customBorderColor || undefined,
@@ -46,8 +49,8 @@ export const EndEventNode = memo(({ data, selected }: NodeProps<any>) => {
           </span>
         )}
         <span
-          style={{ fontSize: titleFontSize }}
-          className="text-[9px] font-medium text-theme-text line-clamp-2 max-w-[78px] leading-tight break-words overflow-hidden text-ellipsis"
+          style={{ fontSize: titleFontSize, color: nodeData.customTextColor || contrast.titleColor }}
+          className="text-[9px] font-medium line-clamp-2 max-w-[78px] leading-tight break-words overflow-hidden text-ellipsis"
         >
           {nodeData.title}
         </span>
