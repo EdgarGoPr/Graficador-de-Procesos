@@ -8,11 +8,14 @@ import {
   ShieldCheck,
   Box,
   CircleDot,
-  X
+  X,
+  Sparkles
 } from 'lucide-react';
 
+export type RadialOptionType = BpmnNodeType | 'AI_SUGGESTION';
+
 export interface RadialSectorItem {
-  type: BpmnNodeType;
+  type: RadialOptionType;
   title: string;
   fullName: string;
   icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>;
@@ -24,9 +27,9 @@ export interface RadialSectorItem {
 interface RadialNodeMenuProps {
   isOpen: boolean;
   onClose: () => void;
-  onSelectOption: (nodeType: BpmnNodeType) => void;
-  hoveredType: BpmnNodeType | null;
-  onHoverTypeChange: (type: BpmnNodeType | null) => void;
+  onSelectOption: (optionType: RadialOptionType) => void;
+  hoveredType: RadialOptionType | null;
+  onHoverTypeChange: (type: RadialOptionType | null) => void;
 }
 
 const SECTOR_ITEMS: RadialSectorItem[] = [
@@ -92,6 +95,15 @@ const SECTOR_ITEMS: RadialSectorItem[] = [
     color: '#EF4444',
     badgeBg: 'rgba(239, 68, 68, 0.25)',
     description: 'Culminación y cierre del proceso'
+  },
+  {
+    type: 'AI_SUGGESTION',
+    title: 'Sugerir IA',
+    fullName: 'Sugerencia con IA',
+    icon: Sparkles,
+    color: '#8B5CF6',
+    badgeBg: 'rgba(139, 92, 246, 0.3)',
+    description: 'Predecir el próximo paso según documentación y grafo'
   }
 ];
 

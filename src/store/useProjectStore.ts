@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { ProcessProjectFile, ProjectSummary } from '../types/project';
+import { ProcessDocumentationItem } from '../types/ai';
 import { StorageService } from '../services/storageService';
 import { calculateTotalLeadTime } from '../services/leadTimeCalculator';
 import { CanvasSnapshot, createSnapshot, pushToHistory } from '../services/historyManager';
@@ -44,6 +45,12 @@ interface ProjectStoreState {
   setProjectData: (project: ProcessProjectFile) => void;
   updateDocumentControl: (updates: Partial<ProcessProjectFile['documentControl']>) => void;
   markUnsavedChanges: () => void;
+
+  // Process Documentation Vault Actions
+  addDocumentationItem: (item: Omit<ProcessDocumentationItem, 'id' | 'createdAt'>) => string;
+  updateDocumentationItem: (id: string, updates: Partial<ProcessDocumentationItem>) => void;
+  removeDocumentationItem: (id: string) => void;
+  updateDocumentationGlobalNotes: (notes: string) => void;
 
   // Undo / Redo Actions
   pushSnapshot: (description?: string) => void;
@@ -317,6 +324,102 @@ export const useProjectStore = create<ProjectStoreState>((set, get) => ({
 
   markUnsavedChanges: () => {
     set({ hasUnsavedChanges: true });
+  },
+
+  addDocumentationItem: (item) => {
+    const { currentProject } = get();
+    if (!currentProject) return '';
+
+    const newId = `doc_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
+    const newItem: ProcessDocumentationItem = {
+      ...item,
+      id: newId,
+      createdAt: new Date().toISOString()
+    };
+
+    const currentVault = currentProject.documentationVault || { items: [] };
+    const updatedVault = {
+      ...currentVault,
+      items: [newItem, ...currentVault.items]
+    };
+
+    const updatedProject: ProcessProjectFile = {
+      ...currentProject,
+      documentationVault: updatedVault,
+      documentControl: {
+        ...currentProject.documentControl,
+        updatedAt: new Date().toISOString()
+      }
+    };
+
+    get().setProjectData(updatedProject);
+    return newId;
+  },
+
+  updateDocumentationItem: (id, updates) => {
+    const { currentProject } = get();
+    if (!currentProject || !currentProject.documentationVault) return;
+
+    const currentVault = currentProject.documentationVault;
+    const updatedItems = currentVault.items.map((it) =>
+      it.id === id ? { ...it, ...updates, updatedAt: new Date().toISOString() } : it
+    );
+
+    const updatedProject: ProcessProjectFile = {
+      ...currentProject,
+      documentationVault: {
+        ...currentVault,
+        items: updatedItems
+      },
+      documentControl: {
+        ...currentProject.documentControl,
+        updatedAt: new Date().toISOString()
+      }
+    };
+
+    get().setProjectData(updatedProject);
+  },
+
+  removeDocumentationItem: (id) => {
+    const { currentProject } = get();
+    if (!currentProject || !currentProject.documentationVault) return;
+
+    const currentVault = currentProject.documentationVault;
+    const updatedItems = currentVault.items.filter((it) => it.id !== id);
+
+    const updatedProject: ProcessProjectFile = {
+      ...currentProject,
+      documentationVault: {
+        ...currentVault,
+        items: updatedItems
+      },
+      documentControl: {
+        ...currentProject.documentControl,
+        updatedAt: new Date().toISOString()
+      }
+    };
+
+    get().setProjectData(updatedProject);
+  },
+
+  updateDocumentationGlobalNotes: (notes) => {
+    const { currentProject } = get();
+    if (!currentProject) return;
+
+    const currentVault = currentProject.documentationVault || { items: [] };
+    const updatedProject: ProcessProjectFile = {
+      ...currentProject,
+      documentationVault: {
+        ...currentVault,
+        globalNotes: notes
+      },
+      documentControl: {
+        ...currentProject.documentControl,
+        updatedAt: new Date().toISOString()
+      }
+    };
+
+    get().setProjectData(updatedProject);
   },
 
   // --- UNDO / REDO IMPLEMENTATION ---

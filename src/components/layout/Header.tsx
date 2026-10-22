@@ -56,6 +56,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
     setSimulationModalOpen,
     setVersionDiffModalOpen,
     setPresentationModalOpen,
+    setDocumentationModalOpen,
     toggleTheme,
     showNotification,
     isPropertiesPanelOpen,
@@ -328,6 +329,18 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
           </div>
         </div>
 
+        {/* Direct Button: Bóveda Documental IA */}
+        {currentProject && (
+          <button
+            onClick={() => setDocumentationModalOpen(true)}
+            className="flex items-center space-x-1.5 px-3 py-2 rounded-lg text-xs font-semibold bg-gradient-to-r from-violet-500/10 to-indigo-500/10 hover:from-violet-500/20 hover:to-indigo-500/20 text-violet-400 border border-violet-500/30 transition-all shadow-sm cursor-pointer"
+            title="Abrir Bóveda Documental del Proceso (textos normativos, notas de voz y Gemini AI)"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-violet-400 animate-pulse" />
+            <span className="hidden md:inline">Documentación IA</span>
+          </button>
+        )}
+
         {/* Tools Dropdown Menu */}
         {currentProject && (
           <div ref={toolsMenuRef} className="relative">
@@ -350,6 +363,26 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
             {/* Tools Dropdown Card */}
             {isToolsMenuOpen && (
               <div className="absolute top-full mt-1.5 left-0 w-64 bg-theme-surface/95 backdrop-blur-xl border border-theme-border rounded-xl shadow-2xl py-1.5 z-50 animate-in fade-in zoom-in-95">
+                {/* Bóveda Documental IA */}
+                <button
+                  onClick={() => {
+                    setDocumentationModalOpen(true);
+                    setIsToolsMenuOpen(false);
+                  }}
+                  className="w-full flex items-center justify-between px-3 py-2 text-xs hover:bg-theme-surface-subtle transition-colors text-left text-theme-text group"
+                >
+                  <div className="flex items-center space-x-2.5">
+                    <Sparkles className="w-4 h-4 text-violet-400 group-hover:scale-110 transition-transform" />
+                    <div>
+                      <div className="font-bold flex items-center space-x-1.5 text-violet-400">
+                        <span>Bóveda Documental IA</span>
+                        <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-pulse" />
+                      </div>
+                      <div className="text-[10px] text-theme-text-muted">Textos, notas de voz y Gemini AI</div>
+                    </div>
+                  </div>
+                </button>
+
                 {/* Prezi Presentation */}
                 <button
                   onClick={() => {

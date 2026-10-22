@@ -21,6 +21,7 @@ import { SimulationModal } from './components/simulation/SimulationModal';
 import { VersionDiffModal } from './components/diff/VersionDiffModal';
 import { ProcessPresentationModal } from './components/presentation/ProcessPresentationModal';
 import { ManageLanesModal } from './components/modals/ManageLanesModal';
+import { ProcessDocumentationModal } from './components/documentation/ProcessDocumentationModal';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
 import { CheckCircle2, Info, AlertCircle, X } from 'lucide-react';
 
@@ -165,6 +166,9 @@ export const App: React.FC = () => {
 
         {/* Manage Lanes (Swimlanes) Modal */}
         <ManageLanesModal />
+
+        {/* Process Documentation & AI Context Modal */}
+        <ProcessDocumentationModal />
       </div>
     </ErrorBoundary>
   );

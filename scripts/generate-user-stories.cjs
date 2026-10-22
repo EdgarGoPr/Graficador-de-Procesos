@@ -587,6 +587,15 @@ const userStories = [
     criteriosAceptacion: '1. Creación del utilitario nodeContrast.ts con cálculo de luminosidad ponderada YIQ y alpha-blending sobre el lienzo.\n2. En fondos oscuros: títulos en Blanco (#FFFFFF), descripciones en Gris claro (#CBD5E1) y metadatos en Gris medio (#94A3B8).\n3. En fondos claros: títulos en Negro grafito (#0F172A), descripciones en Gris oscuro (#334155) y metadatos en Gris pizarra (#64748B).\n4. Exclusión estricta y preservación cromática de textos semánticos: nomenclaturas (TSK, SUB, QCP, FIN, INI, GTW), badges de tipo de actividad y botones de acción.\n5. Integración transversal en TaskNode, SubProcessNode, QualityCheckpointNode, GatewayNode, StartEventNode, EndEventNode y TimerBoundaryNode.',
     fechaImplementacion: '2026-10-21',
     estado: 'Implementado / Producción'
+  },
+  {
+    id: 'PST-066',
+    modulo: 'Inteligencia Artificial & Modelado Asistido',
+    titulo: 'Asistente de IA para Recomendación Jerárquica de Nodos, Bóveda Documental y Notas de Voz',
+    historiaUsuario: 'Como modelador de procesos en la web, quiero solicitar sugerencias contextuales con IA desde la rueda radial de nodos para saber cuál es el próximo paso a conectar, basándose jerárquicamente en documentos cargados, audios y en el grafo actual, contando con salvaguarda preventiva "No hay sugerencias" ante fallos o desvíos informativos.',
+    criteriosAceptacion: '1. Bóveda Documental (ProcessDocumentationModal) para ingresar documentación escrita, directivas globales y grabar o importar notas de voz con micrófono web (MediaRecorder).\n2. Transcripción automática de audio a texto utilizando Google Gemini 2.0 Flash Audio.\n3. Incorporación del sector "Sugerir IA" en la rueda radial (RadialNodeMenu) con icono Sparkles y cálculo angular de 8 sectores (45°).\n4. Consulta con jerarquía estricta de verdad: Nivel 1 (documentos/audios), Nivel 2 (grafo y roles actuales), Nivel 3 (prácticas BPMN acotadas).\n5. Mecanismo de salvaguarda "No hay sugerencias": si la API falla o la información se desvía del proceso real, arroja mensaje limpio sin bloquear el flujo.\n6. Tarjeta flotante AiSuggestionCard con previsualización del paso recomendado, rol, fundamento documental y botón de 1-clic para conectar e insertar el nodo con sus datos precargados.\n7. Soporte dual de API Key de Gemini: variable de entorno VITE_GEMINI_API_KEY o guardado en el navegador (localStorage) sin sistema de autenticación de usuarios.',
+    fechaImplementacion: '2026-10-22',
+    estado: 'Implementado / Producción'
   }
 ];
 
