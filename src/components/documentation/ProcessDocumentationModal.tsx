@@ -28,6 +28,7 @@ import {
   getGeminiApiKey,
   setGeminiApiKey
 } from '../../services/aiRecommendationService';
+import { DocumentExtractorService } from '../../services/documentExtractorService';
 import { ProcessDocumentationItem } from '../../types/ai';
 
 export const ProcessDocumentationModal: React.FC = () => {
@@ -58,6 +59,7 @@ export const ProcessDocumentationModal: React.FC = () => {
   const [apiKeyInput, setApiKeyInput] = useState('');
   const [isTestingKey, setIsTestingKey] = useState(false);
   const [testResult, setTestResult] = useState<{ ok: boolean; message: string } | null>(null);
+  const [isExtractingDocument, setIsExtractingDocument] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -101,32 +103,38 @@ export const ProcessDocumentationModal: React.FC = () => {
     showNotification('Notas globales actualizadas', 'success');
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     if (file.type.startsWith('audio/')) {
       // Manejar archivo de audio subido
       handleUploadAudioFile(file);
-    } else {
-      // Manejar archivo de texto/markdown
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const text = event.target?.result as string;
-        if (text) {
-          addDocumentationItem({
-            type: 'TEXT',
-            title: file.name.replace(/\.[^/.]+$/, ''),
-            sourceReference: `Archivo: ${file.name}`,
-            content: text
-          });
-          showNotification(`Documento importado: ${file.name}`, 'success');
-        }
-      };
-      reader.readAsText(file);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
     }
 
-    if (fileInputRef.current) fileInputRef.current.value = '';
+    setIsExtractingDocument(true);
+    try {
+      const extracted = await DocumentExtractorService.extractDocument(file);
+      addDocumentationItem({
+        type: 'TEXT',
+        title: extracted.title,
+        sourceReference: extracted.sourceReference,
+        content: extracted.content
+      });
+
+      const detail = extracted.pageCount
+        ? ` (${extracted.pageCount} páginas, ${extracted.wordCount} palabras)`
+        : ` (${extracted.wordCount} palabras)`;
+
+      showNotification(`Documento importado con éxito: ${file.name}${detail}`, 'success');
+    } catch (err: any) {
+      showNotification(`Error al importar documento: ${err.message}`, 'error');
+    } finally {
+      setIsExtractingDocument(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
   };
 
   // --- Manejo de Audios ---
@@ -369,16 +377,27 @@ export const ProcessDocumentationModal: React.FC = () => {
                       type="file"
                       ref={fileInputRef}
                       onChange={handleFileUpload}
-                      accept=".txt,.md,.json,audio/*"
+                      accept=".pdf,.docx,.doc,.txt,.md,.json,audio/*"
                       className="hidden"
                     />
                     <button
                       type="button"
+                      disabled={isExtractingDocument}
                       onClick={() => fileInputRef.current?.click()}
-                      className="text-xs px-2.5 py-1 rounded-lg bg-theme-surface border border-theme-border hover:bg-theme-surface-hover text-theme-text flex items-center gap-1.5 transition-colors"
+                      className="text-xs px-2.5 py-1 rounded-lg bg-theme-surface border border-theme-border hover:bg-theme-surface-hover text-theme-text flex items-center gap-1.5 transition-colors disabled:opacity-50"
+                      title="Importar manual, normativa o audio (PDF, DOCX, TXT, MD, MP3, WAV...)"
                     >
-                      <Upload className="w-3.5 h-3.5 text-violet-400" />
-                      Importar Archivo
+                      {isExtractingDocument ? (
+                        <>
+                          <RefreshCw className="w-3.5 h-3.5 text-violet-400 animate-spin" />
+                          <span>Extrayendo texto...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="w-3.5 h-3.5 text-violet-400" />
+                          <span>Importar Archivo (PDF, Word, TXT)</span>
+                        </>
+                      )}
                     </button>
                   </div>
                 </div>
@@ -430,7 +449,7 @@ export const ProcessDocumentationModal: React.FC = () => {
                     <BookOpen className="w-8 h-8 mx-auto mb-2 opacity-40 text-violet-400" />
                     <p className="text-xs">No hay documentos cargados en la bóveda de este proceso.</p>
                     <p className="text-[11px] mt-1">
-                      Pega fragmentos normativos arriba para que la IA priorice estos pasos al recomendar.
+                      Pega fragmentos normativos o importa manuales en PDF y Word (.docx) para que la IA fundamente sus recomendaciones.
                     </p>
                   </div>
                 ) : (

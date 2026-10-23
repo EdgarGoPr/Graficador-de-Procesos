@@ -605,6 +605,15 @@ const userStories = [
     criteriosAceptacion: '1. Configuración de API Key válida en .env (VITE_GEMINI_API_KEY) verificada con Google AI Studio.\n2. Actualización del endpoint de servicio a gemini-3.5-flash:generateContent en aiRecommendationService.ts y ProcessDocumentationModal.tsx.\n3. Latencia de respuesta optimizada (< 1.8 s) y soporte completo para transcripciones de audio y sugerencias contextuales.\n4. Prueba de conexión en tiempo real en la Bóveda Documental con confirmación visual de conexión a Gemini 3.5 Flash.',
     fechaImplementacion: '2026-10-23',
     estado: 'Implementado / Producción'
+  },
+  {
+    id: 'PST-068',
+    modulo: 'Documentación & Bóveda de Procesos',
+    titulo: 'Importación y Extracción Automática de Documentos PDF y Word (.docx)',
+    historiaUsuario: 'Como modelador y analista de procesos, quiero cargar manuales y directivas en formato PDF y Word (.docx) directamente en la Bóveda Documental para que su texto se extraiga automáticamente y alimente el Nivel 1 de verdad de la IA sin tener que copiar y pegar texto manualmente.',
+    criteriosAceptacion: '1. Creación del servicio DocumentExtractorService con soporte para .pdf, .docx, .doc, .txt, .md y .json.\n2. Extracción local y offline de documentos Word (.docx) mediante mammoth preservando títulos y estructura.\n3. Extracción local de PDFs página por página mediante pdfjs-dist con conteo de páginas y palabras.\n4. Salvaguarda multimodal OCR con Gemini 3.5 Flash en caso de PDFs escaneados o sin capa de texto seleccionable.\n5. Integración en ProcessDocumentationModal con selector de archivos ampliado, spinner de extracción y notificación de éxito.',
+    fechaImplementacion: '2026-10-23',
+    estado: 'Implementado / Producción'
   }
 ];
 
