@@ -596,6 +596,15 @@ const userStories = [
     criteriosAceptacion: '1. Bóveda Documental (ProcessDocumentationModal) para ingresar documentación escrita, directivas globales y grabar o importar notas de voz con micrófono web (MediaRecorder).\n2. Transcripción automática de audio a texto utilizando Google Gemini 2.0 Flash Audio.\n3. Incorporación del sector "Sugerir IA" en la rueda radial (RadialNodeMenu) con icono Sparkles y cálculo angular de 8 sectores (45°).\n4. Consulta con jerarquía estricta de verdad: Nivel 1 (documentos/audios), Nivel 2 (grafo y roles actuales), Nivel 3 (prácticas BPMN acotadas).\n5. Mecanismo de salvaguarda "No hay sugerencias": si la API falla o la información se desvía del proceso real, arroja mensaje limpio sin bloquear el flujo.\n6. Tarjeta flotante AiSuggestionCard con previsualización del paso recomendado, rol, fundamento documental y botón de 1-clic para conectar e insertar el nodo con sus datos precargados.\n7. Soporte dual de API Key de Gemini: variable de entorno VITE_GEMINI_API_KEY o guardado en el navegador (localStorage) sin sistema de autenticación de usuarios.',
     fechaImplementacion: '2026-10-22',
     estado: 'Implementado / Producción'
+  },
+  {
+    id: 'PST-067',
+    modulo: 'Inteligencia Artificial & Modelado Asistido',
+    titulo: 'Actualización de Motor Gemini AI a 3.5 Flash y Activación de Credenciales de Producción',
+    historiaUsuario: 'Como usuario de ProcesStudio, quiero que las consultas de IA y transcripciones se ejecuten sobre el modelo Google Gemini 3.5 Flash con credenciales activas, para garantizar respuestas en menos de 2 segundos, soporte multimodal y continuidad del servicio sin errores de modelos discontinuados.',
+    criteriosAceptacion: '1. Configuración de API Key válida en .env (VITE_GEMINI_API_KEY) verificada con Google AI Studio.\n2. Actualización del endpoint de servicio a gemini-3.5-flash:generateContent en aiRecommendationService.ts y ProcessDocumentationModal.tsx.\n3. Latencia de respuesta optimizada (< 1.8 s) y soporte completo para transcripciones de audio y sugerencias contextuales.\n4. Prueba de conexión en tiempo real en la Bóveda Documental con confirmación visual de conexión a Gemini 3.5 Flash.',
+    fechaImplementacion: '2026-10-23',
+    estado: 'Implementado / Producción'
   }
 ];
 

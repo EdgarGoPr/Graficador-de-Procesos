@@ -248,7 +248,7 @@ export const ProcessDocumentationModal: React.FC = () => {
 
     try {
       const res = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${keyToTest}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${keyToTest}`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -259,7 +259,7 @@ export const ProcessDocumentationModal: React.FC = () => {
       );
 
       if (res.ok) {
-        setTestResult({ ok: true, message: '¡Conexión exitosa con Gemini 2.0 Flash!' });
+        setTestResult({ ok: true, message: '¡Conexión exitosa con Gemini 3.5 Flash!' });
         setGeminiApiKey(keyToTest);
       } else {
         const errJson = await res.json().catch(() => null);

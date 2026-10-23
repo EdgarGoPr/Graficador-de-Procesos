@@ -6,7 +6,7 @@ import {
 import { BpmnNodeType, BPMN_NODE_TYPES } from '../types/process';
 
 const GEMINI_LOCALSTORAGE_KEY = 'procesos_gemini_api_key';
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent';
 
 /**
  * Obtiene la API Key activa (prioridad: localStorage > .env)
