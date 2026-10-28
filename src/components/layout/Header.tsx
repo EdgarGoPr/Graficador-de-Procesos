@@ -8,6 +8,7 @@ import { LogoPS } from '../common/LogoPS';
 import { NewRevisionModal } from '../modals/NewRevisionModal';
 import { ProjectParticipantsModal } from '../modals/ProjectParticipantsModal';
 import { EditProjectModal } from '../modals/EditProjectModal';
+import { UserProfileMenu } from './UserProfileMenu';
 import {
   LayoutDashboard,
   GitGraph,
@@ -17,11 +18,8 @@ import {
   Save,
   Plus,
   Shield,
-  Sun,
-  Moon,
   FolderOpen,
   Compass,
-  Palette,
   Undo2,
   Redo2,
   Flame,
@@ -32,9 +30,6 @@ import {
   Sparkles,
   Check,
   GitCommit,
-  LogIn,
-  LogOut,
-  UserCheck,
   Users,
   Pencil
 } from 'lucide-react';
@@ -58,15 +53,12 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
   const {
     activeView,
     setActiveView,
-    theme,
-    setThemeModalOpen,
     setQualityAuditModalOpen,
     setExportCenterModalOpen,
     setSimulationModalOpen,
     setVersionDiffModalOpen,
     setPresentationModalOpen,
     setDocumentationModalOpen,
-    toggleTheme,
     showNotification,
     isPropertiesPanelOpen,
     setPropertiesPanelOpen,
@@ -76,10 +68,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
   const {
     currentUser,
     currentCanvasPermission,
-    releaseCanvasLock,
-    openAuthModal,
-    setAdminConsoleOpen,
-    logout
+    releaseCanvasLock
   } = useAuthStore();
 
   const [isViewsMenuOpen, setIsViewsMenuOpen] = useState(false);
@@ -215,7 +204,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
           <LogoPS size="sm" />
         </div>
 
-        {currentProject && (
+        {currentProject ? (
           <div className="hidden lg:flex items-center space-x-2 pl-3 border-l border-theme-border">
             <div className="max-w-xs xl:max-w-sm truncate">
               <div className="flex items-center space-x-1.5">
@@ -226,7 +215,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
                   <button
                     onClick={() => setIsEditModalOpen(true)}
                     title="Editar ficha y metadatos del proyecto"
-                    className="p-0.5 rounded text-theme-text-muted hover:text-amber-400 hover:bg-theme-surface transition-colors shrink-0"
+                    className="p-0.5 rounded text-theme-text-muted hover:text-amber-400 hover:bg-theme-surface transition-colors shrink-0 cursor-pointer"
                   >
                     <Pencil className="w-3 h-3" />
                   </button>
@@ -256,19 +245,26 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
               </div>
             </div>
           </div>
+        ) : (
+          <div className="hidden md:flex items-center space-x-2 pl-3 border-l border-theme-border/60">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+            <span className="text-xs font-medium text-theme-text-muted tracking-tight">
+              Plataforma de Procesos & BPMN 2.0
+            </span>
+          </div>
         )}
       </div>
 
       {/* Center: Primary Tabs & Dropdown Menus */}
       <div className="flex items-center space-x-2">
         {/* Primary View Tabs */}
-        <div className="flex items-center bg-theme-surface-subtle p-1 rounded-lg border border-theme-border">
+        <div className="flex items-center bg-theme-surface-subtle p-1 rounded-xl border border-theme-border/80 shadow-xs">
           {/* Projects Dashboard */}
           <button
             onClick={() => setActiveView('DASHBOARD')}
-            className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+            className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
               activeView === 'DASHBOARD'
-                ? 'bg-theme-surface text-theme-accent shadow-sm border border-theme-border font-bold'
+                ? 'bg-theme-surface text-theme-accent shadow-xs border border-theme-border font-bold'
                 : 'text-theme-text-muted hover:text-theme-text hover:bg-theme-surface/50'
             }`}
           >
@@ -279,9 +275,9 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
           {/* BPMN Canvas */}
           <button
             onClick={() => setActiveView('CANVAS')}
-            className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+            className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
               activeView === 'CANVAS'
-                ? 'bg-theme-surface text-theme-accent shadow-sm border border-theme-border font-bold'
+                ? 'bg-theme-surface text-theme-accent shadow-xs border border-theme-border font-bold'
                 : 'text-theme-text-muted hover:text-theme-text hover:bg-theme-surface/50'
             }`}
           >
@@ -584,183 +580,113 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
         )}
       </div>
 
-      {/* Right: Compact Utilities & Primary Action Buttons */}
-      <div className="flex items-center space-x-2 shrink-0">
-        {/* History Undo / Redo (Compact) */}
-        {currentProject && (
-          <div className="flex items-center bg-theme-surface-subtle p-0.5 rounded-lg border border-theme-border">
-            <button
-              onClick={handleUndo}
-              disabled={!canUndo}
-              className={`p-1.5 rounded-md transition-all ${
-                canUndo
-                  ? 'text-theme-text hover:text-theme-accent hover:bg-theme-surface cursor-pointer'
-                  : 'text-theme-text-muted/40 cursor-not-allowed opacity-40'
-              }`}
-              title={canUndo ? 'Deshacer último cambio (Ctrl+Z)' : 'Nada que deshacer'}
-            >
-              <Undo2 className="w-3.5 h-3.5" />
-            </button>
-            <button
-              onClick={handleRedo}
-              disabled={!canRedo}
-              className={`p-1.5 rounded-md transition-all ${
-                canRedo
-                  ? 'text-theme-text hover:text-theme-accent hover:bg-theme-surface cursor-pointer'
-                  : 'text-theme-text-muted/40 cursor-not-allowed opacity-40'
-              }`}
-              title={canRedo ? 'Rehacer cambio (Ctrl+Y)' : 'Nada que rehacer'}
-            >
-              <Redo2 className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        )}
-
-        {/* Quick Utilities Group */}
-        <div className="flex items-center space-x-1 bg-theme-surface-subtle p-0.5 rounded-lg border border-theme-border">
-          {/* Open Folder in Explorer */}
-          <button
-            onClick={handleOpenFolder}
-            className="p-1.5 rounded-md text-theme-text hover:text-theme-accent hover:bg-theme-surface transition-colors"
-            title="Abrir carpeta de proyectos JSON en disco"
-          >
-            <FolderOpen className="w-3.5 h-3.5" />
-          </button>
-
-          {/* Antigravity IDE Themes */}
-          <button
-            onClick={() => setThemeModalOpen(true)}
-            className="p-1.5 rounded-md text-theme-text hover:text-theme-accent hover:bg-theme-surface transition-colors group"
-            title="Personalizar Temas de Antigravity IDE y Paleta"
-          >
-            <Palette className="w-3.5 h-3.5 group-hover:rotate-12 transition-transform" />
-          </button>
-
-          {/* Dark / Light Mode Switch */}
-          <button
-            onClick={toggleTheme}
-            className="p-1.5 rounded-md text-theme-text hover:text-theme-accent hover:bg-theme-surface transition-colors"
-            title={theme === 'dark' ? 'Cambiar a Modo Claro' : 'Cambiar a Modo Oscuro'}
-          >
-            {theme === 'dark' ? (
-              <Sun className="w-3.5 h-3.5 text-amber-400" />
-            ) : (
-              <Moon className="w-3.5 h-3.5 text-theme-accent" />
-            )}
-          </button>
-        </div>
-
-        {/* Primary Project Actions (Icon-Only) */}
-        {currentProject && (
-          <button
-            onClick={() => setExportCenterModalOpen(true)}
-            className="p-2 bg-theme-surface-subtle hover:bg-theme-surface text-theme-text hover:text-theme-accent rounded-lg text-xs font-semibold border border-theme-border transition-all hover:scale-105"
-            title="Centro de Exportación: PNG HD, SVG Vectorial, PDF, BPMN 2.0 XML y Word (.doc)"
-          >
-            <ArrowDownToLine className="w-4 h-4 text-theme-accent" />
-          </button>
-        )}
-
-        <button
-          onClick={onOpenNewProjectModal}
-          className="p-2 bg-theme-surface-subtle hover:bg-theme-surface text-theme-text hover:text-theme-accent rounded-lg text-xs font-semibold border border-theme-border transition-all hover:scale-105"
-          title="Crear nuevo proyecto"
-        >
-          <Plus className="w-4 h-4 text-theme-accent" />
-        </button>
-
+      {/* Right: Unified Action Cluster & Integrated User Profile Menu */}
+      <div className="flex items-center space-x-2.5 shrink-0">
+        {/* Project Actions Cluster (When a Project is Active) */}
         {currentProject && (
           <div className="flex items-center space-x-1.5">
-            {canManageParticipants && (
+            {/* History Undo / Redo */}
+            <div className="flex items-center bg-theme-surface-subtle p-0.5 rounded-xl border border-theme-border/80">
               <button
-                onClick={() => setIsParticipantsModalOpen(true)}
-                className="p-2 bg-theme-surface-subtle hover:bg-theme-surface text-theme-text hover:text-theme-accent rounded-lg text-xs font-semibold border border-theme-border transition-all hover:scale-105 flex items-center space-x-1"
-                title="Gestionar participantes y permisos de este proyecto"
+                onClick={handleUndo}
+                disabled={!canUndo}
+                className={`p-1.5 rounded-lg transition-all ${
+                  canUndo
+                    ? 'text-theme-text hover:text-theme-accent hover:bg-theme-surface cursor-pointer'
+                    : 'text-theme-text-muted/40 cursor-not-allowed opacity-40'
+                }`}
+                title={canUndo ? 'Deshacer último cambio (Ctrl+Z)' : 'Nada que deshacer'}
               >
-                <Users className="w-4 h-4 text-theme-accent" />
+                <Undo2 className="w-3.5 h-3.5" />
               </button>
-            )}
+              <button
+                onClick={handleRedo}
+                disabled={!canRedo}
+                className={`p-1.5 rounded-lg transition-all ${
+                  canRedo
+                    ? 'text-theme-text hover:text-theme-accent hover:bg-theme-surface cursor-pointer'
+                    : 'text-theme-text-muted/40 cursor-not-allowed opacity-40'
+                }`}
+                title={canRedo ? 'Rehacer cambio (Ctrl+Y)' : 'Nada que rehacer'}
+              >
+                <Redo2 className="w-3.5 h-3.5" />
+              </button>
+            </div>
 
-            <button
-              onClick={() => setIsRevisionModalOpen(true)}
-              disabled={isSaving}
-              className="p-2 bg-theme-surface-subtle hover:bg-theme-surface text-theme-text hover:text-theme-accent rounded-lg text-xs font-semibold border border-theme-border transition-all hover:scale-105 flex items-center space-x-1"
-              title="Guardar como nueva versión inmutable (Multi-equipo Casa/Trabajo)"
-            >
-              <GitCommit className="w-4 h-4 text-theme-accent" />
-            </button>
-
-            <button
-              onClick={handleSave}
-              disabled={isSaving}
-              className={`p-2 rounded-lg text-xs font-bold shadow-md transition-all hover:scale-105 flex items-center justify-center ${
-                hasUnsavedChanges
-                  ? 'bg-gradient-to-r from-[#0284C7] to-[#3B82F6] hover:brightness-110 text-white animate-pulse'
-                  : 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/25'
-              }`}
-              title={isSaving ? 'Guardando...' : hasUnsavedChanges ? 'Guardar cambios pendientes (Ctrl+S)' : 'Todos los cambios guardados (Ctrl+S)'}
-            >
-              <Save className="w-4 h-4" />
-            </button>
-          </div>
-        )}
-
-        {/* User Authentication & Admin Console */}
-        <div className="flex items-center space-x-1.5">
-          {currentUser ? (
-            <div className="flex items-center space-x-1.5">
-              {currentUser.role === 'ADMIN' && (
+            {/* Document Workspace Action Group */}
+            <div className="flex items-center space-x-1 bg-theme-surface-subtle p-1 rounded-xl border border-theme-border/80">
+              {/* Manage Participants (Admin or Creator) */}
+              {canManageParticipants && (
                 <button
-                  onClick={() => setAdminConsoleOpen(true)}
-                  className="py-1.5 px-2.5 rounded-lg bg-theme-accent/15 hover:bg-theme-accent hover:text-white border border-theme-accent/30 text-theme-accent font-bold text-xs flex items-center space-x-1.5 transition-all shadow-sm"
-                  title="Abrir Consola de Administración y Gobernanza (ISO 9001)"
+                  onClick={() => setIsParticipantsModalOpen(true)}
+                  className="p-1.5 rounded-lg text-theme-text hover:text-theme-accent hover:bg-theme-surface transition-all cursor-pointer"
+                  title="Gestionar participantes y permisos de este proyecto"
                 >
-                  <Shield className="w-3.5 h-3.5" />
-                  <span className="hidden xl:inline">Consola Admin</span>
+                  <Users className="w-3.5 h-3.5" />
                 </button>
               )}
 
-              <div
-                className="flex items-center space-x-2 px-2.5 py-1 rounded-lg bg-theme-surface-subtle border border-theme-border"
-                title={`Sesión iniciada: ${currentUser.fullName} (${currentUser.role})`}
-              >
-                <div className="w-5 h-5 rounded-full bg-theme-accent/25 flex items-center justify-center text-theme-accent font-bold text-[10px] uppercase">
-                  {currentUser.fullName.charAt(0)}
-                </div>
-                <div className="hidden lg:block text-left">
-                  <p className="text-[11px] font-bold text-theme-text truncate max-w-[100px] leading-tight">
-                    {currentUser.fullName.split(' ')[0]}
-                  </p>
-                  <span
-                    className={`text-[9px] font-mono px-1 rounded ${
-                      currentUser.role === 'ADMIN'
-                        ? 'text-theme-accent bg-theme-accent/10'
-                        : 'text-theme-text-muted bg-theme-border/40'
-                    }`}
-                  >
-                    {currentUser.role}
-                  </span>
-                </div>
-              </div>
-
+              {/* Export Center */}
               <button
-                onClick={() => logout()}
-                className="p-1.5 rounded-lg text-theme-text-muted hover:text-red-400 hover:bg-red-500/10 transition-colors"
-                title="Cerrar sesión"
+                onClick={() => setExportCenterModalOpen(true)}
+                className="p-1.5 rounded-lg text-theme-text hover:text-theme-accent hover:bg-theme-surface transition-all cursor-pointer"
+                title="Centro de Exportación: PNG HD, SVG Vectorial, PDF, BPMN 2.0 XML y Word (.doc)"
               >
-                <LogOut className="w-3.5 h-3.5" />
+                <ArrowDownToLine className="w-3.5 h-3.5" />
+              </button>
+
+              {/* New Revision */}
+              <button
+                onClick={() => setIsRevisionModalOpen(true)}
+                disabled={isSaving}
+                className="p-1.5 rounded-lg text-theme-text hover:text-theme-accent hover:bg-theme-surface transition-all cursor-pointer"
+                title="Guardar como nueva versión inmutable (Multi-equipo)"
+              >
+                <GitCommit className="w-3.5 h-3.5" />
               </button>
             </div>
-          ) : (
+
+            {/* Primary Save Button */}
             <button
-              onClick={() => openAuthModal('LOGIN')}
-              className="py-1.5 px-3 rounded-lg bg-theme-accent hover:opacity-95 text-white font-semibold text-xs flex items-center space-x-1.5 shadow-sm transition-all"
+              onClick={handleSave}
+              disabled={isSaving}
+              className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer ${
+                hasUnsavedChanges
+                  ? 'bg-gradient-to-r from-[#0284C7] to-[#3B82F6] hover:brightness-110 text-white animate-pulse shadow-blue-500/20'
+                  : 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/25'
+              }`}
+              title={
+                isSaving
+                  ? 'Guardando cambios...'
+                  : hasUnsavedChanges
+                  ? 'Guardar cambios pendientes (Ctrl+S)'
+                  : 'Todos los cambios guardados (Ctrl+S)'
+              }
             >
-              <LogIn className="w-3.5 h-3.5" />
-              <span>Acceder</span>
+              <Save className="w-3.5 h-3.5" />
+              <span className="hidden md:inline">
+                {isSaving ? 'Guardando...' : hasUnsavedChanges ? 'Guardar' : 'Guardado'}
+              </span>
             </button>
-          )}
-        </div>
+          </div>
+        )}
+
+        {/* Global Action: New Project Button */}
+        <button
+          onClick={onOpenNewProjectModal}
+          className={`flex items-center space-x-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
+            !currentProject
+              ? 'px-3 py-1.5 bg-theme-accent/15 hover:bg-theme-accent hover:text-white border-theme-accent/30 text-theme-accent shadow-sm'
+              : 'p-1.5 bg-theme-surface-subtle hover:bg-theme-surface text-theme-text hover:text-theme-accent border-theme-border/80'
+          }`}
+          title="Crear un nuevo proyecto de proceso"
+        >
+          <Plus className="w-3.5 h-3.5" />
+          {!currentProject && <span className="hidden sm:inline">Nuevo Proceso</span>}
+        </button>
+
+        {/* Unified User Profile & Preferences Dropdown */}
+        <UserProfileMenu onOpenFolder={handleOpenFolder} />
       </div>
 
       {/* New Revision Modal for Multi-Device safe saving */}

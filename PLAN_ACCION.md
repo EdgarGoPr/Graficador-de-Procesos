@@ -677,14 +677,34 @@ Las recomendaciones técnicas evaluadas han sido clasificadas e integradas al al
    - **Sincronización:**
      - Compilación limpia (`npm run build`), registro de 81 historias de usuario en Excel (`PST-081`) y auto-push Git tras aprobación.
 
+10. **Rediseño de Layout y Cabecera Ergonómica (PST-082 - Versión 1.9.0) [✅ IMPLEMENTADO]:**
+   - **Diagnóstico del Estado Actual:**
+     - El encabezado superior (`Header.tsx`) presentaba una marcada descompensación en pantallas de escritorio: grandes vacíos negativos entre el logotipo y el selector central de vistas, mientras que el extremo derecho concentraba múltiples contenedores rectangulares inconexos (`[Carpeta | Paleta | Tema]`, `[+]`, `[Consola Admin]`, `[Usuario]`, `[Logout]`).
+     - Al alternar entre el Dashboard (sin proyecto) y el Lienzo (con proyecto cargado), la barra sufría saltos bruscos de contenido y acumulación de botones.
+   - **Propuestas de Diseño y Disposición Presentadas al Usuario:**
+     - **Opción 1: "Studio Balanced" (Clúster Unificado & Menú de Perfil Integrado - Estilo Figma / Linear) [SELECCIONADA POR EL USUARIO]:**
+       - **Izquierda:** Logo corporativo `[PS ProcesStudio]` + Badge contextual en Dashboard (`Gestor de Procesos & BPMN 2.0`) / Breadcrumb interactivo del proyecto activo con ficha, chip de versión y permiso.
+       - **Centro:** Cápsula de navegación segmentada centrada y balanceada `[ Proyectos ]` | `[ Lienzo BPMN ]` | `[ Vistas & Matrices ▾ ]` (+ menú de `Herramientas ▾` contextual).
+       - **Derecha:** Clúster de acciones de trabajo agrupadas (`[Deshacer/Rehacer]`, `[Exportar]`, `[Participantes]`, `[Guardar]`) + Botón destacado `[+ Nuevo Proceso]` + **Menú Desplegable de Usuario Integrado** (`UserProfileMenu.tsx`).
+       - **Menú de Perfil de Usuario (`UserProfileMenu.tsx`):** Avatar interactivo con inicial/foto + nombre + rol que al hacer clic despliega ordenadamente: *Tarjeta de usuario, Consola Admin (destacada si es ADMIN), Selector de Modo Oscuro/Claro, Selector de Temas Antigravity, Abrir Carpeta Local y Cerrar Sesión*, eliminando por completo el amontonamiento de botones sueltos en la barra.
+     - **Opción 2: "Workbench Pro" (Alineación por Flujo de Trabajo Natural - Estilo VS Code / Miro).**
+     - **Opción 3: "Top Executive" (Barra Dual / Jerarquía de 2 Niveles - Estilo Microsoft 365 / Lucidchart).**
+   - **Criterios Técnicos de Implementación Cumplidos:**
+     - Creación de `src/components/layout/UserProfileMenu.tsx` con accesibilidad, click-outside y glassmorphism.
+     - Refactorización de `src/components/layout/Header.tsx` para eliminar contenedores redundantes e integrar la navegación balanceada.
+     - Transiciones fluidas en hover/focus con tokens CSS del tema activo.
+     - Incremento de versión semántica a `1.9.0` (indicador visual `V 01.09.00`).
+     - Sincronización de 82 historias de usuario en `HISTORIAS_DE_USUARIO_PROCESSTUDIO.xlsx` (`PST-082`), compilación limpia (`npm run build`) y auto-push Git tras la aprobación.
+
 ---
 
-## 10. Conclusión y Compromiso de Desarrollo
+## 11. Conclusión y Compromiso de Desarrollo
 
-Este documento constituye la **Hoja de Ruta Maestra Oficial de Usuarios, Permisos, Seguridad y Auditoría** de ProcesStudio (Versión 1.8.0).
+Este documento constituye la **Hoja de Ruta Maestra Oficial de Usuarios, Permisos, Seguridad, Auditoría y Diseño Ergonómico** de ProcesStudio (Versión 1.9.0).
 
 Todas las fases se implementarán respetando rigurosamente:
 1. **La arquitectura 100% Web Cloud Nativa** (React + TypeScript + Vite + Neon PostgreSQL).
 2. **La persistencia relacional en Neon PostgreSQL**.
-3. **La actualización del archivo Excel `HISTORIAS_DE_USUARIO_PROCESSTUDIO.xlsx`** (`PST-069` a `PST-081`).
+3. **La actualización del archivo Excel `HISTORIAS_DE_USUARIO_PROCESSTUDIO.xlsx`** (`PST-069` a `PST-082`).
 4. **La compilación limpia (`npm run build`) y el commit/push automático a Git tras cada conjunto de cambios aprobados**.
+

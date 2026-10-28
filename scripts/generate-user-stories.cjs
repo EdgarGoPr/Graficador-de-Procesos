@@ -731,6 +731,15 @@ const userStories = [
     criteriosAceptacion: '1. Botón con icono Pencil en el footer de la tarjeta de proyecto (ProjectCard) y acceso rápido en el título al hacer hover si el usuario es el dueño o administrador del proyecto.\n2. Modal dedicado (EditProjectModal) con formulario validado para modificar título formal, código documental PRC, responsable, dependencia y objetivo del proceso.\n3. Sincronización automática de metadatos en el archivo JSON físico, en la piscina principal (pool_1) y en el estado reactivo del lienzo activo sin requerir recarga.\n4. Acceso directo de edición de ficha técnica desde la barra superior (Header) y el menú de Herramientas del lienzo activo.\n5. Limpieza del imagotipo corporativo (LogoPS) removiendo el badge residual v2.9 y el subtítulo BPMN 2.0 • ISO 9001:2015.\n6. Depuración del banner superior del Dashboard retirando el cartel de conexión y dejando el subtítulo limpio.\n7. Remoción de los botones obsoletos "Base de Datos" y "Almacenamiento" de la barra de acciones superior del Dashboard.\n8. Remoción de la línea vertical divisoria residual al lado del botón "Consola Admin" en la cabecera.',
     fechaImplementacion: '2026-10-28',
     estado: 'Implementado / Producción'
+  },
+  {
+    id: 'PST-082',
+    modulo: 'Diseño & Ergonomía de Interfaz',
+    titulo: 'Rediseño de Layout y Cabecera Ergonómica Studio Balanced con Menú de Perfil Integrado',
+    historiaUsuario: 'Como usuario de ProcesStudio, quiero una disposición de elementos balanceada, moderna y ergonómica en la cabecera del sistema, unificando la cuenta de usuario, herramientas de personalización y accesos administrativos en un menú de perfil interactivo, para disponer de un espacio de trabajo limpio, simétrico y cómodo sin saturación ni botones dispersos.',
+    criteriosAceptacion: '1. Eliminación de la dispersión de botones rectangulares inconexos en el extremo derecho de la barra superior (Header.tsx).\n2. Integración de un componente de perfil de usuario interactivo (UserProfileMenu.tsx) con avatar, presencia activa, nombre y rol (ADMIN/USER).\n3. Despliegue de menú flotante glassmorphism al hacer clic en el perfil, centralizando: acceso a la Consola de Administración (con insignia ISO 9001), interruptor de modo oscuro/claro, selector de temas Antigravity, acceso a almacenamiento local y botón de cierre de sesión.\n4. Balance visual simétrico: sección izquierda con branding corporativo y badge de contexto en el Dashboard, sección central con píldora segmentada de vistas, y sección derecha con clúster funcional de acciones del proyecto (Deshacer/Rehacer, Participantes, Exportar, Versión, Guardar) y botón destacado de Nuevo Proceso.\n5. Incremento de versión semántica a 1.9.0 (indicador visual V 01.09.00).\n6. Sincronización automática de historias de usuario en HISTORIAS_DE_USUARIO_PROCESSTUDIO.xlsx.',
+    fechaImplementacion: '2026-10-28',
+    estado: 'Implementado / Producción'
   }
 ];
 
