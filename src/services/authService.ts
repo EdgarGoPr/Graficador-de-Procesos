@@ -28,10 +28,14 @@ export class AuthService {
     const sql = NeonClient.getSql();
     if (sql) {
       try {
-        // Verificar si existe la tabla app_users, si no crearla
+        // Crear extensiones si es necesario
+        try { await sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp";`; } catch {}
+        try { await sql`CREATE EXTENSION IF NOT EXISTS "pgcrypto";`; } catch {}
+
+        // 1. Tabla de usuarios
         await sql`
           CREATE TABLE IF NOT EXISTS app_users (
-            id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
             email VARCHAR(255) NOT NULL UNIQUE,
             password_hash VARCHAR(255) NULL,
             full_name VARCHAR(150) NOT NULL,
@@ -50,9 +54,12 @@ export class AuthService {
             created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
             updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
           );
+        `;
 
+        // 2. Solicitudes de acceso
+        await sql`
           CREATE TABLE IF NOT EXISTS user_access_requests (
-            id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
             email VARCHAR(255) NOT NULL UNIQUE,
             full_name VARCHAR(150) NOT NULL,
             organization_unit VARCHAR(160) NOT NULL,
@@ -63,9 +70,12 @@ export class AuthService {
             admin_notes TEXT NULL,
             created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
           );
+        `;
 
+        // 3. Permisos de proyectos
+        await sql`
           CREATE TABLE IF NOT EXISTS project_user_permissions (
-            id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
             user_id UUID NOT NULL,
             project_file_name VARCHAR(120) NOT NULL,
             permission_level VARCHAR(20) NOT NULL,
@@ -73,7 +83,10 @@ export class AuthService {
             assigned_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
             UNIQUE(user_id, project_file_name)
           );
+        `;
 
+        // 4. Candados de concurrencia
+        await sql`
           CREATE TABLE IF NOT EXISTS canvas_active_locks (
             project_file_name VARCHAR(120) PRIMARY KEY,
             user_id UUID NOT NULL,
@@ -81,9 +94,12 @@ export class AuthService {
             locked_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
             expires_at TIMESTAMPTZ NOT NULL
           );
+        `;
 
+        // 5. Logs de auditoría
+        await sql`
           CREATE TABLE IF NOT EXISTS audit_logs (
-            id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
             timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW(),
             user_id UUID NULL,
             user_email VARCHAR(255) NOT NULL,
@@ -877,7 +893,7 @@ export class AuthService {
             reset_request_status, reset_code, reset_code_expires_at, must_change_password,
             created_at, updated_at
           ) VALUES (
-            ${newUser.id},
+            ${newUser.id}::uuid,
             ${newUser.email},
             ${newUser.passwordHash},
             ${newUser.fullName},
@@ -886,7 +902,7 @@ export class AuthService {
             ${newUser.status},
             ${newUser.resetRequestStatus},
             ${newUser.resetCode},
-            ${newUser.resetCodeExpiresAt},
+            ${newUser.resetCodeExpiresAt ? newUser.resetCodeExpiresAt : null},
             ${newUser.mustChangePassword},
             NOW(),
             NOW()
@@ -894,7 +910,12 @@ export class AuthService {
         `;
       } catch (err: any) {
         console.error('Error insertando usuario en Neon:', err);
-        return { ok: false, error: 'Error al persistir usuario en la base de datos relacional.' };
+        return {
+          ok: false,
+          error: err?.message
+            ? `Error en base de datos: ${err.message}`
+            : 'Error al persistir usuario en la base de datos relacional.'
+        };
       }
     }
 
@@ -990,7 +1011,7 @@ export class AuthService {
               password_hash = ${newHash},
               must_change_password = ${updatedUser.mustChangePassword},
               updated_at = NOW()
-            WHERE id = ${targetUserId};
+            WHERE id = ${targetUserId}::uuid;
           `;
         } else {
           await sql`
@@ -1001,12 +1022,17 @@ export class AuthService {
               status = ${updatedUser.status},
               must_change_password = ${updatedUser.mustChangePassword},
               updated_at = NOW()
-            WHERE id = ${targetUserId};
+            WHERE id = ${targetUserId}::uuid;
           `;
         }
-      } catch (err) {
+      } catch (err: any) {
         console.error('Error actualizando usuario en Neon:', err);
-        return { ok: false, error: 'Error al actualizar usuario en la base de datos.' };
+        return {
+          ok: false,
+          error: err?.message
+            ? `Error en base de datos: ${err.message}`
+            : 'Error al actualizar usuario en la base de datos.'
+        };
       }
     }
 
