@@ -2,9 +2,9 @@
 
 Este archivo establece las directivas y reglas permanentes de pair-programming y desarrollo para este proyecto:
 
-## 1. Plan de Ruta Obligatorio (Planning First)
-- Ante **CUALQUIER** solicitud de cambio, refactorización, corrección o nueva funcionalidad, el asistente **SIEMPRE debe presentar primero una hoja de ruta o plan de implementación detallado** (`implementation_plan.md`).
-- Se debe solicitar y esperar la aprobación explícita del usuario antes de realizar cualquier modificación de archivos o ejecución de cambios.
+## 1. Plan de Ruta Obligatorio en PLAN_ACCION.md (Planning First)
+- Ante **CUALQUIER** solicitud de cambio, refactorización, corrección o nueva funcionalidad, el asistente **SIEMPRE debe registrar primero la propuesta y hoja de ruta técnica directamente en el archivo `PLAN_ACCION.md`**.
+- El asistente **NO debe proceder** con ningún desarrollo, modificación de código o ejecución hasta que el usuario haya revisado el documento, entregado sus observaciones y brindado su aprobación explícita.
 
 ## 2. Commit y Push Automático tras Cada Cambio (Auto-Push)
 - Inmediatamente después de completar y verificar cualquier conjunto de cambios aprobados, se debe realizar:
