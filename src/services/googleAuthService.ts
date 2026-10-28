@@ -25,7 +25,7 @@ export class GoogleAuthService {
    */
   public static redirectToGoogle(): void {
     const clientId = this.getClientId();
-    const redirectUri = window.location.origin;
+    const redirectUri = window.location.origin.replace(/\/$/, '');
     const scope = encodeURIComponent('email profile openid');
     const state = 'google_oauth_' + Math.random().toString(36).substring(2);
     sessionStorage.setItem('oauth_state', state);

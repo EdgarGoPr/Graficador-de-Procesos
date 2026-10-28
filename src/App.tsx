@@ -29,6 +29,7 @@ import { IdleLockOverlay } from './components/auth/IdleLockOverlay';
 import { IdleWarningToast } from './components/auth/IdleWarningToast';
 import { PermissionService } from './services/permissionService';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
+import { VersionBadge } from './components/common/VersionBadge';
 import { CheckCircle2, Info, AlertCircle, AlertTriangle, X } from 'lucide-react';
 
 export const App: React.FC = () => {
@@ -92,6 +93,7 @@ export const App: React.FC = () => {
         <div className="h-screen w-screen flex flex-col items-center justify-center bg-slate-950 text-slate-100 overflow-hidden select-none relative">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-900/20 via-slate-950 to-slate-950 pointer-events-none" />
           <AuthModal isGatekeeper={true} />
+          <VersionBadge />
         </div>
       </ErrorBoundary>
     );
@@ -211,6 +213,9 @@ export const App: React.FC = () => {
         <AdminConsoleModal />
         <IdleLockOverlay />
         <IdleWarningToast />
+
+        {/* Indicador Global de Versión en Esquina Inferior Derecha */}
+        <VersionBadge />
       </div>
     </ErrorBoundary>
   );

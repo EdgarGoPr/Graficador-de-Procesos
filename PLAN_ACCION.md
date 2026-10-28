@@ -1,9 +1,9 @@
 # Plan de Acción Integral: Gestión de Usuarios, Roles, Permisos por Lienzo, Acceso con Google, Reseteo por Administrador y Logs de Auditoría
 
 > **Documento:** Plan de Acción Oficial de Seguridad y Gobernanza de ProcesStudio  
-> **Versión:** 1.5.0 | **Fecha:** 2026-10-28  
+> **Versión:** 1.5.1 | **Fecha:** 2026-10-28  
 > **Alineación Normativa:** Directivas Obligatorias de Desarrollo (`AGENTS.md` y `.agents/rules/directivas.md`), Estándar BPMN 2.0 (ISO/IEC 19510), Gestión de Calidad ISO 9001:2015 (Control de Cambios y Trazabilidad) y Seguridad de la Información ISO/IEC 27001 (Control de Accesos).  
-> **Historias de Usuario:** `PST-069`, `PST-070`, `PST-071`, `PST-072`, `PST-073`, `PST-074`, `PST-075`, `PST-076`, `PST-077` (Google OAuth 2.0 Redirección en Vivo).
+> **Historias de Usuario:** `PST-069`, `PST-070`, `PST-071`, `PST-072`, `PST-073`, `PST-074`, `PST-075`, `PST-076`, `PST-077`, `PST-078` (Indicador de Versión Dinámica Global `V xx.xx.xx`).
 
 ---
 
@@ -522,18 +522,33 @@ Las recomendaciones técnicas evaluadas han sido clasificadas e integradas al al
        3. Realiza la consulta a la API de perfil oficial de Google (`https://www.googleapis.com/oauth2/v3/userinfo`).
        4. Transfiere el perfil verificado `{ email, fullName, googleId, avatarUrl }` a `AuthService.loginWithGoogle()`.
        5. Si el correo devuelto es `egdeprada@gmail.com`, accede de inmediato como **`ADMIN`**; si es otro usuario habilitado, como **`USER`**.
-6. **Validación, Generación de Historias y Auto-Push:**
-   - Ejecutar `npm run build` para validar compilación TypeScript y generar historias de usuario en `HISTORIAS_DE_USUARIO_PROCESSTUDIO.xlsx` incorporando `PST-077`.
+6. **Indicador de Versión Dinámica Global en Esquina Inferior Derecha (PST-078) [✅ IMPLEMENTADO]:**
+   - **`src/constants/version.ts`:**
+     - Definir la fuente única de verdad del versionado semántico corporativo: `APP_VERSION = '1.5.1'`.
+     - Exportar helper `getFormattedAppVersion()` que retorna el formato canónico solicitado: `V 01.05.01` (con padding de dos dígitos por segmento `xx.xx.xx`).
+   - **`package.json`:**
+     - Sincronizar el campo `"version": "1.5.1"`.
+   - **`src/components/common/VersionBadge.tsx`:**
+     - Componente sutil, estético y no obstructivo anclado en la esquina inferior derecha (`fixed bottom-2.5 right-3.5 z-40`).
+     - Tipografía monoespaciada legible, fondo translúcido suave con borde tenue para adaptarse tanto a fondos claros como oscuros, sin colisionar con botones ni paneles.
+   - **`src/App.tsx`:**
+     - Renderizar `<VersionBadge />` de forma omnipresente: visible tanto en el portal de acceso/login (Gatekeeper) como en el espacio de trabajo principal de ProcesStudio.
+   - **Criterio de Incremento Semántico a partir de ahora:**
+     - **Mayor (`XX.00.00`):** Cambios de arquitectura mayores o rediseños estructurales.
+     - **Menor (`01.XX.00`):** Incorporación de nuevos módulos o funcionalidades de peso.
+     - **Parche (`01.05.XX`):** Correcciones, ajustes de interfaz, optimizaciones y evoluciones puntuales.
+7. **Validación, Generación de Historias y Auto-Push:**
+   - Ejecutar `npm run build` para validar compilación TypeScript y generar historias de usuario en `HISTORIAS_DE_USUARIO_PROCESSTUDIO.xlsx` incorporando `PST-078`.
    - Ejecutar `git commit` y `git push origin main` de forma automática tras verificación.
 
 ---
 
 ## 10. Conclusión y Compromiso de Desarrollo
 
-Este documento constituye la **Hoja de Ruta Maestra Oficial de Usuarios, Permisos, Seguridad y Auditoría** de ProcesStudio (Versión 1.5.0).
+Este documento constituye la **Hoja de Ruta Maestra Oficial de Usuarios, Permisos, Seguridad y Auditoría** de ProcesStudio (Versión 1.5.1).
 
 Todas las fases se implementarán respetando rigurosamente:
 1. **La arquitectura 100% Web Cloud Nativa** (React + TypeScript + Vite + Neon PostgreSQL).
 2. **La persistencia relacional en Neon PostgreSQL**.
-3. **La actualización del archivo Excel `HISTORIAS_DE_USUARIO_PROCESSTUDIO.xlsx`** (`PST-069` a `PST-077`).
+3. **La actualización del archivo Excel `HISTORIAS_DE_USUARIO_PROCESSTUDIO.xlsx`** (`PST-069` a `PST-078`).
 4. **La compilación limpia (`npm run build`) y el commit/push automático a Git tras cada conjunto de cambios**.

@@ -695,6 +695,15 @@ const userStories = [
     criteriosAceptacion: '1. Configuración de Credenciales: Incorporación del identificador oficial de cliente (Google Client ID) en variables de entorno VITE_GOOGLE_CLIENT_ID.\n2. Redirección Oficial: Al pulsar "Continuar con Google", el navegador navega a https://accounts.google.com/o/oauth2/v2/auth con scopes de email, profile y openid.\n3. Captura Automática de Retorno: Al regresar desde Google con fragmento #access_token=..., el sistema extrae el token y limpia la URL de forma segura.\n4. Consulta de Perfil: Consulta exitosa al endpoint oficial https://www.googleapis.com/oauth2/v3/userinfo para obtener correo, nombre e imagen verificados.\n5. Autenticación Transparente: Si el correo corresponde al Administrador configurado (egdeprada@gmail.com), se garantiza el acceso con rol ADMIN; si es otro usuario habilitado, con rol USER.',
     fechaImplementacion: '2026-10-28',
     estado: 'Implementado / Producción'
+  },
+  {
+    id: 'PST-078',
+    modulo: 'Identidad, Versión & Trazabilidad',
+    titulo: 'Indicador de Versión Dinámica Global en Esquina Inferior Derecha (V xx.xx.xx)',
+    historiaUsuario: 'Como usuario y auditor de ProcesStudio, quiero visualizar permanentemente la versión de la aplicación en formato "V xx.xx.xx" en la esquina inferior derecha de la pantalla, para verificar la versión exacta en ejecución en cualquier momento y garantizar la trazabilidad de los desarrollos.',
+    criteriosAceptacion: '1. Visualización permanente en la esquina inferior derecha (fixed bottom, right) con diseño discreto, estilizado y no obstructivo.\n2. Formato estandarizado con padding de dos dígitos "V xx.xx.xx" (ej. V 01.05.01).\n3. Visible de forma consistente tanto en la pantalla de inicio de sesión (Gatekeeper) como en el espacio de trabajo activo.\n4. Centralización en src/constants/version.ts y sincronización con el campo version de package.json.\n5. Criterio de incremento semántico a partir de esta entrega según magnitud del cambio (Mayor / Menor / Parche).',
+    fechaImplementacion: '2026-10-28',
+    estado: 'Implementado / Producción'
   }
 ];
 
