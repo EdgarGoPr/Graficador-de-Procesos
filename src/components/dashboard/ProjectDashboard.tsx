@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { DatabaseConfigModal } from './DatabaseConfigModal';
 import { ProjectParticipantsModal } from '../modals/ProjectParticipantsModal';
+import { EditProjectModal } from '../modals/EditProjectModal';
 import { useAuthStore } from '../../store/useAuthStore';
 import { PermissionService } from '../../services/permissionService';
 
@@ -45,6 +46,8 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ onOpenNewMod
   const [isDbModalOpen, setIsDbModalOpen] = useState(false);
   const [selectedGroupForParticipants, setSelectedGroupForParticipants] = useState<ProcessGroupSummary | null>(null);
   const [isParticipantsModalOpen, setIsParticipantsModalOpen] = useState(false);
+  const [selectedGroupForEdit, setSelectedGroupForEdit] = useState<ProcessGroupSummary | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Filter projects by user assignments if the active session is a regular USER
@@ -160,47 +163,17 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ onOpenNewMod
     e.target.value = '';
   };
 
-  const isWebEnvironment = !StorageService.isElectron();
-
   return (
     <div className="flex-1 h-full overflow-y-auto bg-theme-bg p-6 md:p-10 select-none transition-colors">
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Banner */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 rounded-2xl bg-theme-surface border border-theme-border shadow-xl">
           <div>
-            <div className="flex items-center flex-wrap gap-2 text-xs font-mono font-semibold uppercase tracking-wider mb-1">
-              {StorageService.isNeonConfigured() ? (
-                <button
-                  onClick={() => setIsDbModalOpen(true)}
-                  className="flex items-center space-x-1.5 text-sky-400 bg-sky-500/10 hover:bg-sky-500/20 px-2.5 py-0.5 rounded-md border border-sky-500/30 transition-colors cursor-pointer"
-                  title="Base de datos Neon PostgreSQL conectada. Clic para ver detalles."
-                >
-                  <Database className="w-3.5 h-3.5" />
-                  <span>Neon PostgreSQL Cloud &bull; Activo</span>
-                </button>
-              ) : isWebEnvironment ? (
-                <button
-                  onClick={() => setIsDbModalOpen(true)}
-                  className="flex items-center space-x-1.5 text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 px-2 py-0.5 rounded-md border border-emerald-500/20 transition-colors cursor-pointer"
-                  title="Entorno Web con persistencia local. Clic para conectar a Neon PostgreSQL."
-                >
-                  <Globe className="w-3.5 h-3.5" />
-                  <span>Entorno Web &bull; Conectar Base de Datos</span>
-                </button>
-              ) : (
-                <div className="flex items-center space-x-1.5 text-theme-accent bg-theme-accent/10 px-2 py-0.5 rounded-md border border-theme-accent/20">
-                  <HardDrive className="w-3.5 h-3.5" />
-                  <span>Entorno Portable USB &bull; Ruta relativa: ../Proyectos/</span>
-                </div>
-              )}
-            </div>
             <h1 className="text-2xl md:text-3xl font-extrabold text-theme-text tracking-tight">
               Gestor de Proyectos de Procesos
             </h1>
             <p className="text-sm text-theme-text-muted mt-1 max-w-2xl">
-              {isWebEnvironment
-                ? 'Modelado, visualización y auditoría de procesos BPMN 2.0 e ISO 9001:2015 desde cualquier computador en la nube.'
-                : 'Agrupación inteligente de versiones y sincronización multi-equipo (Casa / Trabajo) bajo BPMN 2.0 e ISO 9001:2015.'}
+              Modelado, visualización y auditoría de procesos BPMN 2.0 e ISO 9001:2015.
             </p>
           </div>
 
@@ -222,18 +195,6 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ onOpenNewMod
               onChange={handleFileInputChange}
             />
 
-            {/* Database Settings button (Admin only) */}
-            {currentUser?.role === 'ADMIN' && (
-              <button
-                onClick={() => setIsDbModalOpen(true)}
-                className="flex items-center space-x-2 px-3.5 py-2.5 rounded-xl bg-theme-surface-subtle hover:bg-theme-surface text-theme-text border border-theme-border text-sm font-semibold transition-colors hover:border-sky-500/50"
-                title="Configurar y sincronizar base de datos PostgreSQL en Neon"
-              >
-                <Database className="w-4 h-4 text-sky-400" />
-                <span>Base de Datos</span>
-              </button>
-            )}
-
             {/* Import JSON button */}
             {currentUser && (
               <button
@@ -245,15 +206,6 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ onOpenNewMod
                 <span>Importar JSON</span>
               </button>
             )}
-
-            <button
-              onClick={handleOpenFolder}
-              className="flex items-center space-x-2 px-3.5 py-2.5 rounded-xl bg-theme-surface-subtle hover:bg-theme-surface text-theme-text border border-theme-border text-sm font-semibold transition-colors"
-              title={isWebEnvironment ? "Ver información de almacenamiento web" : "Abrir carpeta física en el Explorador de Windows"}
-            >
-              <FolderOpen className="w-4 h-4 text-theme-accent" />
-              <span>{isWebEnvironment ? 'Almacenamiento' : 'Abrir Carpeta'}</span>
-            </button>
 
             {currentUser && (
               <button
@@ -326,6 +278,10 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ onOpenNewMod
                   setSelectedGroupForParticipants(grp);
                   setIsParticipantsModalOpen(true);
                 }}
+                onEditMetadata={(grp) => {
+                  setSelectedGroupForEdit(grp);
+                  setIsEditModalOpen(true);
+                }}
               />
             ))}
           </div>
@@ -355,6 +311,28 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ onOpenNewMod
                   organizationUnit: selectedGroupForParticipants.organizationUnit,
                   createdByEmail: selectedGroupForParticipants.createdByEmail,
                   createdByUserId: selectedGroupForParticipants.createdByUserId
+                }
+              : null
+          }
+        />
+
+        {/* Edit Project Metadata Modal */}
+        <EditProjectModal
+          isOpen={isEditModalOpen}
+          onClose={() => {
+            setIsEditModalOpen(false);
+            setSelectedGroupForEdit(null);
+          }}
+          project={
+            selectedGroupForEdit
+              ? {
+                  fileName: selectedGroupForEdit.latestVersion.fileName,
+                  documentTitle: selectedGroupForEdit.documentTitle,
+                  documentCode: selectedGroupForEdit.documentCode,
+                  authorName: selectedGroupForEdit.authorName,
+                  organizationUnit: selectedGroupForEdit.organizationUnit,
+                  createdByEmail: selectedGroupForEdit.createdByEmail,
+                  createdByUserId: selectedGroupForEdit.createdByUserId
                 }
               : null
           }

@@ -83,7 +83,8 @@ export type AuditActionType =
   | 'USER_CREATED'
   | 'USER_CREATED_BY_ADMIN'
   | 'USER_UPDATED_BY_ADMIN'
-  | 'USER_STATUS_CHANGED';
+  | 'USER_STATUS_CHANGED'
+  | 'PROJECT_METADATA_UPDATED';
 
 export interface AuditLogEntry {
   id: string;

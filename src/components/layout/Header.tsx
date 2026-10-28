@@ -7,6 +7,7 @@ import { PermissionService } from '../../services/permissionService';
 import { LogoPS } from '../common/LogoPS';
 import { NewRevisionModal } from '../modals/NewRevisionModal';
 import { ProjectParticipantsModal } from '../modals/ProjectParticipantsModal';
+import { EditProjectModal } from '../modals/EditProjectModal';
 import {
   LayoutDashboard,
   GitGraph,
@@ -34,7 +35,8 @@ import {
   LogIn,
   LogOut,
   UserCheck,
-  Users
+  Users,
+  Pencil
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -84,6 +86,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
   const [isToolsMenuOpen, setIsToolsMenuOpen] = useState(false);
   const [isRevisionModalOpen, setIsRevisionModalOpen] = useState(false);
   const [isParticipantsModalOpen, setIsParticipantsModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   const canManageParticipants = currentProject
     ? PermissionService.canUserManageProjectParticipants(currentUser, currentProject.documentControl)
@@ -219,6 +222,15 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
                 <span className="text-xs font-bold text-theme-text truncate block">
                   {currentProject.documentControl.documentTitle}
                 </span>
+                {canManageParticipants && (
+                  <button
+                    onClick={() => setIsEditModalOpen(true)}
+                    title="Editar ficha y metadatos del proyecto"
+                    className="p-0.5 rounded text-theme-text-muted hover:text-amber-400 hover:bg-theme-surface transition-colors shrink-0"
+                  >
+                    <Pencil className="w-3 h-3" />
+                  </button>
+                )}
                 {currentCanvasPermission && (
                   <span
                     className={`text-[9px] font-mono font-bold px-1.5 py-0.2 rounded border ${
@@ -532,21 +544,39 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
 
                 {/* Participantes & Permisos (Admin o Creador) */}
                 {canManageParticipants && (
-                  <button
-                    onClick={() => {
-                      setIsParticipantsModalOpen(true);
-                      setIsToolsMenuOpen(false);
-                    }}
-                    className="w-full flex items-center justify-between px-3 py-2 text-xs hover:bg-theme-surface-subtle transition-colors text-left text-theme-text border-t border-theme-border/60 mt-1 pt-1.5 group"
-                  >
-                    <div className="flex items-center space-x-2.5">
-                      <Users className="w-4 h-4 text-theme-accent group-hover:scale-110 transition-transform" />
-                      <div>
-                        <div className="font-semibold text-theme-accent">Participantes & Permisos</div>
-                        <div className="text-[10px] text-theme-text-muted">Gestionar colaboradores del lienzo</div>
+                  <>
+                    <button
+                      onClick={() => {
+                        setIsEditModalOpen(true);
+                        setIsToolsMenuOpen(false);
+                      }}
+                      className="w-full flex items-center justify-between px-3 py-2 text-xs hover:bg-theme-surface-subtle transition-colors text-left text-theme-text border-t border-theme-border/60 mt-1 pt-1.5 group"
+                    >
+                      <div className="flex items-center space-x-2.5">
+                        <Pencil className="w-4 h-4 text-amber-400 group-hover:scale-110 transition-transform" />
+                        <div>
+                          <div className="font-semibold text-amber-400">Editar Ficha del Proceso</div>
+                          <div className="text-[10px] text-theme-text-muted">Título, código, autor y unidad</div>
+                        </div>
                       </div>
-                    </div>
-                  </button>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setIsParticipantsModalOpen(true);
+                        setIsToolsMenuOpen(false);
+                      }}
+                      className="w-full flex items-center justify-between px-3 py-2 text-xs hover:bg-theme-surface-subtle transition-colors text-left text-theme-text border-t border-theme-border/60 mt-1 pt-1.5 group"
+                    >
+                      <div className="flex items-center space-x-2.5">
+                        <Users className="w-4 h-4 text-theme-accent group-hover:scale-110 transition-transform" />
+                        <div>
+                          <div className="font-semibold text-theme-accent">Participantes & Permisos</div>
+                          <div className="text-[10px] text-theme-text-muted">Gestionar colaboradores del lienzo</div>
+                        </div>
+                      </div>
+                    </button>
+                  </>
                 )}
               </div>
             )}
@@ -676,7 +706,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
         )}
 
         {/* User Authentication & Admin Console */}
-        <div className="flex items-center space-x-1.5 pl-1.5 border-l border-theme-border/70">
+        <div className="flex items-center space-x-1.5">
           {currentUser ? (
             <div className="flex items-center space-x-1.5">
               {currentUser.role === 'ADMIN' && (
@@ -753,6 +783,24 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
             version: currentProject.documentControl.version,
             authorName: currentProject.documentControl.authorName,
             organizationUnit: currentProject.documentControl.organizationUnit,
+            createdByEmail: currentProject.documentControl.createdByEmail,
+            createdByUserId: currentProject.documentControl.createdByUserId
+          }}
+        />
+      )}
+
+      {/* Edit Project Metadata Modal */}
+      {isEditModalOpen && currentProject && (
+        <EditProjectModal
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          project={{
+            fileName: currentProject.fileName || 'proyecto.json',
+            documentTitle: currentProject.documentControl.documentTitle,
+            documentCode: currentProject.documentControl.documentCode,
+            authorName: currentProject.documentControl.authorName,
+            organizationUnit: currentProject.documentControl.organizationUnit,
+            processObjective: currentProject.documentControl.processObjective,
             createdByEmail: currentProject.documentControl.createdByEmail,
             createdByUserId: currentProject.documentControl.createdByUserId
           }}

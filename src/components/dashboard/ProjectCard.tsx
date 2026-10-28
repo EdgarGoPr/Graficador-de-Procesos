@@ -14,6 +14,7 @@ import {
   Calendar,
   User,
   Users,
+  Pencil,
   HardDrive,
   ChevronDown,
   Sparkles,
@@ -29,6 +30,7 @@ interface ProjectCardProps {
   onDuplicate: (fileName: string) => void;
   onDelete: (fileName: string) => void;
   onManageParticipants?: (group: ProcessGroupSummary) => void;
+  onEditMetadata?: (group: ProcessGroupSummary) => void;
 }
 
 export const ProjectCard: React.FC<ProjectCardProps> = ({
@@ -37,7 +39,8 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
   onOpen,
   onDuplicate,
   onDelete,
-  onManageParticipants
+  onManageParticipants,
+  onEditMetadata
 }) => {
   const { showNotification } = useUiStore();
   const { currentUser } = useAuthStore();
@@ -123,9 +126,23 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
           </button>
         </div>
 
-        <h3 className="text-base font-bold text-theme-text group-hover:text-theme-accent transition-colors line-clamp-2 leading-snug mb-2">
-          {group.documentTitle}
-        </h3>
+        <div className="flex items-start justify-between gap-1 mb-2">
+          <h3 className="text-base font-bold text-theme-text group-hover:text-theme-accent transition-colors line-clamp-2 leading-snug flex-1">
+            {group.documentTitle}
+          </h3>
+          {canManageParticipants && onEditMetadata && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onEditMetadata(group);
+              }}
+              title="Editar ficha y metadatos del proyecto"
+              className="p-1 rounded-lg text-theme-text-muted hover:text-amber-400 hover:bg-theme-surface-subtle transition-colors shrink-0 opacity-70 group-hover:opacity-100"
+            >
+              <Pencil className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
 
         <div className="space-y-1 text-xs text-theme-text-muted">
           <div className="flex items-center truncate">
@@ -298,6 +315,15 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
                 <Trash2 className="w-3.5 h-3.5" />
               </button>
             </>
+          )}
+          {canManageParticipants && onEditMetadata && (
+            <button
+              onClick={() => onEditMetadata(group)}
+              title="Editar ficha y metadatos del proyecto"
+              className="p-1.5 rounded-lg bg-theme-surface-subtle hover:bg-theme-surface border border-theme-border text-theme-text-muted hover:text-amber-400 transition-colors"
+            >
+              <Pencil className="w-3.5 h-3.5" />
+            </button>
           )}
           {canManageParticipants && onManageParticipants && (
             <button

@@ -39,12 +39,6 @@ export const LogoPS: React.FC<LogoPSProps> = ({
           <div className={`font-bold tracking-tight text-theme-text flex items-center ${currentSize.text}`}>
             <span>Proces</span>
             <span className="text-sky-400">Studio</span>
-            <span className="ml-1.5 text-[9px] font-mono font-semibold bg-sky-500/10 text-sky-400 px-1.5 py-0.2 rounded border border-sky-500/25 uppercase">
-              v2.9
-            </span>
-          </div>
-          <div className={`text-theme-text-muted font-mono tracking-wider ${currentSize.sub}`}>
-            BPMN 2.0 &bull; ISO 9001:2015
           </div>
         </div>
       )}

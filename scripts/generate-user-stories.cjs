@@ -722,6 +722,15 @@ const userStories = [
     criteriosAceptacion: '1. Botón con icono de participantes (Users) en el footer de cada tarjeta de proyecto (ProjectCard) en el Dashboard y en el menú/barra superior (Header) del lienzo activo.\n2. Autorización dual: tanto el Administrador del Sistema como el usuario que creó el proyecto (registrado en createdByEmail, createdByUserId o authorName) tienen permisos habilitados para gestionar participantes.\n3. Modal especializado (ProjectParticipantsModal) que visualiza al creador/propietario original, la lista de participantes vinculados con sus niveles de acceso y fecha de asignación.\n4. Capacidad de asignar nuevos participantes seleccionando entre los usuarios registrados activos del sistema y eligiendo su nivel de permiso (READ_ONLY, COMMENTS, EDITOR).\n5. Capacidad de actualizar el nivel de permiso en tiempo real o revocar el acceso a cualquier participante.\n6. Auto-asignación de permiso EDITOR y registro de metadatos de autoría (createdByEmail y createdByUserId) al crear un nuevo proyecto.\n7. Registro de auditoría trazable de asignaciones y revocaciones (CANVAS_PERMISSION_ASSIGNED y CANVAS_PERMISSION_REMOVED) con sincronización relacional en Neon PostgreSQL y fallback local.',
     fechaImplementacion: '2026-10-28',
     estado: 'Implementado / Producción'
+  },
+  {
+    id: 'PST-081',
+    modulo: 'Control Documental & Experiencia de Usuario',
+    titulo: 'Edición de Metadatos del Proyecto por el Dueño y Limpieza Visual de Interfaz',
+    historiaUsuario: 'Como dueño/creador de un proceso o administrador del sistema, quiero editar los datos de identificación formal de la tarjeta del proyecto (título, código documental, autor, unidad organizativa y objetivo) y contar con una interfaz despejada y profesional en el Dashboard, cabecera y logotipo, para mantener la ficha técnica del proceso actualizada y un entorno de trabajo limpio y enfocado.',
+    criteriosAceptacion: '1. Botón con icono Pencil en el footer de la tarjeta de proyecto (ProjectCard) y acceso rápido en el título al hacer hover si el usuario es el dueño o administrador del proyecto.\n2. Modal dedicado (EditProjectModal) con formulario validado para modificar título formal, código documental PRC, responsable, dependencia y objetivo del proceso.\n3. Sincronización automática de metadatos en el archivo JSON físico, en la piscina principal (pool_1) y en el estado reactivo del lienzo activo sin requerir recarga.\n4. Acceso directo de edición de ficha técnica desde la barra superior (Header) y el menú de Herramientas del lienzo activo.\n5. Limpieza del imagotipo corporativo (LogoPS) removiendo el badge residual v2.9 y el subtítulo BPMN 2.0 • ISO 9001:2015.\n6. Depuración del banner superior del Dashboard retirando el cartel de conexión y dejando el subtítulo limpio.\n7. Remoción de los botones obsoletos "Base de Datos" y "Almacenamiento" de la barra de acciones superior del Dashboard.\n8. Remoción de la línea vertical divisoria residual al lado del botón "Consola Admin" en la cabecera.',
+    fechaImplementacion: '2026-10-28',
+    estado: 'Implementado / Producción'
   }
 ];
 

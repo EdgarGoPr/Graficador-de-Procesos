@@ -630,18 +630,61 @@ Las recomendaciones técnicas evaluadas han sido clasificadas e integradas al al
    - **`src/components/modals/NewProjectModal.tsx` & `src/store/useProjectStore.ts`:**
      - Al crear un proyecto, sellar `createdByEmail: currentUser.email`, `createdByUserId: currentUser.id` y conceder automáticamente permiso `EDITOR` al creador en la base de datos.
    - **Incremento de Versión Semántica:**
-     - Elevar versión de la aplicación a `1.7.0` (indicador `V 01.07.00`).
+     - Versión de la aplicación elevada a `1.7.0` (indicador `V 01.07.00`).
    - **Sincronización:**
      - Compilación limpia (`npm run build`), registro de 80 historias de usuario en Excel y auto-push Git.
+
+9. **Edición de Metadatos del Proyecto por el Dueño y Limpieza Visual de Interfaz (PST-081) [✅ IMPLEMENTADO]:**
+   - **1. Edición de Datos de la Tarjeta del Proyecto por el Dueño / Administrador:**
+     - **Componente Modal `src/components/modals/EditProjectModal.tsx`:**
+       - Formulario modal guiado con estilo Antigravity IDE (glassmorphism, animaciones fluidas).
+       - Campos editables:
+         - **Título Formal del Procedimiento** (`documentTitle`)
+         - **Código Documental** (`documentCode`) (ej. `PRC-9413`)
+         - **Responsable / Autor del Modelado** (`authorName`)
+         - **Unidad Organizativa / Dependencia** (`organizationUnit`)
+         - **Objetivo / Alcance del Proceso** (`processObjective`)
+       - Carga de datos directamente del archivo JSON con `StorageService.loadProject(fileName)`.
+       - Al guardar:
+         - Actualiza los campos de `documentControl` en el objeto del proyecto.
+         - Sincroniza el nombre y organización de la piscina principal (`pool_1.name = documentTitle`, `organization = organizationUnit`).
+         - Guarda los cambios en disco/almacenamiento mediante `StorageService.saveProject(updatedProject)`.
+         - Si el proyecto editado coincide con el proyecto activo en lienzo (`currentProject.fileName === fileName`), actualiza reactivamente el estado en `useProjectStore` para sincronizar la interfaz sin recargas.
+         - Refresca el listado de proyectos con `refreshProjectList()`.
+         - Registra el evento de auditoría `PROJECT_METADATA_UPDATED`.
+     - **Integración en `src/components/dashboard/ProjectCard.tsx`:**
+       - Condicionar la acción a `canManage = PermissionService.canUserManageProjectParticipants(currentUser, group)` (habilitado para Administradores y Dueño/Creador del proyecto).
+       - Agregar botón con icono `Pencil` en el pie de la tarjeta (junto a Duplicar, Eliminar, Participantes y Abrir).
+       - Agregar botón de edición rápida (Pencil) junto al título en la tarjeta al hacer hover.
+     - **Integración en `src/components/layout/Header.tsx`:**
+       - Permitir al dueño o administrador abrir el modal de edición de metadatos directamente haciendo clic en el título o en un icono `Pencil` junto al título del proyecto en la barra superior.
+   - **2. Limpieza del Logo Corporativo (`src/components/common/LogoPS.tsx`):**
+     - Retirar el badge `"v2.9"`.
+     - Retirar el texto de subtítulo `"BPMN 2.0 • ISO 9001:2015"`.
+     - Mantener el imagotipo estilizado PS y la marca tipográfica `"Proces"` + `"Studio"`.
+   - **3. Remoción de Botones "Base de Datos" y "Almacenamiento" (`src/components/dashboard/ProjectDashboard.tsx`):**
+     - Eliminar el botón `"Base de Datos"` de la barra de acciones superior del Dashboard.
+     - Eliminar el botón `"Almacenamiento"` / `"Abrir Carpeta"` de la barra de acciones superior del Dashboard.
+     - Mantener los botones operativos limpios: `"Actualizar"` (Refresh), `"Importar JSON"` y `"+ Nuevo Proyecto"`.
+   - **4. Remoción del Cartel "Neon PostgreSQL Cloud • Activo" y Depuración del Subtítulo (`src/components/dashboard/ProjectDashboard.tsx`):**
+     - Eliminar el bloque/badge superior que muestra `"Neon PostgreSQL Cloud • Activo"` (y los badges alternativos de entorno web/portable).
+     - Depurar el subtítulo debajo de `"Gestor de Proyectos de Procesos"` removiendo `" desde cualquier computador en la nube"`, dejando el texto limpio:  
+       *"Modelado, visualización y auditoría de procesos BPMN 2.0 e ISO 9001:2015."*
+   - **5. Remoción de la Línea Vertical al lado de "Consola Admin" (`src/components/layout/Header.tsx`):**
+     - Retirar la clase de borde `border-l border-theme-border/70` y el padding lateral en el contenedor previo a `"Consola Admin"`, logrando una transición visual despejada y sin separadores residuales.
+   - **Incremento de Versión Semántica:**
+     - Elevar versión de la aplicación a `1.8.0` (indicador `V 01.08.00`).
+   - **Sincronización:**
+     - Compilación limpia (`npm run build`), registro de 81 historias de usuario en Excel (`PST-081`) y auto-push Git tras aprobación.
 
 ---
 
 ## 10. Conclusión y Compromiso de Desarrollo
 
-Este documento constituye la **Hoja de Ruta Maestra Oficial de Usuarios, Permisos, Seguridad y Auditoría** de ProcesStudio (Versión 1.7.0).
+Este documento constituye la **Hoja de Ruta Maestra Oficial de Usuarios, Permisos, Seguridad y Auditoría** de ProcesStudio (Versión 1.8.0).
 
 Todas las fases se implementarán respetando rigurosamente:
 1. **La arquitectura 100% Web Cloud Nativa** (React + TypeScript + Vite + Neon PostgreSQL).
 2. **La persistencia relacional en Neon PostgreSQL**.
-3. **La actualización del archivo Excel `HISTORIAS_DE_USUARIO_PROCESSTUDIO.xlsx`** (`PST-069` a `PST-080`).
-4. **La compilación limpia (`npm run build`) y el commit/push automático a Git tras cada conjunto de cambios**.
+3. **La actualización del archivo Excel `HISTORIAS_DE_USUARIO_PROCESSTUDIO.xlsx`** (`PST-069` a `PST-081`).
+4. **La compilación limpia (`npm run build`) y el commit/push automático a Git tras cada conjunto de cambios aprobados**.
