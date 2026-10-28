@@ -1,25 +1,28 @@
-# Plan de Acción Integral: Gestión de Usuarios, Roles, Permisos por Lienzo, Acceso con Google y Logs de Auditoría
+# Plan de Acción Integral: Gestión de Usuarios, Roles, Permisos por Lienzo, Acceso con Google, Reseteo por Administrador y Logs de Auditoría
 
 > **Documento:** Plan de Acción Oficial de Seguridad y Gobernanza de ProcesStudio  
-> **Versión:** 1.0.0 | **Fecha:** 2026-10-28  
+> **Versión:** 1.1.0 | **Fecha:** 2026-10-28  
 > **Alineación Normativa:** Directivas Obligatorias de Desarrollo (`AGENTS.md` y `.agents/rules/directivas.md`), Estándar BPMN 2.0 (ISO/IEC 19510), Gestión de Calidad ISO 9001:2015 (Control de Cambios y Trazabilidad) y Seguridad de la Información ISO/IEC 27001 (Control de Accesos).  
-> **Historias de Usuario:** `PST-069`, `PST-070`, `PST-071`, `PST-072`, `PST-073`.
+> **Historias de Usuario:** `PST-069`, `PST-070`, `PST-071`, `PST-072`, `PST-073`, `PST-074`.
 
 ---
 
 ## 1. Visión y Objetivos del Sistema de Usuarios
 
-El propósito fundamental de esta evolución es transformar **ProcesStudio** en una plataforma corporativa gobernada por **Control de Acceso Basado en Roles (RBAC)** y **Permisos Granulares por Lienzo (Lienzo / Proyecto)**, garantizando:
+El propósito fundamental de esta evolución es transformar **ProcesStudio** en una plataforma corporativa gobernada por **Control de Acceso Basado en Roles (RBAC)**, **Permisos Granulares por Lienzo (Lienzo / Proyecto)** y **Máxima Seguridad de Identidad**, garantizando:
 
 1. **Acceso Restringido y Gobernado:** Eliminación del auto-registro libre. Solo los usuarios debidamente habilitados por un **Administrador** pueden acceder a la plataforma. Los nuevos interesados dispondrán de un flujo de **Solicitud de Habilitación**.
 2. **Identidad Corporativa y Google Sign-In:** Soporte dual para ingreso mediante correo electrónico y credenciales locales seguras, o a través de **Google OAuth 2.0 / Google Identity Services (GIS)** con verificación de dominio y estado de cuenta.
-3. **Flujo Criptográfico de Restablecimiento de Contraseña (Código de 6 Dígitos):** Mecanismo de recuperación que genera un código temporal de 6 dígitos que sirve para ingresar y que obliga inmediatamente al cambio de contraseña con validación de fortaleza y confirmación.
+3. **Restablecimiento de Contraseñas Exclusivo por el Administrador:** El **Administrador es el único facultado para generar y autorizar el reseteo de contraseñas**. El usuario puede emitir la solicitud desde la pantalla de login, pero **no podrá ingresar hasta que el Administrador le informe el código de 6 dígitos generado por el sistema**. Una vez informado, el usuario ingresa dicho código como contraseña provisoria y el sistema lo obliga inmediatamente a definir su nueva contraseña y confirmarla.
 4. **Permisos Granulares por Lienzo:** Capacidad del Administrador para asignar o desasignar proyectos a usuarios con tres niveles de control:
    - **Solo Lectura:** Inspección visual y exportación; edición bloqueada.
    - **Comentarios:** El usuario **únicamente puede interactuar con Notas Adhesivas (`StickyNote`)**, colocándolas y editándolas sobre el lienzo para sugerencias o revisiones, sin alterar en absoluto el flujo BPMN ni los carriles.
    - **Editor:** Autoridad completa para diseñar diagramas BPMN, gestionar carriles, compuertas, SLAs, IA y guardar versiones.
-5. **Trazabilidad Absoluta y Logs de Auditoría (Exclusivo Administrador):** Registro inmutable en base de datos de cada interacción del sistema (inicios de sesión, comentarios, modificaciones, asignaciones, exportaciones y bajas), accesible exclusivamente por usuarios con rol Administrador.
-6. **Arquitectura 100% Web Cloud Nativa:** Operación como aplicación Web moderna (React, TypeScript, Vite) con backend relacional serverless en **Neon PostgreSQL**, accesible mediante cualquier navegador sin dependencias de empaquetado de escritorio ni pendrives.
+5. **Trazabilidad Absoluta y Logs de Auditoría (Exclusivo Administrador):** Registro inmutable en base de datos de cada interacción del sistema, accesible exclusivamente por usuarios con rol Administrador, con **generación de informe oficial foliado y certificado en PDF (ISO 9001)**.
+6. **Arquitectura 100% Web Cloud Nativa:** Operación como aplicación Web moderna (React, TypeScript, Vite) con backend relacional serverless en **Neon PostgreSQL**, accesible mediante cualquier navegador sin dependencias de empaquetados pesados ni pendrives.
+7. **Bloqueo Suave de Concurrencia (*Canvas Soft-Locking*) [Sugerencia 1]:** Prevención de colisiones entre editores mediante adquisición de candado temporal con latido (*heartbeat*). Si un usuario ya edita un lienzo, a los demás se les abre en modo *Solo Lectura* con notificación.
+8. **Cierre de Sesión por Inactividad (*Idle Timeout*) [Sugerencia 2]:** Bloqueo automático de pantalla tras 30 minutos de inactividad del usuario, requiriendo reingreso de contraseña para retomar.
+9. **Doble Factor de Autenticación (2FA / TOTP) para Administradores [Sugerencia 6]:** Segundo factor obligatorio mediante Google/Microsoft Authenticator para cuentas con privilegios administrativos.
 
 ---
 
@@ -35,13 +38,15 @@ El propósito fundamental de esta evolución es transformar **ProcesStudio** en 
          [ PANTALLA DE ACCESO ]                          [ ESTADO NO HABILITADO ]
     ├── Login Email + Contraseña                                    │
     ├── Botón Oficial "Login con Google"                            ▼
-    ├── "Restablecer contraseña" ➔ Código 6 dígitos    [ Formulario de Solicitud ]
-    └── "¿No tienes cuenta? Solicitar Habilitación" ──► Solicitar Habilitación al Admin
+    ├── "Solicitar Reseteo de Contraseña"             [ Formulario de Solicitud ]
+    │     └── Queda en espera de código               ──► Solicitar Habilitación al Admin
+    └── "¿No tienes cuenta? Solicitar Habilitación"                 │
                                                                     │
                     ┌───────────────────────────────────────────────┘
                     ▼
-     [ REVISIÓN DEL ADMINISTRADOR ]
-     ├── Aprobar como 'ADMIN' o 'USER'
+     [ REVISIÓN DEL ADMINISTRADOR (CON 2FA OBLIGATORIO) ]
+     ├── Aprobar/Rechazar Solicitudes de Habilitación
+     ├── Generar Código de 6 Dígitos de Reseteo (El Admin se lo informa al usuario)
      └── Asignar Proyectos y Permisos Iniciales
                     │
          ┌──────────┴────────────────────────┐
@@ -49,18 +54,19 @@ El propósito fundamental de esta evolución es transformar **ProcesStudio** en 
  ┌──────────────────────┐        ┌────────────────────────────────────────────────┐
  │  ROL ADMINISTRADOR   │        │                  ROL USUARIO                   │
  ├──────────────────────┤        ├────────────────────────────────────────────────┤
+ │ • 2FA TOTP Activado  │        │ • Ingreso con código ➔ Cambio forzado clave    │
  │ • Consola Admin      │        │ • Dashboard filtrado (Solo lienzos asignados)  │
  │ • Solicitudes Pend.  │        │ • Nivel por Lienzo:                            │
- │ • Asignación Lienzos │        │   ├── 👁️ Solo Lectura: Ver y exportar          │
- │ • Logs de Auditoría  │        │   ├── 💬 Comentarios: SOLO Notas Adhesivas     │
- │ • Acceso a Todos los │        │   └── ✏️ Editor: Modelado BPMN y guardado      │
- │   Lienzos            │        └────────────────────────────────────────────────┘
- └──────────┬───────────┘
+ │ • Generar Claves     │        │   ├── 👁️ Solo Lectura: Ver y exportar          │
+ │ • Asignación Lienzos │        │   ├── 💬 Comentarios: SOLO Notas Adhesivas     │
+ │ • Logs de Auditoría  │        │   └── ✏️ Editor: Modelado BPMN (con candado)   │
+ │ • Reporte PDF ISO    │        │ • Timeout por inactividad (30 min)             │
+ └──────────┬───────────┘        └────────────────────────────────────────────────┘
             │
             ▼
  ┌────────────────────────────────────────────────────────────────────────────────┐
  │                       REGISTRO CENTRALIZADO DE AUDITORÍA                       │
- │ 📜 Inmutable | Filtrable por Usuario, Lienzo y Fecha | Exportable a Excel/PDF  │
+ │ 📜 Inmutable | Filtrable por Usuario, Lienzo y Fecha | Reporte Foliado PDF/XLS │
  └────────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -88,9 +94,18 @@ CREATE TABLE IF NOT EXISTS app_users (
     status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE' CHECK (status IN ('ACTIVE', 'INACTIVE', 'BLOCKED')),
     google_id VARCHAR(100) NULL UNIQUE,
     avatar_url VARCHAR(500) NULL,
-    reset_code VARCHAR(6) NULL,                   -- Código temporal de 6 dígitos
-    reset_code_expires_at TIMESTAMPTZ NULL,       -- Expiración del código (15 minutos)
+    
+    -- Gobernanza de Reseteo de Contraseñas (Exclusivo Administrador)
+    reset_request_status VARCHAR(20) NOT NULL DEFAULT 'NONE' CHECK (reset_request_status IN ('NONE', 'REQUESTED', 'CODE_ISSUED')),
+    reset_requested_at TIMESTAMPTZ NULL,
+    reset_code VARCHAR(6) NULL,                   -- Código temporal de 6 dígitos generado por el Admin
+    reset_code_expires_at TIMESTAMPTZ NULL,       -- Expiración del código
     must_change_password BOOLEAN NOT NULL DEFAULT FALSE,
+    
+    -- Segundo Factor de Autenticación (2FA / TOTP)
+    totp_secret VARCHAR(64) NULL,                 -- Clave secreta Base32 para TOTP (Google/Microsoft Auth)
+    is_totp_enabled BOOLEAN NOT NULL DEFAULT FALSE,
+    
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -120,7 +135,16 @@ CREATE TABLE IF NOT EXISTS project_user_permissions (
     UNIQUE(user_id, project_file_name)
 );
 
--- 4. Registro Centralizado e Inmutable de Logs de Auditoría
+-- 4. Candados Temporales de Concurrencia Suave para Lienzos (Soft-Locking)
+CREATE TABLE IF NOT EXISTS canvas_active_locks (
+    project_file_name VARCHAR(120) PRIMARY KEY,
+    user_id UUID NOT NULL REFERENCES app_users(id) ON DELETE CASCADE,
+    user_name VARCHAR(150) NOT NULL,
+    locked_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    expires_at TIMESTAMPTZ NOT NULL
+);
+
+-- 5. Registro Centralizado e Inmutable de Logs de Auditoría
 CREATE TABLE IF NOT EXISTS audit_logs (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -138,6 +162,7 @@ CREATE INDEX IF NOT EXISTS idx_users_email ON app_users(email);
 CREATE INDEX IF NOT EXISTS idx_users_role ON app_users(role);
 CREATE INDEX IF NOT EXISTS idx_user_perms_user_id ON project_user_permissions(user_id);
 CREATE INDEX IF NOT EXISTS idx_user_perms_project ON project_user_permissions(project_file_name);
+CREATE INDEX IF NOT EXISTS idx_locks_expires_at ON canvas_active_locks(expires_at);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_timestamp ON audit_logs(timestamp DESC);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_email ON audit_logs(user_email);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_action ON audit_logs(action_type);
@@ -176,24 +201,60 @@ CREATE INDEX IF NOT EXISTS idx_audit_logs_action ON audit_logs(action_type);
      - Se dispara el evento de auditoría `ACCESS_REQUEST_SUBMITTED`.
      - El usuario recibe un mensaje de éxito: *"Tu solicitud de habilitación ha sido remitida al Administrador para su evaluación."*
 
-### 4.3. Flujo de Restablecimiento de Contraseña (Código de 6 Dígitos)
-1. **Solicitud de Código (`ForgotPasswordModal.tsx`):**
-   - El usuario introduce su correo electrónico y presiona "Restablecer contraseña".
-   - El sistema genera un código numérico aleatorio de 6 dígitos mediante generador criptográfico (`crypto.getRandomValues`).
-   - Se almacena el código con un hash temporal, estableciendo `reset_code_expires_at = NOW() + INTERVAL '15 minutes'` y la bandera `must_change_password = true`.
-   - Se presenta un diálogo seguro con el código de 6 dígitos generado (con opción de despacho por correo electrónico si se encuentra configurado el servicio transaccional).
-   - Se registra el evento de auditoría `AUTH_RESET_CODE_ISSUED`.
-2. **Ingreso con Código de 6 Dígitos:**
-   - En la pantalla de login principal, el usuario ingresa su correo y el **código de 6 dígitos en el campo de contraseña**.
-   - El backend/servicio valida que el código coincida y que la fecha actual no supere `reset_code_expires_at`.
-   - Al validar el código, la aplicación **intercepta la sesión** y no permite abrir ningún proyecto ni ver el Dashboard habitual.
-3. **Cambio Forzado Obligatorio (`ForcePasswordChangeModal.tsx`):**
+### 4.3. Flujo de Restablecimiento de Contraseñas Exclusivo por Administrador
+1. **Solicitud de Reseteo por el Usuario (`RequestPasswordResetModal.tsx`):**
+   - El usuario presiona en la pantalla de login: *"¿Olvidaste tu contraseña? Solicitar restablecimiento"*.
+   - Introduce su correo electrónico registrado.
+   - El sistema actualiza en `app_users`: `reset_request_status = 'REQUESTED'` y `reset_requested_at = NOW()`.
+   - Se muestra un diálogo informativo claro e ineludible al usuario:  
+     *"Tu solicitud de restablecimiento ha sido enviada al Administrador. No podrás acceder hasta que el Administrador apruebe la solicitud y te informe el código numérico de 6 dígitos generado por el sistema."*
+   - Se dispara el evento de auditoría `AUTH_RESET_REQUESTED_BY_USER`.
+2. **Generación del Código por el Administrador (`AdminConsoleModal.tsx`):**
+   - El Administrador es el **único facultado** para generar y autorizar el reseteo de claves.
+   - En la Consola de Administración (pestaña *"Usuarios / Reseteo de Claves"*), el Administrador revisa las solicitudes pendientes o selecciona a cualquier usuario activo y presiona **"Generar Código de 6 Dígitos"**.
+   - El sistema calcula un código aleatorio criptográfico de 6 dígitos (ej. `839201`), lo almacena en `app_users.reset_code` con expiración temporal, marca `reset_request_status = 'CODE_ISSUED'` y setea `must_change_password = true`.
+   - La pantalla del Administrador muestra el código generado con un botón para copiar al portapapeles, para que el Administrador se lo informe formalmente al usuario por canal institucional seguro (correo, llamada o mensajería interna).
+   - Se registra el evento de auditoría `AUTH_RESET_CODE_GENERATED_BY_ADMIN`.
+3. **Ingreso del Usuario con Código de 6 Dígitos:**
+   - Una vez informado del código por el Administrador, el usuario ingresa a la pantalla de login principal.
+   - Escribe su correo electrónico y el **código de 6 dígitos en el campo de contraseña**.
+   - El sistema valida el código y la vigencia temporal. Al autenticar, intercepta la sesión impidiendo el ingreso ordinario.
+4. **Cambio Forzado Obligatorio de Contraseña (`ForcePasswordChangeModal.tsx`):**
    - Se abre un modal de pantalla bloqueante con los siguientes campos obligatorios:
-     1. Código de 6 dígitos ingresado (para confirmación de posesión).
+     1. Código de 6 dígitos informado por el Administrador (para validación de posesión).
      2. Nueva Contraseña (mínimo 8 caracteres, alfanumérica).
      3. Confirmación de Nueva Contraseña.
-   - Una vez validadas las reglas de seguridad, se calcula el nuevo `password_hash`, se anula el `reset_code`, se setea `must_change_password = false` y se registra `AUTH_PASSWORD_CHANGED` en la auditoría.
+   - Una vez validadas las reglas de seguridad, se calcula el nuevo `password_hash`, se anula el `reset_code`, se setea `must_change_password = false`, `reset_request_status = 'NONE'` y se registra `AUTH_PASSWORD_CHANGED_SUCCESS` en la auditoría.
    - El usuario queda autenticado y es dirigido a su Dashboard de lienzos asignados.
+
+### 4.4. Bloqueo Suave de Concurrencia (*Canvas Soft-Locking*) [Sugerencia 1]
+1. **Adquisición de Candado de Edición:**
+   - Cuando un usuario con permiso de `Editor` abre un lienzo, el sistema registra un registro en `canvas_active_locks` con `expires_at = NOW() + INTERVAL '5 minutes'`.
+   - Mientras el editor permanezca en la pantalla, se emite un latido (*heartbeat*) automático cada 60 segundos que extiende `expires_at`.
+2. **Protección contra Sobrescrituras:**
+   - Si otro usuario con rol de editor intenta abrir el mismo lienzo mientras el candado está vigente por otro usuario:
+     - El lienzo se abre automáticamente en modo **`Solo Lectura`**.
+     - Se muestra una barra de advertencia persistente en la cabecera:  
+       *"⚠️ Este lienzo está siendo editado activamente por [Nombre del Usuario]. Tu sesión ha sido abierta en modo Solo Lectura para prevenir pérdida de datos."*
+3. **Liberación del Candado:**
+   - Al cerrar el lienzo, navegar al Dashboard o cerrar la pestaña del navegador, el candado se elimina de forma inmediata de la tabla `canvas_active_locks`.
+
+### 4.5. Cierre de Sesión por Inactividad (*Idle Session Timeout*) [Sugerencia 2]
+1. **Monitoreo de Actividad:**
+   - El servicio `idleTimeoutService.ts` escucha eventos de interacción (`mousemove`, `keydown`, `pointerdown`, `scroll`).
+   - El temporizador está configurado en un umbral estricto de **30 minutos**.
+2. **Alerta Preventiva y Bloqueo:**
+   - A los 28 minutos de inactividad, se despliega una notificación flotante con cuenta regresiva: *"Tu sesión se suspenderá en 2 minutos por inactividad. Haz clic para continuar."*
+   - A los 30 minutos, se bloquea la interfaz con un protector opaco de seguridad, solicitando reingreso de contraseña o confirmación con Google para reanudar el trabajo, evitando exposición en puestos compartidos.
+
+### 4.6. Autenticación de Doble Factor (2FA / TOTP) para Administradores [Sugerencia 6]
+1. **Enrolamiento de Dispositivo:**
+   - En la primera sesión del Administrador (o en su panel de seguridad), el sistema genera un secreto criptográfico Base32 y muestra un código QR estándar (RFC 6238).
+   - El Administrador escanea el código con Google Authenticator, Microsoft Authenticator o Authy, e ingresa el primer código de verificación para activar `is_totp_enabled = true`.
+2. **Desafío en el Inicio de Sesión:**
+   - Al iniciar sesión con credenciales de Administrador (o cuenta de Google asociada al rol `ADMIN`), tras superar el primer factor se despliega la pantalla obligatoria de validación TOTP de 6 dígitos.
+   - Sin el ingreso correcto del código temporal generado por la app móvil, el sistema no otorga token de Administrador ni acceso a la Consola de Administración.
+
 
 ---
 
@@ -254,13 +315,17 @@ El panel de logs estará completamente oculto e inaccesible para usuarios regula
 | **Autenticación** | `AUTH_LOGIN_GOOGLE` | Inicio de sesión exitoso mediante Google OAuth. |
 | **Autenticación** | `AUTH_LOGIN_FAILED` | Intento fallido de inicio de sesión (credenciales incorrectas). |
 | **Autenticación** | `AUTH_LOGOUT` | Cierre de sesión voluntario del usuario. |
-| **Autenticación** | `AUTH_RESET_CODE_ISSUED` | Generación y entrega de código de 6 dígitos para reseteo. |
-| **Autenticación** | `AUTH_PASSWORD_CHANGED` | Contraseña actualizada con éxito tras ingresar código de 6 dígitos. |
+| **Autenticación** | `AUTH_RESET_REQUESTED` | Usuario solicita restablecimiento de contraseña al Administrador. |
+| **Autenticación** | `AUTH_RESET_CODE_ISSUED` | Administrador autoriza y genera código numérico de 6 dígitos. |
+| **Autenticación** | `AUTH_PASSWORD_CHANGED` | Contraseña actualizada con éxito tras ingresar código de 6 dígitos informado. |
+| **Autenticación** | `AUTH_2FA_VERIFIED` | Verificación exitosa de token TOTP de 6 dígitos para Administrador. |
 | **Habilitación** | `ACCESS_REQUEST_SUBMITTED` | Usuario envía formulario solicitando alta en el sistema. |
 | **Habilitación** | `ACCESS_REQUEST_APPROVED` | Administrador aprueba solicitud y asigna rol inicial. |
 | **Habilitación** | `ACCESS_REQUEST_REJECTED` | Administrador rechaza solicitud de usuario. |
 | **Gobernanza** | `CANVAS_PERMISSION_ASSIGNED` | Administrador asigna o modifica permiso de un lienzo a un usuario. |
 | **Gobernanza** | `CANVAS_PERMISSION_REMOVED` | Administrador desasigna un lienzo a un usuario. |
+| **Concurrencia** | `CANVAS_LOCK_ACQUIRED` | Usuario con permiso Editor toma candado de edición sobre el lienzo. |
+| **Concurrencia** | `CANVAS_LOCK_RELEASED` | Candado de edición liberado voluntariamente o por expiración de latido. |
 | **Lienzo** | `CANVAS_OPENED` | Apertura de un lienzo para visualización o trabajo. |
 | **Lienzo** | `CANVAS_COMMENT_ADDED` | Usuario agrega una Nota Adhesiva (`StickyNote`) con observaciones. |
 | **Lienzo** | `CANVAS_COMMENT_UPDATED` | Modificación de texto o vinculación de una nota. |
@@ -270,11 +335,23 @@ El panel de logs estará completamente oculto e inaccesible para usuarios regula
 ### 6.3. Interfaz del Visor de Logs (`AuditLogsView.tsx`)
 - Filtros reactivos combinables:
   - Selector de Usuario / Correo.
-  - Selector de Categoría de Acción (Acceso, Lienzos, Comentarios, Gobernanza).
+  - Selector de Categoría de Acción (Acceso, Lienzos, Comentarios, Gobernanza, Concurrencia).
   - Selector de Proyecto / Lienzo específico.
   - Selector de Rango de Fechas (Desde - Hasta).
 - Buscador textual sobre detalles y metadatos.
-- **Botón de Exportación a Excel (.xlsx):** Descarga del informe de auditoría listo para presentación ante auditorías de calidad ISO 9001:2015.
+- **Botón de Exportación a Excel (.xlsx):** Descarga del informe tabular de auditoría listo para procesamiento y análisis.
+
+### 6.4. Generación de Informe Foliado y Certificado en PDF (ISO 9001:2015) [Sugerencia 7]
+1. **Emisión de Documento Oficial:**
+   - Botón destacado en el visor de logs: **"Exportar Informe Foliado PDF (ISO 9001)"**.
+   - Motor generador con `jspdf` que maqueta un reporte formal con numeración de páginas foliadas (*Página X de Y*).
+2. **Estructura Normativa del Reporte:**
+   - **Encabezado Institucional:** Logotipo de ProcesStudio, código de control documental (`AUD-ISO-9001-XXXX`), fecha de emisión y usuario administrador solicitante.
+   - **Criterios de Alcance:** Rango cronológico auditado, usuarios y procesos comprendidos.
+   - **Matriz de Trazabilidad:** Tabla formateada con marcas de tiempo en formato ISO 8601, identidad del operador, rol, acción ejecutada, recurso objetivo y resumen de cambios.
+   - **Sello Criptográfico de Integridad:** Cálculo de hash SHA-256 sobre el cuerpo del reporte para verificar inmutabilidad documental.
+   - **Bloque de Firmas:** Espacio formal para rúbrica del Auditor de Calidad y del Responsable del Sistema.
+
 
 ---
 
@@ -296,18 +373,18 @@ Conforme a la **Directiva 4**, estas historias se registrarán con su numeració
   {
     id: 'PST-070',
     modulo: 'Seguridad & Credenciales',
-    titulo: 'Restablecimiento de Contraseña con Código de 6 Dígitos y Cambio Forzado',
-    historiaUsuario: 'Como usuario que olvidó su clave, quiero generar un código temporal de 6 dígitos que sirva como contraseña de un solo uso para ingresar y ser obligado inmediatamente a establecer una nueva contraseña con confirmación, para recuperar mi cuenta con seguridad garantizada.',
-    criteriosAceptacion: '1. Botón "Restablecer contraseña" que genera un código aleatorio criptográfico de 6 dígitos con vigencia de 15 minutos.\n2. Ingreso del código de 6 dígitos en el campo de contraseña de la pantalla de login.\n3. Intercepción inmediata de la sesión mediante modal bloqueante ForcePasswordChangeModal.\n4. Exigencia de validación: código actual, nueva contraseña y confirmación coincidente.\n5. Actualización segura del hash y registro del evento en los logs de auditoría.',
+    titulo: 'Solicitud y Generación Administrativa de Código de 6 Dígitos con Cambio Forzado de Contraseña',
+    historiaUsuario: 'Como usuario que olvidó su clave, quiero solicitar el restablecimiento al administrador para que este genere un código de 6 dígitos que me informe formalmente y me sirva para ingresar, obligándome inmediatamente a establecer una nueva contraseña con confirmación, para garantizar un reseteo plenamente gobernado.',
+    criteriosAceptacion: '1. Botón "Solicitar restablecimiento" en la pantalla de login que deja al usuario en espera y registra la petición en estado REQUESTED.\n2. El Administrador es el único facultado para aprobar y generar el código criptográfico de 6 dígitos en su consola.\n3. El Administrador comunica el código informado al usuario por canal corporativo seguro.\n4. Ingreso del código de 6 dígitos en el campo de contraseña del login.\n5. Intercepción inmediata de la sesión mediante modal bloqueante ForcePasswordChangeModal.\n6. Exigencia de validación: código informado, nueva contraseña y confirmación coincidente.\n7. Actualización segura del hash y registro del evento en los logs de auditoría.',
     fechaImplementacion: '2026-10-28',
     estado: 'Implementado / Producción'
   },
   {
     id: 'PST-071',
     modulo: 'Gobernanza & RBAC',
-    titulo: 'Consola de Administración y Asignación de Lienzos con Matriz de Permisos',
-    historiaUsuario: 'Como administrador de ProcesStudio, quiero una consola centralizada para gestionar usuarios, aprobar solicitudes y asignar o desasignar lienzos de trabajo con permisos de Solo Lectura, Comentarios o Editor, para gobernar con precisión los accesos a la propiedad intelectual de la empresa.',
-    criteriosAceptacion: '1. Panel AdminConsoleModal accesible únicamente para usuarios con rol ADMIN.\n2. Pestaña de revisión de solicitudes de habilitación con botones de Aprobar y Rechazar.\n3. Matriz de asignación de lienzos por usuario con selector de niveles: Solo Lectura, Comentarios y Editor.\n4. Acción de desasignación con 1-clic que revoca el acceso del usuario a dicho lienzo.\n5. El dashboard de los usuarios regulares solo muestra los proyectos que les fueron asignados.',
+    titulo: 'Consola de Administración, Asignación de Lienzos con Matriz de Permisos y 2FA',
+    historiaUsuario: 'Como administrador de ProcesStudio, quiero una consola centralizada protegida por doble factor de autenticación (2FA / TOTP) para gestionar usuarios, aprobar solicitudes y asignar o desasignar lienzos de trabajo con permisos de Solo Lectura, Comentarios o Editor, para gobernar con precisión los accesos a la propiedad intelectual de la empresa.',
+    criteriosAceptacion: '1. Panel AdminConsoleModal accesible únicamente para usuarios con rol ADMIN tras superar validación TOTP de 6 dígitos.\n2. Pestaña de revisión de solicitudes de habilitación con botones de Aprobar y Rechazar.\n3. Matriz de asignación de lienzos por usuario con selector de niveles: Solo Lectura, Comentarios y Editor.\n4. Acción de desasignación con 1-clic que revoca el acceso del usuario a dicho lienzo.\n5. El dashboard de los usuarios regulares solo muestra los proyectos que les fueron asignados.',
     fechaImplementacion: '2026-10-28',
     estado: 'Implementado / Producción'
   },
@@ -323,9 +400,18 @@ Conforme a la **Directiva 4**, estas historias se registrarán con su numeració
   {
     id: 'PST-073',
     modulo: 'Auditoría & Calidad ISO 9001',
-    titulo: 'Registro Centralizado de Logs de Auditoría Exclusivo para Administradores',
-    historiaUsuario: 'Como administrador y responsable de calidad ISO 9001, quiero un registro inmutable y filtrable de todas las interacciones de los usuarios en el sistema, para auditar accesos, comentarios y modificaciones a los procesos de negocio.',
-    criteriosAceptacion: '1. Tabla audit_logs en Neon con registro append-only de autenticación, notas, ediciones y permisos.\n2. Visor de auditoría integrado en la consola de administración con filtros por fecha, usuario, acción y proyecto.\n3. Acceso estrictamente vedado para usuarios que no sean administradores.\n4. Botón de exportación del historial de auditoría a archivo Excel (.xlsx) con un clic.',
+    titulo: 'Registro Centralizado de Logs de Auditoría y Reporte Foliado Certificado PDF (ISO 9001)',
+    historiaUsuario: 'Como administrador y responsable de calidad ISO 9001, quiero un registro inmutable y filtrable de todas las interacciones de los usuarios en el sistema, con generación de un reporte foliado oficial en PDF, para auditar accesos, comentarios y modificaciones ante entes certificadores.',
+    criteriosAceptacion: '1. Tabla audit_logs en Neon con registro append-only de autenticación, notas, ediciones y permisos.\n2. Visor de auditoría integrado en la consola de administración con filtros por fecha, usuario, acción y proyecto.\n3. Acceso estrictamente vedado para usuarios que no sean administradores.\n4. Botón de exportación del historial tabular a archivo Excel (.xlsx).\n5. Botón de generación de informe foliado oficial en PDF (ISO 9001) con encabezado normativo, código de control, sello criptográfico SHA-256 y bloque de firmas.',
+    fechaImplementacion: '2026-10-28',
+    estado: 'Implementado / Producción'
+  },
+  {
+    id: 'PST-074',
+    modulo: 'Concurrencia, Sesión & 2FA',
+    titulo: 'Bloqueo Suave de Concurrencia (Soft-Locking), Timeout por Inactividad y Doble Factor (2FA)',
+    historiaUsuario: 'Como usuario y administrador de ProcesStudio, quiero contar con candados temporales en lienzos para evitar sobrescrituras entre editores, cierre automático de sesión tras 30 minutos de inactividad y segundo factor de autenticación (2FA / TOTP) para administradores, para garantizar la integridad operativa y la protección de datos corporativos.',
+    criteriosAceptacion: '1. Adquisición automática de candado con latido (heartbeat) de 60s al abrir lienzo en modo Editor; otros usuarios ingresan en Solo Lectura con aviso persistente.\n2. Liberación inmediata de candado al cerrar el lienzo, salir o expirar el latido.\n3. Temporizador de inactividad de 30 minutos con alerta previa a los 28 min y bloqueo de pantalla con cortina de seguridad.\n4. Enrolamiento con código QR y validación obligatoria de token TOTP de 6 dígitos para el rol Administrador.',
     fechaImplementacion: '2026-10-28',
     estado: 'Implementado / Producción'
   }
@@ -334,41 +420,37 @@ Conforme a la **Directiva 4**, estas historias se registrarán con su numeració
 
 ---
 
-## 8. Sección de Sugerencias para una Mejor Gestión de Usuarios
+## 8. Estado de Sugerencias de Gestión de Usuarios
 
-Las siguientes 8 recomendaciones técnicas y organizacionales optimizan la seguridad, la usabilidad y la gobernanza del sistema en entornos empresariales:
+Las recomendaciones técnicas evaluadas han sido clasificadas e integradas al alcance de acuerdo a la decisión de diseño:
 
-### 1. Bloqueo Suave de Concurrencia (*Canvas Soft-Locking*)
-- **Desafío:** Si dos usuarios con rol `Editor` abren y editan simultáneamente el mismo lienzo, quien guarde último sobreescribirá los cambios del otro (*Lost Update Problem*).
-- **Sugerencia:** Implementar un mecanismo de bloqueo suave: al abrir un lienzo en modo `Editor`, se registra un latido (*heartbeat*) temporal de 5 minutos en la base de datos (`locked_by_user_id`). Si otro editor ingresa durante ese lapso, el sistema le mostrará un aviso no invasivo: *"El usuario [Nombre] está editando activamente este diagrama. Se abrirá en modo Solo Lectura para evitar pérdidas de datos."*
+### 1. Bloqueo Suave de Concurrencia (*Canvas Soft-Locking*) — [✅ INCORPORADO AL ALCANCE PRINCIPAL]
+- **Implementación:** Tabla `canvas_active_locks` en Neon, adquisición automática de candado para rol `Editor` con latido (*heartbeat*) de 60 segundos. Si otro editor intenta ingresar, el lienzo se abre en modo `Solo Lectura` con alerta informativa de edición concurrente.
 
-### 2. Cierre de Sesión por Inactividad (*Idle Session Timeout*)
-- **Desafío:** Dado que ProcesStudio es una aplicación web y puede accederse en terminales o equipos de uso compartido, dejar la sesión abierta expone información sensible.
-- **Sugerencia:** Incorporar un temporizador de inactividad que, tras 30 minutos sin eventos de mouse o teclado, bloquee la pantalla con una cortina de seguridad y requiera ingresar la contraseña o confirmar cuenta de Google para reanudar el trabajo.
+### 2. Cierre de Sesión por Inactividad (*Idle Session Timeout*) — [✅ INCORPORADO AL ALCANCE PRINCIPAL]
+- **Implementación:** Servicio global de monitoreo de actividad con temporizador de 30 minutos. Notificación preventiva a los 28 minutos y bloqueo con pantalla de seguridad a los 30 minutos requiriendo reingreso de credenciales.
+
+### 6. Autenticación de Doble Factor (2FA / TOTP) para Administradores — [✅ INCORPORADO AL ALCANCE PRINCIPAL]
+- **Implementación:** Enrolamiento con código QR estándar RFC 6238 para Google Authenticator o Microsoft Authenticator. Desafío de token dinámico de 6 dígitos obligatorio al iniciar sesión como Administrador para acceder a la Consola y herramientas de gobernanza.
+
+### 7. Exportación Foliada de Auditoría para Certificaciones ISO 9001 — [✅ INCORPORADO AL ALCANCE PRINCIPAL]
+- **Implementación:** Botón de generación con `jspdf` de informe oficial foliado (*Página X de Y*), membretado, con código de control documental (`AUD-ISO-9001`), rango auditado, matriz de trazabilidad, cálculo de hash criptográfico de integridad SHA-256 y bloque de firmas para auditoría de calidad.
+
+---
+
+### Sugerencias Adicionales para Fases Futuras
 
 ### 3. Resiliencia de Conexión de Red (*Network Resilience & Reconnection*)
-- **Desafío:** Ante fluctuaciones temporales de conectividad con la base de datos Neon PostgreSQL, la experiencia de usuario en el navegador no debe degradarse abruptamente.
-- **Sugerencia:** Implementar un mecanismo de reintento automático exponencial y caché de estado en navegador para las credenciales y permisos del usuario activo, permitiendo inspeccionar los lienzos en memoria e indicando el estado de conexión cloud en la cabecera.
+- Reintento automático exponencial y caché de estado en navegador para las credenciales y permisos del usuario activo.
 
 ### 4. Vinculación Inteligente de Comentarios a Carriles y Roles
-- **Desafío:** Las notas adhesivas a menudo se dispersan en el lienzo sin que el área o funcionario involucrado reciba un llamado de atención.
-- **Sugerencia:** Al redactar una Nota Adhesiva (`StickyNote`), permitir al usuario seleccionar el Carril o Rol responsable (ej. "Área Legal" o "Mesa de Entradas"). El sistema asignará el color distintivo del carril a la nota y alimentará una pestaña de "Comentarios Pendientes por Sector" en la barra superior.
+- Asignación de rol o carril responsable al redactar una Nota Adhesiva (`StickyNote`).
 
 ### 5. Integración de Correo Transaccional (Resend API / SMTP Institucional)
-- **Desafío:** En redes corporativas conectadas, recibir el código de 6 dígitos en la casilla de correo es más formal y seguro que visualizarlo en pantalla.
-- **Sugerencia:** Incorporar en `.env` credenciales opcionales de correo transaccional (ej. `RESEND_API_KEY` o `SMTP_HOST`). Si están configuradas, el código de 6 dígitos se despacha automáticamente a la bandeja de entrada del usuario y el administrador recibe una alerta por correo cada vez que ingresa una nueva solicitud de acceso.
-
-### 6. Autenticación de Doble Factor (2FA / TOTP) para Administradores
-- **Desafío:** La cuenta de Administrador posee facultades críticas sobre usuarios, permisos y auditoría.
-- **Sugerencia:** Ofrecer la activación opcional de autenticación en dos pasos basada en aplicaciones estándar (Google Authenticator, Microsoft Authenticator) mediante código QR TOTP para usuarios con rol `ADMIN`.
-
-### 7. Exportación Foliada de Auditoría para Certificaciones ISO 9001
-- **Desafío:** Los auditores externos de calidad ISO 9001 requieren evidencia documental inmutable de las revisiones, autorizaciones y observaciones sobre los procedimientos.
-- **Sugerencia:** Dotar al visor de logs de un generador de reportes en PDF foliado y sellado digitalmente que certifique la cronología exacta de aprobaciones y comentarios entre dos fechas seleccionadas.
+- Despacho automático de notificaciones a casillas corporativas si se configuran variables de entorno SMTP/Resend.
 
 ### 8. Enlace de Activación de Un Solo Uso (*Magic Invite Link*)
-- **Desafío:** Cuando el Administrador aprueba una solicitud, tener que coordinar manualmente la entrega del código inicial añade fricción.
-- **Sugerencia:** Al hacer clic en "Aprobar Solicitud", permitir al Administrador generar un enlace seguro de activación de 1 solo uso para que el usuario ingrese directamente a crear su contraseña inicial.
+- Generación de token temporal de acceso directo de un solo uso al aprobar una solicitud de habilitación.
 
 ---
 
@@ -376,32 +458,34 @@ Las siguientes 8 recomendaciones técnicas y organizacionales optimizan la segur
 
 ```mermaid
 gantt
-    title Cronograma de Implementación de Gobernanza y Usuarios
+    title Cronograma de Implementación de Gobernanza, Seguridad y Usuarios
     dateFormat  YYYY-MM-DD
     section Base de Datos y Tipos
-    Modelos y DDL en Neon / Local      :active, a1, 2026-10-28, 1d
-    Servicio de Auditoría y Auth       :a2, after a1, 1d
+    Modelos, DDL Neon, Locks y 2FA      :active, a1, 2026-10-28, 1d
+    Servicio de Auditoría y Auth        :a2, after a1, 1d
     section Autenticación y Acceso
-    Login Google + Email + Solicitud   :b1, after a2, 1d
-    Restablecimiento 6 Dígitos         :b2, after b1, 1d
-    Cambio Forzado de Contraseña       :b3, after b2, 1d
+    Login Google + Email + Solicitud    :b1, after a2, 1d
+    Reseteo Admin (Código 6 Dígitos)    :b2, after b1, 1d
+    Cambio Forzado de Contraseña        :b3, after b2, 1d
+    2FA TOTP para Administradores       :b4, after b3, 1d
     section Gobernanza y Permisos
-    Consola Admin y Asignación         :c1, after b3, 1d
-    Filtro de Lienzos en Dashboard     :c2, after c1, 1d
-    Modo Comentarios (Solo Notas)      :c3, after c2, 1d
+    Consola Admin y Asignación          :c1, after b4, 1d
+    Filtro de Lienzos en Dashboard      :c2, after c1, 1d
+    Modo Comentarios (Solo Notas)       :c3, after c2, 1d
+    Soft-Locking y Timeout Inactividad  :c4, after c3, 1d
     section Cierre y Calidad
-    Visor de Logs y Exportación Excel  :d1, after c3, 1d
-    Historias de Usuario y Auto-Push   :d2, after d1, 1d
+    Visor de Logs y Reporte PDF ISO     :d1, after c4, 1d
+    Historias de Usuario y Auto-Push    :d2, after d1, 1d
 ```
 
 ---
 
 ## 10. Conclusión y Compromiso de Desarrollo
 
-Este documento reemplaza formalmente el plan anterior y se constituye en la **Hoja de Ruta Maestra de Usuarios, Permisos y Auditoría** de ProcesStudio.
+Este documento constituye la **Hoja de Ruta Maestra Oficial de Usuarios, Permisos, Seguridad y Auditoría** de ProcesStudio.
 
 Todas las fases se implementarán respetando rigurosamente:
 1. **La arquitectura 100% Web Cloud Nativa** (React + TypeScript + Vite + Neon PostgreSQL).
-2. **La persistencia en Neon PostgreSQL**.
-3. **La actualización del archivo Excel `HISTORIAS_DE_USUARIO_PROCESSTUDIO.xlsx`** (`PST-069` a `PST-073`).
-4. **La compilación limpia (`npm run build`) y el commit/push automático a Git**.
+2. **La persistencia relacional en Neon PostgreSQL**.
+3. **La actualización del archivo Excel `HISTORIAS_DE_USUARIO_PROCESSTUDIO.xlsx`** (`PST-069` a `PST-074`).
+4. **La compilación limpia (`npm run build`) y el commit/push automático a Git tras cada conjunto de cambios**.
