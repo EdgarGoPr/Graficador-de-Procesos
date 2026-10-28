@@ -27,14 +27,17 @@ import { AuthModal } from './components/auth/AuthModal';
 import { AdminConsoleModal } from './components/admin/AdminConsoleModal';
 import { IdleLockOverlay } from './components/auth/IdleLockOverlay';
 import { IdleWarningToast } from './components/auth/IdleWarningToast';
+import { PermissionService } from './services/permissionService';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
 import { CheckCircle2, Info, AlertCircle, AlertTriangle, X } from 'lucide-react';
 
 export const App: React.FC = () => {
-  const { initialize, isLoading } = useProjectStore();
-  const { initializeAuth } = useAuthStore();
+  const { initialize, isLoading, currentProject } = useProjectStore();
+  const { initializeAuth, currentUser } = useAuthStore();
   const {
     activeView,
+    setActiveView,
+    showNotification,
     isPropertiesPanelOpen,
     activeSubProcessNodeId,
     closeSubProcessDetail,
@@ -57,6 +60,17 @@ export const App: React.FC = () => {
     initializeAuth();
   }, [initialize, initializeAuth]);
 
+  // Guard de visualización estricta de lienzos para usuarios regulares
+  useEffect(() => {
+    if (currentUser && currentUser.role === 'USER' && activeView === 'CANVAS' && currentProject?.fileName) {
+      const perm = PermissionService.getUserPermissionForProject(currentUser, currentProject.fileName);
+      if (!perm) {
+        showNotification('Acceso denegado: este lienzo no está asignado a tu usuario.', 'warning');
+        setActiveView('DASHBOARD');
+      }
+    }
+  }, [currentUser, activeView, currentProject, setActiveView, showNotification]);
+
   if (isLoading) {
     return (
       <div className="h-screen w-screen bg-theme-bg flex flex-col items-center justify-center text-theme-text">
@@ -68,6 +82,18 @@ export const App: React.FC = () => {
           Inicializando persistencia y seguridad relacional
         </p>
       </div>
+    );
+  }
+
+  // Auth Gatekeeper Obligatorio: Si no hay usuario autenticado, no se muestra el espacio de trabajo
+  if (!currentUser) {
+    return (
+      <ErrorBoundary>
+        <div className="h-screen w-screen flex flex-col items-center justify-center bg-slate-950 text-slate-100 overflow-hidden select-none relative">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-900/20 via-slate-950 to-slate-950 pointer-events-none" />
+          <AuthModal isGatekeeper={true} />
+        </div>
+      </ErrorBoundary>
     );
   }
 

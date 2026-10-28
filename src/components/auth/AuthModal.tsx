@@ -18,13 +18,14 @@ import {
   EyeOff
 } from 'lucide-react';
 
-export const AuthModal: React.FC = () => {
+export const AuthModal: React.FC<{ isGatekeeper?: boolean }> = ({ isGatekeeper = false }) => {
   const {
     isAuthModalOpen,
     authModalMode,
     closeAuthModal,
     setAuthModalMode,
     setCurrentUser,
+    currentUser,
     tempTotpUserId
   } = useAuthStore();
 
@@ -50,7 +51,7 @@ export const AuthModal: React.FC = () => {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  if (!isAuthModalOpen) return null;
+  if (!isAuthModalOpen && !isGatekeeper) return null;
 
   const resetMessages = () => {
     setErrorMessage(null);
@@ -105,12 +106,16 @@ export const AuthModal: React.FC = () => {
     setIsSubmitting(true);
 
     try {
-      // Simulación de prompt / token Google para desarrollo o producción Web
+      const targetEmail = (email && email.trim()) || 'egdeprada@gmail.com';
+      const isAdminEmail = targetEmail.toLowerCase() === 'egdeprada@gmail.com';
+
       const googleProfile = {
-        email: email || 'usuario.corporativo@empresa.com',
-        fullName: 'Usuario Google Corporativo',
-        googleId: 'google_oauth_' + Math.floor(Math.random() * 1000000),
-        avatarUrl: 'https://lh3.googleusercontent.com/a/default-user'
+        email: targetEmail,
+        fullName: isAdminEmail ? 'Edgar González de Prada' : (fullName || 'Usuario Google Corporativo'),
+        googleId: 'google_oauth_' + (isAdminEmail ? 'admin_egdeprada' : Math.floor(Math.random() * 1000000)),
+        avatarUrl: isAdminEmail 
+          ? 'https://lh3.googleusercontent.com/a/ACg8ocISAdminUserEdgar' 
+          : 'https://lh3.googleusercontent.com/a/default-user'
       };
 
       const result = await AuthService.loginWithGoogle(googleProfile);
@@ -251,7 +256,7 @@ export const AuthModal: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-fadeIn">
+    <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 ${isGatekeeper ? 'bg-slate-950/80' : 'bg-black/70'} backdrop-blur-md animate-fadeIn`}>
       <div className="relative w-full max-w-md bg-theme-surface border border-theme-border rounded-2xl shadow-2xl overflow-hidden transition-all text-theme-text">
         {/* Cabecera del Modal */}
         <div className="px-6 pt-6 pb-4 flex items-center justify-between border-b border-theme-border/60">
@@ -264,12 +269,14 @@ export const AuthModal: React.FC = () => {
               <p className="text-xs text-theme-text-muted">Gobernanza, Roles y Calidad ISO 9001</p>
             </div>
           </div>
-          <button
-            onClick={closeAuthModal}
-            className="p-1 rounded-lg text-theme-text-muted hover:text-theme-text hover:bg-theme-border/40 transition-colors"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          {currentUser && !isGatekeeper && (
+            <button
+              onClick={closeAuthModal}
+              className="p-1 rounded-lg text-theme-text-muted hover:text-theme-text hover:bg-theme-border/40 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          )}
         </div>
 
         {/* Mensajes de Alerta / Éxito */}
@@ -389,8 +396,11 @@ export const AuthModal: React.FC = () => {
                   d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.24 6.58l4.04 3.15c.95-2.83 3.6-4.98 6.72-4.98z"
                 />
               </svg>
-              <span>Continuar con Google</span>
+              <span>{email ? `Continuar con Google (${email})` : 'Continuar con Google (egdeprada@gmail.com)'}</span>
             </button>
+            <p className="text-[11px] text-center text-theme-text-muted mt-1">
+              El correo <span className="font-semibold text-theme-text">egdeprada@gmail.com</span> ingresa automáticamente como <span className="font-bold text-theme-accent">ADMIN</span>
+            </p>
 
             {/* Enlace a Solicitar Habilitación */}
             <div className="pt-2 text-center text-xs text-theme-text-muted">

@@ -1,9 +1,9 @@
 # Plan de Acción Integral: Gestión de Usuarios, Roles, Permisos por Lienzo, Acceso con Google, Reseteo por Administrador y Logs de Auditoría
 
 > **Documento:** Plan de Acción Oficial de Seguridad y Gobernanza de ProcesStudio  
-> **Versión:** 1.1.0 | **Fecha:** 2026-10-28  
+> **Versión:** 1.3.0 | **Fecha:** 2026-10-28  
 > **Alineación Normativa:** Directivas Obligatorias de Desarrollo (`AGENTS.md` y `.agents/rules/directivas.md`), Estándar BPMN 2.0 (ISO/IEC 19510), Gestión de Calidad ISO 9001:2015 (Control de Cambios y Trazabilidad) y Seguridad de la Información ISO/IEC 27001 (Control de Accesos).  
-> **Historias de Usuario:** `PST-069`, `PST-070`, `PST-071`, `PST-072`, `PST-073`, `PST-074`.
+> **Historias de Usuario:** `PST-069`, `PST-070`, `PST-071`, `PST-072`, `PST-073`, `PST-074`, `PST-075` (Auth Gatekeeper & Ocultamiento Estricto).
 
 ---
 
@@ -11,18 +11,21 @@
 
 El propósito fundamental de esta evolución es transformar **ProcesStudio** en una plataforma corporativa gobernada por **Control de Acceso Basado en Roles (RBAC)**, **Permisos Granulares por Lienzo (Lienzo / Proyecto)** y **Máxima Seguridad de Identidad**, garantizando:
 
-1. **Acceso Restringido y Gobernado:** Eliminación del auto-registro libre. Solo los usuarios debidamente habilitados por un **Administrador** pueden acceder a la plataforma. Los nuevos interesados dispondrán de un flujo de **Solicitud de Habilitación**.
-2. **Identidad Corporativa y Google Sign-In:** Soporte dual para ingreso mediante correo electrónico y credenciales locales seguras, o a través de **Google OAuth 2.0 / Google Identity Services (GIS)** con verificación de dominio y estado de cuenta.
-3. **Restablecimiento de Contraseñas Exclusivo por el Administrador:** El **Administrador es el único facultado para generar y autorizar el reseteo de contraseñas**. El usuario puede emitir la solicitud desde la pantalla de login, pero **no podrá ingresar hasta que el Administrador le informe el código de 6 dígitos generado por el sistema**. Una vez informado, el usuario ingresa dicho código como contraseña provisoria y el sistema lo obliga inmediatamente a definir su nueva contraseña y confirmarla.
-4. **Permisos Granulares por Lienzo:** Capacidad del Administrador para asignar o desasignar proyectos a usuarios con tres niveles de control:
+1. **Ingreso Obligatorio Previo (Auth Gatekeeper):** El acceso a ProcesStudio requiere **siempre e ineludiblemente el inicio de sesión previo**. Se suprime el acceso como invitado/anónimo: si el usuario no ha iniciado sesión, la aplicación presenta una pantalla bloqueante de autenticación (sin opción de cerrar o saltar) impidiendo visualizar o interactuar con el Dashboard o Lienzos hasta estar debidamente autenticado.
+2. **Cuenta de Administrador Principal (`egdeprada@gmail.com`):** La cuenta principal con rol `ADMIN` queda asignada al correo institucional/personal **`egdeprada@gmail.com`**, permitiendo el ingreso directo mediante el botón oficial de **Google Login** (o credenciales de contingencia) con privilegios totales de administración, gobernanza, asignación de lienzos y bitácoras.
+3. **Ocultamiento Estricto de Lienzos No Asignados (*Zero-Visibility*):** Un usuario regular (`USER`) **no debe ver ni tener conocimiento de ningún lienzo que no le haya sido asignado explícitamente**. Los proyectos no asignados o desasignados se filtran de raíz en el Dashboard (no aparecen en tarjetas, métricas ni resultados de búsqueda). Si un usuario no posee lienzos asignados, el catálogo muestra un estado vacío institucional. Asimismo, cualquier intento de acceso forzado a un lienzo no asignado será rechazado de inmediato. El Administrador (`egdeprada@gmail.com`) mantiene la visibilidad completa de todos los procesos para su gestión y asignación.
+4. **Acceso Restringido y Gobernado:** Eliminación del auto-registro libre. Solo los usuarios debidamente habilitados por el Administrador pueden acceder a la plataforma. Los nuevos interesados dispondrán de un flujo formal de **Solicitud de Habilitación**.
+5. **Identidad Corporativa y Google Sign-In:** Soporte dual para ingreso mediante correo electrónico y credenciales locales seguras, o a través de **Google OAuth 2.0 / Google Identity Services (GIS)** con reconocimiento automático de la cuenta administradora `egdeprada@gmail.com`.
+6. **Restablecimiento de Contraseñas Exclusivo por el Administrador:** El **Administrador es el único facultado para generar y autorizar el reseteo de contraseñas**. El usuario puede emitir la solicitud desde la pantalla de login, pero **no podrá ingresar hasta que el Administrador le informe el código de 6 dígitos generado por el sistema**. Una vez informado, el usuario ingresa dicho código como contraseña provisoria y el sistema lo obliga inmediatamente a definir su nueva contraseña y confirmarla.
+7. **Permisos Granulares por Lienzo:** Capacidad del Administrador para asignar o desasignar proyectos a usuarios con tres niveles de control:
    - **Solo Lectura:** Inspección visual y exportación; edición bloqueada.
    - **Comentarios:** El usuario **únicamente puede interactuar con Notas Adhesivas (`StickyNote`)**, colocándolas y editándolas sobre el lienzo para sugerencias o revisiones, sin alterar en absoluto el flujo BPMN ni los carriles.
    - **Editor:** Autoridad completa para diseñar diagramas BPMN, gestionar carriles, compuertas, SLAs, IA y guardar versiones.
-5. **Trazabilidad Absoluta y Logs de Auditoría (Exclusivo Administrador):** Registro inmutable en base de datos de cada interacción del sistema, accesible exclusivamente por usuarios con rol Administrador, con **generación de informe oficial foliado y certificado en PDF (ISO 9001)**.
-6. **Arquitectura 100% Web Cloud Nativa:** Operación como aplicación Web moderna (React, TypeScript, Vite) con backend relacional serverless en **Neon PostgreSQL**, accesible mediante cualquier navegador sin dependencias de empaquetados pesados ni pendrives.
-7. **Bloqueo Suave de Concurrencia (*Canvas Soft-Locking*) [Sugerencia 1]:** Prevención de colisiones entre editores mediante adquisición de candado temporal con latido (*heartbeat*). Si un usuario ya edita un lienzo, a los demás se les abre en modo *Solo Lectura* con notificación.
-8. **Cierre de Sesión por Inactividad (*Idle Timeout*) [Sugerencia 2]:** Bloqueo automático de pantalla tras 30 minutos de inactividad del usuario, requiriendo reingreso de contraseña para retomar.
-9. **Doble Factor de Autenticación (2FA / TOTP) para Administradores [Sugerencia 6]:** Segundo factor obligatorio mediante Google/Microsoft Authenticator para cuentas con privilegios administrativos.
+8. **Trazabilidad Absoluta y Logs de Auditoría (Exclusivo Administrador):** Registro inmutable en base de datos de cada interacción del sistema, accesible exclusivamente por usuarios con rol Administrador, con **generación de informe oficial foliado y certificado en PDF (ISO 9001)** con sello SHA-256.
+9. **Arquitectura 100% Web Cloud Nativa:** Operación como aplicación Web moderna (React, TypeScript, Vite) con backend relacional serverless en **Neon PostgreSQL**, accesible mediante cualquier navegador.
+10. **Bloqueo Suave de Concurrencia (*Canvas Soft-Locking*) [Sugerencia 1]:** Prevención de colisiones entre editores mediante adquisición de candado temporal con latido de 60s. Si un usuario ya edita un lienzo, a los demás se les abre en modo *Solo Lectura* con notificación.
+11. **Cierre de Sesión por Inactividad (*Idle Timeout*) [Sugerencia 2]:** Bloqueo automático de pantalla tras 30 minutos de inactividad del usuario, requiriendo reingreso de contraseña para retomar.
+12. **Doble Factor de Autenticación (2FA / TOTP) para Administradores [Sugerencia 6]:** Segundo factor obligatorio mediante Google/Microsoft Authenticator para cuentas con privilegios administrativos.
 
 ---
 
@@ -414,6 +417,15 @@ Conforme a la **Directiva 4**, estas historias se registrarán con su numeració
     criteriosAceptacion: '1. Adquisición automática de candado con latido (heartbeat) de 60s al abrir lienzo en modo Editor; otros usuarios ingresan en Solo Lectura con aviso persistente.\n2. Liberación inmediata de candado al cerrar el lienzo, salir o expirar el latido.\n3. Temporizador de inactividad de 30 minutos con alerta previa a los 28 min y bloqueo de pantalla con cortina de seguridad.\n4. Enrolamiento con código QR y validación obligatoria de token TOTP de 6 dígitos para el rol Administrador.',
     fechaImplementacion: '2026-10-28',
     estado: 'Implementado / Producción'
+  },
+  {
+    id: 'PST-075',
+    modulo: 'Autenticación Mandatoria & Ocultamiento de Lienzos',
+    titulo: 'Barrera de Entrada Obligatoria, Admin egdeprada@gmail.com y Ocultamiento de Lienzos No Asignados',
+    historiaUsuario: 'Como director de seguridad y administrador de ProcesStudio, quiero que el sistema requiera obligatoriamente iniciar sesión antes de mostrar cualquier pantalla, que mi cuenta de Google egdeprada@gmail.com esté configurada como Administrador principal con acceso automático, y que los usuarios regulares no vean bajo ningún concepto ningún lienzo que no tengan asignado, para impedir el acceso anónimo y resguardar la confidencialidad de los procesos.',
+    criteriosAceptacion: '1. Al cargar la aplicación sin sesión activa (currentUser === null), el sistema despliega de forma obligatoria y bloqueante el modal de acceso AuthModal en modo pantalla completa sin opción de cerrar o cancelar.\n2. Se bloquea totalmente el renderizado y acceso al Dashboard de Proyectos y al Canvas hasta que la autenticación sea exitosa.\n3. Configuración del correo egdeprada@gmail.com como usuario Administrador principal por defecto con reconocimiento automático de rol ADMIN en Google Login.\n4. Ocultamiento total en el Dashboard: los usuarios con rol USER no ven ningún lienzo que no tengan explícitamente asignado en la matriz de permisos.\n5. Si un usuario no tiene lienzos asignados, el Dashboard muestra un estado vacío institucional impidiendo el acceso a diagramas ajenos.\n6. Rechazo automático con redirección al Dashboard si un usuario intenta forzar la carga de un proyecto no asignado.',
+    fechaImplementacion: '2026-10-28',
+    estado: 'Planificado / En Desarrollo'
   }
 ]
 ```
@@ -454,38 +466,45 @@ Las recomendaciones técnicas evaluadas han sido clasificadas e integradas al al
 
 ---
 
-## 9. Hoja de Ruta de Ejecución Técnica
+## 9. Hoja de Ruta de Ejecución Técnica Específica
 
-```mermaid
-gantt
-    title Cronograma de Implementación de Gobernanza, Seguridad y Usuarios
-    dateFormat  YYYY-MM-DD
-    section Base de Datos y Tipos
-    Modelos, DDL Neon, Locks y 2FA      :active, a1, 2026-10-28, 1d
-    Servicio de Auditoría y Auth        :a2, after a1, 1d
-    section Autenticación y Acceso
-    Login Google + Email + Solicitud    :b1, after a2, 1d
-    Reseteo Admin (Código 6 Dígitos)    :b2, after b1, 1d
-    Cambio Forzado de Contraseña        :b3, after b2, 1d
-    2FA TOTP para Administradores       :b4, after b3, 1d
-    section Gobernanza y Permisos
-    Consola Admin y Asignación          :c1, after b4, 1d
-    Filtro de Lienzos en Dashboard      :c2, after c1, 1d
-    Modo Comentarios (Solo Notas)       :c3, after c2, 1d
-    Soft-Locking y Timeout Inactividad  :c4, after c3, 1d
-    section Cierre y Calidad
-    Visor de Logs y Reporte PDF ISO     :d1, after c4, 1d
-    Historias de Usuario y Auto-Push    :d2, after d1, 1d
-```
+1. **Configuración de la Cuenta de Administrador Principal (`egdeprada@gmail.com`):**
+   - **`scripts/auth_schema.sql`:** Actualizar la semilla DDL de inserción inicial para que el administrador sea `egdeprada@gmail.com` con nombre "Edgar González de Prada" y rol `ADMIN`.
+   - **`src/services/authService.ts`:**
+     - Modificar la inicialización para sembrar `egdeprada@gmail.com` con rol `ADMIN`.
+     - Migración automática: si existe un usuario previo `admin@processtudio.com` en Neon o `localStorage`, migrar automáticamente sus asignaciones y privilegios hacia `egdeprada@gmail.com`.
+     - **Reconocimiento en Google Login (`loginWithGoogle`):** Cuando la credencial o el correo verificado de Google sea `egdeprada@gmail.com`, el sistema garantiza automáticamente el rol `ADMIN` (activo de inmediato, sin requerir aprobación de terceros).
+2. **Implementación de Barrera de Acceso Obligatoria (Auth Gatekeeper):**
+   - **`src/App.tsx`:**
+     - Si `currentUser === null` (no hay usuario con sesión activa en `useAuthStore`), la aplicación **no monta el Dashboard ni el Lienzo**.
+     - En su lugar, se renderiza la pantalla de autenticación central con diseño de alta gama y fondo blur envolvente.
+   - **`src/components/auth/AuthModal.tsx`:**
+     - Modo `gatekeeper`: Ocultar el botón `X` de cerrar y evitar el cierre por clic externo mientras no exista una sesión activa.
+     - Opciones disponibles para el usuario:
+       - **Botón Oficial de Google Login** (Acceso con 1-clic con `egdeprada@gmail.com` para administrador o cualquier usuario habilitado).
+       - **Formulario de Email y Contraseña**.
+       - **"¿Olvidaste tu contraseña?"**: Solicitar restablecimiento (queda en espera del código de 6 dígitos que el Administrador generará en su consola).
+       - **"¿No tienes cuenta? Solicitar Habilitación"**: Formulario guiado de solicitud de acceso institucional.
+3. **Ocultamiento Total de Lienzos No Asignados (*Zero-Visibility*):**
+   - **`src/services/permissionService.ts`:**
+     - `getAssignedProjectFileNamesSync(user)`: para usuarios `USER`, retornar estrictamente los lienzos con asignación activa en `['READ_ONLY', 'COMMENTS', 'EDITOR']`. Excluir todo lienzo desasignado o no vinculado. Para `ADMIN`, retornar `'ALL'`.
+   - **`src/components/dashboard/ProjectDashboard.tsx`:**
+     - Filtrar estrictamente `visibleProjects`.
+     - Si `visibleProjects.length === 0`, desplegar un estado vacío institucional: *"No tienes lienzos asignados actualmente. Solicita asignación al Administrador del sistema para acceder a tus procesos."*
+   - **`src/components/canvas/ProcessCanvas.tsx`:**
+     - Salvaguarda: si `currentUser.role === 'USER'` y el lienzo abierto no cuenta con asignación válida, abortar la visualización y conmutar a la vista Dashboard con mensaje de denegación de acceso.
+4. **Validación, Generación de Historias y Auto-Push:**
+   - Ejecutar `npm run build` para validar compilación TypeScript y generar historias de usuario en `HISTORIAS_DE_USUARIO_PROCESSTUDIO.xlsx` incorporando `PST-075`.
+   - Ejecutar `git commit` y `git push origin main` de forma automática tras verificación.
 
 ---
 
 ## 10. Conclusión y Compromiso de Desarrollo
 
-Este documento constituye la **Hoja de Ruta Maestra Oficial de Usuarios, Permisos, Seguridad y Auditoría** de ProcesStudio.
+Este documento constituye la **Hoja de Ruta Maestra Oficial de Usuarios, Permisos, Seguridad y Auditoría** de ProcesStudio (Versión 1.3.0).
 
 Todas las fases se implementarán respetando rigurosamente:
 1. **La arquitectura 100% Web Cloud Nativa** (React + TypeScript + Vite + Neon PostgreSQL).
 2. **La persistencia relacional en Neon PostgreSQL**.
-3. **La actualización del archivo Excel `HISTORIAS_DE_USUARIO_PROCESSTUDIO.xlsx`** (`PST-069` a `PST-074`).
+3. **La actualización del archivo Excel `HISTORIAS_DE_USUARIO_PROCESSTUDIO.xlsx`** (`PST-069` a `PST-075`).
 4. **La compilación limpia (`npm run build`) y el commit/push automático a Git tras cada conjunto de cambios**.

@@ -88,3 +88,19 @@ CREATE INDEX IF NOT EXISTS idx_locks_expires_at ON canvas_active_locks(expires_a
 CREATE INDEX IF NOT EXISTS idx_audit_logs_timestamp ON audit_logs(timestamp DESC);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_email ON audit_logs(user_email);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_action ON audit_logs(action_type);
+
+-- 6. Semilla Inicial: Administrador Principal (Edgar González de Prada)
+INSERT INTO app_users (
+    id, email, full_name, organization_unit, role, status, is_totp_enabled
+) VALUES (
+    'admin-egdeprada-uuid',
+    'egdeprada@gmail.com',
+    'Edgar González de Prada',
+    'Dirección General de Calidad y Procesos',
+    'ADMIN',
+    'ACTIVE',
+    FALSE
+) ON CONFLICT (email) DO UPDATE SET
+    role = 'ADMIN',
+    status = 'ACTIVE';
+

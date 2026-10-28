@@ -207,7 +207,7 @@ export class PermissionService {
     user: AppUser | null,
     projectFileName: string
   ): CanvasPermission | null {
-    if (!user) return 'EDITOR';
+    if (!user) return null;
     if (user.role === 'ADMIN') return 'EDITOR';
     const local = this.getLocalPermissions();
     const found = local.find(p => p.userId === user.id && p.projectFileName === projectFileName);
@@ -218,7 +218,7 @@ export class PermissionService {
    * Obtiene sincrónicamente la lista de nombres de archivo de lienzos asignados al usuario
    */
   public static getAssignedProjectFileNamesSync(user: AppUser | null): string[] | 'ALL' {
-    if (!user) return 'ALL';
+    if (!user) return [];
     if (user.role === 'ADMIN') return 'ALL';
     const local = this.getLocalPermissions();
     return local.filter(p => p.userId === user.id).map(p => p.projectFileName);

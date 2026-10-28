@@ -49,7 +49,8 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ onOpenNewMod
   }, [currentUser]);
 
   const visibleProjects = React.useMemo(() => {
-    if (!currentUser || currentUser.role === 'ADMIN' || assignedFileNames === 'ALL') {
+    if (!currentUser) return [];
+    if (currentUser.role === 'ADMIN' || assignedFileNames === 'ALL') {
       return projectList;
     }
     return projectList.filter((p) => assignedFileNames.includes(p.fileName));
@@ -211,41 +212,45 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ onOpenNewMod
             />
 
             {/* Database Settings button */}
-            <button
-              onClick={() => setIsDbModalOpen(true)}
-              className="flex items-center space-x-2 px-3.5 py-2.5 rounded-xl bg-theme-surface-subtle hover:bg-theme-surface text-theme-text border border-theme-border text-sm font-semibold transition-colors hover:border-sky-500/50"
-              title="Configurar y sincronizar base de datos PostgreSQL en Neon"
-            >
-              <Database className="w-4 h-4 text-sky-400" />
-              <span>Base de Datos</span>
-            </button>
+            {currentUser?.role === 'ADMIN' && (
+              <>
+                <button
+                  onClick={() => setIsDbModalOpen(true)}
+                  className="flex items-center space-x-2 px-3.5 py-2.5 rounded-xl bg-theme-surface-subtle hover:bg-theme-surface text-theme-text border border-theme-border text-sm font-semibold transition-colors hover:border-sky-500/50"
+                  title="Configurar y sincronizar base de datos PostgreSQL en Neon"
+                >
+                  <Database className="w-4 h-4 text-sky-400" />
+                  <span>Base de Datos</span>
+                </button>
 
-            {/* Import JSON button */}
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              className="flex items-center space-x-2 px-3.5 py-2.5 rounded-xl bg-theme-surface-subtle hover:bg-theme-surface text-theme-text border border-theme-border text-sm font-semibold transition-colors hover:border-emerald-500/50"
-              title="Importar un archivo de proyecto .json desde cualquier computador o pendrive"
-            >
-              <Upload className="w-4 h-4 text-emerald-400" />
-              <span>Importar JSON</span>
-            </button>
+                {/* Import JSON button */}
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="flex items-center space-x-2 px-3.5 py-2.5 rounded-xl bg-theme-surface-subtle hover:bg-theme-surface text-theme-text border border-theme-border text-sm font-semibold transition-colors hover:border-emerald-500/50"
+                  title="Importar un archivo de proyecto .json desde cualquier computador o pendrive"
+                >
+                  <Upload className="w-4 h-4 text-emerald-400" />
+                  <span>Importar JSON</span>
+                </button>
 
-            <button
-              onClick={handleOpenFolder}
-              className="flex items-center space-x-2 px-3.5 py-2.5 rounded-xl bg-theme-surface-subtle hover:bg-theme-surface text-theme-text border border-theme-border text-sm font-semibold transition-colors"
-              title={isWebEnvironment ? "Ver información de almacenamiento web" : "Abrir carpeta física en el Explorador de Windows"}
-            >
-              <FolderOpen className="w-4 h-4 text-theme-accent" />
-              <span>{isWebEnvironment ? 'Almacenamiento' : 'Abrir Carpeta'}</span>
-            </button>
+                <button
+                  onClick={handleOpenFolder}
+                  className="flex items-center space-x-2 px-3.5 py-2.5 rounded-xl bg-theme-surface-subtle hover:bg-theme-surface text-theme-text border border-theme-border text-sm font-semibold transition-colors"
+                  title={isWebEnvironment ? "Ver información de almacenamiento web" : "Abrir carpeta física en el Explorador de Windows"}
+                >
+                  <FolderOpen className="w-4 h-4 text-theme-accent" />
+                  <span>{isWebEnvironment ? 'Almacenamiento' : 'Abrir Carpeta'}</span>
+                </button>
 
-            <button
-              onClick={onOpenNewModal}
-              className="flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#0284C7] to-[#3B82F6] hover:brightness-110 text-white text-sm font-bold shadow-lg shadow-blue-500/20 transition-all hover:scale-[1.02]"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Nuevo Proyecto</span>
-            </button>
+                <button
+                  onClick={onOpenNewModal}
+                  className="flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#0284C7] to-[#3B82F6] hover:brightness-110 text-white text-sm font-bold shadow-lg shadow-blue-500/20 transition-all hover:scale-[1.02]"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Nuevo Proyecto</span>
+                </button>
+              </>
+            )}
           </div>
         </div>
 
@@ -265,7 +270,9 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ onOpenNewMod
           <div className="flex items-center space-x-2 text-xs text-theme-text-muted font-mono">
             <Layers className="w-3.5 h-3.5 text-theme-accent" />
             <span>
-              {filteredGroups.length} proceso{filteredGroups.length === 1 ? '' : 's'} ({projectList.length} archivo{projectList.length === 1 ? '' : 's'} en disco)
+              {currentUser?.role === 'USER'
+                ? `${filteredGroups.length} proceso${filteredGroups.length === 1 ? '' : 's'} asignado${filteredGroups.length === 1 ? '' : 's'}`
+                : `${filteredGroups.length} proceso${filteredGroups.length === 1 ? '' : 's'} (${projectList.length} archivo${projectList.length === 1 ? '' : 's'} en disco)`}
             </span>
           </div>
         </div>
@@ -274,17 +281,23 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ onOpenNewMod
         {filteredGroups.length === 0 ? (
           <div className="p-12 text-center border-2 border-dashed border-theme-border rounded-2xl bg-theme-surface/50">
             <FolderGit2 className="w-12 h-12 text-theme-text-muted mx-auto mb-3" />
-            <h3 className="text-base font-bold text-theme-text">No se encontraron proyectos</h3>
-            <p className="text-xs text-theme-text-muted mt-1">
-              Creá un nuevo proyecto o verificá los archivos JSON en la carpeta ../Proyectos/.
+            <h3 className="text-base font-bold text-theme-text">
+              {currentUser?.role === 'USER' ? 'No tienes lienzos de procesos asignados' : 'No se encontraron proyectos'}
+            </h3>
+            <p className="text-xs text-theme-text-muted mt-1 max-w-md mx-auto">
+              {currentUser?.role === 'USER'
+                ? 'Actualmente no cuentas con lienzos habilitados para lectura, comentarios o edición. Solicita al Administrador (egdeprada@gmail.com) la asignación correspondiente de tus procesos.'
+                : 'Creá un nuevo proyecto o verificá los archivos JSON en tu almacenamiento.'}
             </p>
-            <button
-              onClick={onOpenNewModal}
-              className="mt-4 px-4 py-2 rounded-lg bg-theme-accent text-white text-xs font-semibold hover:bg-theme-accent-hover inline-flex items-center space-x-1.5"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              <span>Crear Primer Proyecto</span>
-            </button>
+            {currentUser?.role === 'ADMIN' && (
+              <button
+                onClick={onOpenNewModal}
+                className="mt-4 px-4 py-2 rounded-lg bg-theme-accent text-white text-xs font-semibold hover:bg-theme-accent-hover inline-flex items-center space-x-1.5"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Crear Primer Proyecto</span>
+              </button>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

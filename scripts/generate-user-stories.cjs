@@ -668,6 +668,15 @@ const userStories = [
     criteriosAceptacion: '1. Tabla de bitácora inmutable (audit_logs) restringida exclusivamente para lectura del usuario con rol ADMIN.\n2. Trazabilidad completa de eventos: inicios de sesión, cierres de sesión, reseteo de contraseñas, asignación de permisos, conflictos de candado y solicitudes de acceso con timestamp, e-mail, IP/UserAgent y metadatos.\n3. Exportación en un clic del historial de auditoría a formato Excel (.xlsx) estructurado.\n4. Generación de informe PDF oficial paginado (ISO 9001:2015 / 27001) mediante jsPDF con membrete formal, resumen de eventos y firma digital con sello hash criptográfico SHA-256 inalterable.\n5. Resiliencia: almacenamiento primario en Neon DB con réplica o buffer en memoria local en caso de desconexión.',
     fechaImplementacion: '2026-10-28',
     estado: 'Implementado / Producción'
+  },
+  {
+    id: 'PST-075',
+    modulo: 'Seguridad & Control de Acceso',
+    titulo: 'Auth Gatekeeper Obligatorio, Administrador Principal egdeprada@gmail.com y Ocultamiento Estricto de Lienzos No Asignados',
+    historiaUsuario: 'Como usuario y administrador del sistema, quiero que el ingreso a la plataforma requiera autenticación obligatoria previa sin acceso anónimo, reconozca automáticamente a egdeprada@gmail.com con rol Administrador mediante Google Sign-In, y oculte estrictamente todo lienzo no asignado a los usuarios regulares, para salvaguardar la confidencialidad estratégica de los procesos corporativos.',
+    criteriosAceptacion: '1. Auth Gatekeeper Mandatario: Al abrir la aplicación sin sesión activa, se bloquea la vista del espacio de trabajo y se despliega directamente el portal de autenticación sin posibilidad de cierre accidental.\n2. Administrador Principal por Google: Reconocimiento y auto-aprovisionamiento garantizado de egdeprada@gmail.com como usuario ADMIN activo mediante autenticación con Google y credencial de respaldo.\n3. Ocultamiento Estricto (Zero-Visibility): Los usuarios con rol USER no visualizan en su panel ningún lienzo de proceso que no les haya sido explícitamente asignado por el Administrador (en modos Lectura, Comentarios o Edición).\n4. Bloqueo de Navegación Forzada: Si un usuario regular intenta abrir un lienzo no asignado, el sistema deniega el acceso y lo redirige automáticamente al Dashboard con una alerta de advertencia.\n5. Estado Vacío Informativo: Si un usuario no tiene proyectos asignados, se presenta un panel informativo indicando que debe contactar al Administrador para solicitar habilitación, ocultando botones de creación e importación.',
+    fechaImplementacion: '2026-10-28',
+    estado: 'Implementado / Producción'
   }
 ];
 

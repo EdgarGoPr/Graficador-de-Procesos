@@ -95,43 +95,66 @@ export class AuthService {
           );
         `;
 
-        // Crear administrador por defecto si no hay usuarios
-        const usersCount = (await sql`SELECT count(*) as count FROM app_users;`) as any[];
-        if (usersCount && usersCount[0] && Number(usersCount[0].count) === 0) {
-          const { hash } = await hashPassword('Admin123*');
-          await sql`
-            INSERT INTO app_users (
-              id, email, password_hash, full_name, organization_unit, role, status
-            ) VALUES (
-              uuid_generate_v4(),
-              'admin@processtudio.com',
-              ${hash},
-              'Administrador de Procesos',
-              'Dirección General de Calidad y Procesos',
-              'ADMIN',
-              'ACTIVE'
-            );
-          `;
-          console.log('✓ Usuario Administrador inicial creado: admin@processtudio.com / Admin123*');
+        // Crear o asegurar administrador principal (egdeprada@gmail.com)
+        const adminCheck = (await sql`SELECT id, email FROM app_users WHERE email = 'egdeprada@gmail.com';`) as any[];
+        if (!adminCheck || adminCheck.length === 0) {
+          // Migrar admin previo si existía
+          const legacyAdmin = (await sql`SELECT id FROM app_users WHERE email = 'admin@processtudio.com';`) as any[];
+          if (legacyAdmin && legacyAdmin.length > 0) {
+            await sql`
+              UPDATE app_users
+              SET email = 'egdeprada@gmail.com', full_name = 'Edgar González de Prada', role = 'ADMIN', status = 'ACTIVE'
+              WHERE id = ${legacyAdmin[0].id};
+            `;
+            console.log('✓ Usuario Administrador migrado a: egdeprada@gmail.com');
+          } else {
+            const { hash } = await hashPassword('Admin123*');
+            await sql`
+              INSERT INTO app_users (
+                id, email, password_hash, full_name, organization_unit, role, status
+              ) VALUES (
+                uuid_generate_v4(),
+                'egdeprada@gmail.com',
+                ${hash},
+                'Edgar González de Prada',
+                'Dirección General de Calidad y Procesos',
+                'ADMIN',
+                'ACTIVE'
+              );
+            `;
+            console.log('✓ Usuario Administrador inicial creado: egdeprada@gmail.com / Admin123*');
+          }
         }
       } catch (err) {
         console.warn('Advertencia al inicializar tablas de autenticación en Neon:', err);
       }
-    } else {
-      // Fallback local
-      this.ensureLocalAdmin();
     }
+
+    // Asegurar también en fallback local
+    this.ensureLocalAdmin();
   }
 
   private static ensureLocalAdmin(): void {
     const local = localStorage.getItem(LOCAL_STORAGE_USERS_FALLBACK);
-    if (!local) {
+    let usersList: AppUser[] = [];
+    if (local) {
+      try {
+        usersList = JSON.parse(local);
+      } catch {
+        usersList = [];
+      }
+    }
+
+    // Verificar si egdeprada@gmail.com ya existe
+    const existing = usersList.find(u => u.email === 'egdeprada@gmail.com');
+    if (!existing) {
+      const oldIdx = usersList.findIndex(u => u.email === 'admin@processtudio.com');
       hashPassword('Admin123*').then(({ hash }) => {
-        const defaultAdmin: AppUser = {
-          id: 'admin-default-uuid',
-          email: 'admin@processtudio.com',
+        const adminUser: AppUser = {
+          id: oldIdx >= 0 ? usersList[oldIdx].id : 'admin-egdeprada-uuid',
+          email: 'egdeprada@gmail.com',
           passwordHash: hash,
-          fullName: 'Administrador de Procesos',
+          fullName: 'Edgar González de Prada',
           organizationUnit: 'Dirección General de Calidad y Procesos',
           role: 'ADMIN',
           status: 'ACTIVE',
@@ -141,7 +164,13 @@ export class AuthService {
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
         };
-        localStorage.setItem(LOCAL_STORAGE_USERS_FALLBACK, JSON.stringify([defaultAdmin]));
+
+        if (oldIdx >= 0) {
+          usersList[oldIdx] = adminUser;
+        } else {
+          usersList.push(adminUser);
+        }
+        localStorage.setItem(LOCAL_STORAGE_USERS_FALLBACK, JSON.stringify(usersList));
       });
     }
   }
@@ -290,7 +319,56 @@ export class AuthService {
     error?: string;
   }> {
     const cleanEmail = profile.email.trim().toLowerCase();
-    const user = await this.findUserByEmail(cleanEmail);
+    let user = await this.findUserByEmail(cleanEmail);
+
+    // Auto-habilitar y configurar como ADMIN garantizado a egdeprada@gmail.com
+    if (cleanEmail === 'egdeprada@gmail.com') {
+      if (!user) {
+        user = {
+          id: 'admin-egdeprada-uuid',
+          email: 'egdeprada@gmail.com',
+          fullName: profile.fullName || 'Edgar González de Prada',
+          organizationUnit: 'Dirección General de Calidad y Procesos',
+          role: 'ADMIN',
+          status: 'ACTIVE',
+          resetRequestStatus: 'NONE',
+          mustChangePassword: false,
+          isTotpEnabled: false,
+          googleId: profile.googleId,
+          avatarUrl: profile.avatarUrl,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+        const users = this.getLocalUsers();
+        users.push(user);
+        localStorage.setItem(LOCAL_STORAGE_USERS_FALLBACK, JSON.stringify(users));
+
+        const sql = NeonClient.getSql();
+        if (sql) {
+          try {
+            await sql`
+              INSERT INTO app_users (id, email, full_name, organization_unit, role, status, google_id, avatar_url)
+              VALUES (${user.id}, ${user.email}, ${user.fullName}, ${user.organizationUnit}, 'ADMIN', 'ACTIVE', ${profile.googleId}, ${profile.avatarUrl || null})
+              ON CONFLICT (email) DO UPDATE SET role = 'ADMIN', status = 'ACTIVE', google_id = EXCLUDED.google_id;
+            `;
+          } catch (e) {
+            console.error('Error insertando egdeprada en Neon:', e);
+          }
+        }
+      } else {
+        if (user.role !== 'ADMIN' || user.status !== 'ACTIVE') {
+          user.role = 'ADMIN';
+          user.status = 'ACTIVE';
+          const users = this.getLocalUsers();
+          const idx = users.findIndex(u => u.email === 'egdeprada@gmail.com');
+          if (idx !== -1) {
+            users[idx].role = 'ADMIN';
+            users[idx].status = 'ACTIVE';
+            localStorage.setItem(LOCAL_STORAGE_USERS_FALLBACK, JSON.stringify(users));
+          }
+        }
+      }
+    }
 
     if (!user) {
       return {
