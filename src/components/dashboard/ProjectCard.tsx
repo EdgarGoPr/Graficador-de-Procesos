@@ -13,6 +13,7 @@ import {
   ShieldCheck,
   Calendar,
   User,
+  Users,
   HardDrive,
   ChevronDown,
   Sparkles,
@@ -27,6 +28,7 @@ interface ProjectCardProps {
   onOpen: (fileName: string) => void;
   onDuplicate: (fileName: string) => void;
   onDelete: (fileName: string) => void;
+  onManageParticipants?: (group: ProcessGroupSummary) => void;
 }
 
 export const ProjectCard: React.FC<ProjectCardProps> = ({
@@ -34,7 +36,8 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
   activeFileName,
   onOpen,
   onDuplicate,
-  onDelete
+  onDelete,
+  onManageParticipants
 }) => {
   const { showNotification } = useUiStore();
   const { currentUser } = useAuthStore();
@@ -43,8 +46,9 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
   const latest = group.latestVersion;
   const isCurrentlyActive = group.versions.some(v => v.fileName === activeFileName);
 
-  const permission = PermissionService.getUserPermissionForProject(currentUser, latest.fileName);
-  const canEdit = !currentUser || currentUser.role === 'ADMIN' || permission === 'EDITOR';
+  const permission = PermissionService.getUserPermissionForProject(currentUser, latest.fileName, group);
+  const canManageParticipants = PermissionService.canUserManageProjectParticipants(currentUser, group);
+  const canEdit = !currentUser || currentUser.role === 'ADMIN' || permission === 'EDITOR' || canManageParticipants;
 
   const formattedLatestDate = new Date(latest.updatedAt).toLocaleDateString('es-AR', {
     year: 'numeric',
@@ -294,6 +298,15 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
                 <Trash2 className="w-3.5 h-3.5" />
               </button>
             </>
+          )}
+          {canManageParticipants && onManageParticipants && (
+            <button
+              onClick={() => onManageParticipants(group)}
+              title="Gestionar participantes y permisos del proyecto"
+              className="p-1.5 rounded-lg bg-theme-surface-subtle hover:bg-theme-accent/20 border border-theme-border text-theme-text-muted hover:text-theme-accent transition-colors"
+            >
+              <Users className="w-3.5 h-3.5 text-theme-accent" />
+            </button>
           )}
           <button
             onClick={() => onOpen(latest.fileName)}

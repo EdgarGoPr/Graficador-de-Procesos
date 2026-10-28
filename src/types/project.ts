@@ -19,6 +19,8 @@ export interface ProjectDocumentControl {
   documentCode: string; // e.g. "PRC-TF-2026-001"
   version: string;
   authorName: string;
+  createdByEmail?: string;
+  createdByUserId?: string;
   organizationUnit: string; // e.g. "Tribunal Administrativo de Faltas - Secretaría General"
   processObjective: string;
   createdAt: string; // ISO 8601 UTC
@@ -45,6 +47,8 @@ export interface ProjectSummary {
   documentCode: string;
   version: string;
   authorName: string;
+  createdByEmail?: string;
+  createdByUserId?: string;
   organizationUnit: string;
   updatedAt: string;
   nodeCount: number;
@@ -60,6 +64,8 @@ export interface ProcessGroupSummary {
   documentCode: string;
   organizationUnit: string;
   authorName: string;
+  createdByEmail?: string;
+  createdByUserId?: string;
   latestVersion: ProjectSummary;
   versions: ProjectSummary[];
   versionCount: number;

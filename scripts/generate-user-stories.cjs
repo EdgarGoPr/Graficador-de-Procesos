@@ -713,6 +713,15 @@ const userStories = [
     criteriosAceptacion: '1. Botón "+ Nuevo Usuario" en la pestaña Usuarios & Claves con formulario modal guiado (Nombre, Email, Área, Rol ADMIN/USER y Contraseña inicial o Código provisorio de 6 dígitos).\n2. Botón "Editar" en la tabla de usuarios que permite modificar nombre, unidad organizativa, rol del sistema y estado (ACTIVE / INACTIVE / BLOCKED).\n3. Opción para forzar el cambio de contraseña en el próximo ingreso o sobrescribir contraseña al editar.\n4. Salvaguardas de seguridad: no permitir auto-bloqueo ni auto-degradación de rol del Administrador en sesión activa; validación estricta de formato y unicidad de correo electrónico.\n5. Persistencia relacional en Neon PostgreSQL con sincronización local y registro de auditoría inmutable (USER_CREATED_BY_ADMIN y USER_UPDATED_BY_ADMIN).',
     fechaImplementacion: '2026-10-28',
     estado: 'Implementado / Producción'
+  },
+  {
+    id: 'PST-080',
+    modulo: 'Colaboración & Gestión de Accesos',
+    titulo: 'Gestión Descentralizada de Participantes y Permisos desde el Proyecto',
+    historiaUsuario: 'Como usuario creador de un proceso o administrador del sistema, quiero disponer de un botón directo en la tarjeta del proyecto y en el lienzo para gestionar los participantes y configurar sus permisos (Solo Lectura, Comentarios, Editor), para gobernar la colaboración y el control documental ISO 9001 directamente desde cada proyecto.',
+    criteriosAceptacion: '1. Botón con icono de participantes (Users) en el footer de cada tarjeta de proyecto (ProjectCard) en el Dashboard y en el menú/barra superior (Header) del lienzo activo.\n2. Autorización dual: tanto el Administrador del Sistema como el usuario que creó el proyecto (registrado en createdByEmail, createdByUserId o authorName) tienen permisos habilitados para gestionar participantes.\n3. Modal especializado (ProjectParticipantsModal) que visualiza al creador/propietario original, la lista de participantes vinculados con sus niveles de acceso y fecha de asignación.\n4. Capacidad de asignar nuevos participantes seleccionando entre los usuarios registrados activos del sistema y eligiendo su nivel de permiso (READ_ONLY, COMMENTS, EDITOR).\n5. Capacidad de actualizar el nivel de permiso en tiempo real o revocar el acceso a cualquier participante.\n6. Auto-asignación de permiso EDITOR y registro de metadatos de autoría (createdByEmail y createdByUserId) al crear un nuevo proyecto.\n7. Registro de auditoría trazable de asignaciones y revocaciones (CANVAS_PERMISSION_ASSIGNED y CANVAS_PERMISSION_REMOVED) con sincronización relacional en Neon PostgreSQL y fallback local.',
+    fechaImplementacion: '2026-10-28',
+    estado: 'Implementado / Producción'
   }
 ];
 

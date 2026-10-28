@@ -1,9 +1,9 @@
 # Plan de Acción Integral: Gestión de Usuarios, Roles, Permisos por Lienzo, Acceso con Google, Reseteo por Administrador y Logs de Auditoría
 
 > **Documento:** Plan de Acción Oficial de Seguridad y Gobernanza de ProcesStudio  
-> **Versión:** 1.6.0 | **Fecha:** 2026-10-28  
+> **Versión:** 1.7.0 | **Fecha:** 2026-10-28  
 > **Alineación Normativa:** Directivas Obligatorias de Desarrollo (`AGENTS.md` y `.agents/rules/directivas.md`), Estándar BPMN 2.0 (ISO/IEC 19510), Gestión de Calidad ISO 9001:2015 (Control de Cambios y Trazabilidad) y Seguridad de la Información ISO/IEC 27001 (Control de Accesos).  
-> **Historias de Usuario:** `PST-069`, `PST-070`, `PST-071`, `PST-072`, `PST-073`, `PST-074`, `PST-075`, `PST-076`, `PST-077`, `PST-078`, `PST-079` (Alta y Edición Integral de Usuarios por el Administrador).
+> **Historias de Usuario:** `PST-069`, `PST-070`, `PST-071`, `PST-072`, `PST-073`, `PST-074`, `PST-075`, `PST-076`, `PST-077`, `PST-078`, `PST-079`, `PST-080` (Gestión Descentralizada de Participantes y Permisos desde el Proyecto).
 
 ---
 
@@ -463,6 +463,15 @@ Conforme a la **Directiva 4**, estas historias se registrarán con su numeració
     criteriosAceptacion: '1. Botón "+ Nuevo Usuario" en la pestaña Usuarios & Claves con formulario modal guiado (Nombre, Email, Área, Rol ADMIN/USER y Contraseña inicial o Código provisorio de 6 dígitos).\n2. Botón "Editar" en la tabla de usuarios que permite modificar nombre, unidad organizativa, rol del sistema y estado (ACTIVE / INACTIVE / BLOCKED).\n3. Opción para forzar el cambio de contraseña en el próximo ingreso o sobrescribir contraseña al editar.\n4. Salvaguardas de seguridad: no permitir auto-bloqueo ni auto-degradación de rol del Administrador en sesión activa; validación estricta de formato y unicidad de correo electrónico.\n5. Persistencia relacional en Neon PostgreSQL con sincronización local y registro de auditoría inmutable (USER_CREATED_BY_ADMIN y USER_UPDATED_BY_ADMIN).',
     fechaImplementacion: '2026-10-28',
     estado: 'Implementado / Producción'
+  },
+  {
+    id: 'PST-080',
+    modulo: 'Gobernanza & Colaboración por Proyecto',
+    titulo: 'Gestión Descentralizada de Participantes y Permisos desde el Proyecto (Creador y Administradores)',
+    historiaUsuario: 'Como usuario creador de un proceso o administrador de ProcesStudio, quiero gestionar los participantes y sus niveles de permiso (Solo Lectura, Comentarios, Editor) directamente desde el propio proyecto mediante un botón dedicado, para colaborar ágilmente sin depender exclusivamente de la consola central del administrador.',
+    criteriosAceptacion: '1. Botón de acceso directo "Participantes" (icono Users) visible en la tarjeta del proyecto en el Dashboard y en la cabecera del lienzo cuando el proceso está abierto.\n2. Autorización Dual: Habilitado para usuarios con rol ADMIN y para el usuario creador/autor del proyecto; oculto o bloqueado para otros usuarios.\n3. Modal ProjectParticipantsModal con visualización de participantes actuales, cambio rápido de nivel de permiso (READ_ONLY, COMMENTS, EDITOR) y revocación de acceso.\n4. Asignador de nuevos participantes con buscador de usuarios activos del sistema y selector de rol de colaboración.\n5. Persistencia relacional en Neon PostgreSQL (project_user_permissions) y fallback local, con registro inmutable de auditoría (CANVAS_PERMISSION_ASSIGNED y CANVAS_PERMISSION_REMOVED).',
+    fechaImplementacion: '2026-10-28',
+    estado: 'Planificado / Pendiente de Aprobación'
   }
 ];
 ```
@@ -601,14 +610,38 @@ Las recomendaciones técnicas evaluadas han sido clasificadas e integradas al al
    - **Sincronización:**
      - Compilación limpia (`npm run build`), registro de 79 historias de usuario en Excel y auto-push Git.
 
+8. **Gestión Descentralizada de Participantes y Permisos desde el Proyecto (PST-080) [✅ IMPLEMENTADO]:**
+   - **`src/types/project.ts`:**
+     - Enriquecer `ProjectDocumentControl` y `ProjectSummary` con campos opcionales `createdByEmail?: string` y `createdByUserId?: string` para trazabilidad de autoría.
+   - **`src/services/permissionService.ts`:**
+     - Implementar `canUserManageProjectParticipants(user: AppUser | null, project: { authorName?: string; createdByEmail?: string; createdByUserId?: string } | null): boolean`: valida si el usuario es `ADMIN` o el creador del proyecto.
+     - Adaptar `assignPermission` y `removePermission` para permitir la ejecución tanto a `ADMIN` como al creador del proyecto validado.
+     - Incorporar método `listProjectParticipants(projectFileName: string)` que cruza las asignaciones activas con los perfiles en `app_users` devolviendo nombre, email, área y nivel de permiso.
+   - **`src/components/modals/ProjectParticipantsModal.tsx`:**
+     - Modal dedicado de gobernanza por proyecto:
+       - Cabecera con datos del proceso: Título, Código (`PRC-XXXX`), Versión y Creador.
+       - Lista de participantes con avatar, área y selector de nivel (`READ_ONLY`, `COMMENTS`, `EDITOR`).
+       - Botón de remoción de participante (con protección del creador).
+       - Sección para agregar nuevo participante con buscador de usuarios y asignación con 1-clic.
+   - **`src/components/dashboard/ProjectCard.tsx`:**
+     - En el pie de acciones, junto a Duplicar y Eliminar, incorporar botón con icono `Users` ("Participantes y Permisos"), condicionado a `canManageParticipants`.
+   - **`src/components/layout/Header.tsx`:**
+     - En la barra superior del lienzo, incorporar botón "Participantes" cuando el proyecto está activo, permitiendo gestionar los accesos sin salir al Dashboard.
+   - **`src/components/modals/NewProjectModal.tsx` & `src/store/useProjectStore.ts`:**
+     - Al crear un proyecto, sellar `createdByEmail: currentUser.email`, `createdByUserId: currentUser.id` y conceder automáticamente permiso `EDITOR` al creador en la base de datos.
+   - **Incremento de Versión Semántica:**
+     - Elevar versión de la aplicación a `1.7.0` (indicador `V 01.07.00`).
+   - **Sincronización:**
+     - Compilación limpia (`npm run build`), registro de 80 historias de usuario en Excel y auto-push Git.
+
 ---
 
 ## 10. Conclusión y Compromiso de Desarrollo
 
-Este documento constituye la **Hoja de Ruta Maestra Oficial de Usuarios, Permisos, Seguridad y Auditoría** de ProcesStudio (Versión 1.6.0).
+Este documento constituye la **Hoja de Ruta Maestra Oficial de Usuarios, Permisos, Seguridad y Auditoría** de ProcesStudio (Versión 1.7.0).
 
 Todas las fases se implementarán respetando rigurosamente:
 1. **La arquitectura 100% Web Cloud Nativa** (React + TypeScript + Vite + Neon PostgreSQL).
 2. **La persistencia relacional en Neon PostgreSQL**.
-3. **La actualización del archivo Excel `HISTORIAS_DE_USUARIO_PROCESSTUDIO.xlsx`** (`PST-069` a `PST-079`).
+3. **La actualización del archivo Excel `HISTORIAS_DE_USUARIO_PROCESSTUDIO.xlsx`** (`PST-069` a `PST-080`).
 4. **La compilación limpia (`npm run build`) y el commit/push automático a Git tras cada conjunto de cambios**.

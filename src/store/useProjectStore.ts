@@ -9,6 +9,8 @@ import {
   generateRevisionFilename,
   groupProjectsByProcess
 } from '../services/processVersionManager';
+import { useAuthStore } from './useAuthStore';
+import { PermissionService } from '../services/permissionService';
 
 interface SaveRevisionOptions {
   bumpType?: 'patch' | 'minor' | 'major';
@@ -118,25 +120,31 @@ export const useProjectStore = create<ProjectStoreState>((set, get) => ({
   },
 
   createNewProject: async (title: string, authorName: string, orgUnit: string) => {
+    const currentUser = useAuthStore.getState().currentUser;
     const now = new Date().toISOString();
+    const effectiveAuthor = authorName || currentUser?.fullName || 'Analista de Procesos';
+    const effectiveOrgUnit = orgUnit || currentUser?.organizationUnit || 'Unidad Organizativa';
+
     const newProject: ProcessProjectFile = {
       schemaVersion: '1.0.0',
       documentControl: {
         documentTitle: title,
         documentCode: `PRC-${Math.floor(1000 + Math.random() * 9000)}`,
         version: '1.0',
-        authorName: authorName || 'Analista de Procesos',
-        organizationUnit: orgUnit || 'Unidad Organizativa',
+        authorName: effectiveAuthor,
+        organizationUnit: effectiveOrgUnit,
         processObjective: 'Definir el objetivo y alcance operativo del proceso.',
         createdAt: now,
         updatedAt: now,
         status: 'DRAFT',
+        createdByEmail: currentUser?.email,
+        createdByUserId: currentUser?.id,
         legalNormativeBasis: ['Normativa aplicable general'],
         revisionHistory: [
           {
             revisionDate: now,
             version: '1.0',
-            author: authorName || 'Analista de Procesos',
+            author: effectiveAuthor,
             changeDescription: 'Creación inicial del proyecto'
           }
         ]
@@ -145,7 +153,7 @@ export const useProjectStore = create<ProjectStoreState>((set, get) => ({
         {
           id: 'pool_1',
           name: title,
-          organization: orgUnit || 'Unidad Organizativa',
+          organization: effectiveOrgUnit,
           lanes: []
         }
       ],
@@ -177,6 +185,22 @@ export const useProjectStore = create<ProjectStoreState>((set, get) => ({
 
     const fileName = await StorageService.saveProject(newProject);
     newProject.fileName = fileName;
+
+    // Si hay un usuario activo, auto-asignarle permiso de EDITOR sobre su proyecto
+    if (currentUser?.id) {
+      try {
+        await PermissionService.assignPermission(
+          currentUser,
+          currentUser.id,
+          fileName,
+          'EDITOR',
+          newProject.documentControl
+        );
+      } catch (err) {
+        console.warn('Auto-asignación de permiso para creador:', err);
+      }
+    }
+
     set({
       currentProject: newProject,
       hasUnsavedChanges: false,

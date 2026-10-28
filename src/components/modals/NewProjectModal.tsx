@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useProjectStore } from '../../store/useProjectStore';
 import { useUiStore } from '../../store/useUiStore';
+import { useAuthStore } from '../../store/useAuthStore';
 import { X, Plus, Shield, Building2, User, FileText } from 'lucide-react';
 
 interface NewProjectModalProps {
@@ -11,10 +12,22 @@ interface NewProjectModalProps {
 export const NewProjectModal: React.FC<NewProjectModalProps> = ({ isOpen, onClose }) => {
   const { createNewProject } = useProjectStore();
   const { setActiveView, showNotification } = useUiStore();
+  const { currentUser } = useAuthStore();
 
   const [title, setTitle] = useState('');
   const [author, setAuthor] = useState('');
   const [orgUnit, setOrgUnit] = useState('');
+
+  useEffect(() => {
+    if (isOpen) {
+      if (currentUser?.fullName && !author) {
+        setAuthor(currentUser.fullName);
+      }
+      if (currentUser?.organizationUnit && !orgUnit) {
+        setOrgUnit(currentUser.organizationUnit);
+      }
+    }
+  }, [isOpen, currentUser]);
 
   if (!isOpen) return null;
 

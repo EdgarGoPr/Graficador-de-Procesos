@@ -33,7 +33,10 @@ interface AuthStoreState {
   logout: () => Promise<void>;
 
   // Concurrency & Locks
-  acquireCanvasLock: (projectFileName: string) => Promise<{ allowed: boolean; permission: CanvasPermission; message?: string }>;
+  acquireCanvasLock: (
+    projectFileName: string,
+    projectInfo?: { authorName?: string; createdByEmail?: string; createdByUserId?: string } | null
+  ) => Promise<{ allowed: boolean; permission: CanvasPermission; message?: string }>;
   releaseCanvasLock: (projectFileName: string) => Promise<void>;
   dismissConcurrencyNotice: () => void;
 
@@ -135,10 +138,13 @@ export const useAuthStore = create<AuthStoreState>((set, get) => ({
     });
   },
 
-  acquireCanvasLock: async (projectFileName: string) => {
+  acquireCanvasLock: async (
+    projectFileName: string,
+    projectInfo?: { authorName?: string; createdByEmail?: string; createdByUserId?: string } | null
+  ) => {
     const user = get().currentUser;
     // Obtener permiso asignado al usuario
-    const permission = await PermissionService.getEffectivePermission(user, projectFileName);
+    const permission = await PermissionService.getEffectivePermission(user, projectFileName, projectInfo);
 
     if (!permission) {
       return {

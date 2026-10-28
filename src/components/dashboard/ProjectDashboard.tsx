@@ -3,6 +3,7 @@ import { useProjectStore } from '../../store/useProjectStore';
 import { useUiStore } from '../../store/useUiStore';
 import { StorageService } from '../../services/storageService';
 import { groupProjectsByProcess } from '../../services/processVersionManager';
+import { ProcessGroupSummary } from '../../types/project';
 import { ProjectCard } from './ProjectCard';
 import {
   FolderGit2,
@@ -18,6 +19,7 @@ import {
   Database
 } from 'lucide-react';
 import { DatabaseConfigModal } from './DatabaseConfigModal';
+import { ProjectParticipantsModal } from '../modals/ProjectParticipantsModal';
 import { useAuthStore } from '../../store/useAuthStore';
 import { PermissionService } from '../../services/permissionService';
 
@@ -41,6 +43,8 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ onOpenNewMod
   const { setActiveView, showNotification } = useUiStore();
   const [searchTerm, setSearchTerm] = useState('');
   const [isDbModalOpen, setIsDbModalOpen] = useState(false);
+  const [selectedGroupForParticipants, setSelectedGroupForParticipants] = useState<ProcessGroupSummary | null>(null);
+  const [isParticipantsModalOpen, setIsParticipantsModalOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Filter projects by user assignments if the active session is a regular USER
@@ -53,7 +57,13 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ onOpenNewMod
     if (currentUser.role === 'ADMIN' || assignedFileNames === 'ALL') {
       return projectList;
     }
-    return projectList.filter((p) => assignedFileNames.includes(p.fileName));
+    return projectList.filter((p) => {
+      if (assignedFileNames.includes(p.fileName)) return true;
+      if (p.createdByUserId && p.createdByUserId === currentUser.id) return true;
+      if (p.createdByEmail && currentUser.email && p.createdByEmail.toLowerCase() === currentUser.email.toLowerCase()) return true;
+      if (p.authorName && currentUser.fullName && p.authorName.trim().toLowerCase() === currentUser.fullName.trim().toLowerCase()) return true;
+      return false;
+    });
   }, [projectList, currentUser, assignedFileNames]);
 
   const processGroups = groupProjectsByProcess(visibleProjects);
@@ -74,8 +84,9 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ onOpenNewMod
   });
 
   const handleOpen = async (fileName: string) => {
+    const summary = projectList.find(p => p.fileName === fileName);
     // Acquire canvas lock and check assigned permissions
-    const lockResult = await acquireCanvasLock(fileName);
+    const lockResult = await acquireCanvasLock(fileName, summary);
     if (!lockResult.allowed) {
       showNotification(lockResult.message || 'No tienes permisos asignados para acceder a este lienzo.', 'warning');
       return;
@@ -211,45 +222,47 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ onOpenNewMod
               onChange={handleFileInputChange}
             />
 
-            {/* Database Settings button */}
+            {/* Database Settings button (Admin only) */}
             {currentUser?.role === 'ADMIN' && (
-              <>
-                <button
-                  onClick={() => setIsDbModalOpen(true)}
-                  className="flex items-center space-x-2 px-3.5 py-2.5 rounded-xl bg-theme-surface-subtle hover:bg-theme-surface text-theme-text border border-theme-border text-sm font-semibold transition-colors hover:border-sky-500/50"
-                  title="Configurar y sincronizar base de datos PostgreSQL en Neon"
-                >
-                  <Database className="w-4 h-4 text-sky-400" />
-                  <span>Base de Datos</span>
-                </button>
+              <button
+                onClick={() => setIsDbModalOpen(true)}
+                className="flex items-center space-x-2 px-3.5 py-2.5 rounded-xl bg-theme-surface-subtle hover:bg-theme-surface text-theme-text border border-theme-border text-sm font-semibold transition-colors hover:border-sky-500/50"
+                title="Configurar y sincronizar base de datos PostgreSQL en Neon"
+              >
+                <Database className="w-4 h-4 text-sky-400" />
+                <span>Base de Datos</span>
+              </button>
+            )}
 
-                {/* Import JSON button */}
-                <button
-                  onClick={() => fileInputRef.current?.click()}
-                  className="flex items-center space-x-2 px-3.5 py-2.5 rounded-xl bg-theme-surface-subtle hover:bg-theme-surface text-theme-text border border-theme-border text-sm font-semibold transition-colors hover:border-emerald-500/50"
-                  title="Importar un archivo de proyecto .json desde cualquier computador o pendrive"
-                >
-                  <Upload className="w-4 h-4 text-emerald-400" />
-                  <span>Importar JSON</span>
-                </button>
+            {/* Import JSON button */}
+            {currentUser && (
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="flex items-center space-x-2 px-3.5 py-2.5 rounded-xl bg-theme-surface-subtle hover:bg-theme-surface text-theme-text border border-theme-border text-sm font-semibold transition-colors hover:border-emerald-500/50"
+                title="Importar un archivo de proyecto .json desde cualquier computador o pendrive"
+              >
+                <Upload className="w-4 h-4 text-emerald-400" />
+                <span>Importar JSON</span>
+              </button>
+            )}
 
-                <button
-                  onClick={handleOpenFolder}
-                  className="flex items-center space-x-2 px-3.5 py-2.5 rounded-xl bg-theme-surface-subtle hover:bg-theme-surface text-theme-text border border-theme-border text-sm font-semibold transition-colors"
-                  title={isWebEnvironment ? "Ver información de almacenamiento web" : "Abrir carpeta física en el Explorador de Windows"}
-                >
-                  <FolderOpen className="w-4 h-4 text-theme-accent" />
-                  <span>{isWebEnvironment ? 'Almacenamiento' : 'Abrir Carpeta'}</span>
-                </button>
+            <button
+              onClick={handleOpenFolder}
+              className="flex items-center space-x-2 px-3.5 py-2.5 rounded-xl bg-theme-surface-subtle hover:bg-theme-surface text-theme-text border border-theme-border text-sm font-semibold transition-colors"
+              title={isWebEnvironment ? "Ver información de almacenamiento web" : "Abrir carpeta física en el Explorador de Windows"}
+            >
+              <FolderOpen className="w-4 h-4 text-theme-accent" />
+              <span>{isWebEnvironment ? 'Almacenamiento' : 'Abrir Carpeta'}</span>
+            </button>
 
-                <button
-                  onClick={onOpenNewModal}
-                  className="flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#0284C7] to-[#3B82F6] hover:brightness-110 text-white text-sm font-bold shadow-lg shadow-blue-500/20 transition-all hover:scale-[1.02]"
-                >
-                  <Plus className="w-4 h-4" />
-                  <span>Nuevo Proyecto</span>
-                </button>
-              </>
+            {currentUser && (
+              <button
+                onClick={onOpenNewModal}
+                className="flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#0284C7] to-[#3B82F6] hover:brightness-110 text-white text-sm font-bold shadow-lg shadow-blue-500/20 transition-all hover:scale-[1.02]"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Nuevo Proyecto</span>
+              </button>
             )}
           </div>
         </div>
@@ -271,7 +284,7 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ onOpenNewMod
             <Layers className="w-3.5 h-3.5 text-theme-accent" />
             <span>
               {currentUser?.role === 'USER'
-                ? `${filteredGroups.length} proceso${filteredGroups.length === 1 ? '' : 's'} asignado${filteredGroups.length === 1 ? '' : 's'}`
+                ? `${filteredGroups.length} proceso${filteredGroups.length === 1 ? '' : 's'} disponible${filteredGroups.length === 1 ? '' : 's'}`
                 : `${filteredGroups.length} proceso${filteredGroups.length === 1 ? '' : 's'} (${projectList.length} archivo${projectList.length === 1 ? '' : 's'} en disco)`}
             </span>
           </div>
@@ -282,14 +295,14 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ onOpenNewMod
           <div className="p-12 text-center border-2 border-dashed border-theme-border rounded-2xl bg-theme-surface/50">
             <FolderGit2 className="w-12 h-12 text-theme-text-muted mx-auto mb-3" />
             <h3 className="text-base font-bold text-theme-text">
-              {currentUser?.role === 'USER' ? 'No tienes lienzos de procesos asignados' : 'No se encontraron proyectos'}
+              {currentUser?.role === 'USER' ? 'No tienes lienzos de procesos asignados o creados' : 'No se encontraron proyectos'}
             </h3>
             <p className="text-xs text-theme-text-muted mt-1 max-w-md mx-auto">
               {currentUser?.role === 'USER'
-                ? 'Actualmente no cuentas con lienzos habilitados para lectura, comentarios o edición. Solicita al Administrador del Sistema la asignación correspondiente de tus procesos.'
+                ? 'Puedes crear un nuevo proyecto propio con el botón inferior o solicitar al Administrador la asignación de lienzos existentes.'
                 : 'Creá un nuevo proyecto o verificá los archivos JSON en tu almacenamiento.'}
             </p>
-            {currentUser?.role === 'ADMIN' && (
+            {currentUser && (
               <button
                 onClick={onOpenNewModal}
                 className="mt-4 px-4 py-2 rounded-lg bg-theme-accent text-white text-xs font-semibold hover:bg-theme-accent-hover inline-flex items-center space-x-1.5"
@@ -309,6 +322,10 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ onOpenNewMod
                 onOpen={handleOpen}
                 onDuplicate={handleDuplicate}
                 onDelete={handleDelete}
+                onManageParticipants={(grp) => {
+                  setSelectedGroupForParticipants(grp);
+                  setIsParticipantsModalOpen(true);
+                }}
               />
             ))}
           </div>
@@ -318,6 +335,29 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ onOpenNewMod
         <DatabaseConfigModal
           isOpen={isDbModalOpen}
           onClose={() => setIsDbModalOpen(false)}
+        />
+
+        {/* Project Participants and Permissions Modal */}
+        <ProjectParticipantsModal
+          isOpen={isParticipantsModalOpen}
+          onClose={() => {
+            setIsParticipantsModalOpen(false);
+            setSelectedGroupForParticipants(null);
+          }}
+          project={
+            selectedGroupForParticipants
+              ? {
+                  fileName: selectedGroupForParticipants.latestVersion.fileName,
+                  documentTitle: selectedGroupForParticipants.documentTitle,
+                  documentCode: selectedGroupForParticipants.documentCode,
+                  version: selectedGroupForParticipants.latestVersion.version,
+                  authorName: selectedGroupForParticipants.authorName,
+                  organizationUnit: selectedGroupForParticipants.organizationUnit,
+                  createdByEmail: selectedGroupForParticipants.createdByEmail,
+                  createdByUserId: selectedGroupForParticipants.createdByUserId
+                }
+              : null
+          }
         />
       </div>
     </div>

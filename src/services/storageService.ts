@@ -179,6 +179,8 @@ export class StorageService {
           documentCode: proj.documentControl.documentCode,
           version: proj.documentControl.version,
           authorName: proj.documentControl.authorName,
+          createdByEmail: proj.documentControl.createdByEmail,
+          createdByUserId: proj.documentControl.createdByUserId,
           organizationUnit: proj.documentControl.organizationUnit,
           updatedAt: proj.documentControl.updatedAt,
           nodeCount: proj.nodes?.length || 0,

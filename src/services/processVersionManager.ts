@@ -125,6 +125,8 @@ export function groupProjectsByProcess(projectList: ProjectSummary[]): ProcessGr
       documentCode: latest.documentCode,
       organizationUnit: latest.organizationUnit,
       authorName: latest.authorName,
+      createdByEmail: latest.createdByEmail,
+      createdByUserId: latest.createdByUserId,
       latestVersion: latest,
       versions,
       versionCount: versions.length

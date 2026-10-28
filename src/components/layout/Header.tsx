@@ -3,8 +3,10 @@ import { useProjectStore } from '../../store/useProjectStore';
 import { useUiStore, ActiveView } from '../../store/useUiStore';
 import { useAuthStore } from '../../store/useAuthStore';
 import { StorageService } from '../../services/storageService';
+import { PermissionService } from '../../services/permissionService';
 import { LogoPS } from '../common/LogoPS';
 import { NewRevisionModal } from '../modals/NewRevisionModal';
+import { ProjectParticipantsModal } from '../modals/ProjectParticipantsModal';
 import {
   LayoutDashboard,
   GitGraph,
@@ -31,7 +33,8 @@ import {
   GitCommit,
   LogIn,
   LogOut,
-  UserCheck
+  UserCheck,
+  Users
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -80,6 +83,11 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
   const [isViewsMenuOpen, setIsViewsMenuOpen] = useState(false);
   const [isToolsMenuOpen, setIsToolsMenuOpen] = useState(false);
   const [isRevisionModalOpen, setIsRevisionModalOpen] = useState(false);
+  const [isParticipantsModalOpen, setIsParticipantsModalOpen] = useState(false);
+
+  const canManageParticipants = currentProject
+    ? PermissionService.canUserManageProjectParticipants(currentUser, currentProject.documentControl)
+    : false;
 
   const viewsMenuRef = useRef<HTMLDivElement>(null);
   const toolsMenuRef = useRef<HTMLDivElement>(null);
@@ -521,6 +529,25 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
                     </div>
                   </button>
                 )}
+
+                {/* Participantes & Permisos (Admin o Creador) */}
+                {canManageParticipants && (
+                  <button
+                    onClick={() => {
+                      setIsParticipantsModalOpen(true);
+                      setIsToolsMenuOpen(false);
+                    }}
+                    className="w-full flex items-center justify-between px-3 py-2 text-xs hover:bg-theme-surface-subtle transition-colors text-left text-theme-text border-t border-theme-border/60 mt-1 pt-1.5 group"
+                  >
+                    <div className="flex items-center space-x-2.5">
+                      <Users className="w-4 h-4 text-theme-accent group-hover:scale-110 transition-transform" />
+                      <div>
+                        <div className="font-semibold text-theme-accent">Participantes & Permisos</div>
+                        <div className="text-[10px] text-theme-text-muted">Gestionar colaboradores del lienzo</div>
+                      </div>
+                    </div>
+                  </button>
+                )}
               </div>
             )}
           </div>
@@ -614,6 +641,16 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
 
         {currentProject && (
           <div className="flex items-center space-x-1.5">
+            {canManageParticipants && (
+              <button
+                onClick={() => setIsParticipantsModalOpen(true)}
+                className="p-2 bg-theme-surface-subtle hover:bg-theme-surface text-theme-text hover:text-theme-accent rounded-lg text-xs font-semibold border border-theme-border transition-all hover:scale-105 flex items-center space-x-1"
+                title="Gestionar participantes y permisos de este proyecto"
+              >
+                <Users className="w-4 h-4 text-theme-accent" />
+              </button>
+            )}
+
             <button
               onClick={() => setIsRevisionModalOpen(true)}
               disabled={isSaving}
@@ -701,6 +738,24 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
         <NewRevisionModal
           isOpen={isRevisionModalOpen}
           onClose={() => setIsRevisionModalOpen(false)}
+        />
+      )}
+
+      {/* Project Participants Modal */}
+      {isParticipantsModalOpen && currentProject && (
+        <ProjectParticipantsModal
+          isOpen={isParticipantsModalOpen}
+          onClose={() => setIsParticipantsModalOpen(false)}
+          project={{
+            fileName: currentProject.fileName || 'proyecto.json',
+            documentTitle: currentProject.documentControl.documentTitle,
+            documentCode: currentProject.documentControl.documentCode,
+            version: currentProject.documentControl.version,
+            authorName: currentProject.documentControl.authorName,
+            organizationUnit: currentProject.documentControl.organizationUnit,
+            createdByEmail: currentProject.documentControl.createdByEmail,
+            createdByUserId: currentProject.documentControl.createdByUserId
+          }}
         />
       )}
     </header>
