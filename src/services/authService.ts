@@ -1,4 +1,4 @@
-import { AppUser, UserAccessRequest, UserRole, UserStatus } from '../types/auth';
+import { AppUser, CreateUserPayload, UpdateUserPayload, UserAccessRequest, UserRole, UserStatus } from '../types/auth';
 import { NeonClient } from './neonClient';
 import {
   generate6DigitCode,
@@ -796,6 +796,249 @@ export class AuthService {
 
     await AuditLoggerService.log('USER_STATUS_CHANGED', adminUser, targetUserId, { newStatus });
     return { ok: true };
+  }
+
+  /**
+   * Administrador da de alta directamente a un nuevo usuario corporativo
+   */
+  public static async createUserByAdmin(
+    adminUser: AppUser,
+    payload: CreateUserPayload
+  ): Promise<{ ok: boolean; user?: AppUser; generatedInitialCode?: string; error?: string }> {
+    if (adminUser.role !== 'ADMIN') {
+      return { ok: false, error: 'Solo administradores pueden dar de alta usuarios.' };
+    }
+
+    const cleanEmail = payload.email.trim().toLowerCase();
+    if (!cleanEmail || !cleanEmail.includes('@')) {
+      return { ok: false, error: 'Ingresa un correo electrónico corporativo válido.' };
+    }
+
+    if (!payload.fullName.trim()) {
+      return { ok: false, error: 'El nombre y apellido son obligatorios.' };
+    }
+
+    if (!payload.organizationUnit.trim()) {
+      return { ok: false, error: 'La unidad organizativa / área es obligatoria.' };
+    }
+
+    // Verificar unicidad de correo
+    const existing = await this.findUserByEmail(cleanEmail);
+    if (existing) {
+      return { ok: false, error: `Ya existe un usuario registrado con el correo: ${cleanEmail}` };
+    }
+
+    let initialCode: string | undefined;
+    let initialHash: string | null = null;
+    let mustChangePassword = false;
+    let resetCodeExpiresAt: string | null = null;
+    let resetRequestStatus: 'NONE' | 'CODE_ISSUED' = 'NONE';
+
+    if (payload.passwordMode === 'GENERATE_CODE') {
+      initialCode = generate6DigitCode();
+      const hashed = await hashPassword(initialCode);
+      initialHash = hashed.hash;
+      mustChangePassword = true;
+      resetRequestStatus = 'CODE_ISSUED';
+      resetCodeExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+    } else {
+      const password = payload.manualPassword?.trim() || '';
+      if (password.length < 8) {
+        return { ok: false, error: 'La contraseña inicial debe contener al menos 8 caracteres.' };
+      }
+      const hashed = await hashPassword(password);
+      initialHash = hashed.hash;
+      mustChangePassword = false;
+    }
+
+    const newUser: AppUser = {
+      id: crypto.randomUUID(),
+      email: cleanEmail,
+      fullName: payload.fullName.trim(),
+      organizationUnit: payload.organizationUnit.trim(),
+      role: payload.role,
+      status: payload.status,
+      passwordHash: initialHash,
+      resetRequestStatus,
+      resetCode: initialCode || null,
+      resetCodeExpiresAt,
+      mustChangePassword,
+      isTotpEnabled: false,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    const sql = NeonClient.getSql();
+    if (sql) {
+      try {
+        await sql`
+          INSERT INTO app_users (
+            id, email, password_hash, full_name, organization_unit, role, status,
+            reset_request_status, reset_code, reset_code_expires_at, must_change_password,
+            created_at, updated_at
+          ) VALUES (
+            ${newUser.id},
+            ${newUser.email},
+            ${newUser.passwordHash},
+            ${newUser.fullName},
+            ${newUser.organizationUnit},
+            ${newUser.role},
+            ${newUser.status},
+            ${newUser.resetRequestStatus},
+            ${newUser.resetCode},
+            ${newUser.resetCodeExpiresAt},
+            ${newUser.mustChangePassword},
+            NOW(),
+            NOW()
+          );
+        `;
+      } catch (err: any) {
+        console.error('Error insertando usuario en Neon:', err);
+        return { ok: false, error: 'Error al persistir usuario en la base de datos relacional.' };
+      }
+    }
+
+    // Guardar en fallback local
+    const localUsers = this.getLocalUsers();
+    localUsers.push(newUser);
+    localStorage.setItem(LOCAL_STORAGE_USERS_FALLBACK, JSON.stringify(localUsers));
+
+    await AuditLoggerService.log(
+      'USER_CREATED_BY_ADMIN',
+      adminUser,
+      newUser.email,
+      {
+        createdUserId: newUser.id,
+        role: newUser.role,
+        status: newUser.status,
+        unit: newUser.organizationUnit,
+        initialCodeGenerated: !!initialCode
+      }
+    );
+
+    return { ok: true, user: newUser, generatedInitialCode: initialCode };
+  }
+
+  /**
+   * Administrador edita los datos de un usuario existente
+   */
+  public static async updateUserByAdmin(
+    adminUser: AppUser,
+    targetUserId: string,
+    payload: UpdateUserPayload
+  ): Promise<{ ok: boolean; user?: AppUser; error?: string }> {
+    if (adminUser.role !== 'ADMIN') {
+      return { ok: false, error: 'Solo administradores pueden editar usuarios.' };
+    }
+
+    const targetUser = await this.findUserById(targetUserId);
+    if (!targetUser) {
+      return { ok: false, error: 'Usuario no encontrado.' };
+    }
+
+    // Salvaguarda: El administrador en sesión no puede auto-degradarse ni auto-bloquearse
+    if (targetUser.id === adminUser.id) {
+      if (payload.role !== 'ADMIN') {
+        return { ok: false, error: 'Por seguridad, no puedes despojarte a ti mismo del rol Administrador.' };
+      }
+      if (payload.status !== 'ACTIVE') {
+        return { ok: false, error: 'Por seguridad, no puedes desactivar ni bloquear tu propia cuenta activa.' };
+      }
+    }
+
+    if (!payload.fullName.trim()) {
+      return { ok: false, error: 'El nombre y apellido no pueden estar vacíos.' };
+    }
+
+    if (!payload.organizationUnit.trim()) {
+      return { ok: false, error: 'La unidad organizativa no puede estar vacía.' };
+    }
+
+    let newHash: string | undefined = undefined;
+    if (payload.newPassword && payload.newPassword.trim().length > 0) {
+      if (payload.newPassword.trim().length < 8) {
+        return { ok: false, error: 'La nueva contraseña debe contener al menos 8 caracteres.' };
+      }
+      const hashed = await hashPassword(payload.newPassword.trim());
+      newHash = hashed.hash;
+    }
+
+    const updatedUser: AppUser = {
+      ...targetUser,
+      fullName: payload.fullName.trim(),
+      organizationUnit: payload.organizationUnit.trim(),
+      role: payload.role,
+      status: payload.status,
+      mustChangePassword: payload.mustChangePassword ?? targetUser.mustChangePassword,
+      updatedAt: new Date().toISOString()
+    };
+
+    if (newHash) {
+      updatedUser.passwordHash = newHash;
+    }
+
+    const sql = NeonClient.getSql();
+    if (sql) {
+      try {
+        if (newHash) {
+          await sql`
+            UPDATE app_users SET
+              full_name = ${updatedUser.fullName},
+              organization_unit = ${updatedUser.organizationUnit},
+              role = ${updatedUser.role},
+              status = ${updatedUser.status},
+              password_hash = ${newHash},
+              must_change_password = ${updatedUser.mustChangePassword},
+              updated_at = NOW()
+            WHERE id = ${targetUserId};
+          `;
+        } else {
+          await sql`
+            UPDATE app_users SET
+              full_name = ${updatedUser.fullName},
+              organization_unit = ${updatedUser.organizationUnit},
+              role = ${updatedUser.role},
+              status = ${updatedUser.status},
+              must_change_password = ${updatedUser.mustChangePassword},
+              updated_at = NOW()
+            WHERE id = ${targetUserId};
+          `;
+        }
+      } catch (err) {
+        console.error('Error actualizando usuario en Neon:', err);
+        return { ok: false, error: 'Error al actualizar usuario en la base de datos.' };
+      }
+    }
+
+    // Actualizar fallback local
+    const localUsers = this.getLocalUsers();
+    const idx = localUsers.findIndex(u => u.id === targetUserId);
+    if (idx !== -1) {
+      localUsers[idx] = updatedUser;
+      localStorage.setItem(LOCAL_STORAGE_USERS_FALLBACK, JSON.stringify(localUsers));
+    }
+
+    // Si el usuario editado es el actual, refrescar sesión
+    const current = this.getCurrentUser();
+    if (current && current.id === targetUserId) {
+      this.setCurrentUser(updatedUser);
+    }
+
+    await AuditLoggerService.log(
+      'USER_UPDATED_BY_ADMIN',
+      adminUser,
+      targetUser.email,
+      {
+        targetUserId,
+        role: updatedUser.role,
+        status: updatedUser.status,
+        unit: updatedUser.organizationUnit,
+        passwordChanged: !!newHash,
+        mustChangePassword: updatedUser.mustChangePassword
+      }
+    );
+
+    return { ok: true, user: updatedUser };
   }
 
   /**

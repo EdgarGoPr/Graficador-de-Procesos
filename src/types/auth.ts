@@ -81,6 +81,8 @@ export type AuditActionType =
   | 'CANVAS_PROJECT_SAVED'
   | 'CANVAS_EXPORT_GENERATED'
   | 'USER_CREATED'
+  | 'USER_CREATED_BY_ADMIN'
+  | 'USER_UPDATED_BY_ADMIN'
   | 'USER_STATUS_CHANGED';
 
 export interface AuditLogEntry {
@@ -93,4 +95,23 @@ export interface AuditLogEntry {
   targetResource?: string | null;
   details: Record<string, any>;
   ipClient?: string | null;
+}
+
+export interface CreateUserPayload {
+  email: string;
+  fullName: string;
+  organizationUnit: string;
+  role: UserRole;
+  status: UserStatus;
+  passwordMode: 'GENERATE_CODE' | 'MANUAL_PASSWORD';
+  manualPassword?: string;
+}
+
+export interface UpdateUserPayload {
+  fullName: string;
+  organizationUnit: string;
+  role: UserRole;
+  status: UserStatus;
+  mustChangePassword?: boolean;
+  newPassword?: string;
 }

@@ -1,9 +1,9 @@
 # Plan de Acción Integral: Gestión de Usuarios, Roles, Permisos por Lienzo, Acceso con Google, Reseteo por Administrador y Logs de Auditoría
 
 > **Documento:** Plan de Acción Oficial de Seguridad y Gobernanza de ProcesStudio  
-> **Versión:** 1.5.1 | **Fecha:** 2026-10-28  
+> **Versión:** 1.6.0 | **Fecha:** 2026-10-28  
 > **Alineación Normativa:** Directivas Obligatorias de Desarrollo (`AGENTS.md` y `.agents/rules/directivas.md`), Estándar BPMN 2.0 (ISO/IEC 19510), Gestión de Calidad ISO 9001:2015 (Control de Cambios y Trazabilidad) y Seguridad de la Información ISO/IEC 27001 (Control de Accesos).  
-> **Historias de Usuario:** `PST-069`, `PST-070`, `PST-071`, `PST-072`, `PST-073`, `PST-074`, `PST-075`, `PST-076`, `PST-077`, `PST-078` (Indicador de Versión Dinámica Global `V xx.xx.xx`).
+> **Historias de Usuario:** `PST-069`, `PST-070`, `PST-071`, `PST-072`, `PST-073`, `PST-074`, `PST-075`, `PST-076`, `PST-077`, `PST-078`, `PST-079` (Alta y Edición Integral de Usuarios por el Administrador).
 
 ---
 
@@ -426,9 +426,45 @@ Conforme a la **Directiva 4**, estas historias se registrarán con su numeració
     historiaUsuario: 'Como director de seguridad y administrador de ProcesStudio, quiero que el sistema requiera obligatoriamente iniciar sesión antes de mostrar cualquier pantalla, que mi cuenta de Google egdeprada@gmail.com esté configurada como Administrador principal con acceso automático, y que los usuarios regulares no vean bajo ningún concepto ningún lienzo que no tengan asignado, para impedir el acceso anónimo y resguardar la confidencialidad de los procesos.',
     criteriosAceptacion: '1. Al cargar la aplicación sin sesión activa (currentUser === null), el sistema despliega de forma obligatoria y bloqueante el modal de acceso AuthModal en modo pantalla completa sin opción de cerrar o cancelar.\n2. Se bloquea totalmente el renderizado y acceso al Dashboard de Proyectos y al Canvas hasta que la autenticación sea exitosa.\n3. Configuración del correo egdeprada@gmail.com como usuario Administrador principal por defecto con reconocimiento automático de rol ADMIN en Google Login.\n4. Ocultamiento total en el Dashboard: los usuarios con rol USER no ven ningún lienzo que no tengan explícitamente asignado en la matriz de permisos.\n5. Si un usuario no tiene lienzos asignados, el Dashboard muestra un estado vacío institucional impidiendo el acceso a diagramas ajenos.\n6. Rechazo automático con redirección al Dashboard si un usuario intenta forzar la carga de un proyecto no asignado.',
     fechaImplementacion: '2026-10-28',
-    estado: 'Planificado / En Desarrollo'
+    estado: 'Implementado / Producción'
+  },
+  {
+    id: 'PST-076',
+    modulo: 'Seguridad & UI Confidencialidad',
+    titulo: 'Limpieza Estética, Confidencialidad UI y Flujo Canónico de Google Sign-In',
+    historiaUsuario: 'Como director de seguridad y usuario corporativo, quiero que la interfaz de acceso elimine subtítulos técnicos, textos que expongan códigos de reseteo o correos electrónicos particulares, y ofrezca el botón oficial "Continuar con Google", para garantizar una estética premium y la máxima confidencialidad.',
+    criteriosAceptacion: '1. Supresión del subtítulo de gobernanza en AuthModal.\n2. Simplificación del campo de contraseña (etiqueta CONTRASEÑA y placeholder de puntos discretos).\n3. Botón oficial "Continuar con Google" sin correos expuestos.\n4. Reconocimiento interno y automático de egdeprada@gmail.com como ADMIN.',
+    fechaImplementacion: '2026-10-28',
+    estado: 'Implementado / Producción'
+  },
+  {
+    id: 'PST-077',
+    modulo: 'Seguridad & Autenticación Google OAuth',
+    titulo: 'Integración en Vivo de Google OAuth 2.0 con Redirección a accounts.google.com y Captura de Token',
+    historiaUsuario: 'Como usuario de ProcesStudio, quiero que al presionar "Continuar con Google" el navegador me redirija a la pantalla oficial de Google Accounts (accounts.google.com) y retorne con mi sesión verificada, para iniciar sesión con mi cuenta de Google de forma real, segura y conforme a las normas de OAuth 2.0.',
+    criteriosAceptacion: '1. Configuración de Credenciales: Incorporación del identificador oficial de cliente (Google Client ID) en variables de entorno VITE_GOOGLE_CLIENT_ID.\n2. Redirección Oficial: Al pulsar "Continuar con Google", el navegador navega a https://accounts.google.com/o/oauth2/v2/auth con scopes de email, profile y openid.\n3. Captura Automática de Retorno: Al regresar desde Google con fragmento #access_token=..., el sistema extrae el token y limpia la URL de forma segura.\n4. Consulta de Perfil: Consulta exitosa al endpoint oficial https://www.googleapis.com/oauth2/v3/userinfo para obtener correo, nombre e imagen verificados.\n5. Autenticación Transparente: Si el correo corresponde al Administrador configurado (egdeprada@gmail.com), se garantiza el acceso con rol ADMIN; si es otro usuario habilitado, con rol USER.',
+    fechaImplementacion: '2026-10-28',
+    estado: 'Implementado / Producción'
+  },
+  {
+    id: 'PST-078',
+    modulo: 'Identidad, Versión & Trazabilidad',
+    titulo: 'Indicador de Versión Dinámica Global en Esquina Inferior Derecha (V xx.xx.xx)',
+    historiaUsuario: 'Como usuario y auditor de ProcesStudio, quiero visualizar permanentemente la versión de la aplicación en formato "V xx.xx.xx" en la esquina inferior derecha de la pantalla, para verificar la versión exacta en ejecución en cualquier momento y garantizar la trazabilidad de los desarrollos.',
+    criteriosAceptacion: '1. Visualización permanente en la esquina inferior derecha (fixed bottom, right) con diseño discreto, estilizado y no obstructivo.\n2. Formato estandarizado con padding de dos dígitos "V xx.xx.xx" (ej. V 01.05.01).\n3. Visible de forma consistente tanto en la pantalla de inicio de sesión (Gatekeeper) como en el espacio de trabajo activo.\n4. Centralización en src/constants/version.ts y sincronización con el campo version de package.json.\n5. Criterio de incremento semántico a partir de esta entrega según magnitud del cambio (Mayor / Menor / Parche).',
+    fechaImplementacion: '2026-10-28',
+    estado: 'Implementado / Producción'
+  },
+  {
+    id: 'PST-079',
+    modulo: 'Gobernanza & Gestión de Usuarios',
+    titulo: 'Alta y Edición Integral de Usuarios por el Administrador desde la Consola',
+    historiaUsuario: 'Como administrador de ProcesStudio, quiero dar de alta nuevos usuarios directamente y editar los datos, roles, unidades organizativas y estados de los usuarios existentes desde la Consola de Administración, para gobernar el directorio corporativo de manera ágil sin depender exclusivamente de solicitudes previas.',
+    criteriosAceptacion: '1. Botón "+ Nuevo Usuario" en la pestaña Usuarios & Claves con formulario modal guiado (Nombre, Email, Área, Rol ADMIN/USER y Contraseña inicial o Código provisorio de 6 dígitos).\n2. Botón "Editar" en la tabla de usuarios que permite modificar nombre, unidad organizativa, rol del sistema y estado (ACTIVE / INACTIVE / BLOCKED).\n3. Opción para forzar el cambio de contraseña en el próximo ingreso o sobrescribir contraseña al editar.\n4. Salvaguardas de seguridad: no permitir auto-bloqueo ni auto-degradación de rol del Administrador en sesión activa; validación estricta de formato y unicidad de correo electrónico.\n5. Persistencia relacional en Neon PostgreSQL con sincronización local y registro de auditoría inmutable (USER_CREATED_BY_ADMIN y USER_UPDATED_BY_ADMIN).',
+    fechaImplementacion: '2026-10-28',
+    estado: 'Implementado / Producción'
   }
-]
+];
 ```
 
 ---
@@ -537,18 +573,42 @@ Las recomendaciones técnicas evaluadas han sido clasificadas e integradas al al
      - **Mayor (`XX.00.00`):** Cambios de arquitectura mayores o rediseños estructurales.
      - **Menor (`01.XX.00`):** Incorporación de nuevos módulos o funcionalidades de peso.
      - **Parche (`01.05.XX`):** Correcciones, ajustes de interfaz, optimizaciones y evoluciones puntuales.
-7. **Validación, Generación de Historias y Auto-Push:**
-   - Ejecutar `npm run build` para validar compilación TypeScript y generar historias de usuario en `HISTORIAS_DE_USUARIO_PROCESSTUDIO.xlsx` incorporando `PST-078`.
-   - Ejecutar `git commit` y `git push origin main` de forma automática tras verificación.
+7. **Alta y Edición Integral de Usuarios por el Administrador (PST-079) [✅ IMPLEMENTADO]:**
+   - **`src/services/authService.ts`:**
+     - Incorporar método `createUserByAdmin(adminUser: AppUser, data: CreateUserPayload)`:
+       - Valida que `adminUser.role === 'ADMIN'`.
+       - Valida formato de correo y que no exista previamente en `app_users` (Neon y local).
+       - Permite definir contraseña directa (hash con `hashPassword`) o generar código provisorio de 6 dígitos con `must_change_password = true` y expiración a 7 días.
+       - Inserta el registro en Neon PostgreSQL (`app_users`) y en `localStorage`.
+       - Registra evento de auditoría `USER_CREATED_BY_ADMIN`.
+     - Incorporar método `updateUserByAdmin(adminUser: AppUser, targetUserId: string, data: UpdateUserPayload)`:
+       - Valida permisos administrativos.
+       - Salvaguarda: impide que el administrador en sesión activa se desactive o se degrade a sí mismo de `ADMIN` a `USER`.
+       - Valida no duplicidad de correo en caso de actualización de email.
+       - Actualiza campos: `full_name`, `organization_unit`, `role`, `status`, y opcionalmente `password_hash` / `must_change_password`.
+       - Si el usuario editado es el usuario actual, refresca el estado en `useAuthStore`.
+       - Registra evento de auditoría `USER_UPDATED_BY_ADMIN` con el detalle de campos modificados.
+   - **`src/components/admin/UserFormModal.tsx`:**
+     - Modal dedicado con diseño premium, tabs y validaciones:
+       - Modo **Crear**: Título *"Alta de Nuevo Usuario Corporativo"*, campos limpios, selector de rol (`ADMIN` / `USER`), selector de área/dependencia y opción de clave (Código provisorio de 6 dígitos o Contraseña manual).
+       - Modo **Editar**: Título *"Modificación de Usuario"*, precarga de datos, badges de estado, toggles de estado y clave.
+   - **`src/components/admin/AdminConsoleModal.tsx`:**
+     - En la cabecera de la pestaña *"Usuarios & Claves"*, incorporar botón destacado **"+ Nuevo Usuario"** con icono `UserPlus`.
+     - En cada fila de la tabla de usuarios, incorporar botón **"Editar"** con icono `Pencil` junto a las acciones existentes.
+     - Diálogo de éxito con código de 6 dígitos en caso de que se haya seleccionado contraseña temporal generada.
+   - **Incremento de Versión Semántica:**
+     - Elevar versión de la aplicación a `1.6.0` (indicador `V 01.06.00`).
+   - **Sincronización:**
+     - Compilación limpia (`npm run build`), registro de 79 historias de usuario en Excel y auto-push Git.
 
 ---
 
 ## 10. Conclusión y Compromiso de Desarrollo
 
-Este documento constituye la **Hoja de Ruta Maestra Oficial de Usuarios, Permisos, Seguridad y Auditoría** de ProcesStudio (Versión 1.5.1).
+Este documento constituye la **Hoja de Ruta Maestra Oficial de Usuarios, Permisos, Seguridad y Auditoría** de ProcesStudio (Versión 1.6.0).
 
 Todas las fases se implementarán respetando rigurosamente:
 1. **La arquitectura 100% Web Cloud Nativa** (React + TypeScript + Vite + Neon PostgreSQL).
 2. **La persistencia relacional en Neon PostgreSQL**.
-3. **La actualización del archivo Excel `HISTORIAS_DE_USUARIO_PROCESSTUDIO.xlsx`** (`PST-069` a `PST-078`).
+3. **La actualización del archivo Excel `HISTORIAS_DE_USUARIO_PROCESSTUDIO.xlsx`** (`PST-069` a `PST-079`).
 4. **La compilación limpia (`npm run build`) y el commit/push automático a Git tras cada conjunto de cambios**.

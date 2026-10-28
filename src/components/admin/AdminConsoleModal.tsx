@@ -25,8 +25,11 @@ import {
   Eye,
   MessageSquare,
   PenTool,
-  Lock
+  Lock,
+  UserPlus,
+  Pencil
 } from 'lucide-react';
+import { UserFormModal } from './UserFormModal';
 
 type AdminTab = 'REQUESTS' | 'USERS' | 'CANVAS_PERMS' | 'AUDIT_LOGS' | '2FA_SECURITY';
 
@@ -67,6 +70,17 @@ export const AdminConsoleModal: React.FC = () => {
 
   // Copiado al portapapeles
   const [copiedCode, setCopiedCode] = useState(false);
+
+  // Modal de Alta y Edición de Usuario
+  const [userFormModalState, setUserFormModalState] = useState<{
+    isOpen: boolean;
+    mode: 'CREATE' | 'EDIT';
+    userToEdit: AppUser | null;
+  }>({
+    isOpen: false,
+    mode: 'CREATE',
+    userToEdit: null
+  });
 
   useEffect(() => {
     if (isAdminConsoleOpen && currentUser?.role === 'ADMIN') {
@@ -385,15 +399,30 @@ export const AdminConsoleModal: React.FC = () => {
                 <div>
                   <h3 className="text-sm font-bold">Usuarios del Sistema y Reseteo Exclusivo de Claves</h3>
                   <p className="text-xs text-theme-text-muted">
-                    Como Administrador, tú eres el único que puede generar códigos de reseteo de 6 dígitos para los usuarios.
+                    Como Administrador, puedes dar de alta nuevos usuarios, editar sus perfiles o generar códigos de 6 dígitos.
                   </p>
                 </div>
-                <button
-                  onClick={loadAllData}
-                  className="px-3 py-1.5 rounded-xl border border-theme-border text-xs hover:bg-theme-border/40 font-semibold"
-                >
-                  Refrescar
-                </button>
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() =>
+                      setUserFormModalState({
+                        isOpen: true,
+                        mode: 'CREATE',
+                        userToEdit: null
+                      })
+                    }
+                    className="px-3.5 py-1.5 rounded-xl bg-theme-accent text-white hover:bg-theme-accent/90 text-xs font-semibold shadow-md shadow-theme-accent/20 flex items-center space-x-1.5 transition-all"
+                  >
+                    <UserPlus className="w-3.5 h-3.5" />
+                    <span>+ Nuevo Usuario</span>
+                  </button>
+                  <button
+                    onClick={loadAllData}
+                    className="px-3 py-1.5 rounded-xl border border-theme-border text-xs hover:bg-theme-border/40 font-semibold"
+                  >
+                    Refrescar
+                  </button>
+                </div>
               </div>
 
               <div className="border border-theme-border rounded-2xl overflow-hidden">
@@ -448,6 +477,20 @@ export const AdminConsoleModal: React.FC = () => {
                           )}
                         </td>
                         <td className="p-3 text-right space-x-2">
+                          <button
+                            onClick={() =>
+                              setUserFormModalState({
+                                isOpen: true,
+                                mode: 'EDIT',
+                                userToEdit: u
+                              })
+                            }
+                            className="px-2.5 py-1 rounded-lg border border-theme-border hover:bg-theme-border/40 text-theme-text text-[11px] font-semibold transition-all inline-flex items-center space-x-1"
+                            title="Editar usuario"
+                          >
+                            <Pencil className="w-3 h-3 text-theme-accent" />
+                            <span>Editar</span>
+                          </button>
                           <button
                             onClick={() => handleGenerateResetCode(u)}
                             className="px-2.5 py-1 rounded-lg bg-theme-accent/15 border border-theme-accent/30 text-theme-accent hover:bg-theme-accent hover:text-white text-[11px] font-semibold transition-all"
@@ -831,6 +874,31 @@ export const AdminConsoleModal: React.FC = () => {
               </button>
             </div>
           </div>
+        )}
+
+        {/* Modal de Alta y Edición de Usuarios */}
+        {userFormModalState.isOpen && currentUser && (
+          <UserFormModal
+            isOpen={userFormModalState.isOpen}
+            mode={userFormModalState.mode}
+            userToEdit={userFormModalState.userToEdit}
+            currentAdmin={currentUser}
+            onClose={() =>
+              setUserFormModalState({ isOpen: false, mode: 'CREATE', userToEdit: null })
+            }
+            onSuccess={result => {
+              if (result.mode === 'CREATE' && result.generatedInitialCode) {
+                setGeneratedCodeDialog({
+                  isOpen: true,
+                  title: 'Usuario Dado de Alta Exitosamente',
+                  targetUserEmail: result.user?.email || 'Nuevo Usuario',
+                  code: result.generatedInitialCode,
+                  note: 'Informa este código provisorio de 6 dígitos al nuevo usuario para su primer ingreso. El sistema le exigirá definir su contraseña definitiva de inmediato.'
+                });
+              }
+              loadAllData();
+            }}
+          />
         )}
       </div>
     </div>
