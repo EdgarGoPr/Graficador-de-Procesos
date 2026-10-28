@@ -677,6 +677,15 @@ const userStories = [
     criteriosAceptacion: '1. Auth Gatekeeper Mandatario: Al abrir la aplicación sin sesión activa, se bloquea la vista del espacio de trabajo y se despliega directamente el portal de autenticación sin posibilidad de cierre accidental.\n2. Administrador Principal por Google: Reconocimiento y auto-aprovisionamiento garantizado de egdeprada@gmail.com como usuario ADMIN activo mediante autenticación con Google y credencial de respaldo.\n3. Ocultamiento Estricto (Zero-Visibility): Los usuarios con rol USER no visualizan en su panel ningún lienzo de proceso que no les haya sido explícitamente asignado por el Administrador (en modos Lectura, Comentarios o Edición).\n4. Bloqueo de Navegación Forzada: Si un usuario regular intenta abrir un lienzo no asignado, el sistema deniega el acceso y lo redirige automáticamente al Dashboard con una alerta de advertencia.\n5. Estado Vacío Informativo: Si un usuario no tiene proyectos asignados, se presenta un panel informativo indicando que debe contactar al Administrador para solicitar habilitación, ocultando botones de creación e importación.',
     fechaImplementacion: '2026-10-28',
     estado: 'Implementado / Producción'
+  },
+  {
+    id: 'PST-076',
+    modulo: 'Seguridad & Experiencia de Usuario',
+    titulo: 'Flujo Estándar Canónico de Google Sign-In y Supresión de Exposición de Correos en UI (Zero-Disclosure)',
+    historiaUsuario: 'Como usuario y administrador del sistema, quiero que la interfaz de acceso elimine cualquier mención explícita a correos electrónicos personales, simplifique las leyendas del formulario de autenticación y proporcione el flujo oficial y estándar de inicio de sesión con Google, para contar con una experiencia de acceso corporativa limpia, profesional y confidencial.',
+    criteriosAceptacion: '1. Supresión de Subtítulo: Se retira la leyenda "Gobernanza, Roles y Calidad ISO 9001" de la cabecera del portal de acceso.\n2. Simplificación de Campos: La etiqueta del campo de contraseña se unifica en "CONTRASEÑA" y su placeholder en "••••••••", suprimiendo la referencia a códigos de 6 dígitos en la interfaz pública.\n3. Botón Canónico de Google: El botón muestra exclusivamente el rótulo estándar oficial "Continuar con Google" sin correos agregados.\n4. Zero-Disclosure: Se elimina todo texto explicativo o pie de botón que exponga direcciones de correo de administradores en la interfaz visual.\n5. Selector Canónico de Google: Al pulsar "Continuar con Google", el sistema activa el selector oficial de cuenta de Google, reconociendo internamente la cuenta administradora de forma silenciosa y transparente.',
+    fechaImplementacion: '2026-10-28',
+    estado: 'Implementado / Producción'
   }
 ];
 

@@ -286,7 +286,7 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ onOpenNewMod
             </h3>
             <p className="text-xs text-theme-text-muted mt-1 max-w-md mx-auto">
               {currentUser?.role === 'USER'
-                ? 'Actualmente no cuentas con lienzos habilitados para lectura, comentarios o edición. Solicita al Administrador (egdeprada@gmail.com) la asignación correspondiente de tus procesos.'
+                ? 'Actualmente no cuentas con lienzos habilitados para lectura, comentarios o edición. Solicita al Administrador del Sistema la asignación correspondiente de tus procesos.'
                 : 'Creá un nuevo proyecto o verificá los archivos JSON en tu almacenamiento.'}
             </p>
             {currentUser?.role === 'ADMIN' && (
