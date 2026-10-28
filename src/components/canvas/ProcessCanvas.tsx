@@ -15,6 +15,7 @@ import '@xyflow/react/dist/style.css';
 import { useProjectStore } from '../../store/useProjectStore';
 import { useCanvasStore } from '../../store/useCanvasStore';
 import { useUiStore } from '../../store/useUiStore';
+import { useAuthStore } from '../../store/useAuthStore';
 import { PRESET_THEMES, hexToRgba } from '../../types/theme';
 
 import { StartEventNode } from './custom-nodes/StartEventNode';
@@ -79,6 +80,12 @@ const ProcessCanvasInternal: React.FC = () => {
   } = useCanvasStore();
 
   const {
+    currentCanvasPermission,
+    concurrencyConflictNotice,
+    dismissConcurrencyNotice
+  } = useAuthStore();
+
+  const {
     setPropertiesPanelOpen,
     currentThemeId,
     customThemeColors,
@@ -103,6 +110,16 @@ const ProcessCanvasInternal: React.FC = () => {
       const nodeType = event.dataTransfer.getData('application/reactflow-nodetype') as BpmnNodeType;
       if (!nodeType) return;
 
+      if (currentCanvasPermission === 'READ_ONLY') {
+        showNotification('El lienzo está en modo Solo Lectura. No se pueden agregar elementos.', 'warning');
+        return;
+      }
+
+      if (currentCanvasPermission === 'COMMENTS' && nodeType !== 'StickyNote') {
+        showNotification('En modo Comentarios solo puedes agregar Notas Adhesivas.', 'warning');
+        return;
+      }
+
       const position = screenToFlowPosition({
         x: event.clientX,
         y: event.clientY,
@@ -111,7 +128,18 @@ const ProcessCanvasInternal: React.FC = () => {
       addNode(nodeType, position);
       setPropertiesPanelOpen(true);
     },
-    [screenToFlowPosition, addNode, setPropertiesPanelOpen]
+    [currentCanvasPermission, screenToFlowPosition, addNode, setPropertiesPanelOpen, showNotification]
+  );
+
+  const handleConnect = useCallback(
+    (connection: any) => {
+      if (currentCanvasPermission === 'READ_ONLY' || currentCanvasPermission === 'COMMENTS') {
+        showNotification('No se pueden modificar secuencias de flujo en este modo.', 'warning');
+        return;
+      }
+      onConnect(connection);
+    },
+    [currentCanvasPermission, onConnect, showNotification]
   );
 
   const onNodeClick = useCallback(
@@ -167,6 +195,20 @@ const ProcessCanvasInternal: React.FC = () => {
       }
 
       if (e.key === 'Delete' || e.key === 'Backspace') {
+        if (currentCanvasPermission === 'READ_ONLY') {
+          showNotification('El lienzo está en modo Solo Lectura. No se pueden eliminar elementos.', 'warning');
+          return;
+        }
+        if (currentCanvasPermission === 'COMMENTS') {
+          const currentNodes = currentProject?.nodes || [];
+          const nonSticky = currentNodes.some(
+            (n) => selectedNodeIds.includes(n.id) && n.type !== 'StickyNote'
+          );
+          if (nonSticky) {
+            showNotification('En modo Comentarios solo puedes eliminar Notas Adhesivas.', 'warning');
+            return;
+          }
+        }
         deleteSelected();
       } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'c') {
         e.preventDefault();
@@ -176,13 +218,17 @@ const ProcessCanvasInternal: React.FC = () => {
         }
       } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'v') {
         e.preventDefault();
+        if (currentCanvasPermission === 'READ_ONLY') {
+          showNotification('El lienzo está en modo Solo Lectura.', 'warning');
+          return;
+        }
         const ok = pasteSelection();
         if (ok) {
           showNotification('Elementos pegados en el lienzo', 'success');
         }
       }
     },
-    [deleteSelected, copySelection, pasteSelection, selectedNodeIds, showNotification]
+    [currentCanvasPermission, currentProject?.nodes, deleteSelected, copySelection, pasteSelection, selectedNodeIds, showNotification]
   );
 
   // Smart Alignment Guides & Magnetic Snapping during node drag
@@ -443,7 +489,7 @@ const ProcessCanvasInternal: React.FC = () => {
 
   // Stable hierarchical sorting so sections/lanes are rendered in background (first in array),
   // and tasks, gateways, and events are rendered on top (foreground).
-  // Dynamically set draggable to false if the canvas is locked or if the node is individually locked.
+  // Dynamically set draggable to false if the canvas is locked, in read-only mode, or restricted to comments.
   const hierarchicalNodes = React.useMemo(() => {
     if (!activeGraph?.nodes) return [];
     const getHierarchyLevel = (type?: string) => {
@@ -454,13 +500,25 @@ const ProcessCanvasInternal: React.FC = () => {
       if (type?.includes('Event')) return 4; // Eventos inicio, fin, calidad, timer
       return 2;
     };
+
+    const isReadOnly = currentCanvasPermission === 'READ_ONLY';
+    const isComments = currentCanvasPermission === 'COMMENTS';
+
     return [...activeGraph.nodes]
-      .map((node) => ({
-        ...node,
-        draggable: !isCanvasLocked && !node.data?.isLocked
-      }))
+      .map((node) => {
+        let canDrag = !isCanvasLocked && !node.data?.isLocked;
+        if (isReadOnly) {
+          canDrag = false;
+        } else if (isComments) {
+          canDrag = canDrag && node.type === 'StickyNote';
+        }
+        return {
+          ...node,
+          draggable: canDrag
+        };
+      })
       .sort((a, b) => getHierarchyLevel(a.type) - getHierarchyLevel(b.type));
-  }, [activeGraph?.nodes, isCanvasLocked]);
+  }, [activeGraph?.nodes, isCanvasLocked, currentCanvasPermission]);
 
   if (!currentProject) {
     return (
@@ -470,6 +528,9 @@ const ProcessCanvasInternal: React.FC = () => {
     );
   }
 
+  const isReadOnly = currentCanvasPermission === 'READ_ONLY';
+  const isComments = currentCanvasPermission === 'COMMENTS';
+
   return (
     <div
       ref={reactFlowWrapper}
@@ -478,12 +539,37 @@ const ProcessCanvasInternal: React.FC = () => {
       onKeyDown={onKeyDown}
       tabIndex={0}
     >
+      {/* Concurrency Soft-Lock Warning Banner */}
+      {concurrencyConflictNotice && (
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 bg-amber-500/95 text-slate-950 font-semibold text-xs px-4 py-2.5 rounded-xl shadow-2xl flex items-center space-x-2 border border-amber-300 backdrop-blur-md animate-in fade-in slide-in-from-top-2">
+          <span>{concurrencyConflictNotice}</span>
+          <button
+            onClick={dismissConcurrencyNotice}
+            className="ml-2 hover:bg-black/10 px-2 py-0.5 rounded text-[11px] font-bold"
+          >
+            Entendido
+          </button>
+        </div>
+      )}
+
+      {/* Permission Mode Pill Indicator */}
+      {!concurrencyConflictNotice && isReadOnly && (
+        <div className="absolute top-3 left-1/2 -translate-x-1/2 z-40 bg-sky-600/90 text-white text-[11px] font-semibold px-3 py-1 rounded-full shadow-lg border border-sky-400/40 backdrop-blur-md flex items-center space-x-1.5 pointer-events-none">
+          <span>👁️ Modo Solo Lectura (Inspección y Exportación)</span>
+        </div>
+      )}
+      {!concurrencyConflictNotice && isComments && (
+        <div className="absolute top-3 left-1/2 -translate-x-1/2 z-40 bg-amber-600/90 text-white text-[11px] font-semibold px-3 py-1 rounded-full shadow-lg border border-amber-400/40 backdrop-blur-md flex items-center space-x-1.5 pointer-events-none">
+          <span>💬 Modo Comentarios (Solo Inserción de Notas Adhesivas)</span>
+        </div>
+      )}
+
       <ReactFlow
         nodes={hierarchicalNodes}
         edges={activeGraph.edges}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
-        onConnect={onConnect}
+        onConnect={handleConnect}
         onNodeClick={onNodeClick}
         onEdgeClick={onEdgeClick}
         onPaneClick={onPaneClick}
@@ -496,8 +582,8 @@ const ProcessCanvasInternal: React.FC = () => {
         edgeTypes={EDGE_TYPES}
         selectionMode={SelectionMode.Partial}
         multiSelectionKeyCode={['Shift']}
-        nodesDraggable={!isCanvasLocked}
-        nodesConnectable={!isCanvasLocked}
+        nodesDraggable={!isCanvasLocked && !isReadOnly}
+        nodesConnectable={!isCanvasLocked && !isReadOnly && !isComments}
         elementsSelectable={true}
         panOnDrag={true}
         panOnScroll={true}

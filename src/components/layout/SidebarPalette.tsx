@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { useCanvasStore } from '../../store/useCanvasStore';
 import { useProjectStore } from '../../store/useProjectStore';
+import { useAuthStore } from '../../store/useAuthStore';
 import { useReactFlow } from '@xyflow/react';
 
 interface PaletteItem {
@@ -164,7 +165,20 @@ const PALETTE_GROUPS: { groupName: string; items: PaletteItem[] }[] = [
 export const SidebarPalette: React.FC = () => {
   const { addNode, addLane } = useCanvasStore();
   const { currentProject } = useProjectStore();
+  const { currentCanvasPermission } = useAuthStore();
   const { screenToFlowPosition } = useReactFlow();
+
+  const isReadOnly = currentCanvasPermission === 'READ_ONLY';
+  const isCommentsOnly = currentCanvasPermission === 'COMMENTS';
+
+  const isItemEnabled = useCallback(
+    (type: BpmnNodeType) => {
+      if (isReadOnly) return false;
+      if (isCommentsOnly) return type === BPMN_NODE_TYPES.STICKY_NOTE;
+      return true;
+    },
+    [isReadOnly, isCommentsOnly]
+  );
 
   const [width, setWidth] = useState<number>(260);
   const [isCollapsed, setIsCollapsed] = useState<boolean>(false);
@@ -195,11 +209,16 @@ export const SidebarPalette: React.FC = () => {
   }, [screenToFlowPosition]);
 
   const handleDragStart = (e: React.DragEvent, nodeType: BpmnNodeType) => {
+    if (!isItemEnabled(nodeType)) {
+      e.preventDefault();
+      return;
+    }
     e.dataTransfer.setData('application/reactflow-nodetype', nodeType);
     e.dataTransfer.effectAllowed = 'move';
   };
 
   const handleAddLaneClick = () => {
+    if (isReadOnly || isCommentsOnly) return;
     const pool = currentProject?.pools[0];
     if (pool) {
       addLane(
@@ -253,14 +272,25 @@ export const SidebarPalette: React.FC = () => {
         <div className="flex-1 flex flex-col space-y-2 overflow-y-auto overflow-x-hidden px-1">
           {PALETTE_GROUPS.flatMap((g) => g.items).map((item) => {
             const Icon = item.icon;
+            const enabled = isItemEnabled(item.type);
             return (
               <div
                 key={item.type}
-                draggable
+                draggable={enabled}
                 onDragStart={(e) => handleDragStart(e, item.type)}
-                onClick={() => addNode(item.type, getCanvasCenter())}
-                className={`p-2 rounded-lg border cursor-grab active:cursor-grabbing ${item.bgClass} ${item.colorClass} transition-transform hover:scale-110`}
-                title={`${item.title} (${item.subtitle}) - Arrastrar al lienzo`}
+                onClick={() => {
+                  if (enabled) addNode(item.type, getCanvasCenter());
+                }}
+                className={`p-2 rounded-lg border transition-transform ${
+                  enabled
+                    ? `cursor-grab active:cursor-grabbing hover:scale-110 ${item.bgClass} ${item.colorClass}`
+                    : 'opacity-25 cursor-not-allowed bg-theme-surface border-theme-border/30 text-theme-text-muted/40 pointer-events-none'
+                }`}
+                title={
+                  enabled
+                    ? `${item.title} (${item.subtitle}) - Arrastrar al lienzo`
+                    : `${item.title} - Deshabilitado en este modo`
+                }
               >
                 <Icon className="w-4 h-4" />
               </div>
@@ -298,11 +328,23 @@ export const SidebarPalette: React.FC = () => {
         </div>
       </div>
 
-      {/* Instruction */}
-      <div className="px-3 py-2 bg-theme-surface-subtle border-b border-theme-border text-[11px] text-theme-text-muted flex items-center">
-        <HelpCircle className="w-3.5 h-3.5 text-theme-text-muted mr-1.5 shrink-0" />
-        <span className="line-clamp-2">Arrastrá elementos al lienzo o hacé clic para agregar.</span>
-      </div>
+      {/* Instruction Banner according to Permission */}
+      {isReadOnly ? (
+        <div className="px-3 py-2 bg-sky-500/10 border-b border-sky-500/20 text-[11px] text-sky-400 flex items-center">
+          <ShieldCheck className="w-3.5 h-3.5 mr-1.5 shrink-0" />
+          <span className="font-semibold">Modo Solo Lectura: Edición deshabilitada.</span>
+        </div>
+      ) : isCommentsOnly ? (
+        <div className="px-3 py-2 bg-amber-500/10 border-b border-amber-500/20 text-[11px] text-amber-400 flex items-center">
+          <StickyNote className="w-3.5 h-3.5 mr-1.5 shrink-0" />
+          <span className="font-semibold">Modo Comentarios: Solo puedes agregar Notas Adhesivas.</span>
+        </div>
+      ) : (
+        <div className="px-3 py-2 bg-theme-surface-subtle border-b border-theme-border text-[11px] text-theme-text-muted flex items-center">
+          <HelpCircle className="w-3.5 h-3.5 text-theme-text-muted mr-1.5 shrink-0" />
+          <span className="line-clamp-2">Arrastrá elementos al lienzo o hacé clic para agregar.</span>
+        </div>
+      )}
 
       {/* Groups */}
       <div className="p-3 space-y-4 flex-1 overflow-y-auto">
@@ -314,13 +356,20 @@ export const SidebarPalette: React.FC = () => {
             <div className="space-y-1.5">
               {group.items.map((item) => {
                 const Icon = item.icon;
+                const enabled = isItemEnabled(item.type);
                 return (
                   <div
                     key={item.type}
-                    draggable
+                    draggable={enabled}
                     onDragStart={(e) => handleDragStart(e, item.type)}
-                    onClick={() => addNode(item.type, getCanvasCenter())}
-                    className={`flex items-center p-2 rounded-lg border transition-all cursor-grab active:cursor-grabbing shadow-sm hover:shadow-md ${item.bgClass} ${item.colorClass}`}
+                    onClick={() => {
+                      if (enabled) addNode(item.type, getCanvasCenter());
+                    }}
+                    className={`flex items-center p-2 rounded-lg border transition-all ${
+                      enabled
+                        ? `cursor-grab active:cursor-grabbing shadow-sm hover:shadow-md ${item.bgClass} ${item.colorClass}`
+                        : 'opacity-25 cursor-not-allowed bg-theme-surface border-theme-border/30 text-theme-text-muted/40 pointer-events-none'
+                    }`}
                   >
                     <div className="p-1.5 rounded-md bg-theme-surface mr-2.5 shrink-0 shadow-sm border border-theme-border/50">
                       <Icon className="w-4 h-4" />
@@ -340,16 +389,18 @@ export const SidebarPalette: React.FC = () => {
           </div>
         ))}
 
-        {/* Add Swimlane Button */}
-        <div className="pt-2 border-t border-theme-border">
-          <button
-            onClick={handleAddLaneClick}
-            className="w-full flex items-center justify-center space-x-2 py-2 px-3 rounded-lg bg-theme-surface-subtle hover:bg-theme-surface text-theme-accent text-xs font-medium border border-theme-border transition-colors shadow-sm"
-          >
-            <PlusCircle className="w-4 h-4" />
-            <span>Agregar Carril (Swimlane)</span>
-          </button>
-        </div>
+        {/* Add Swimlane Button (Enabled only for Editor / Admin) */}
+        {!isReadOnly && !isCommentsOnly && (
+          <div className="pt-2 border-t border-theme-border">
+            <button
+              onClick={handleAddLaneClick}
+              className="w-full flex items-center justify-center space-x-2 py-2 px-3 rounded-lg bg-theme-surface-subtle hover:bg-theme-surface text-theme-accent text-xs font-medium border border-theme-border transition-colors shadow-sm"
+            >
+              <PlusCircle className="w-4 h-4" />
+              <span>Agregar Carril (Swimlane)</span>
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Manual Drag Resizer on Right Edge */}

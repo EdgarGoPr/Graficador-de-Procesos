@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useProjectStore } from '../../store/useProjectStore';
 import { useUiStore, ActiveView } from '../../store/useUiStore';
+import { useAuthStore } from '../../store/useAuthStore';
 import { StorageService } from '../../services/storageService';
 import { LogoPS } from '../common/LogoPS';
 import { NewRevisionModal } from '../modals/NewRevisionModal';
@@ -27,7 +28,10 @@ import {
   ChevronDown,
   Sparkles,
   Check,
-  GitCommit
+  GitCommit,
+  LogIn,
+  LogOut,
+  UserCheck
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -63,6 +67,15 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
     setPropertiesPanelOpen,
     setActiveRightTab
   } = useUiStore();
+
+  const {
+    currentUser,
+    currentCanvasPermission,
+    releaseCanvasLock,
+    openAuthModal,
+    setAdminConsoleOpen,
+    logout
+  } = useAuthStore();
 
   const [isViewsMenuOpen, setIsViewsMenuOpen] = useState(false);
   const [isToolsMenuOpen, setIsToolsMenuOpen] = useState(false);
@@ -134,6 +147,10 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
 
   const handleSave = async () => {
     if (!currentProject) return;
+    if (currentCanvasPermission === 'READ_ONLY') {
+      showNotification('No puedes guardar cambios en modo Solo Lectura.', 'warning');
+      return;
+    }
     const ok = await saveCurrentProject();
     if (ok) {
       if (StorageService.isElectron()) {
@@ -142,6 +159,13 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
         showNotification(`Proyecto guardado en el navegador (${currentProject.fileName})`, 'success');
       }
     }
+  };
+
+  const handleGoToDashboard = () => {
+    if (currentProject?.fileName) {
+      releaseCanvasLock(currentProject.fileName);
+    }
+    setActiveView('DASHBOARD');
   };
 
   const handleOpenFolder = async () => {
@@ -173,7 +197,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
       {/* Left: Logo & Project Details */}
       <div className="flex items-center space-x-3 shrink-0">
         <div
-          onClick={() => setActiveView('DASHBOARD')}
+          onClick={handleGoToDashboard}
           className="cursor-pointer group hover:opacity-90 transition-opacity"
           title="Ir al panel de proyectos"
         >
@@ -183,9 +207,26 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
         {currentProject && (
           <div className="hidden lg:flex items-center space-x-2 pl-3 border-l border-theme-border">
             <div className="max-w-xs xl:max-w-sm truncate">
-              <span className="text-xs font-bold text-theme-text truncate block">
-                {currentProject.documentControl.documentTitle}
-              </span>
+              <div className="flex items-center space-x-1.5">
+                <span className="text-xs font-bold text-theme-text truncate block">
+                  {currentProject.documentControl.documentTitle}
+                </span>
+                {currentCanvasPermission && (
+                  <span
+                    className={`text-[9px] font-mono font-bold px-1.5 py-0.2 rounded border ${
+                      currentCanvasPermission === 'READ_ONLY'
+                        ? 'text-sky-400 bg-sky-500/10 border-sky-500/30'
+                        : currentCanvasPermission === 'COMMENTS'
+                        ? 'text-amber-400 bg-amber-500/10 border-amber-500/30'
+                        : 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30'
+                    }`}
+                  >
+                    {currentCanvasPermission === 'READ_ONLY' && 'Solo Lectura'}
+                    {currentCanvasPermission === 'COMMENTS' && 'Comentarios'}
+                    {currentCanvasPermission === 'EDITOR' && 'Editor'}
+                  </span>
+                )}
+              </div>
               <div className="flex items-center space-x-2 text-[10px] text-theme-text-muted font-mono">
                 <span className="text-theme-accent font-semibold">{currentProject.documentControl.documentCode}</span>
                 <span>&bull;</span>
@@ -596,6 +637,63 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
             </button>
           </div>
         )}
+
+        {/* User Authentication & Admin Console */}
+        <div className="flex items-center space-x-1.5 pl-1.5 border-l border-theme-border/70">
+          {currentUser ? (
+            <div className="flex items-center space-x-1.5">
+              {currentUser.role === 'ADMIN' && (
+                <button
+                  onClick={() => setAdminConsoleOpen(true)}
+                  className="py-1.5 px-2.5 rounded-lg bg-theme-accent/15 hover:bg-theme-accent hover:text-white border border-theme-accent/30 text-theme-accent font-bold text-xs flex items-center space-x-1.5 transition-all shadow-sm"
+                  title="Abrir Consola de Administración y Gobernanza (ISO 9001)"
+                >
+                  <Shield className="w-3.5 h-3.5" />
+                  <span className="hidden xl:inline">Consola Admin</span>
+                </button>
+              )}
+
+              <div
+                className="flex items-center space-x-2 px-2.5 py-1 rounded-lg bg-theme-surface-subtle border border-theme-border"
+                title={`Sesión iniciada: ${currentUser.fullName} (${currentUser.role})`}
+              >
+                <div className="w-5 h-5 rounded-full bg-theme-accent/25 flex items-center justify-center text-theme-accent font-bold text-[10px] uppercase">
+                  {currentUser.fullName.charAt(0)}
+                </div>
+                <div className="hidden lg:block text-left">
+                  <p className="text-[11px] font-bold text-theme-text truncate max-w-[100px] leading-tight">
+                    {currentUser.fullName.split(' ')[0]}
+                  </p>
+                  <span
+                    className={`text-[9px] font-mono px-1 rounded ${
+                      currentUser.role === 'ADMIN'
+                        ? 'text-theme-accent bg-theme-accent/10'
+                        : 'text-theme-text-muted bg-theme-border/40'
+                    }`}
+                  >
+                    {currentUser.role}
+                  </span>
+                </div>
+              </div>
+
+              <button
+                onClick={() => logout()}
+                className="p-1.5 rounded-lg text-theme-text-muted hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                title="Cerrar sesión"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => openAuthModal('LOGIN')}
+              className="py-1.5 px-3 rounded-lg bg-theme-accent hover:opacity-95 text-white font-semibold text-xs flex items-center space-x-1.5 shadow-sm transition-all"
+            >
+              <LogIn className="w-3.5 h-3.5" />
+              <span>Acceder</span>
+            </button>
+          )}
+        </div>
       </div>
 
       {/* New Revision Modal for Multi-Device safe saving */}

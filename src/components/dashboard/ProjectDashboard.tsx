@@ -18,6 +18,8 @@ import {
   Database
 } from 'lucide-react';
 import { DatabaseConfigModal } from './DatabaseConfigModal';
+import { useAuthStore } from '../../store/useAuthStore';
+import { PermissionService } from '../../services/permissionService';
 
 interface ProjectDashboardProps {
   onOpenNewModal: () => void;
@@ -35,12 +37,25 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ onOpenNewMod
     isLoading
   } = useProjectStore();
 
+  const { currentUser, acquireCanvasLock } = useAuthStore();
   const { setActiveView, showNotification } = useUiStore();
   const [searchTerm, setSearchTerm] = useState('');
   const [isDbModalOpen, setIsDbModalOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const processGroups = groupProjectsByProcess(projectList);
+  // Filter projects by user assignments if the active session is a regular USER
+  const assignedFileNames = React.useMemo(() => {
+    return PermissionService.getAssignedProjectFileNamesSync(currentUser);
+  }, [currentUser]);
+
+  const visibleProjects = React.useMemo(() => {
+    if (!currentUser || currentUser.role === 'ADMIN' || assignedFileNames === 'ALL') {
+      return projectList;
+    }
+    return projectList.filter((p) => assignedFileNames.includes(p.fileName));
+  }, [projectList, currentUser, assignedFileNames]);
+
+  const processGroups = groupProjectsByProcess(visibleProjects);
 
   const filteredGroups = processGroups.filter((g) => {
     const term = searchTerm.toLowerCase();
@@ -58,14 +73,31 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ onOpenNewMod
   });
 
   const handleOpen = async (fileName: string) => {
+    // Acquire canvas lock and check assigned permissions
+    const lockResult = await acquireCanvasLock(fileName);
+    if (!lockResult.allowed) {
+      showNotification(lockResult.message || 'No tienes permisos asignados para acceder a este lienzo.', 'warning');
+      return;
+    }
+
     const ok = await openProject(fileName);
     if (ok) {
       setActiveView('CANVAS');
-      showNotification(`Proyecto ${fileName} cargado`, 'info');
+      if (lockResult.message) {
+        showNotification(lockResult.message, 'warning');
+      } else {
+        showNotification(`Proyecto ${fileName} cargado (${lockResult.permission})`, 'info');
+      }
     }
   };
 
   const handleDuplicate = async (fileName: string) => {
+    const perm = PermissionService.getUserPermissionForProject(currentUser, fileName);
+    if (currentUser?.role !== 'ADMIN' && perm !== 'EDITOR') {
+      showNotification('Permiso insuficiente. Solo el Administrador o editores pueden duplicar proyectos.', 'warning');
+      return;
+    }
+
     const newName = await duplicateProject(fileName);
     if (newName) {
       showNotification(`Proyecto duplicado como ${newName}`, 'success');
@@ -73,6 +105,12 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ onOpenNewMod
   };
 
   const handleDelete = async (fileName: string) => {
+    const perm = PermissionService.getUserPermissionForProject(currentUser, fileName);
+    if (currentUser?.role !== 'ADMIN' && perm !== 'EDITOR') {
+      showNotification('Permiso insuficiente. Solo el Administrador o editores pueden eliminar proyectos.', 'warning');
+      return;
+    }
+
     if (window.confirm(`¿Está seguro de eliminar el archivo "${fileName}" de la carpeta de proyectos?`)) {
       const ok = await deleteProject(fileName);
       if (ok) {

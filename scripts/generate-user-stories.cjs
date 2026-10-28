@@ -614,6 +614,60 @@ const userStories = [
     criteriosAceptacion: '1. Creación del servicio DocumentExtractorService con soporte para .pdf, .docx, .doc, .txt, .md y .json.\n2. Extracción local y offline de documentos Word (.docx) mediante mammoth preservando títulos y estructura.\n3. Extracción local de PDFs página por página mediante pdfjs-dist con conteo de páginas y palabras.\n4. Salvaguarda multimodal OCR con Gemini 3.5 Flash en caso de PDFs escaneados o sin capa de texto seleccionable.\n5. Integración en ProcessDocumentationModal con selector de archivos ampliado, spinner de extracción y notificación de éxito.',
     fechaImplementacion: '2026-10-23',
     estado: 'Implementado / Producción'
+  },
+  {
+    id: 'PST-069',
+    modulo: 'Autenticación, Roles y Solicitud de Acceso',
+    titulo: 'Sistema de Autenticación con Roles (Usuario/Admin), Google Login y Solicitud de Habilitación',
+    historiaUsuario: 'Como usuario de la organización, quiero acceder al sistema mediante mi correo electrónico y contraseña o a través de Google Login, y poder solicitar habilitación de cuenta al Administrador si no estoy registrado, para ingresar de forma segura a mis lienzos de procesos sin registro público descontrolado.',
+    criteriosAceptacion: '1. Roles canónicos definidos: USER y ADMIN.\n2. Inicio de sesión con Email/Password con hash PBKDF2 y salt criptográfico en WebCrypto.\n3. Integración de botón oficial de Google Login mediante Google Identity Services (OAuth 2.0 / JWT credential).\n4. Eliminación de autoregistro público libre; sustitución por flujo formal "Solicitar Habilitación" donde el usuario provee nombre, e-mail y justificación.\n5. Consola del Administrador con bandeja de solicitudes pendientes para Aprobar o Rechazar con un solo clic.\n6. Semilla inicial de seguridad garantizada para primer arranque: admin@processtudio.com con privilegios de Administrador.',
+    fechaImplementacion: '2026-10-28',
+    estado: 'Implementado / Producción'
+  },
+  {
+    id: 'PST-070',
+    modulo: 'Gestión de Contraseñas & Reseteo Centralizado Admin',
+    titulo: 'Restablecimiento de Contraseña Exclusivo por Administrador con Código de 6 Dígitos y Cambio Obligatorio',
+    historiaUsuario: 'Como usuario que olvidó su contraseña, quiero solicitar su restablecimiento para que el Administrador del sistema sea el único que autorice y me informe un código temporal de 6 dígitos generado por el sistema, y que al ingresar con dicho código deba obligatoriamente definir una nueva contraseña con confirmación antes de acceder al entorno de trabajo.',
+    criteriosAceptacion: '1. El usuario solicita restablecimiento desde el modal de acceso ingresando su e-mail registrado.\n2. Bloqueo estricto de auto-generación de contraseña por parte del usuario: solo el Administrador puede activar el reseteo desde la Consola de Administración.\n3. Generación aleatoria criptográfica de un código numérico de 6 dígitos con expiración de 24 horas y almacenamiento seguro.\n4. El usuario no puede ingresar con su contraseña previa tras la emisión del código temporal.\n5. Al suministrar el código de 6 dígitos en el modal de acceso, la interfaz exige de forma forzosa el establecimiento de una nueva contraseña y su confirmación.\n6. Una vez cambiada la contraseña, el código temporal de 6 dígitos queda invalidado y se registra la traza en la bitácora de auditoría.',
+    fechaImplementacion: '2026-10-28',
+    estado: 'Implementado / Producción'
+  },
+  {
+    id: 'PST-071',
+    modulo: 'Gobernanza de Proyectos & Control de Acceso Granular',
+    titulo: 'Matriz de Asignación de Lienzos con Permisos Granulares (Solo Lectura, Comentarios y Editor)',
+    historiaUsuario: 'Como administrador del sistema, quiero asignar y desasignar proyectos/lienzos específicos a los usuarios con permisos diferenciados de Solo Lectura, Comentarios o Editor, para que los analistas solo accedan a los procesos autorizados y con el grado exacto de intervención requerido.',
+    criteriosAceptacion: '1. Matriz interactiva en la Consola de Administración para vincular usuarios y lienzos con un clic.\n2. Permiso Solo Lectura: visualización, navegación y exportación de entregables; bloqueo total de edición, arrastre de nodos y guardado.\n3. Permiso Comentarios: restringido exclusivamente a Notas Adhesivas (StickyNote); tareas, compuertas, eventos y carriles bloqueados en la paleta y en el lienzo.\n4. Permiso Editor: modelado BPMN 2.0 integral, edición de propiedades y guardado de proyectos.\n5. Filtrado dinámico en el Dashboard de Proyectos para que los usuarios con rol USER visualicen únicamente los lienzos que les fueron expresamente asignados.\n6. Distintivos visuales (badges) por nivel de permiso en las tarjetas de proyecto y cabecera de la aplicación.',
+    fechaImplementacion: '2026-10-28',
+    estado: 'Implementado / Producción'
+  },
+  {
+    id: 'PST-072',
+    modulo: 'Concurrencia de Edición & Candados Lógicos (Soft-Locking)',
+    titulo: 'Control de Edición Concurrente con Candados Lógicos (Soft-Lock) y Latidos de 60 Segundos',
+    historiaUsuario: 'Como editor de procesos de negocio, quiero que el sistema me advierta si otro usuario está editando activamente el mismo lienzo en ese momento y degrade mi acceso temporalmente a Solo Lectura, para evitar sobreescrituras accidentales y pérdida de datos sin bloquear la consulta.',
+    criteriosAceptacion: '1. Registro de candado activo (canvas_active_locks) en Neon DB / almacenamiento local al abrir un proyecto con permiso EDITOR.\n2. Latido de presencia (heartbeat) periódico cada 60 segundos con actualización de timestamp.\n3. Expiración automática del candado tras 3 minutos de inactividad o desconexión del editor.\n4. Si otro usuario con permiso de editor abre el lienzo con candado vigente, se le notifica mediante un banner destacado en la parte superior del canvas y su sesión se degrada de forma preventiva a Solo Lectura.\n5. Liberación inmediata del candado al cerrar el proyecto, regresar al dashboard o cerrar sesión.',
+    fechaImplementacion: '2026-10-28',
+    estado: 'Implementado / Producción'
+  },
+  {
+    id: 'PST-073',
+    modulo: 'Ciberseguridad & Autenticación de Dos Factores (2FA)',
+    titulo: 'Autenticación de Dos Factores (2FA / TOTP) y Bloqueo de Sesión por Inactividad',
+    historiaUsuario: 'Como administrador y responsable de seguridad, quiero contar con autenticación de dos factores TOTP (Google/Microsoft Authenticator) y bloqueo de pantalla por inactividad a los 30 minutos, para resguardar los diagramas estratégicos y la configuración de gobernanza ante accesos indebidos en terminales desatendidas.',
+    criteriosAceptacion: '1. Generación de clave secreta Base32 RFC 6238 compatible con Google Authenticator y Microsoft Authenticator.\n2. Verificación de códigos de 6 dígitos temporales calculados mediante HMAC-SHA1 en WebCrypto.\n3. Monitoreo pasivo de inactividad de usuario (ratón, teclado y táctil) en el navegador.\n4. Notificación visual preventiva toast a los 28 minutos de inactividad anunciando el bloqueo inminente.\n5. Cortina de seguridad y bloqueo modal estricto a los 30 minutos de inactividad que requiere reingreso de contraseña para desbloquear el espacio de trabajo.',
+    fechaImplementacion: '2026-10-28',
+    estado: 'Implementado / Producción'
+  },
+  {
+    id: 'PST-074',
+    modulo: 'Auditoría Forense & Certificación ISO 9001:2015',
+    titulo: 'Bitácora Inmutable de Auditoría para Administradores con Exportación a Excel y Reporte PDF Certificado',
+    historiaUsuario: 'Como administrador y auditor de calidad ISO 9001, quiero acceder a un registro cronológico e inmutable de todas las interacciones de seguridad y cambios de permisos en el sistema, y generar reportes oficiales en Excel y PDF paginado con sello criptográfico SHA-256, para respaldar auditorías forenses y el cumplimiento del requisito 7.5 de Información Documentada.',
+    criteriosAceptacion: '1. Tabla de bitácora inmutable (audit_logs) restringida exclusivamente para lectura del usuario con rol ADMIN.\n2. Trazabilidad completa de eventos: inicios de sesión, cierres de sesión, reseteo de contraseñas, asignación de permisos, conflictos de candado y solicitudes de acceso con timestamp, e-mail, IP/UserAgent y metadatos.\n3. Exportación en un clic del historial de auditoría a formato Excel (.xlsx) estructurado.\n4. Generación de informe PDF oficial paginado (ISO 9001:2015 / 27001) mediante jsPDF con membrete formal, resumen de eventos y firma digital con sello hash criptográfico SHA-256 inalterable.\n5. Resiliencia: almacenamiento primario en Neon DB con réplica o buffer en memoria local en caso de desconexión.',
+    fechaImplementacion: '2026-10-28',
+    estado: 'Implementado / Producción'
   }
 ];
 

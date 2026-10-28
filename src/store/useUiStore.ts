@@ -16,7 +16,7 @@ interface UiStoreState {
   activeRightTab: RightPanelTab;
   activeSubProcessNodeId: string | null;
   searchFilter: string;
-  activeNotification: { message: string; type: 'success' | 'info' | 'error' } | null;
+  activeNotification: { message: string; type: 'success' | 'info' | 'error' | 'warning' } | null;
   isThemeModalOpen: boolean;
   isQualityAuditModalOpen: boolean;
   isExportCenterModalOpen: boolean;
@@ -47,7 +47,7 @@ interface UiStoreState {
   openSubProcessDetail: (nodeId: string) => void;
   closeSubProcessDetail: () => void;
   setSearchFilter: (query: string) => void;
-  showNotification: (message: string, type?: 'success' | 'info' | 'error') => void;
+  showNotification: (message: string, type?: 'success' | 'info' | 'error' | 'warning') => void;
   clearNotification: () => void;
 }
 

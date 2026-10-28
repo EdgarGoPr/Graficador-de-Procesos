@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { ReactFlowProvider } from '@xyflow/react';
 import { useProjectStore } from './store/useProjectStore';
 import { useUiStore } from './store/useUiStore';
+import { useAuthStore } from './store/useAuthStore';
 import { Header } from './components/layout/Header';
 import { SidebarPalette } from './components/layout/SidebarPalette';
 import { ProcessCanvas } from './components/canvas/ProcessCanvas';
@@ -22,11 +23,16 @@ import { VersionDiffModal } from './components/diff/VersionDiffModal';
 import { ProcessPresentationModal } from './components/presentation/ProcessPresentationModal';
 import { ManageLanesModal } from './components/modals/ManageLanesModal';
 import { ProcessDocumentationModal } from './components/documentation/ProcessDocumentationModal';
+import { AuthModal } from './components/auth/AuthModal';
+import { AdminConsoleModal } from './components/admin/AdminConsoleModal';
+import { IdleLockOverlay } from './components/auth/IdleLockOverlay';
+import { IdleWarningToast } from './components/auth/IdleWarningToast';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
-import { CheckCircle2, Info, AlertCircle, X } from 'lucide-react';
+import { CheckCircle2, Info, AlertCircle, AlertTriangle, X } from 'lucide-react';
 
 export const App: React.FC = () => {
   const { initialize, isLoading } = useProjectStore();
+  const { initializeAuth } = useAuthStore();
   const {
     activeView,
     isPropertiesPanelOpen,
@@ -48,17 +54,18 @@ export const App: React.FC = () => {
 
   useEffect(() => {
     initialize();
-  }, [initialize]);
+    initializeAuth();
+  }, [initialize, initializeAuth]);
 
   if (isLoading) {
     return (
       <div className="h-screen w-screen bg-theme-bg flex flex-col items-center justify-center text-theme-text">
         <div className="w-10 h-10 border-4 border-theme-accent border-t-transparent rounded-full animate-spin mb-4" />
         <h2 className="text-sm font-bold tracking-wider font-mono">
-          CARGANDO PROCESSTUDIO PORTABLE...
+          CARGANDO PROCESSTUDIO WEB...
         </h2>
         <p className="text-xs text-theme-text-muted mt-1 font-mono">
-          Inicializando persistencia local en ../Proyectos/
+          Inicializando persistencia y seguridad relacional
         </p>
       </div>
     );
@@ -115,6 +122,9 @@ export const App: React.FC = () => {
             {activeNotification.type === 'error' && (
               <AlertCircle className="w-4 h-4 text-[#EF4444] shrink-0" />
             )}
+            {activeNotification.type === 'warning' && (
+              <AlertTriangle className="w-4 h-4 text-[#F59E0B] shrink-0" />
+            )}
             <span className="text-theme-text font-medium">{activeNotification.message}</span>
             <button
               onClick={clearNotification}
@@ -169,6 +179,12 @@ export const App: React.FC = () => {
 
         {/* Process Documentation & AI Context Modal */}
         <ProcessDocumentationModal />
+
+        {/* Modales de Autenticación, Gobernanza y Seguridad */}
+        <AuthModal />
+        <AdminConsoleModal />
+        <IdleLockOverlay />
+        <IdleWarningToast />
       </div>
     </ErrorBoundary>
   );

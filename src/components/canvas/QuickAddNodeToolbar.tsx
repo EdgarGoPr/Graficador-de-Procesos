@@ -3,6 +3,7 @@ import { NodeToolbar, Position } from '@xyflow/react';
 import { useCanvasStore } from '../../store/useCanvasStore';
 import { useProjectStore } from '../../store/useProjectStore';
 import { useUiStore } from '../../store/useUiStore';
+import { useAuthStore } from '../../store/useAuthStore';
 import { RadialNodeMenu, RadialOptionType } from './RadialNodeMenu';
 import { AiSuggestionCard } from './AiSuggestionCard';
 import { AiRecommendationService } from '../../services/aiRecommendationService';
@@ -25,6 +26,7 @@ export const QuickAddNodeToolbar: React.FC = () => {
   const { selectedNodeIds, getActiveGraph, addConnectedNode, updateNodeData } = useCanvasStore();
   const { currentProject } = useProjectStore();
   const { showNotification, setDocumentationModalOpen } = useUiStore();
+  const { currentCanvasPermission } = useAuthStore();
 
   const [isRadialOpen, setIsRadialOpen] = useState(false);
   const [hoveredType, setHoveredType] = useState<RadialOptionType | null>(null);
@@ -53,6 +55,11 @@ export const QuickAddNodeToolbar: React.FC = () => {
 
   // Only show when exactly one node is selected
   if (selectedNodeIds.length !== 1) return null;
+
+  // Do not show quick-add toolbar if in read-only or comments mode
+  if (currentCanvasPermission === 'READ_ONLY' || currentCanvasPermission === 'COMMENTS') {
+    return null;
+  }
 
   const activeGraph = getActiveGraph();
   const selectedNode = activeGraph.nodes.find((n) => n.id === selectedNodeIds[0]);

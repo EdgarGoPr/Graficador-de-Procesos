@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { ProcessGroupSummary, ProjectSummary } from '../../types/project';
 import { StorageService } from '../../services/storageService';
 import { useUiStore } from '../../store/useUiStore';
+import { useAuthStore } from '../../store/useAuthStore';
+import { PermissionService } from '../../services/permissionService';
 import {
   FolderOpen,
   Copy,
@@ -35,10 +37,14 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
   onDelete
 }) => {
   const { showNotification } = useUiStore();
+  const { currentUser } = useAuthStore();
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
 
   const latest = group.latestVersion;
   const isCurrentlyActive = group.versions.some(v => v.fileName === activeFileName);
+
+  const permission = PermissionService.getUserPermissionForProject(currentUser, latest.fileName);
+  const canEdit = !currentUser || currentUser.role === 'ADMIN' || permission === 'EDITOR';
 
   const formattedLatestDate = new Date(latest.updatedAt).toLocaleDateString('es-AR', {
     year: 'numeric',
@@ -81,6 +87,21 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
               <Sparkles className="w-2.5 h-2.5" />
               <span>v{latest.version} (Última)</span>
             </span>
+            {permission && (
+              <span
+                className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-lg border ${
+                  permission === 'READ_ONLY'
+                    ? 'text-sky-400 bg-sky-500/10 border-sky-500/30'
+                    : permission === 'COMMENTS'
+                    ? 'text-amber-400 bg-amber-500/10 border-amber-500/30'
+                    : 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30'
+                }`}
+              >
+                {permission === 'READ_ONLY' && '👁️ Solo Lectura'}
+                {permission === 'COMMENTS' && '💬 Comentarios'}
+                {permission === 'EDITOR' && '✏️ Editor'}
+              </span>
+            )}
             {group.versionCount > 1 && (
               <span className="text-[10px] font-mono text-theme-text-muted bg-theme-surface-subtle px-1.5 py-0.5 rounded-lg border border-theme-border">
                 {group.versionCount} versiones
@@ -199,25 +220,29 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
                     <div className="flex items-center space-x-1 shrink-0">
                       <button
                         onClick={(e) => handleRevealLocation(e, ver.fileName)}
-                        title="Ver archivo en disco"
+                        title="Ver archivo en disco / descargar"
                         className="p-1 rounded text-theme-text-muted hover:text-theme-accent hover:bg-theme-surface transition-colors"
                       >
                         <HardDrive className="w-3 h-3" />
                       </button>
-                      <button
-                        onClick={() => onDuplicate(ver.fileName)}
-                        title="Duplicar esta versión"
-                        className="p-1 rounded text-theme-text-muted hover:text-theme-text hover:bg-theme-surface transition-colors"
-                      >
-                        <Copy className="w-3 h-3" />
-                      </button>
-                      <button
-                        onClick={() => onDelete(ver.fileName)}
-                        title="Eliminar este archivo"
-                        className="p-1 rounded text-theme-text-muted hover:text-[#EF4444] hover:bg-[#EF4444]/15 transition-colors"
-                      >
-                        <Trash2 className="w-3 h-3" />
-                      </button>
+                      {canEdit && (
+                        <>
+                          <button
+                            onClick={() => onDuplicate(ver.fileName)}
+                            title="Duplicar esta versión"
+                            className="p-1 rounded text-theme-text-muted hover:text-theme-text hover:bg-theme-surface transition-colors"
+                          >
+                            <Copy className="w-3 h-3" />
+                          </button>
+                          <button
+                            onClick={() => onDelete(ver.fileName)}
+                            title="Eliminar este archivo"
+                            className="p-1 rounded text-theme-text-muted hover:text-[#EF4444] hover:bg-[#EF4444]/15 transition-colors"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        </>
+                      )}
                       <button
                         onClick={() => onOpen(ver.fileName)}
                         className={`px-2 py-1 rounded text-[11px] font-semibold transition-colors ${
@@ -252,20 +277,24 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
           >
             <HardDrive className="w-3.5 h-3.5" />
           </button>
-          <button
-            onClick={() => onDuplicate(latest.fileName)}
-            title="Duplicar proyecto"
-            className="p-1.5 rounded-lg bg-theme-surface-subtle hover:bg-theme-surface border border-theme-border text-theme-text transition-colors"
-          >
-            <Copy className="w-3.5 h-3.5" />
-          </button>
-          <button
-            onClick={() => onDelete(latest.fileName)}
-            title="Eliminar proyecto de disco USB"
-            className="p-1.5 rounded-lg bg-theme-surface-subtle hover:bg-[#EF4444]/15 border border-theme-border text-theme-text-muted hover:text-[#EF4444] transition-colors"
-          >
-            <Trash2 className="w-3.5 h-3.5" />
-          </button>
+          {canEdit && (
+            <>
+              <button
+                onClick={() => onDuplicate(latest.fileName)}
+                title="Duplicar proyecto"
+                className="p-1.5 rounded-lg bg-theme-surface-subtle hover:bg-theme-surface border border-theme-border text-theme-text transition-colors"
+              >
+                <Copy className="w-3.5 h-3.5" />
+              </button>
+              <button
+                onClick={() => onDelete(latest.fileName)}
+                title="Eliminar proyecto"
+                className="p-1.5 rounded-lg bg-theme-surface-subtle hover:bg-[#EF4444]/15 border border-theme-border text-theme-text-muted hover:text-[#EF4444] transition-colors"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            </>
+          )}
           <button
             onClick={() => onOpen(latest.fileName)}
             className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-theme-accent to-blue-600 hover:brightness-110 text-white text-xs font-bold shadow-md shadow-blue-500/20 transition-all hover:scale-105"
