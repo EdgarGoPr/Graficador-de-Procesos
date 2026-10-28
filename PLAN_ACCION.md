@@ -1,9 +1,9 @@
 # Plan de Acción Integral: Gestión de Usuarios, Roles, Permisos por Lienzo, Acceso con Google, Reseteo por Administrador y Logs de Auditoría
 
 > **Documento:** Plan de Acción Oficial de Seguridad y Gobernanza de ProcesStudio  
-> **Versión:** 1.4.0 | **Fecha:** 2026-10-28  
+> **Versión:** 1.5.0 | **Fecha:** 2026-10-28  
 > **Alineación Normativa:** Directivas Obligatorias de Desarrollo (`AGENTS.md` y `.agents/rules/directivas.md`), Estándar BPMN 2.0 (ISO/IEC 19510), Gestión de Calidad ISO 9001:2015 (Control de Cambios y Trazabilidad) y Seguridad de la Información ISO/IEC 27001 (Control de Accesos).  
-> **Historias de Usuario:** `PST-069`, `PST-070`, `PST-071`, `PST-072`, `PST-073`, `PST-074`, `PST-075`, `PST-076` (Google Sign-In Canónico y Zero-Disclosure de Correos en UI).
+> **Historias de Usuario:** `PST-069`, `PST-070`, `PST-071`, `PST-072`, `PST-073`, `PST-074`, `PST-075`, `PST-076`, `PST-077` (Google OAuth 2.0 Redirección en Vivo).
 
 ---
 
@@ -508,18 +508,32 @@ Las recomendaciones técnicas evaluadas han sido clasificadas e integradas al al
      - En el estado vacío para usuarios sin procesos, mantener la leyenda formal sin correos particulares: *"Actualmente no cuentas con lienzos habilitados para lectura, comentarios o edición. Solicita al Administrador del Sistema la asignación correspondiente de tus procesos."*
    - **`src/services/authService.ts`:**
      - Reconocimiento administrativo interno y transparente para `egdeprada@gmail.com` tras la autenticación de Google, sin pre-condicionar ni exhibir el correo en la interfaz pública.
-5. **Validación, Generación de Historias y Auto-Push:**
-   - Ejecutar `npm run build` para validar compilación TypeScript y generar historias de usuario en `HISTORIAS_DE_USUARIO_PROCESSTUDIO.xlsx` incorporando `PST-076`.
+5. **Integración en Vivo de Google OAuth 2.0 con Redirección a accounts.google.com y Captura de Token (PST-077):**
+   - **`.env`:** Registrar el identificador oficial de cliente provisto:  
+     `VITE_GOOGLE_CLIENT_ID=724069436598-8pqlisa1k2cv3u8ik2t252pdmtm79n1u.apps.googleusercontent.com`
+   - **`src/components/auth/AuthModal.tsx`:**
+     - Al pulsar *"Continuar con Google"*, el sistema construye la URL oficial de Google OAuth 2.0 y redirige el navegador directamente a:  
+       `https://accounts.google.com/o/oauth2/v2/auth?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(window.location.origin)}&response_type=token&scope=email%20profile%20openid&prompt=select_account`
+     - El usuario experimenta la pantalla nativa de inicio de sesión y consentimiento de Google (`accounts.google.com`).
+   - **`src/services/googleAuthService.ts` / `src/store/useAuthStore.ts` / `App.tsx`:**
+     - Al retornar Google con el fragmento de URL `#access_token=...`:
+       1. Extrae de forma segura el access token.
+       2. Limpia la barra de direcciones con `history.replaceState`.
+       3. Realiza la consulta a la API de perfil oficial de Google (`https://www.googleapis.com/oauth2/v3/userinfo`).
+       4. Transfiere el perfil verificado `{ email, fullName, googleId, avatarUrl }` a `AuthService.loginWithGoogle()`.
+       5. Si el correo devuelto es `egdeprada@gmail.com`, accede de inmediato como **`ADMIN`**; si es otro usuario habilitado, como **`USER`**.
+6. **Validación, Generación de Historias y Auto-Push:**
+   - Ejecutar `npm run build` para validar compilación TypeScript y generar historias de usuario en `HISTORIAS_DE_USUARIO_PROCESSTUDIO.xlsx` incorporando `PST-077`.
    - Ejecutar `git commit` y `git push origin main` de forma automática tras verificación.
 
 ---
 
 ## 10. Conclusión y Compromiso de Desarrollo
 
-Este documento constituye la **Hoja de Ruta Maestra Oficial de Usuarios, Permisos, Seguridad y Auditoría** de ProcesStudio (Versión 1.4.0).
+Este documento constituye la **Hoja de Ruta Maestra Oficial de Usuarios, Permisos, Seguridad y Auditoría** de ProcesStudio (Versión 1.5.0).
 
 Todas las fases se implementarán respetando rigurosamente:
 1. **La arquitectura 100% Web Cloud Nativa** (React + TypeScript + Vite + Neon PostgreSQL).
 2. **La persistencia relacional en Neon PostgreSQL**.
-3. **La actualización del archivo Excel `HISTORIAS_DE_USUARIO_PROCESSTUDIO.xlsx`** (`PST-069` a `PST-076`).
+3. **La actualización del archivo Excel `HISTORIAS_DE_USUARIO_PROCESSTUDIO.xlsx`** (`PST-069` a `PST-077`).
 4. **La compilación limpia (`npm run build`) y el commit/push automático a Git tras cada conjunto de cambios**.

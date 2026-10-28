@@ -686,6 +686,15 @@ const userStories = [
     criteriosAceptacion: '1. Supresión de Subtítulo: Se retira la leyenda "Gobernanza, Roles y Calidad ISO 9001" de la cabecera del portal de acceso.\n2. Simplificación de Campos: La etiqueta del campo de contraseña se unifica en "CONTRASEÑA" y su placeholder en "••••••••", suprimiendo la referencia a códigos de 6 dígitos en la interfaz pública.\n3. Botón Canónico de Google: El botón muestra exclusivamente el rótulo estándar oficial "Continuar con Google" sin correos agregados.\n4. Zero-Disclosure: Se elimina todo texto explicativo o pie de botón que exponga direcciones de correo de administradores en la interfaz visual.\n5. Selector Canónico de Google: Al pulsar "Continuar con Google", el sistema activa el selector oficial de cuenta de Google, reconociendo internamente la cuenta administradora de forma silenciosa y transparente.',
     fechaImplementacion: '2026-10-28',
     estado: 'Implementado / Producción'
+  },
+  {
+    id: 'PST-077',
+    modulo: 'Seguridad & Autenticación Google OAuth',
+    titulo: 'Integración en Vivo de Google OAuth 2.0 con Redirección a accounts.google.com y Captura de Token',
+    historiaUsuario: 'Como usuario de ProcesStudio, quiero que al presionar "Continuar con Google" el navegador me redirija a la pantalla oficial de Google Accounts (accounts.google.com) y retorne con mi sesión verificada, para iniciar sesión con mi cuenta de Google de forma real, segura y conforme a las normas de OAuth 2.0.',
+    criteriosAceptacion: '1. Configuración de Credenciales: Incorporación del identificador oficial de cliente (Google Client ID) en variables de entorno VITE_GOOGLE_CLIENT_ID.\n2. Redirección Oficial: Al pulsar "Continuar con Google", el navegador navega a https://accounts.google.com/o/oauth2/v2/auth con scopes de email, profile y openid.\n3. Captura Automática de Retorno: Al regresar desde Google con fragmento #access_token=..., el sistema extrae el token y limpia la URL de forma segura.\n4. Consulta de Perfil: Consulta exitosa al endpoint oficial https://www.googleapis.com/oauth2/v3/userinfo para obtener correo, nombre e imagen verificados.\n5. Autenticación Transparente: Si el correo corresponde al Administrador configurado (egdeprada@gmail.com), se garantiza el acceso con rol ADMIN; si es otro usuario habilitado, con rol USER.',
+    fechaImplementacion: '2026-10-28',
+    estado: 'Implementado / Producción'
   }
 ];
 

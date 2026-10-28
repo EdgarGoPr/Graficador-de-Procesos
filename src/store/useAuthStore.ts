@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { AppUser, CanvasActiveLock, CanvasPermission, UserRole } from '../types/auth';
 import { AuthService } from '../services/authService';
+import { GoogleAuthService } from '../services/googleAuthService';
 import { PermissionService } from '../services/permissionService';
 import { ConcurrencyLockService } from '../services/concurrencyLockService';
 import { IdleTimeoutService } from '../services/idleTimeoutService';
@@ -60,9 +61,19 @@ export const useAuthStore = create<AuthStoreState>((set, get) => ({
     set({ isLoading: true });
     try {
       await AuthService.initialize();
-      const existing = AuthService.getCurrentUser();
-      if (existing) {
-        set({ currentUser: existing });
+
+      // Verificar si el navegador acaba de retornar desde accounts.google.com con access_token
+      const googleProfile = await GoogleAuthService.handleOAuthRedirectCallback();
+      if (googleProfile) {
+        const result = await AuthService.loginWithGoogle(googleProfile);
+        if (result.ok && result.user) {
+          set({ currentUser: result.user, isAuthModalOpen: false });
+        }
+      } else {
+        const existing = AuthService.getCurrentUser();
+        if (existing) {
+          set({ currentUser: existing });
+        }
       }
 
       // Inicializar servicio de timeout por inactividad

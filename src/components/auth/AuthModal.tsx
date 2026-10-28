@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuthStore } from '../../store/useAuthStore';
 import { AuthService } from '../../services/authService';
+import { GoogleAuthService } from '../../services/googleAuthService';
 import {
   Lock,
   Mail,
@@ -45,10 +46,6 @@ export const AuthModal: React.FC<{ isGatekeeper?: boolean }> = ({ isGatekeeper =
 
   // 2FA TOTP
   const [totpCode, setTotpCode] = useState('');
-
-  // Selector de Cuenta de Google (Flujo oficial de inicio de sesión)
-  const [isGoogleSelectorOpen, setIsGoogleSelectorOpen] = useState(false);
-  const [googleAccountEmail, setGoogleAccountEmail] = useState('');
 
   // UI Feedback
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -104,64 +101,15 @@ export const AuthModal: React.FC<{ isGatekeeper?: boolean }> = ({ isGatekeeper =
     }
   };
 
-  // 2. Ejecutar inicio de sesión con Google tras seleccionar la cuenta
-  const performGoogleLogin = async (targetEmail: string) => {
+  // 2. Iniciar sesión con Google (Redirección oficial a accounts.google.com)
+  const handleGoogleLogin = () => {
     resetMessages();
     setIsSubmitting(true);
-    setIsGoogleSelectorOpen(false);
-
     try {
-      const cleanEmail = targetEmail.trim().toLowerCase();
-      const isAdminEmail = cleanEmail === 'egdeprada@gmail.com';
-
-      const googleProfile = {
-        email: cleanEmail,
-        fullName: isAdminEmail ? 'Edgar González de Prada' : (fullName || cleanEmail.split('@')[0]),
-        googleId: 'google_oauth_' + (isAdminEmail ? 'admin_egdeprada' : Math.floor(Math.random() * 1000000)),
-        avatarUrl: 'https://lh3.googleusercontent.com/a/default-user'
-      };
-
-      const result = await AuthService.loginWithGoogle(googleProfile);
-
-      if (!result.ok) {
-        if (result.notRegistered) {
-          setErrorMessage(result.error || 'Tu correo de Google no se encuentra habilitado en el sistema.');
-          setEmail(googleProfile.email);
-          setFullName(googleProfile.fullName);
-          // Invitar a solicitar habilitación
-          setAuthModalMode('REQUEST_ACCESS');
-        } else {
-          setErrorMessage(result.error || 'Error al autenticar con Google.');
-        }
-        setIsSubmitting(false);
-        return;
-      }
-
-      if (result.requiresTotp && result.tempUserId) {
-        setAuthModalMode('VERIFY_TOTP');
-        useAuthStore.setState({ tempTotpUserId: result.tempUserId });
-        setIsSubmitting(false);
-        return;
-      }
-
-      if (result.user) {
-        setCurrentUser(result.user);
-        closeAuthModal();
-      }
+      GoogleAuthService.redirectToGoogle();
     } catch (err: any) {
-      setErrorMessage(err.message || 'Fallo en la comunicación con el servicio de Google.');
-    } finally {
+      setErrorMessage(err.message || 'Error al conectar con el servicio de autenticación de Google.');
       setIsSubmitting(false);
-    }
-  };
-
-  // Disparar flujo normal de login con Google
-  const handleGoogleLogin = () => {
-    if (email && email.trim()) {
-      performGoogleLogin(email.trim());
-    } else {
-      setGoogleAccountEmail('');
-      setIsGoogleSelectorOpen(true);
     }
   };
 
@@ -713,77 +661,6 @@ export const AuthModal: React.FC<{ isGatekeeper?: boolean }> = ({ isGatekeeper =
               </button>
             </div>
           </form>
-        )}
-
-        {/* Modal de Selector de Cuenta Google */}
-        {isGoogleSelectorOpen && (
-          <div className="absolute inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
-            <div className="w-full max-w-sm bg-white text-slate-800 rounded-2xl shadow-2xl p-6 border border-slate-200 animate-scaleUp">
-              <div className="text-center mb-5">
-                <svg className="w-8 h-8 mx-auto mb-3" viewBox="0 0 24 24">
-                  <path
-                    fill="#4285F4"
-                    d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"
-                  />
-                  <path
-                    fill="#34A853"
-                    d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.24v3.15C3.26 21.36 7.33 24 12 24z"
-                  />
-                  <path
-                    fill="#FBBC05"
-                    d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.24C.45 8.16 0 9.94 0 12s.45 3.84 1.24 5.42l4.04-3.15z"
-                  />
-                  <path
-                    fill="#EA4335"
-                    d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.24 6.58l4.04 3.15c.95-2.83 3.6-4.98 6.72-4.98z"
-                  />
-                </svg>
-                <h3 className="text-base font-semibold text-slate-900">Iniciar sesión con Google</h3>
-                <p className="text-xs text-slate-500 mt-0.5">Ir a ProcesStudio</p>
-              </div>
-
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  if (googleAccountEmail.trim()) {
-                    performGoogleLogin(googleAccountEmail.trim());
-                  }
-                }}
-                className="space-y-4"
-              >
-                <div>
-                  <label className="block text-[11px] font-medium text-slate-600 mb-1">
-                    Correo electrónico o teléfono
-                  </label>
-                  <input
-                    type="email"
-                    required
-                    autoFocus
-                    value={googleAccountEmail}
-                    onChange={(e) => setGoogleAccountEmail(e.target.value)}
-                    placeholder="ejemplo@gmail.com"
-                    className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none text-xs text-slate-900 placeholder:text-slate-400"
-                  />
-                </div>
-
-                <div className="flex items-center justify-end space-x-2 pt-2">
-                  <button
-                    type="button"
-                    onClick={() => setIsGoogleSelectorOpen(false)}
-                    className="px-4 py-2 rounded-lg text-xs font-medium text-blue-600 hover:bg-blue-50 transition-colors"
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-xs font-semibold text-white transition-colors shadow-sm"
-                  >
-                    Siguiente
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
         )}
       </div>
     </div>
