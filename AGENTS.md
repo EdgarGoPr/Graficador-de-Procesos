@@ -14,16 +14,8 @@ Este archivo establece las directivas y reglas permanentes de pair-programming y
   4. `git push origin <rama-actual>` de forma automática.
 - Mantener siempre el repositorio remoto sincronizado con el estado local.
 
-## 3. Arquitectura Portable (Zero-AppData)
-- Todo ejecutable, proyecto y dato de sesión se concentra en `MiAppProcesos_USB/`:
-  - Ejecutable: `MiAppProcesos_USB/ProcesStudio.exe` (únicamente `.exe`, sin archivos `.bat`).
-  - Proyectos: `MiAppProcesos_USB/Proyectos/*.json`.
-  - Caché y datos: `MiAppProcesos_USB/data/`.
-  - Documentación e Historias de Usuario: `MiAppProcesos_USB/HISTORIAS_DE_USUARIO_PROCESSTUDIO.xlsx`.
-- Mantener limpia la carpeta raíz del proyecto, dejando solo código fuente, configuración y dependencias.
-
-## 4. Registro de Historias de Usuario en Excel (.xlsx)
-- Todos los cambios, desarrollos y novedades deben registrarse y mantenerse actualizados en el archivo **`HISTORIAS_DE_USUARIO_PROCESSTUDIO.xlsx`** (y su copia en `MiAppProcesos_USB/`).
+## 3. Registro de Historias de Usuario en Excel (.xlsx)
+- Todos los cambios, desarrollos y novedades deben registrarse y mantenerse actualizados en el archivo **`HISTORIAS_DE_USUARIO_PROCESSTUDIO.xlsx`**.
 - Cada registro debe estructurarse con:
   - **ID:** Nomenclatura correlativa `PST-001`, `PST-002`...
   - **Módulo / Componente:** Área funcional correspondiente.

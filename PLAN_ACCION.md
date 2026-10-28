@@ -19,7 +19,7 @@ El propósito fundamental de esta evolución es transformar **ProcesStudio** en 
    - **Comentarios:** El usuario **únicamente puede interactuar con Notas Adhesivas (`StickyNote`)**, colocándolas y editándolas sobre el lienzo para sugerencias o revisiones, sin alterar en absoluto el flujo BPMN ni los carriles.
    - **Editor:** Autoridad completa para diseñar diagramas BPMN, gestionar carriles, compuertas, SLAs, IA y guardar versiones.
 5. **Trazabilidad Absoluta y Logs de Auditoría (Exclusivo Administrador):** Registro inmutable en base de datos de cada interacción del sistema (inicios de sesión, comentarios, modificaciones, asignaciones, exportaciones y bajas), accesible exclusivamente por usuarios con rol Administrador.
-6. **Preservación de la Arquitectura Portable (Zero-AppData):** Compatibilidad híbrida entre la nube (Neon PostgreSQL) y la ejecución portátil USB (`MiAppProcesos_USB/data/security_vault.json`).
+6. **Arquitectura 100% Web Cloud Nativa:** Operación como aplicación Web moderna (React, TypeScript, Vite) con backend relacional serverless en **Neon PostgreSQL**, accesible mediante cualquier navegador sin dependencias de empaquetado de escritorio ni pendrives.
 
 ---
 
@@ -68,7 +68,7 @@ El propósito fundamental de esta evolución es transformar **ProcesStudio** en 
 
 ## 3. Esquema de Base de Datos y Persistencia
 
-Se añaden las estructuras de seguridad en **Neon PostgreSQL** (a través de `@neondatabase/serverless`) y se genera su correspondiente réplica en la bóveda local portable para uso fuera de línea.
+Se añaden las estructuras de seguridad en **Neon PostgreSQL** (a través de `@neondatabase/serverless`) con persistencia relacional en la nube y caché de sesión web en navegador.
 
 ### 3.1. DDL Relacional en Neon PostgreSQL (`scripts/auth_schema.sql`)
 
@@ -143,10 +143,9 @@ CREATE INDEX IF NOT EXISTS idx_audit_logs_email ON audit_logs(user_email);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_action ON audit_logs(action_type);
 ```
 
-### 3.2. Adaptador Portable USB Fuera de Línea (`SecurityStorageService`)
+### 3.2. Adaptador de Sesión Web y Seguridad (`SecurityStorageService`)
 - Ubicación: `src/services/securityStorageService.ts`
-- Respaldo: `MiAppProcesos_USB/data/security_vault.json`
-- Funcionalidad: Si la aplicación no tiene conexión con Neon PostgreSQL (ejecución sin internet desde el pendrive), la sesión se valida contra la última copia local cifrada de usuarios y permisos. Los eventos de auditoría generados fuera de línea se guardan en una cola local (`audit_queue.json`) y se sincronizan de forma transparente con Neon en cuanto se restablece la conectividad.
+- Persistencia: Conexión cloud con **Neon PostgreSQL** y almacenamiento seguro de token de sesión en el navegador (`localStorage` / `sessionStorage`) con expiración automática.
 
 ---
 
@@ -344,12 +343,12 @@ Las siguientes 8 recomendaciones técnicas y organizacionales optimizan la segur
 - **Sugerencia:** Implementar un mecanismo de bloqueo suave: al abrir un lienzo en modo `Editor`, se registra un latido (*heartbeat*) temporal de 5 minutos en la base de datos (`locked_by_user_id`). Si otro editor ingresa durante ese lapso, el sistema le mostrará un aviso no invasivo: *"El usuario [Nombre] está editando activamente este diagrama. Se abrirá en modo Solo Lectura para evitar pérdidas de datos."*
 
 ### 2. Cierre de Sesión por Inactividad (*Idle Session Timeout*)
-- **Desafío:** Dado que ProcesStudio es portable y puede ejecutarse en terminales de uso compartido en oficinas o salas de reuniones, dejar la sesión abierta expone información sensible.
+- **Desafío:** Dado que ProcesStudio es una aplicación web y puede accederse en terminales o equipos de uso compartido, dejar la sesión abierta expone información sensible.
 - **Sugerencia:** Incorporar un temporizador de inactividad que, tras 30 minutos sin eventos de mouse o teclado, bloquee la pantalla con una cortina de seguridad y requiera ingresar la contraseña o confirmar cuenta de Google para reanudar el trabajo.
 
-### 3. Resiliencia Fuera de Línea en USB (*Air-Gapped Vault*)
-- **Desafío:** En equipos de auditoría interna sin acceso a internet o en redes aisladas (air-gapped), la base de datos Neon PostgreSQL no estará disponible.
-- **Sugerencia:** Mantener una réplica local cifrada en `MiAppProcesos_USB/data/security_vault.json` con las credenciales validadas del último inicio de sesión y una cola de eventos de auditoría (`audit_queue.json`). Al conectarse a internet, los eventos pendientes se sincronizan automáticamente con Neon sin intervención del usuario.
+### 3. Resiliencia de Conexión de Red (*Network Resilience & Reconnection*)
+- **Desafío:** Ante fluctuaciones temporales de conectividad con la base de datos Neon PostgreSQL, la experiencia de usuario en el navegador no debe degradarse abruptamente.
+- **Sugerencia:** Implementar un mecanismo de reintento automático exponencial y caché de estado en navegador para las credenciales y permisos del usuario activo, permitiendo inspeccionar los lienzos en memoria e indicando el estado de conexión cloud en la cabecera.
 
 ### 4. Vinculación Inteligente de Comentarios a Carriles y Roles
 - **Desafío:** Las notas adhesivas a menudo se dispersan en el lienzo sin que el área o funcionario involucrado reciba un llamado de atención.
@@ -402,7 +401,7 @@ gantt
 Este documento reemplaza formalmente el plan anterior y se constituye en la **Hoja de Ruta Maestra de Usuarios, Permisos y Auditoría** de ProcesStudio.
 
 Todas las fases se implementarán respetando rigurosamente:
-1. **La arquitectura portable Zero-AppData** (`MiAppProcesos_USB/`).
+1. **La arquitectura 100% Web Cloud Nativa** (React + TypeScript + Vite + Neon PostgreSQL).
 2. **La persistencia en Neon PostgreSQL**.
 3. **La actualización del archivo Excel `HISTORIAS_DE_USUARIO_PROCESSTUDIO.xlsx`** (`PST-069` a `PST-073`).
 4. **La compilación limpia (`npm run build`) y el commit/push automático a Git**.
