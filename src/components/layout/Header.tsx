@@ -3,7 +3,6 @@ import { useProjectStore } from '../../store/useProjectStore';
 import { useUiStore } from '../../store/useUiStore';
 import { useAuthStore } from '../../store/useAuthStore';
 import { hasUserModuleAccess } from '../../types/auth';
-import { StorageService } from '../../services/storageService';
 import { PermissionService } from '../../services/permissionService';
 import {
   autoLayoutProcessCanvas,
@@ -200,11 +199,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
     }
     const ok = await saveCurrentProject();
     if (ok) {
-      if (StorageService.isElectron()) {
-        showNotification(`Proyecto guardado en ../Proyectos/${currentProject.fileName}`, 'success');
-      } else {
-        showNotification(`Proyecto guardado (${currentProject.fileName})`, 'success');
-      }
+      showNotification(`Proyecto guardado (${currentProject.fileName})`, 'success');
     }
   };
 
@@ -214,28 +209,6 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
       releaseCanvasLock(currentProject.fileName);
     }
     setActiveView('DASHBOARD');
-  };
-
-  const handleOpenFolder = async () => {
-    if (StorageService.isElectron()) {
-      try {
-        const ok = await StorageService.openProjectsFolder();
-        if (ok) {
-          showNotification('Carpeta de proyectos abierta en el explorador', 'info');
-        } else {
-          showNotification('Directorio de proyectos: MiAppProcesos_USB/Proyectos/', 'info');
-        }
-      } catch {
-        showNotification('Directorio de proyectos: MiAppProcesos_USB/Proyectos/', 'info');
-      }
-    } else {
-      if (currentProject) {
-        StorageService.exportProjectToJsonFile(currentProject);
-        showNotification(`Archivo ${currentProject.fileName} descargado a tu computador`, 'info');
-      } else {
-        showNotification('En la Web los proyectos están guardados de forma segura en tu navegador.', 'info');
-      }
-    }
   };
 
   const isAnalyticalViewActive = ['FLOWCHART', 'SIPOC', 'RACI', 'REPORT'].includes(activeView);
@@ -820,7 +793,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
           )}
 
           {/* Unified User Profile & Preferences Dropdown */}
-          <UserProfileMenu onOpenFolder={handleOpenFolder} />
+          <UserProfileMenu />
         </div>
       </header>
 

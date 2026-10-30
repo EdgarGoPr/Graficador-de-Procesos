@@ -28,67 +28,25 @@ export function sanitizeFilename(title: string, version: string, dateStr?: strin
   return `${date}_proc-${cleanTitle || 'proceso'}-v${cleanVersion || '1.0'}.json`;
 }
 
-// Interface for Electron Window IPC Bridge
-declare global {
-  interface Window {
-    procesosStorage?: {
-      listProjects: () => Promise<string[]>;
-      readProject: (fileName: string) => Promise<ProcessProjectFile>;
-      writeProject: (fileName: string, data: ProcessProjectFile) => Promise<boolean>;
-      deleteProject: (fileName: string) => Promise<boolean>;
-      getProjectsPath: () => Promise<string>;
-      openProjectsFolder: () => Promise<boolean>;
-      openProjectFile: (fileName: string) => Promise<boolean>;
-    };
-  }
-}
-
 const LOCAL_STORAGE_KEY_PREFIX = 'procesos_studio_proj_';
 const LOCAL_STORAGE_INDEX_KEY = 'procesos_studio_project_index';
 
-export type StorageMode = 'NEON' | 'ELECTRON' | 'LOCALSTORAGE';
+export type StorageMode = 'NEON' | 'LOCALSTORAGE';
 
 /**
- * Universal Storage Service (Neon Cloud PostgreSQL + Electron Portable IPC + Browser LocalStorage)
+ * Universal Storage Service (Neon Cloud PostgreSQL + Browser LocalStorage)
  */
 export class StorageService {
-  public static isElectron(): boolean {
-    return typeof window !== 'undefined' && !!window.procesosStorage;
-  }
-
   public static isNeonConfigured(): boolean {
     return NeonClient.isConfigured();
   }
 
   /**
-   * Opens the projects folder in the operating system file explorer (Windows Explorer)
-   */
-  public static async openProjectsFolder(): Promise<boolean> {
-    if (this.isElectron()) {
-      return await window.procesosStorage!.openProjectsFolder();
-    }
-    return false;
-  }
-
-  /**
-   * Reveals a specific project file in the operating system file explorer
-   */
-  public static async openProjectFile(fileName: string): Promise<boolean> {
-    if (this.isElectron()) {
-      return await window.procesosStorage!.openProjectFile(fileName);
-    }
-    return false;
-  }
-
-  /**
-   * Gets absolute or relative path to the projects directory
+   * Gets a human-readable description of the active storage backend
    */
   public static async getProjectsPath(): Promise<string> {
     if (this.isNeonConfigured()) {
       return 'Neon Serverless PostgreSQL (Cloud)';
-    }
-    if (this.isElectron()) {
-      return await window.procesosStorage!.getProjectsPath();
     }
     return 'Navegador Web (localStorage)';
   }
@@ -97,49 +55,34 @@ export class StorageService {
    * Initializes local sample projects if first launch
    */
   public static async initializeStorage(): Promise<void> {
-    if (this.isElectron()) {
-      const existing = await window.procesosStorage!.listProjects();
-      if (existing.length === 0) {
-        for (const sample of sampleProjects) {
-          const filename = sanitizeFilename(
-            sample.documentControl.documentTitle,
-            sample.documentControl.version,
-            sample.documentControl.createdAt
-          );
-          await window.procesosStorage!.writeProject(filename, { ...sample, fileName: filename });
-        }
-      }
-    } else {
-      // Browser fallback (localStorage)
-      const rawIndex = localStorage.getItem(LOCAL_STORAGE_INDEX_KEY);
-      let fileNames: string[] = rawIndex ? JSON.parse(rawIndex) : [];
+    const rawIndex = localStorage.getItem(LOCAL_STORAGE_INDEX_KEY);
+    let fileNames: string[] = rawIndex ? JSON.parse(rawIndex) : [];
 
-      // Clean up legacy mock projects if still cached in browser
-      const legacyKeywords = ['descargos-transito', 'faltas-y-clausuras'];
-      const cleanFileNames = fileNames.filter(fn => {
-        const isLegacy = legacyKeywords.some(kw => fn.includes(kw));
-        if (isLegacy) {
-          localStorage.removeItem(LOCAL_STORAGE_KEY_PREFIX + fn);
-        }
-        return !isLegacy;
-      });
-
-      // If storage was empty or uninitialized, seed with official default projects
-      if (!rawIndex || cleanFileNames.length === 0) {
-        const initialFiles: string[] = [];
-        for (const sample of sampleProjects) {
-          const filename = sanitizeFilename(
-            sample.documentControl.documentTitle,
-            sample.documentControl.version,
-            sample.documentControl.createdAt
-          );
-          localStorage.setItem(LOCAL_STORAGE_KEY_PREFIX + filename, JSON.stringify({ ...sample, fileName: filename }));
-          initialFiles.push(filename);
-        }
-        localStorage.setItem(LOCAL_STORAGE_INDEX_KEY, JSON.stringify(initialFiles));
-      } else if (cleanFileNames.length !== fileNames.length) {
-        localStorage.setItem(LOCAL_STORAGE_INDEX_KEY, JSON.stringify(cleanFileNames));
+    // Clean up legacy mock projects if still cached in browser
+    const legacyKeywords = ['descargos-transito', 'faltas-y-clausuras'];
+    const cleanFileNames = fileNames.filter(fn => {
+      const isLegacy = legacyKeywords.some(kw => fn.includes(kw));
+      if (isLegacy) {
+        localStorage.removeItem(LOCAL_STORAGE_KEY_PREFIX + fn);
       }
+      return !isLegacy;
+    });
+
+    // If storage was empty or uninitialized, seed with official default projects
+    if (!rawIndex || cleanFileNames.length === 0) {
+      const initialFiles: string[] = [];
+      for (const sample of sampleProjects) {
+        const filename = sanitizeFilename(
+          sample.documentControl.documentTitle,
+          sample.documentControl.version,
+          sample.documentControl.createdAt
+        );
+        localStorage.setItem(LOCAL_STORAGE_KEY_PREFIX + filename, JSON.stringify({ ...sample, fileName: filename }));
+        initialFiles.push(filename);
+      }
+      localStorage.setItem(LOCAL_STORAGE_INDEX_KEY, JSON.stringify(initialFiles));
+    } else if (cleanFileNames.length !== fileNames.length) {
+      localStorage.setItem(LOCAL_STORAGE_INDEX_KEY, JSON.stringify(cleanFileNames));
     }
   }
 
@@ -213,15 +156,11 @@ export class StorageService {
   }
 
   /**
-   * List projects strictly from local storage (Electron or localStorage)
+   * List projects strictly from local storage (browser localStorage)
    */
   public static async listLocalProjects(): Promise<string[]> {
-    if (this.isElectron()) {
-      return await window.procesosStorage!.listProjects();
-    } else {
-      const rawIndex = localStorage.getItem(LOCAL_STORAGE_INDEX_KEY);
-      return rawIndex ? JSON.parse(rawIndex) : [];
-    }
+    const rawIndex = localStorage.getItem(LOCAL_STORAGE_INDEX_KEY);
+    return rawIndex ? JSON.parse(rawIndex) : [];
   }
 
   /**
@@ -246,12 +185,8 @@ export class StorageService {
    */
   public static async loadLocalProject(fileName: string): Promise<ProcessProjectFile | null> {
     try {
-      if (this.isElectron()) {
-        return await window.procesosStorage!.readProject(fileName);
-      } else {
-        const raw = localStorage.getItem(LOCAL_STORAGE_KEY_PREFIX + fileName);
-        return raw ? JSON.parse(raw) : null;
-      }
+      const raw = localStorage.getItem(LOCAL_STORAGE_KEY_PREFIX + fileName);
+      return raw ? JSON.parse(raw) : null;
     } catch (err) {
       console.error(`Error loading local project ${fileName}:`, err);
       return null;
@@ -279,16 +214,12 @@ export class StorageService {
 
     updatedProject.fileName = fileName;
 
-    // 1. Always save to local storage/Electron for offline safety
-    if (this.isElectron()) {
-      await window.procesosStorage!.writeProject(fileName, updatedProject);
-    } else {
-      localStorage.setItem(LOCAL_STORAGE_KEY_PREFIX + fileName, JSON.stringify(updatedProject));
-      const localFiles = await this.listLocalProjects();
-      if (!localFiles.includes(fileName)) {
-        localFiles.push(fileName);
-        localStorage.setItem(LOCAL_STORAGE_INDEX_KEY, JSON.stringify(localFiles));
-      }
+    // 1. Always save to local storage for offline safety
+    localStorage.setItem(LOCAL_STORAGE_KEY_PREFIX + fileName, JSON.stringify(updatedProject));
+    const localFiles = await this.listLocalProjects();
+    if (!localFiles.includes(fileName)) {
+      localFiles.push(fileName);
+      localStorage.setItem(LOCAL_STORAGE_INDEX_KEY, JSON.stringify(localFiles));
     }
 
     // 2. If Neon is configured, persist to PostgreSQL
@@ -318,14 +249,9 @@ export class StorageService {
       }
     }
 
-    if (this.isElectron()) {
-      const ok = await window.procesosStorage!.deleteProject(fileName);
-      success = success && ok;
-    } else {
-      localStorage.removeItem(LOCAL_STORAGE_KEY_PREFIX + fileName);
-      const fileNames = (await this.listLocalProjects()).filter(f => f !== fileName);
-      localStorage.setItem(LOCAL_STORAGE_INDEX_KEY, JSON.stringify(fileNames));
-    }
+    localStorage.removeItem(LOCAL_STORAGE_KEY_PREFIX + fileName);
+    const fileNames = (await this.listLocalProjects()).filter(f => f !== fileName);
+    localStorage.setItem(LOCAL_STORAGE_INDEX_KEY, JSON.stringify(fileNames));
 
     return success;
   }

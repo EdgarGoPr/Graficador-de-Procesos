@@ -1261,3 +1261,53 @@ Eliminar dependencias, scripts y archivos huérfanos del runtime de escritorio (
   3. `npm run build` finaliza sin errores y el despliegue web no se ve afectado.
   4. Registro en `HISTORIAS_DE_USUARIO_PROCESSTUDIO.xlsx`.
 - **Estado:** `Implementado / Producción`
+
+
+---
+
+## 19. Plan de Acción: Refactor Web-Native y Saneamiento de Credenciales (`PST-093`)
+
+### 19.1. Objetivo
+Completar la migración a web eliminando la lógica de escritorio que sigue activa (puente Electron, modal de base de datos inalcanzable, textos heredados) y sacar la credencial de Neon hardcodeada del código.
+
+### 19.2. Detalle Técnico
+
+#### 1. Credencial de Neon (seguridad)
+- `scripts/setup-neon-db.cjs`: eliminar la cadena de conexión con contraseña hardcodeada; leer únicamente `process.env.VITE_NEON_DATABASE_URL` y abortar con mensaje claro si no está definida.
+- `.env.example`: documentar la variable (sin valores reales).
+- **Acción manual del usuario (no automatizable):** rotar la contraseña del rol `neondb_owner` en el panel de Neon y actualizar `.env`. La contraseña anterior permanece en el historial de git (commit `7881f32`), por lo que la rotación es la única mitigación efectiva. No se reescribirá el historial.
+
+#### 2. `storageService.ts`
+- Eliminar `interface Window { procesosStorage }`, `isElectron()`, `openProjectsFolder()`, `openProjectFile()` y todas las ramas `if (this.isElectron())`.
+- `StorageMode`: quitar `'ELECTRON'` (`'NEON' | 'LOCALSTORAGE'`).
+- `getProjectsPath()`: devuelve solo `Neon Serverless PostgreSQL (Cloud)` o `Navegador Web (localStorage)`.
+- Sin cambios en `localStorage`, Neon, exportar/importar JSON ni en las claves de almacenamiento (los datos existentes siguen funcionando).
+
+#### 3. Componentes con lógica heredada
+- `Header.tsx`: `handleSave` muestra siempre `Proyecto guardado (archivo)`; eliminar `handleOpenFolder` y la prop `onOpenFolder` hacia `UserProfileMenu`.
+- `UserProfileMenu.tsx`: eliminar `handleDefaultOpenFolder`, la prop `onOpenFolder` y el botón "Almacenamiento Local" (en web solo descargaba el JSON; la descarga ya existe en la tarjeta del proyecto).
+- `ProjectCard.tsx`: `handleRevealLocation` pasa a `handleDownloadBackup` (siempre descarga el JSON); tooltips: "Descargar respaldo JSON" en lugar de "Explorador de Windows".
+- `ProjectDashboard.tsx`: eliminar `handleOpenFolder`, el estado `isDbModalOpen`, el montaje de `<DatabaseConfigModal />` y los iconos sin uso; el `title` de "Importar JSON" deja de mencionar "pendrive".
+- Eliminar `src/components/dashboard/DatabaseConfigModal.tsx` (sin vía de apertura desde PST-081). La conexión a Neon se configura por `VITE_NEON_DATABASE_URL`.
+- `README.md`: reemplazar las secciones de Electron/portable/USB por instrucciones web (`npm run dev`, `npm run build`, despliegue en GitHub Pages).
+
+#### 4. Fuera de alcance
+- `generate-user-stories.cjs` (el texto histórico de historias ya implementadas se conserva) y la ruta USB opcional del `.xlsx`, que se elimina por estar muerta (`fs.existsSync` ya falso).
+
+### 19.3. Riesgos
+> [!NOTE]
+> - La pérdida del botón "Almacenamiento Local" y del modal de Neon es solo visual: ya eran inalcanzables o redundantes en web.
+> - Si alguien aún usa `StorageService.syncAllLocalProjectsToNeon`, se conserva (no depende de Electron).
+
+### 19.4. Registro de Historia de Usuario (`PST-093`)
+- **ID:** `PST-093`
+- **Módulo / Componente:** Arquitectura, Seguridad & Mantenimiento
+- **Título:** Refactor Web-Native (eliminación del puente Electron) y saneamiento de credenciales de base de datos
+- **Historia de Usuario:** *Como equipo de desarrollo y responsable de seguridad, quiero eliminar la lógica residual de escritorio y las credenciales hardcodeadas del código, para que la aplicación sea 100% web, más simple de mantener y sin secretos expuestos en el repositorio.*
+- **Criterios de Aceptación:**
+  1. Sin referencias a `isElectron`, `procesosStorage`, `MiAppProcesos_USB` ni "Explorador de Windows" en `src/`.
+  2. `DatabaseConfigModal.tsx` eliminado y `ProjectDashboard.tsx` sin código inalcanzable.
+  3. `setup-neon-db.cjs` sin contraseña en el código y `.env.example` documentado.
+  4. `README.md` actualizado a arquitectura web.
+  5. `npm run build` sin errores; guardado, carga, duplicado, borrado, importación y exportación de proyectos sin regresiones.
+- **Estado:** `Implementado / Producción`

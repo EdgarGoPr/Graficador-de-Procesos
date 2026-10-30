@@ -1,7 +1,15 @@
 const { neon } = require('@neondatabase/serverless');
 
-const connectionString = process.env.VITE_NEON_DATABASE_URL || 
-  'postgresql://neondb_owner:npg_aOoK7BDbi9Ns@ep-aged-cake-b7m9a8zi.c-13.us-east-1.aws.neon.tech/neondb?sslmode=require';
+const connectionString = process.env.VITE_NEON_DATABASE_URL;
+
+if (!connectionString) {
+  console.error(
+    '❌ Falta la variable de entorno VITE_NEON_DATABASE_URL.\n' +
+    '   Definila en tu archivo .env (ver .env.example) y ejecutá:\n' +
+    '   node --env-file=.env scripts/setup-neon-db.cjs'
+  );
+  process.exit(1);
+}
 
 async function runSetup() {
   console.log('⚡ Conectando a Neon Serverless...');

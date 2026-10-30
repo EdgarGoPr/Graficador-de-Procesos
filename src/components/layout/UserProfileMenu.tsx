@@ -1,28 +1,20 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useUiStore } from '../../store/useUiStore';
-import { useProjectStore } from '../../store/useProjectStore';
-import { StorageService } from '../../services/storageService';
 import {
   Shield,
   Sun,
   Moon,
   Palette,
-  FolderOpen,
   LogOut,
   ChevronDown,
   User,
   Sparkles,
-  ExternalLink,
   GraduationCap,
   Command
 } from 'lucide-react';
 
-interface UserProfileMenuProps {
-  onOpenFolder?: () => void;
-}
-
-export const UserProfileMenu: React.FC<UserProfileMenuProps> = ({ onOpenFolder }) => {
+export const UserProfileMenu: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -36,7 +28,6 @@ export const UserProfileMenu: React.FC<UserProfileMenuProps> = ({ onOpenFolder }
     setInteractiveTourActive,
     setCommandPaletteOpen
   } = useUiStore();
-  const { currentProject } = useProjectStore();
 
   // Close when clicking outside
   useEffect(() => {
@@ -60,35 +51,6 @@ export const UserProfileMenu: React.FC<UserProfileMenuProps> = ({ onOpenFolder }
       document.removeEventListener('keydown', handleKeyDown);
     };
   }, [isOpen]);
-
-  const handleDefaultOpenFolder = async () => {
-    if (onOpenFolder) {
-      onOpenFolder();
-      setIsOpen(false);
-      return;
-    }
-
-    if (StorageService.isElectron()) {
-      try {
-        const ok = await StorageService.openProjectsFolder();
-        if (ok) {
-          showNotification('Carpeta de proyectos abierta en el explorador', 'info');
-        } else {
-          showNotification('Directorio de proyectos: MiAppProcesos_USB/Proyectos/', 'info');
-        }
-      } catch {
-        showNotification('Directorio de proyectos: MiAppProcesos_USB/Proyectos/', 'info');
-      }
-    } else {
-      if (currentProject) {
-        StorageService.exportProjectToJsonFile(currentProject);
-        showNotification(`Archivo ${currentProject.fileName} descargado a tu computador`, 'info');
-      } else {
-        showNotification('En la Web los proyectos están guardados de forma segura en tu navegador.', 'info');
-      }
-    }
-    setIsOpen(false);
-  };
 
   if (!currentUser) {
     return (
@@ -301,18 +263,6 @@ export const UserProfileMenu: React.FC<UserProfileMenuProps> = ({ onOpenFolder }
                 <Palette className="w-4 h-4 text-purple-400" />
                 <span>Paleta de Colores & Temas</span>
               </div>
-            </button>
-
-            {/* Open Folder in Local / Web */}
-            <button
-              onClick={handleDefaultOpenFolder}
-              className="w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-xs text-theme-text hover:bg-theme-surface-subtle transition-colors cursor-pointer"
-            >
-              <div className="flex items-center space-x-2.5">
-                <FolderOpen className="w-4 h-4 text-sky-400" />
-                <span>Almacenamiento Local</span>
-              </div>
-              <ExternalLink className="w-3 h-3 text-theme-text-muted" />
             </button>
           </div>
 

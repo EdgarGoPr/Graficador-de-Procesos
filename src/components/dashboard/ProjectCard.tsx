@@ -61,17 +61,12 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
     minute: '2-digit'
   });
 
-  const handleRevealLocation = async (e: React.MouseEvent, fileName: string) => {
+  const handleDownloadBackup = async (e: React.MouseEvent, fileName: string) => {
     e.stopPropagation();
-    if (StorageService.isElectron()) {
-      await StorageService.openProjectFile(fileName);
-      showNotification(`Ubicación abierta: ../Proyectos/${fileName}`, 'info');
-    } else {
-      const fullProj = await StorageService.loadProject(fileName);
-      if (fullProj) {
-        StorageService.exportProjectToJsonFile(fullProj);
-        showNotification('Archivo JSON descargado a tu PC', 'info');
-      }
+    const fullProj = await StorageService.loadProject(fileName);
+    if (fullProj) {
+      StorageService.exportProjectToJsonFile(fullProj);
+      showNotification('Respaldo JSON descargado a tu equipo', 'info');
     }
   };
 
@@ -117,8 +112,8 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
           </div>
 
           <button
-            onClick={(e) => handleRevealLocation(e, latest.fileName)}
-            title="Abrir ubicación en el Explorador de Windows"
+            onClick={(e) => handleDownloadBackup(e, latest.fileName)}
+            title="Descargar respaldo JSON"
             className="flex items-center space-x-1 text-[10px] font-mono text-theme-text-muted hover:text-theme-accent truncate max-w-[130px] transition-colors"
           >
             <HardDrive className="w-3 h-3 shrink-0" />
@@ -240,8 +235,8 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
 
                     <div className="flex items-center space-x-1 shrink-0">
                       <button
-                        onClick={(e) => handleRevealLocation(e, ver.fileName)}
-                        title="Ver archivo en disco / descargar"
+                        onClick={(e) => handleDownloadBackup(e, ver.fileName)}
+                        title="Descargar respaldo JSON"
                         className="p-1 rounded text-theme-text-muted hover:text-theme-accent hover:bg-theme-surface transition-colors"
                       >
                         <HardDrive className="w-3 h-3" />
@@ -292,8 +287,8 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
 
         <div className="flex items-center space-x-1.5">
           <button
-            onClick={(e) => handleRevealLocation(e, latest.fileName)}
-            title="Ver archivo en carpeta / disco"
+            onClick={(e) => handleDownloadBackup(e, latest.fileName)}
+            title="Descargar respaldo JSON"
             className="p-1.5 rounded-lg bg-theme-surface-subtle hover:bg-theme-surface border border-theme-border text-theme-text-muted hover:text-theme-accent transition-colors"
           >
             <HardDrive className="w-3.5 h-3.5" />

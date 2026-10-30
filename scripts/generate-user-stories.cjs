@@ -834,6 +834,15 @@ function generateExcel() {
       criteriosAceptacion: '1. electron y sus scripts/propiedades eliminados de package.json y package-lock.json.\n2. Eliminadas las carpetas electron/, src-launcher/, MiAppProcesos_USB/ y data/, los scripts de escritorio y los componentes huérfanos SelectionToolbar y SwimlaneBackground sin referencias rotas.\n3. npm run build finaliza sin errores y el despliegue web no se ve afectado.\n4. Manuales conservados en docs/ y proyectos locales respaldados en respaldo-proyectos/ (ignorado por git).',
       fechaImplementacion: '2026-10-30',
       estado: 'Implementado / Producción'
+    },
+    {
+      id: 'PST-093',
+      modulo: 'Arquitectura, Seguridad & Mantenimiento',
+      titulo: 'Refactor Web-Native (eliminación del puente Electron) y saneamiento de credenciales de base de datos',
+      historiaUsuario: 'Como equipo de desarrollo y responsable de seguridad, quiero eliminar la lógica residual de escritorio y las credenciales hardcodeadas del código, para que la aplicación sea 100% web, más simple de mantener y sin secretos expuestos en el repositorio.',
+      criteriosAceptacion: '1. Sin referencias a isElectron, procesosStorage, MiAppProcesos_USB ni Explorador de Windows en src/.\n2. DatabaseConfigModal.tsx eliminado y ProjectDashboard.tsx sin código inalcanzable.\n3. setup-neon-db.cjs sin contraseña en el código y .env.example documentado.\n4. README.md actualizado a arquitectura web.\n5. npm run build sin errores y sin regresiones en guardado, carga, duplicado, borrado, importación y exportación de proyectos.',
+      fechaImplementacion: '2026-10-30',
+      estado: 'Implementado / Producción'
     }
   );
   console.log('📊 Generando archivo Excel de Historias de Usuario...');
@@ -879,16 +888,11 @@ function generateExcel() {
 
   // Paths
   const rootPath = path.resolve(__dirname, '../HISTORIAS_DE_USUARIO_PROCESSTUDIO.xlsx');
-  const usbPath = path.resolve(__dirname, '../MiAppProcesos_USB/HISTORIAS_DE_USUARIO_PROCESSTUDIO.xlsx');
 
   // Write files
   XLSX.writeFile(workbook, rootPath);
   console.log(`✓ Archivo generado en raíz: ${rootPath}`);
 
-  if (fs.existsSync(path.dirname(usbPath))) {
-    XLSX.writeFile(workbook, usbPath);
-    console.log(`✓ Archivo sincronizado en USB: ${usbPath}`);
-  }
 
   console.log(`✅ Total de Historias de Usuario registradas: ${userStories.length}`);
 }

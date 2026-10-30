@@ -5,20 +5,7 @@ import { StorageService } from '../../services/storageService';
 import { groupProjectsByProcess } from '../../services/processVersionManager';
 import { ProcessGroupSummary } from '../../types/project';
 import { ProjectCard } from './ProjectCard';
-import {
-  FolderGit2,
-  Plus,
-  Search,
-  HardDrive,
-  RefreshCw,
-  FolderOpen,
-  Layers,
-  Sparkles,
-  Upload,
-  Globe,
-  Database
-} from 'lucide-react';
-import { DatabaseConfigModal } from './DatabaseConfigModal';
+import { FolderGit2, Plus, Search, RefreshCw, Layers, Upload } from 'lucide-react';
 import { ProjectParticipantsModal } from '../modals/ProjectParticipantsModal';
 import { EditProjectModal } from '../modals/EditProjectModal';
 import { useAuthStore } from '../../store/useAuthStore';
@@ -44,7 +31,6 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ onOpenNewMod
   const { currentUser, acquireCanvasLock } = useAuthStore();
   const { setActiveView, showNotification } = useUiStore();
   const [searchTerm, setSearchTerm] = useState('');
-  const [isDbModalOpen, setIsDbModalOpen] = useState(false);
   const [selectedGroupForParticipants, setSelectedGroupForParticipants] = useState<ProcessGroupSummary | null>(null);
   const [isParticipantsModalOpen, setIsParticipantsModalOpen] = useState(false);
   const [selectedGroupForEdit, setSelectedGroupForEdit] = useState<ProcessGroupSummary | null>(null);
@@ -145,15 +131,6 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ onOpenNewMod
     }
   };
 
-  const handleOpenFolder = async () => {
-    if (StorageService.isElectron()) {
-      await StorageService.openProjectsFolder();
-      showNotification('Carpeta de proyectos abierta en el Explorador de Windows', 'info');
-    } else {
-      showNotification('En la Web los proyectos se guardan de forma segura en tu navegador. Puedes pulsar "Importar JSON" para subir procesos o descargarlos desde cada tarjeta.', 'info');
-    }
-  };
-
   const handleFileInputChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -215,7 +192,7 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ onOpenNewMod
               <button
                 onClick={() => fileInputRef.current?.click()}
                 className="flex items-center space-x-2 px-3.5 py-2.5 rounded-xl bg-theme-surface-subtle hover:bg-theme-surface text-theme-text border border-theme-border text-sm font-semibold transition-colors hover:border-emerald-500/50"
-                title="Importar un archivo de proyecto .json desde cualquier computador o pendrive"
+                title="Importar un archivo de proyecto .json"
               >
                 <Upload className="w-4 h-4 text-emerald-400" />
                 <span>Importar JSON</span>
@@ -301,12 +278,6 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ onOpenNewMod
             ))}
           </div>
         )}
-
-        {/* Database Connection & Sync Modal */}
-        <DatabaseConfigModal
-          isOpen={isDbModalOpen}
-          onClose={() => setIsDbModalOpen(false)}
-        />
 
         {/* Project Participants and Permissions Modal */}
         <ProjectParticipantsModal
