@@ -318,150 +318,137 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
           ) : null}
         </div>
 
-        {/* Center: Primary Tabs & Dropdown Menus */}
+        {/* Center: Primary View Options & Dropdowns (Unified "Herramientas" Design) */}
         <div className="flex items-center space-x-2">
-          {/* Primary View Tabs */}
-          {(canAccessDashboard || canAccessCanvas || canAccessAnyAnalyticalView) && (
-            <div className="flex items-center bg-theme-surface-subtle p-1 rounded-xl border border-theme-border/80 shadow-xs">
-              {/* Projects Dashboard */}
-              {canAccessDashboard && (
-                <button
-                  onClick={() => setActiveView('DASHBOARD')}
-                  className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
-                    activeView === 'DASHBOARD'
-                      ? 'bg-theme-surface text-theme-accent shadow-xs border border-theme-border font-bold'
-                      : 'text-theme-text-muted hover:text-theme-text hover:bg-theme-surface/50'
-                  }`}
+          {/* Projects Dashboard */}
+          {canAccessDashboard && (
+            <button
+              onClick={() => setActiveView('DASHBOARD')}
+              className={`flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
+                activeView === 'DASHBOARD'
+                  ? 'bg-theme-accent/20 text-theme-accent border-theme-accent/50 shadow-sm font-bold'
+                  : 'bg-theme-surface-subtle hover:bg-theme-surface text-theme-text border-theme-border'
+              }`}
+            >
+              <LayoutDashboard className="w-3.5 h-3.5 text-theme-accent" />
+              <span>Proyectos</span>
+            </button>
+          )}
+
+          {/* Lienzo */}
+          {canAccessCanvas && (
+            <button
+              onClick={() => setActiveView('CANVAS')}
+              className={`flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
+                activeView === 'CANVAS'
+                  ? 'bg-theme-accent/20 text-theme-accent border-theme-accent/50 shadow-sm font-bold'
+                  : 'bg-theme-surface-subtle hover:bg-theme-surface text-theme-text border-theme-border'
+              }`}
+            >
+              <GitGraph className="w-3.5 h-3.5 text-theme-accent" />
+              <span>Lienzo</span>
+            </button>
+          )}
+
+          {/* Views & Manual PDF Dropdown (Unified with Herramientas style) */}
+          {canAccessAnyAnalyticalView && (
+            <div ref={viewsMenuRef} className="relative">
+              <button
+                onClick={() => {
+                  setIsViewsMenuOpen((v) => !v);
+                  setIsToolsMenuOpen(false);
+                }}
+                className={`flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
+                  isAnalyticalViewActive || isViewsMenuOpen
+                    ? 'bg-theme-accent/20 text-theme-accent border-theme-accent/50 shadow-sm font-bold'
+                    : 'bg-theme-surface-subtle hover:bg-theme-surface text-theme-text border-theme-border'
+                }`}
+              >
+                <Table className="w-3.5 h-3.5 text-theme-accent" />
+                <span>Vistas & Manual PDF</span>
+                <ChevronDown className={`w-3 h-3 text-theme-text-muted transition-transform ${isViewsMenuOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {/* Views Dropdown Card (Solid Background, same geometry as Herramientas) */}
+              {isViewsMenuOpen && (
+                <div
+                  style={{ backgroundColor: 'var(--theme-surface)' }}
+                  className="absolute top-full mt-1.5 left-0 w-72 bg-theme-surface border border-theme-border rounded-xl shadow-2xl py-1.5 z-50 animate-in fade-in zoom-in-95"
                 >
-                  <LayoutDashboard className="w-3.5 h-3.5" />
-                  <span>Proyectos</span>
-                </button>
-              )}
-
-              {/* Lienzo (sin texto "BPMN") */}
-              {canAccessCanvas && (
-                <button
-                  onClick={() => setActiveView('CANVAS')}
-                  className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
-                    activeView === 'CANVAS'
-                      ? 'bg-theme-surface text-theme-accent shadow-xs border border-theme-border font-bold'
-                      : 'text-theme-text-muted hover:text-theme-text hover:bg-theme-surface/50'
-                  }`}
-                >
-                  <GitGraph className="w-3.5 h-3.5" />
-                  <span>Lienzo</span>
-                </button>
-              )}
-
-              {/* Views & Manual PDF Dropdown */}
-              {canAccessAnyAnalyticalView && (
-                <div ref={viewsMenuRef} className="relative">
-                  <button
-                    onClick={() => {
-                      setIsViewsMenuOpen((v) => !v);
-                      setIsToolsMenuOpen(false);
-                    }}
-                    className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all cursor-pointer ${
-                      isAnalyticalViewActive || isViewsMenuOpen
-                        ? 'bg-theme-surface text-theme-accent shadow-sm border border-theme-border font-bold'
-                        : 'text-theme-text-muted hover:text-theme-text hover:bg-theme-surface/50'
-                    }`}
-                  >
-                    <Table className="w-3.5 h-3.5" />
-                    <span>Vistas & Manual PDF</span>
-                    <ChevronDown className={`w-3 h-3 transition-transform ${isViewsMenuOpen ? 'rotate-180' : ''}`} />
-                  </button>
-
-                  {/* Views Dropdown Card (Solid Background) */}
-                  {isViewsMenuOpen && (
-                    <div
-                      style={{ backgroundColor: 'var(--theme-surface)' }}
-                      className="absolute top-full mt-1.5 left-0 w-64 bg-theme-surface border border-theme-border rounded-xl shadow-2xl py-1.5 z-50 animate-in fade-in zoom-in-95"
+                  {canAccessReport && (
+                    <button
+                      onClick={() => {
+                        setActiveView('REPORT');
+                        setIsViewsMenuOpen(false);
+                      }}
+                      className="w-full flex items-center justify-between px-3 py-2 text-xs hover:bg-theme-surface-subtle transition-colors text-left text-theme-text group cursor-pointer"
                     >
-                      {canAccessReport && (
-                        <button
-                          onClick={() => {
-                            setActiveView('REPORT');
-                            setIsViewsMenuOpen(false);
-                          }}
-                          className={`w-full flex items-center justify-between px-3 py-2 text-xs hover:bg-theme-surface-subtle transition-colors text-left cursor-pointer ${
-                            activeView === 'REPORT' ? 'text-theme-accent font-bold bg-theme-accent/10' : 'text-theme-text'
-                          }`}
-                        >
-                          <div className="flex items-center space-x-2.5">
-                            <FileCheck className="w-4 h-4 text-amber-400" />
-                            <div>
-                              <div className="font-bold text-amber-400">Manual PDF</div>
-                              <div className="text-[10px] text-theme-text-muted">Generador automatizado de documento</div>
-                            </div>
-                          </div>
-                          {activeView === 'REPORT' && <Check className="w-3.5 h-3.5 text-theme-accent" />}
-                        </button>
-                      )}
+                      <div className="flex items-center space-x-2.5">
+                        <FileCheck className="w-4 h-4 text-amber-400 group-hover:scale-110 transition-transform" />
+                        <div>
+                          <div className="font-bold text-amber-400">Manual PDF</div>
+                          <div className="text-[10px] text-theme-text-muted">Generador automatizado de documento</div>
+                        </div>
+                      </div>
+                      {activeView === 'REPORT' && <Check className="w-3.5 h-3.5 text-theme-accent" />}
+                    </button>
+                  )}
 
-                      {canAccessSipoc && (
-                        <button
-                          onClick={() => {
-                            setActiveView('SIPOC');
-                            setIsViewsMenuOpen(false);
-                          }}
-                          className={`w-full flex items-center justify-between px-3 py-2 text-xs hover:bg-theme-surface-subtle transition-colors text-left cursor-pointer ${
-                            activeView === 'SIPOC' ? 'text-theme-accent font-bold bg-theme-accent/10' : 'text-theme-text'
-                          }`}
-                        >
-                          <div className="flex items-center space-x-2.5">
-                            <Table className="w-4 h-4 text-emerald-400" />
-                            <div>
-                              <div className="font-medium">Matriz SIPOC</div>
-                              <div className="text-[10px] text-theme-text-muted">Proveedores, entradas, salidas y clientes</div>
-                            </div>
-                          </div>
-                          {activeView === 'SIPOC' && <Check className="w-3.5 h-3.5 text-theme-accent" />}
-                        </button>
-                      )}
+                  {canAccessSipoc && (
+                    <button
+                      onClick={() => {
+                        setActiveView('SIPOC');
+                        setIsViewsMenuOpen(false);
+                      }}
+                      className="w-full flex items-center justify-between px-3 py-2 text-xs hover:bg-theme-surface-subtle transition-colors text-left text-theme-text group cursor-pointer"
+                    >
+                      <div className="flex items-center space-x-2.5">
+                        <Table className="w-4 h-4 text-emerald-400 group-hover:scale-110 transition-transform" />
+                        <div>
+                          <div className="font-bold text-emerald-400">Matriz SIPOC</div>
+                          <div className="text-[10px] text-theme-text-muted">Proveedores, entradas, salidas y clientes</div>
+                        </div>
+                      </div>
+                      {activeView === 'SIPOC' && <Check className="w-3.5 h-3.5 text-theme-accent" />}
+                    </button>
+                  )}
 
-                      {canAccessRaci && (
-                        <button
-                          onClick={() => {
-                            setActiveView('RACI');
-                            setIsViewsMenuOpen(false);
-                          }}
-                          className={`w-full flex items-center justify-between px-3 py-2 text-xs hover:bg-theme-surface-subtle transition-colors text-left cursor-pointer ${
-                            activeView === 'RACI' ? 'text-theme-accent font-bold bg-theme-accent/10' : 'text-theme-text'
-                          }`}
-                        >
-                          <div className="flex items-center space-x-2.5">
-                            <GitGraph className="w-4 h-4 text-purple-400" />
-                            <div>
-                              <div className="font-medium">Matriz RACI</div>
-                              <div className="text-[10px] text-theme-text-muted">Roles y responsabilidades</div>
-                            </div>
-                          </div>
-                          {activeView === 'RACI' && <Check className="w-3.5 h-3.5 text-theme-accent" />}
-                        </button>
-                      )}
+                  {canAccessRaci && (
+                    <button
+                      onClick={() => {
+                        setActiveView('RACI');
+                        setIsViewsMenuOpen(false);
+                      }}
+                      className="w-full flex items-center justify-between px-3 py-2 text-xs hover:bg-theme-surface-subtle transition-colors text-left text-theme-text group cursor-pointer"
+                    >
+                      <div className="flex items-center space-x-2.5">
+                        <GitGraph className="w-4 h-4 text-purple-400 group-hover:scale-110 transition-transform" />
+                        <div>
+                          <div className="font-bold text-purple-400">Matriz RACI</div>
+                          <div className="text-[10px] text-theme-text-muted">Roles y responsabilidades</div>
+                        </div>
+                      </div>
+                      {activeView === 'RACI' && <Check className="w-3.5 h-3.5 text-theme-accent" />}
+                    </button>
+                  )}
 
-                      {canAccessFlowchart && (
-                        <button
-                          onClick={() => {
-                            setActiveView('FLOWCHART');
-                            setIsViewsMenuOpen(false);
-                          }}
-                          className={`w-full flex items-center justify-between px-3 py-2 text-xs hover:bg-theme-surface-subtle transition-colors text-left cursor-pointer ${
-                            activeView === 'FLOWCHART' ? 'text-theme-accent font-bold bg-theme-accent/10' : 'text-theme-text'
-                          }`}
-                        >
-                          <div className="flex items-center space-x-2.5">
-                            <Workflow className="w-4 h-4 text-sky-400" />
-                            <div>
-                              <div className="font-medium">Flujograma Secuencial</div>
-                              <div className="text-[10px] text-theme-text-muted">Vista ejecutiva horizontal</div>
-                            </div>
-                          </div>
-                          {activeView === 'FLOWCHART' && <Check className="w-3.5 h-3.5 text-theme-accent" />}
-                        </button>
-                      )}
-                    </div>
+                  {canAccessFlowchart && (
+                    <button
+                      onClick={() => {
+                        setActiveView('FLOWCHART');
+                        setIsViewsMenuOpen(false);
+                      }}
+                      className="w-full flex items-center justify-between px-3 py-2 text-xs hover:bg-theme-surface-subtle transition-colors text-left text-theme-text group cursor-pointer"
+                    >
+                      <div className="flex items-center space-x-2.5">
+                        <Workflow className="w-4 h-4 text-sky-400 group-hover:scale-110 transition-transform" />
+                        <div>
+                          <div className="font-bold text-sky-400">Flujograma Secuencial</div>
+                          <div className="text-[10px] text-theme-text-muted">Vista ejecutiva horizontal</div>
+                        </div>
+                      </div>
+                      {activeView === 'FLOWCHART' && <Check className="w-3.5 h-3.5 text-theme-accent" />}
+                    </button>
                   )}
                 </div>
               )}
@@ -476,9 +463,9 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
                   setIsToolsMenuOpen((t) => !t);
                   setIsViewsMenuOpen(false);
                 }}
-                className={`flex items-center space-x-1.5 px-3 py-2 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
+                className={`flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
                   isToolsMenuOpen
-                    ? 'bg-theme-accent/20 text-theme-accent border-theme-accent/50 shadow-sm'
+                    ? 'bg-theme-accent/20 text-theme-accent border-theme-accent/50 shadow-sm font-bold'
                     : 'bg-theme-surface-subtle hover:bg-theme-surface text-theme-text border-theme-border'
                 }`}
               >

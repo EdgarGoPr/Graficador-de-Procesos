@@ -816,6 +816,15 @@ function generateExcel() {
       criteriosAceptacion: '1. Integración de Catálogos ABM dentro de AdminConsoleModal.tsx y retiro de la barra superior y menú de usuario.\n2. Ubicación exclusiva de Generar desde Texto / Plantillas y Tutorial dentro del desplegable Herramientas, retirando Participantes & Permisos de dicho menú.\n3. Corrección definitiva del posicionamiento de EditProjectModal, ProjectParticipantsModal y NewRevisionModal fuera del contenedor <header> y con createPortal para evitar recortes en el borde superior.\n4. Fondos opacos sólidos en la barra de herramientas y en los desplegables de Herramientas, Vistas & Manual PDF y UserProfileMenu, y eliminación de las etiquetas Antigravity IDE, Antigravity, CRUD, Aprender, 6 Pasos, BPMN (en Lienzo) y & Ficha ISO 9001 (en Manual PDF).\n5. Gestión por usuario de módulos habilitados (Proyectos, Lienzo, Manual PDF, Matriz SIPOC, Matriz RACI, Flujograma Secuencial, Herramientas, Exportar, Crear Proceso) desde UserFormModal y AdminConsoleModal con presets rápidos de 1 clic y ocultamiento dinámico en la interfaz.',
       fechaImplementacion: '2026-10-30',
       estado: 'Implementado / Producción'
+    },
+    {
+      id: 'PST-091',
+      modulo: 'Experiencia de Usuario, Cabecera & Estandarización Visual',
+      titulo: 'Unificación Visual de Opciones de Navegación y Menús Desplegables al Estilo "Herramientas"',
+      historiaUsuario: 'Como usuario de ProcesStudio, quiero que todos los botones de navegación (Proyectos, Lienzo, Vistas & Manual PDF y Herramientas) y sus menús desplegables compartan la misma lógica de diseño, curvaturas, tipografía, colores y efectos hover que el desplegable "Herramientas", para disfrutar de una interfaz simétrica, armónica y completamente estandarizada.',
+      criteriosAceptacion: '1. Eliminación de la cápsula segmentada asimétrica que agrupaba Proyectos, Lienzo y Vistas.\n2. Implementación de botones de navegación individuales y homogéneos para Proyectos, Lienzo, Vistas & Manual PDF y Herramientas con idéntica altura (py-2), padding (px-3.5), bordes (rounded-xl border border-theme-border), fondo (bg-theme-surface-subtle hover:bg-theme-surface) e iconos en color acento (text-theme-accent).\n3. Estado activo y desplegado homogéneo (bg-theme-accent/20 text-theme-accent border-theme-accent/50 shadow-sm font-bold).\n4. Rediseño del menú desplegable "Vistas & Manual PDF" con ancho de 72 (w-72), fondo sólido, iconos escalables en hover y descripción de dos líneas (título + subtítulo explicativo) idéntico a "Herramientas".\n5. Sincronización en HISTORIAS_DE_USUARIO_PROCESSTUDIO.xlsx y confirmación de cero errores de compilación.',
+      fechaImplementacion: '2026-10-30',
+      estado: 'Implementado / Producción'
     }
   );
   console.log('📊 Generando archivo Excel de Historias de Usuario...');

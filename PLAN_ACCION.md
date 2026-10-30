@@ -999,6 +999,70 @@ Se calibrarán los códigos hexadecimales de `PRESET_THEMES` y `CARD_THEME_PRESE
 
 ---
 
+## 17. Plan de Acción: Unificación Visual de Opciones y Desplegables al Estilo "Herramientas" (`PST-091`)
+
+### 17.1. Objetivo del Requerimiento
+Eliminar la disparidad visual en la barra central de navegación donde `Proyectos`, `Lienzo` y `Vistas & Manual PDF` estaban encerrados dentro de una cápsula segmentada con estilo tab, mientras que `Herramientas` se mostraba como un botón desplegable independiente con su propio estilo y dimensiones. Se unificarán todas las opciones de navegación y sus menús desplegables para que compartan estrictamente la misma lógica de diseño, geometría, estados de foco/activo, colores e iconografía del desplegable **"Herramientas"**.
+
+---
+
+### 17.2. Detalle de Diseño y Especificaciones Técnicas
+
+#### 1. Unificación de los Botones de la Barra de Navegación (`Header.tsx`)
+- Se remueve la cápsula exterior asimétrica (`bg-theme-surface-subtle p-1 rounded-xl border border-theme-border/80`).
+- Todas las opciones de navegación (`Proyectos`, `Lienzo`, `Vistas & Manual PDF` y `Herramientas`) se dispondrán de forma armónica e individual en un contenedor horizontal fluido (`flex items-center space-x-2`), compartiendo las mismas especificaciones:
+  - **Dimensiones y Geometría:** `px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all cursor-pointer`.
+  - **Estado Inactivo:** `bg-theme-surface-subtle hover:bg-theme-surface text-theme-text border-theme-border shadow-xs`.
+  - **Estado Activo o Desplegado:** `bg-theme-accent/20 text-theme-accent border-theme-accent/50 shadow-sm font-bold`.
+  - **Iconos Acentuados:** Cada botón contará con su respectivo icono acentuado (`text-theme-accent`):
+    - `LayoutDashboard` en **Proyectos**.
+    - `GitGraph` en **Lienzo**.
+    - `Table` (o `Layers`) en **Vistas & Manual PDF** + flecha `ChevronDown` con rotación animada `rotate-180`.
+    - `Sparkles` en **Herramientas** + flecha `ChevronDown` con rotación animada `rotate-180`.
+
+#### 2. Unificación del Menú Desplegable "Vistas & Manual PDF" al Estilo "Herramientas" (`Header.tsx`)
+- **Contenedor Desplegable:**
+  - Ancho ampliado y estandarizado a `w-72` (idéntico al de Herramientas).
+  - Fondo opaco sólido `style={{ backgroundColor: 'var(--theme-surface)' }}` con `rounded-xl border border-theme-border shadow-2xl py-1.5`.
+- **Estructura Interna de cada Opción:**
+  - Botón interactivo: `w-full flex items-center justify-between px-3 py-2 text-xs hover:bg-theme-surface-subtle transition-colors text-left text-theme-text group cursor-pointer`.
+  - Iconos con efecto zoom al pasar el ratón: `group-hover:scale-110 transition-transform`.
+  - Estilo de dos líneas (Título destacado + subtítulo explicativo en `text-[10px] text-theme-text-muted`):
+    - **Manual PDF:** Icono `FileCheck` en `text-amber-400`, título en negrita `Manual PDF`, subtítulo *"Generador automatizado de documento oficial"*.
+    - **Matriz SIPOC:** Icono `Table` en `text-emerald-400`, título `"Matriz SIPOC"`, subtítulo *"Proveedores, entradas, salidas y clientes"*.
+    - **Matriz RACI:** Icono `GitGraph` en `text-purple-400`, título `"Matriz RACI"`, subtítulo *"Roles y responsabilidades por tarea"*.
+    - **Flujograma Secuencial:** Icono `Workflow` en `text-sky-400`, título `"Flujograma Secuencial"`, subtítulo *"Vista ejecutiva horizontal paso a paso"*.
+  - Indicador visual check cuando la vista está activa.
+
+#### 3. Coherencia en Menú de Perfil de Usuario (`UserProfileMenu.tsx`)
+- Asegurar que los botones interactivos y dropdowns del menú de usuario utilicen la misma coherencia de hover, curvaturas `rounded-xl`, padding y tipografías para una experiencia visual integral sin rupturas estéticas.
+
+---
+
+### 17.3. Archivos a Modificar
+1. **`src/components/layout/Header.tsx`:** Reemplazo de la cápsula tab por botones uniformes con el diseño de `Herramientas`, y actualización del dropdown `Vistas & Manual PDF` para reflejar la tipografía, dimensiones y colores del desplegable de `Herramientas`.
+2. **`src/components/layout/UserProfileMenu.tsx`:** Ajuste fino de padding y consistencia con las clases del estándar unificado.
+3. **`src/constants/version.ts` & `package.json`:** Incremento de versión a `2.3.0` (`V 02.03.00`).
+4. **`scripts/generate-user-stories.cjs`:** Incorporación de la historia `PST-091`.
+
+---
+
+### 17.4. Registro de Historia de Usuario (`PST-091`)
+
+- **ID:** `PST-091`
+- **Módulo / Componente:** Experiencia de Usuario, Cabecera & Estandarización Visual
+- **Título:** Unificación Visual de Opciones de Navegación y Menús Desplegables al Estilo "Herramientas"
+- **Historia de Usuario:** *Como usuario de ProcesStudio, quiero que todos los botones de navegación (Proyectos, Lienzo, Vistas & Manual PDF y Herramientas) y sus menús desplegables compartan la misma lógica de diseño, curvaturas, tipografía, colores y efectos hover que el desplegable "Herramientas", para disfrutar de una interfaz simétrica, armónica y completamente estandarizada.*
+- **Criterios de Aceptación:**
+  1. Eliminación de la cápsula segmentada asimétrica que agrupaba Proyectos, Lienzo y Vistas.
+  2. Implementación de botones de navegación individuales y homogéneos para Proyectos, Lienzo, Vistas & Manual PDF y Herramientas con idéntica altura (`py-2`), padding (`px-3.5`), bordes (`rounded-xl border border-theme-border`), fondo (`bg-theme-surface-subtle hover:bg-theme-surface`) e iconos en color acento (`text-theme-accent`).
+  3. Estado activo y desplegado homogéneo (`bg-theme-accent/20 text-theme-accent border-theme-accent/50 shadow-sm font-bold`).
+  4. Rediseño del menú desplegable "Vistas & Manual PDF" con ancho de 72 (`w-72`), fondo sólido, iconos escalables en hover y descripción de dos líneas (título + subtítulo explicativo) idéntico a "Herramientas".
+  5. Sincronización en `HISTORIAS_DE_USUARIO_PROCESSTUDIO.xlsx` y confirmación de cero errores de compilación.
+- **Estado:** `Implementado / Producción`
+
+---
+
 ## 16. Plan de Acción: Reorganización de Cabecera/Menús, Corrección de Modales, Opacidad Visual y Control de Acceso por Módulos para cada Usuario (`PST-090`)
 
 ### 16.1. Objetivo del Requerimiento
@@ -1071,6 +1135,70 @@ Se incorpora en el modelo de usuario (`AppUser` en `src/types/auth.ts`) la propi
   3. Corrección definitiva del posicionamiento de `EditProjectModal`, `ProjectParticipantsModal` y `NewRevisionModal` fuera del contenedor `<header>` para evitar recortes en el borde superior.
   4. Fondos opacos sólidos en los desplegables de `Herramientas`, `Vistas & Manual PDF` y `UserProfileMenu`, y eliminación de las etiquetas `Antigravity IDE`, `Antigravity`, `CRUD`, `Aprender`, `6 Pasos`, `BPMN` (en Lienzo) y `& Ficha ISO 9001` (en Manual PDF).
   5. Gestión por usuario de módulos habilitados (`Proyectos`, `Lienzo`, `Manual PDF`, `Matriz SIPOC`, `Matriz RACI`, `Flujograma Secuencial`, `Herramientas`, `Exportar`, `Crear Proceso`) con presets rápidos de 1 clic y ocultamiento dinámico en la interfaz.
+- **Estado:** `Implementado / Producción`
+
+---
+
+## 17. Plan de Acción: Unificación Visual de Opciones y Desplegables al Estilo "Herramientas" (`PST-091`)
+
+### 17.1. Objetivo del Requerimiento
+Eliminar la disparidad visual en la barra central de navegación donde `Proyectos`, `Lienzo` y `Vistas & Manual PDF` estaban encerrados dentro de una cápsula segmentada con estilo tab, mientras que `Herramientas` se mostraba como un botón desplegable independiente con su propio estilo y dimensiones. Se unificarán todas las opciones de navegación y sus menús desplegables para que compartan estrictamente la misma lógica de diseño, geometría, estados de foco/activo, colores e iconografía del desplegable **"Herramientas"**.
+
+---
+
+### 17.2. Detalle de Diseño y Especificaciones Técnicas
+
+#### 1. Unificación de los Botones de la Barra de Navegación (`Header.tsx`)
+- Se remueve la cápsula exterior asimétrica (`bg-theme-surface-subtle p-1 rounded-xl border border-theme-border/80`).
+- Todas las opciones de navegación (`Proyectos`, `Lienzo`, `Vistas & Manual PDF` y `Herramientas`) se dispondrán de forma armónica e individual en un contenedor horizontal fluido (`flex items-center space-x-2`), compartiendo las mismas especificaciones:
+  - **Dimensiones y Geometría:** `px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all cursor-pointer`.
+  - **Estado Inactivo:** `bg-theme-surface-subtle hover:bg-theme-surface text-theme-text border-theme-border shadow-xs`.
+  - **Estado Activo o Desplegado:** `bg-theme-accent/20 text-theme-accent border-theme-accent/50 shadow-sm font-bold`.
+  - **Iconos Acentuados:** Cada botón contará con su respectivo icono acentuado (`text-theme-accent`):
+    - `LayoutDashboard` en **Proyectos**.
+    - `GitGraph` en **Lienzo**.
+    - `Table` (o `Layers`) en **Vistas & Manual PDF** + flecha `ChevronDown` con rotación animada `rotate-180`.
+    - `Sparkles` en **Herramientas** + flecha `ChevronDown` con rotación animada `rotate-180`.
+
+#### 2. Unificación del Menú Desplegable "Vistas & Manual PDF" al Estilo "Herramientas" (`Header.tsx`)
+- **Contenedor Desplegable:**
+  - Ancho ampliado y estandarizado a `w-72` (idéntico al de Herramientas).
+  - Fondo opaco sólido `style={{ backgroundColor: 'var(--theme-surface)' }}` con `rounded-xl border border-theme-border shadow-2xl py-1.5`.
+- **Estructura Interna de cada Opción:**
+  - Botón interactivo: `w-full flex items-center justify-between px-3 py-2 text-xs hover:bg-theme-surface-subtle transition-colors text-left text-theme-text group cursor-pointer`.
+  - Iconos con efecto zoom al pasar el ratón: `group-hover:scale-110 transition-transform`.
+  - Estilo de dos líneas (Título destacado + subtítulo explicativo en `text-[10px] text-theme-text-muted`):
+    - **Manual PDF:** Icono `FileCheck` en `text-amber-400`, título en negrita `Manual PDF`, subtítulo *"Generador automatizado de documento oficial"*.
+    - **Matriz SIPOC:** Icono `Table` en `text-emerald-400`, título `"Matriz SIPOC"`, subtítulo *"Proveedores, entradas, salidas y clientes"*.
+    - **Matriz RACI:** Icono `GitGraph` en `text-purple-400`, título `"Matriz RACI"`, subtítulo *"Roles y responsabilidades por tarea"*.
+    - **Flujograma Secuencial:** Icono `Workflow` en `text-sky-400`, título `"Flujograma Secuencial"`, subtítulo *"Vista ejecutiva horizontal paso a paso"*.
+  - Indicador visual check cuando la vista está activa.
+
+#### 3. Coherencia en Menú de Perfil de Usuario (`UserProfileMenu.tsx`)
+- Asegurar que los botones interactivos y dropdowns del menú de usuario utilicen la misma coherencia de hover, curvaturas `rounded-xl`, padding y tipografías para una experiencia visual integral sin rupturas estéticas.
+
+---
+
+### 17.3. Archivos a Modificar
+1. **`src/components/layout/Header.tsx`:** Reemplazo de la cápsula tab por botones uniformes con el diseño de `Herramientas`, y actualización del dropdown `Vistas & Manual PDF` para reflejar la tipografía, dimensiones y colores del desplegable de `Herramientas`.
+2. **`src/components/layout/UserProfileMenu.tsx`:** Ajuste fino de padding y consistencia con las clases del estándar unificado.
+3. **`src/constants/version.ts` & `package.json`:** Incremento de versión a `2.3.0` (`V 02.03.00`).
+4. **`scripts/generate-user-stories.cjs`:** Incorporación de la historia `PST-091`.
+
+---
+
+### 17.4. Registro de Historia de Usuario (`PST-091`)
+
+- **ID:** `PST-091`
+- **Módulo / Componente:** Experiencia de Usuario, Cabecera & Estandarización Visual
+- **Título:** Unificación Visual de Opciones de Navegación y Menús Desplegables al Estilo "Herramientas"
+- **Historia de Usuario:** *Como usuario de ProcesStudio, quiero que todos los botones de navegación (Proyectos, Lienzo, Vistas & Manual PDF y Herramientas) y sus menús desplegables compartan la misma lógica de diseño, curvaturas, tipografía, colores y efectos hover que el desplegable "Herramientas", para disfrutar de una interfaz simétrica, armónica y completamente estandarizada.*
+- **Criterios de Aceptación:**
+  1. Eliminación de la cápsula segmentada asimétrica que agrupaba Proyectos, Lienzo y Vistas.
+  2. Implementación de botones de navegación individuales y homogéneos para Proyectos, Lienzo, Vistas & Manual PDF y Herramientas con idéntica altura (`py-2`), padding (`px-3.5`), bordes (`rounded-xl border border-theme-border`), fondo (`bg-theme-surface-subtle hover:bg-theme-surface`) e iconos en color acento (`text-theme-accent`).
+  3. Estado activo y desplegado homogéneo (`bg-theme-accent/20 text-theme-accent border-theme-accent/50 shadow-sm font-bold`).
+  4. Rediseño del menú desplegable "Vistas & Manual PDF" con ancho de 72 (`w-72`), fondo sólido, iconos escalables en hover y descripción de dos líneas (título + subtítulo explicativo) idéntico a "Herramientas".
+  5. Sincronización en `HISTORIAS_DE_USUARIO_PROCESSTUDIO.xlsx` y confirmación de cero errores de compilación.
 - **Estado:** `Implementado / Producción`
 
 
