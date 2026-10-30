@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useAuthStore } from '../../store/useAuthStore';
 import { AuthService } from '../../services/authService';
 import { GoogleAuthService } from '../../services/googleAuthService';
+import { LogoPS } from '../common/LogoPS';
 import {
   Lock,
   Mail,
@@ -222,12 +223,7 @@ export const AuthModal: React.FC<{ isGatekeeper?: boolean }> = ({ isGatekeeper =
         {/* Cabecera del Modal */}
         <div className="px-6 pt-6 pb-4 flex items-center justify-between border-b border-theme-border/60">
           <div className="flex items-center space-x-3">
-            <div className="p-2.5 rounded-xl bg-theme-accent/15 border border-theme-accent/30 text-theme-accent">
-              <Shield className="w-5 h-5" />
-            </div>
-            <div>
-              <h2 className="text-base font-bold tracking-tight">ProcesStudio Access</h2>
-            </div>
+            <LogoPS size="lg" />
           </div>
           {currentUser && !isGatekeeper && (
             <button

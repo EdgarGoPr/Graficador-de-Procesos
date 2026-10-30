@@ -2,7 +2,7 @@
   "name": "proces-studio",
   "productName": "ProcesStudio",
   "private": true,
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "BPMN 2.0 (ISO 19510) and ISO 9001:2015 Quality Process Studio for Portable Windows Desktop",
   "type": "module",
   "main": "electron/main.cjs",

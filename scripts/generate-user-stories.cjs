@@ -798,6 +798,15 @@ function generateExcel() {
       criteriosAceptacion: '1. Botón "Tutorial / Ayuda" en la barra superior y menú de usuario que abre el Centro de Aprendizaje dividido en módulos breves (Lienzo y Nodos, Carriles y ABMs, Matrices SIPOC/RACI, Exportación PDF y Permisos).\n2. Modo "Tour Guiado Interactivo" que resalta paso a paso las secciones reales de la interfaz con explicaciones claras y botones "Siguiente / Anterior / Finalizar".\n3. Acceso directo desde el tutorial para cargar un proceso de ejemplo o iniciar el generador asistido.',
       fechaImplementacion: '2026-10-30',
       estado: 'Implementado / Producción'
+    },
+    {
+      id: 'PST-089',
+      modulo: 'Identidad Visual, Branding & Temáticas',
+      titulo: 'Rediseño de Logotipo Vectorial PS, Tipografía y Paletas Cromáticas Dinámicas por Temática',
+      historiaUsuario: 'Como usuario de ProcesStudio, quiero que el logotipo (isotipo de flujo PS, texto ProcesStudio con cursiva de acento y leyenda PLATAFORMA DE PROCESOS), los colores de interfaz y las fuentes se adapten dinámicamente a cada una de las 6 temáticas oficiales tal como se especifica en la guía de identidad visual, para contar con una estética coherente y fiel al diseño institucional en cada modo visual.',
+      criteriosAceptacion: '1. Nuevo isotipo vectorial SVG en LogoPS.tsx que replica el monograma PS con circuito de proceso, nodos y flechas, aplicando el gradiente propio de cada temática.\n2. Tipografía del logotipo estructurada con Proces en bold recto, Studio en bold italic con el color de acento del tema, y el subtítulo PLATAFORMA DE PROCESOS con espaciado expandido.\n3. Calibración exacta de fondos, superficies, textos y acentos para las 6 temáticas: ProcesStudio Slate Pro (Mate), Midnight Executive, Forest Sage, Nebula Modern, Nordic Studio Light y Warm Sandpaper.\n4. Previsualización del logo de cada temática en las tarjetas de ThemeCustomizationModal.tsx y en el modal de acceso.',
+      fechaImplementacion: '2026-10-30',
+      estado: 'Implementado / Producción'
     }
   );
   console.log('📊 Generando archivo Excel de Historias de Usuario...');

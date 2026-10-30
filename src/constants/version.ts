@@ -4,7 +4,7 @@
  * Formato Canónico visual: V xx.xx.xx (ej. V 01.05.01)
  */
 
-export const APP_VERSION = '2.0.0';
+export const APP_VERSION = '2.1.0';
 
 /**
  * Retorna la versión formateada con padding de dos dígitos por segmento (V xx.xx.xx)

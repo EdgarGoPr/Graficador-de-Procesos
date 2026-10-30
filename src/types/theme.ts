@@ -23,6 +23,13 @@ export interface ThemeColors {
   edgeColor: string;
   dotGridColor: string;
   isDark: boolean;
+  // Tokens de Identidad Visual del Logotipo por Temática (PST-089)
+  logoGradStart?: string;
+  logoGradMid?: string;
+  logoGradEnd?: string;
+  logoWordPrimary?: string;
+  logoWordAccent?: string;
+  logoSubtitle?: string;
 }
 
 export interface AppThemeDefinition {
@@ -49,48 +56,68 @@ export interface CardThemePreset {
 export const CARD_THEME_PRESETS: CardThemePreset[] = [
   {
     id: 'slate-pro',
-    name: 'Pizarra Slate Pro',
-    description: 'Fondo grafito mate, borde azul cielo y cabecera tenue.',
-    bgColor: '#1E293B',
+    name: 'ProcesStudio Slate Pro (Mate)',
+    description: 'Fondo grafito mate, borde azul cian y cabecera tenue.',
+    bgColor: '#1B263B',
     bgOpacity: 95,
-    borderColor: '#38BDF8',
-    headerBgColor: 'rgba(56, 189, 248, 0.15)',
+    borderColor: '#29B6F6',
+    headerBgColor: 'rgba(41, 182, 246, 0.15)',
     badgeBg: 'bg-sky-500/20 text-sky-300'
   },
   {
     id: 'midnight-steel',
-    name: 'Midnight Acero',
-    description: 'Azul espacial con ribete acero y cabecera relajante.',
-    bgColor: '#151D2E',
+    name: 'Midnight Executive',
+    description: 'Azul ejecutivo espacial con ribete acero y cabecera equilibrada.',
+    bgColor: '#131C31',
     bgOpacity: 95,
-    borderColor: '#60A5FA',
-    headerBgColor: 'rgba(96, 165, 250, 0.15)',
+    borderColor: '#5B9BD5',
+    headerBgColor: 'rgba(91, 155, 213, 0.15)',
     badgeBg: 'bg-blue-500/20 text-blue-300'
   },
   {
     id: 'forest-sage',
-    name: 'Salvia Forestal',
-    description: 'Verde salvia institucional y balance cromático armónico.',
-    bgColor: '#162522',
+    name: 'Forest Sage',
+    description: 'Verde bosque profundo y salvia institucional armónico.',
+    bgColor: '#142E26',
     bgOpacity: 95,
-    borderColor: '#34D399',
-    headerBgColor: 'rgba(52, 211, 153, 0.15)',
+    borderColor: '#57B894',
+    headerBgColor: 'rgba(87, 184, 148, 0.15)',
     badgeBg: 'bg-emerald-500/20 text-emerald-300'
   },
   {
     id: 'nebula-modern',
-    name: 'Nebula Violeta',
-    description: 'Grafito con acento lavanda suave y cabecera violeta.',
-    bgColor: '#1A162D',
+    name: 'Nebula Modern',
+    description: 'Púrpura espacial profundo con acento lavanda moderno.',
+    bgColor: '#1F1333',
     bgOpacity: 95,
-    borderColor: '#A78BFA',
-    headerBgColor: 'rgba(167, 139, 250, 0.15)',
+    borderColor: '#9F7AEA',
+    headerBgColor: 'rgba(159, 122, 234, 0.15)',
     badgeBg: 'bg-purple-500/20 text-purple-300'
   },
   {
+    id: 'nordic-light',
+    name: 'Nordic Studio Light',
+    description: 'Fondo blanco nórdico con borde azul océano/cerúleo.',
+    bgColor: '#FFFFFF',
+    bgOpacity: 100,
+    borderColor: '#1A85B8',
+    headerBgColor: 'rgba(26, 133, 184, 0.10)',
+    badgeBg: 'bg-sky-100 text-sky-800'
+  },
+  {
+    id: 'sand-warm',
+    name: 'Warm Sandpaper',
+    description: 'Fondo cálido papiro con borde ocre dorado y texto espresso.',
+    bgColor: '#FFFDF9',
+    bgOpacity: 100,
+    borderColor: '#C87D20',
+    headerBgColor: 'rgba(200, 125, 32, 0.12)',
+    badgeBg: 'bg-amber-100 text-amber-900'
+  },
+  {
     id: 'warm-amber',
-    name: 'Ámbar Cálido',
-    description: 'Tono ocre y madera para hitos normativos y auditorías.',
+    name: 'Ámbar Cálido (Oscuro)',
+    description: 'Tono ocre y madera oscura para hitos normativos y auditorías.',
     bgColor: '#231B15',
     bgOpacity: 95,
     borderColor: '#F59E0B',
@@ -101,31 +128,11 @@ export const CARD_THEME_PRESETS: CardThemePreset[] = [
     id: 'glass-frost',
     name: 'Vidrio Esmerilado',
     description: 'Transparencia alta (55%) para integración con el lienzo.',
-    bgColor: '#1E293B',
+    bgColor: '#1B263B',
     bgOpacity: 55,
     borderColor: '#94A3B8',
     headerBgColor: 'rgba(255, 255, 255, 0.08)',
     badgeBg: 'bg-slate-500/20 text-slate-300'
-  },
-  {
-    id: 'nordic-light',
-    name: 'Nórdico Studio Claro',
-    description: 'Fondo blanco níveo con borde cian y cabecera fresca.',
-    bgColor: '#FFFFFF',
-    bgOpacity: 100,
-    borderColor: '#0284C7',
-    headerBgColor: 'rgba(2, 132, 199, 0.10)',
-    badgeBg: 'bg-sky-100 text-sky-800'
-  },
-  {
-    id: 'sand-warm',
-    name: 'Arena Suave',
-    description: 'Fondo cálido papiro con borde ámbar y cabecera suave.',
-    bgColor: '#FFFDF9',
-    bgOpacity: 100,
-    borderColor: '#D97706',
-    headerBgColor: 'rgba(217, 119, 6, 0.10)',
-    badgeBg: 'bg-amber-100 text-amber-900'
   }
 ];
 
@@ -133,145 +140,181 @@ export const PRESET_THEMES: Record<AppThemeId, AppThemeDefinition> = {
   'antigravity-dark': {
     id: 'antigravity-dark',
     name: 'ProcesStudio Slate Pro (Mate)',
-    description: 'Grafito profundo y azul pizarra mate para máxima comodidad visual.',
+    description: 'Azul pizarra mate profundo con isotipo tricolor (violeta-cian-esmeralda) y acento cian.',
     badge: '🌑 Slate Pro',
     category: 'dark',
     colors: {
-      appBg: '#0F172A',
-      canvasBg: '#131B2E',
-      surface: '#1E293B',
-      surfaceSubtle: '#151F32',
-      surfaceHover: '#2A384F',
-      card: '#1E293B',
-      text: '#E2E8F0',
-      textMuted: '#94A3B8',
-      accent: '#38BDF8',
-      accentHover: '#0284C7',
-      border: '#334155',
-      borderSubtle: '#1E293B',
+      appBg: '#101726',
+      canvasBg: '#141D2F',
+      surface: '#1B263B',
+      surfaceSubtle: '#131C2E',
+      surfaceHover: '#24324C',
+      card: '#1B263B',
+      text: '#FFFFFF',
+      textMuted: '#B0BEC5',
+      accent: '#29B6F6',
+      accentHover: '#0288D1',
+      border: '#2B3A55',
+      borderSubtle: '#1B263B',
       edgeColor: '#64748B',
-      dotGridColor: '#334155',
-      isDark: true
+      dotGridColor: '#2B3A55',
+      isDark: true,
+      logoGradStart: '#6366F1',
+      logoGradMid: '#0EA5E9',
+      logoGradEnd: '#34D399',
+      logoWordPrimary: '#FFFFFF',
+      logoWordAccent: '#29B6F6',
+      logoSubtitle: '#C5D1DE'
     }
   },
   'antigravity-cosmic': {
     id: 'antigravity-cosmic',
     name: 'Midnight Executive',
-    description: 'Azul espacial suave con acento acero equilibrado.',
+    description: 'Azul medianoche ejecutivo con isotipo azul real a acero y tipografía corporativa.',
     badge: '🪐 Midnight',
     category: 'dark',
     colors: {
-      appBg: '#0B101B',
-      canvasBg: '#0F1626',
-      surface: '#151D2E',
-      surfaceSubtle: '#0D1422',
-      surfaceHover: '#1E293F',
-      card: '#151D2E',
-      text: '#E2E8F0',
-      textMuted: '#8DA0B8',
-      accent: '#60A5FA',
+      appBg: '#090E1A',
+      canvasBg: '#0C1322',
+      surface: '#131C31',
+      surfaceSubtle: '#0B1120',
+      surfaceHover: '#1C2844',
+      card: '#131C31',
+      text: '#FFFFFF',
+      textMuted: '#94A3B8',
+      accent: '#5B9BD5',
       accentHover: '#3B82F6',
-      border: '#25334D',
-      borderSubtle: '#151D2E',
+      border: '#22314E',
+      borderSubtle: '#131C31',
       edgeColor: '#64748B',
-      dotGridColor: '#25334D',
-      isDark: true
+      dotGridColor: '#22314E',
+      isDark: true,
+      logoGradStart: '#2563EB',
+      logoGradMid: '#3B82F6',
+      logoGradEnd: '#7AAEF2',
+      logoWordPrimary: '#FFFFFF',
+      logoWordAccent: '#5B9BD5',
+      logoSubtitle: '#B0C0D4'
     }
   },
   'antigravity-emerald': {
     id: 'antigravity-emerald',
     name: 'Forest Sage',
-    description: 'Gris bosque con acento salvia y esmeralda mate relajante.',
-    badge: '🌿 Salvia Forestal',
+    description: 'Verde bosque oscuro con isotipo esmeralda a salvia menta y ergonomía visual.',
+    badge: '🌿 Forest Sage',
     category: 'dark',
     colors: {
-      appBg: '#0D1514',
-      canvasBg: '#101B19',
-      surface: '#162522',
-      surfaceSubtle: '#0F1A17',
-      surfaceHover: '#20332F',
-      card: '#162522',
-      text: '#E2E8F0',
-      textMuted: '#8CA8A0',
-      accent: '#34D399',
+      appBg: '#0A1914',
+      canvasBg: '#0E211B',
+      surface: '#142E26',
+      surfaceSubtle: '#0C1D18',
+      surfaceHover: '#1D3F35',
+      card: '#142E26',
+      text: '#FFFFFF',
+      textMuted: '#98B4AA',
+      accent: '#57B894',
       accentHover: '#10B981',
-      border: '#243D37',
-      borderSubtle: '#162522',
+      border: '#21473B',
+      borderSubtle: '#142E26',
       edgeColor: '#5E8077',
-      dotGridColor: '#243D37',
-      isDark: true
+      dotGridColor: '#21473B',
+      isDark: true,
+      logoGradStart: '#10B981',
+      logoGradMid: '#34D399',
+      logoGradEnd: '#6EE7B7',
+      logoWordPrimary: '#FFFFFF',
+      logoWordAccent: '#57B894',
+      logoSubtitle: '#A7C4B9'
     }
   },
   'antigravity-purple': {
     id: 'antigravity-purple',
     name: 'Nebula Modern',
-    description: 'Púrpura espacial profundo y lavanda suave mate.',
+    description: 'Violeta espacial profundo con isotipo púrpura a lavanda y estética vanguardista.',
     badge: '🔮 Nebula',
     category: 'dark',
     colors: {
-      appBg: '#100E1C',
-      canvasBg: '#141224',
-      surface: '#1A162D',
-      surfaceSubtle: '#120F20',
-      surfaceHover: '#262040',
-      card: '#1A162D',
-      text: '#E2E8F0',
-      textMuted: '#9E95B8',
-      accent: '#A78BFA',
+      appBg: '#11091C',
+      canvasBg: '#160D24',
+      surface: '#1F1333',
+      surfaceSubtle: '#140B21',
+      surfaceHover: '#2B1B47',
+      card: '#1F1333',
+      text: '#FFFFFF',
+      textMuted: '#A39BB5',
+      accent: '#9F7AEA',
       accentHover: '#8B5CF6',
-      border: '#30284F',
-      borderSubtle: '#1A162D',
+      border: '#342254',
+      borderSubtle: '#1F1333',
       edgeColor: '#716494',
-      dotGridColor: '#30284F',
-      isDark: true
+      dotGridColor: '#342254',
+      isDark: true,
+      logoGradStart: '#7C3AED',
+      logoGradMid: '#9F7AEA',
+      logoGradEnd: '#C4B5FD',
+      logoWordPrimary: '#FFFFFF',
+      logoWordAccent: '#9F7AEA',
+      logoSubtitle: '#BEB4D4'
     }
   },
   'antigravity-light': {
     id: 'antigravity-light',
     name: 'Nordic Studio Light',
-    description: 'Fondo perla claro ultra nítido con acentos cerúleos refinados.',
-    badge: '☀️ Studio',
+    description: 'Fondo blanco perla nórdico con texto azul marino profundo y acento cerúleo.',
+    badge: '☀️ Nordic Light',
     category: 'light',
     colors: {
-      appBg: '#F8FAFC',
-      canvasBg: '#F1F5F9',
+      appBg: '#F4F6F9',
+      canvasBg: '#ECF0F5',
       surface: '#FFFFFF',
-      surfaceSubtle: '#F8FAFC',
-      surfaceHover: '#F1F5F9',
+      surfaceSubtle: '#F4F6F9',
+      surfaceHover: '#E6ECF4',
       card: '#FFFFFF',
-      text: '#1E293B',
-      textMuted: '#64748B',
-      accent: '#0284C7',
+      text: '#0F2942',
+      textMuted: '#475569',
+      accent: '#1A85B8',
       accentHover: '#0369A1',
-      border: '#E2E8F0',
-      borderSubtle: '#F1F5F9',
+      border: '#DCE3EC',
+      borderSubtle: '#ECF0F5',
       edgeColor: '#94A3B8',
       dotGridColor: '#CBD5E1',
-      isDark: false
+      isDark: false,
+      logoGradStart: '#0C4A6E',
+      logoGradMid: '#0284C7',
+      logoGradEnd: '#06B6D4',
+      logoWordPrimary: '#0F2942',
+      logoWordAccent: '#1A85B8',
+      logoSubtitle: '#0F2942'
     }
   },
   'antigravity-solar': {
     id: 'antigravity-solar',
     name: 'Warm Sandpaper',
-    description: 'Tonalidad cálida arena y ámbar suave para lectura prolongada.',
+    description: 'Fondo cálido arena papiro con tipografía marrón espresso y acento ocre dorado.',
     badge: '🏖️ Sandpaper',
     category: 'light',
     colors: {
-      appBg: '#FAF7F2',
-      canvasBg: '#F3EFE9',
-      surface: '#FFFFFF',
-      surfaceSubtle: '#FAF7F2',
-      surfaceHover: '#F3EFE9',
-      card: '#FFFFFF',
-      text: '#292524',
-      textMuted: '#78716C',
-      accent: '#D97706',
-      accentHover: '#B45309',
-      border: '#E7DFD8',
-      borderSubtle: '#F3EFE9',
-      edgeColor: '#A8A29E',
-      dotGridColor: '#D6CEC6',
-      isDark: false
+      appBg: '#FAF6EE',
+      canvasBg: '#F3EDE0',
+      surface: '#FFFDF9',
+      surfaceSubtle: '#FAF6EE',
+      surfaceHover: '#EFE7D6',
+      card: '#FFFDF9',
+      text: '#3E1F0D',
+      textMuted: '#6B4C35',
+      accent: '#C87D20',
+      accentHover: '#A86414',
+      border: '#E6DEC8',
+      borderSubtle: '#F3EDE0',
+      edgeColor: '#A89882',
+      dotGridColor: '#D6CBB5',
+      isDark: false,
+      logoGradStart: '#4A2511',
+      logoGradMid: '#9A5518',
+      logoGradEnd: '#E59838',
+      logoWordPrimary: '#3E1F0D',
+      logoWordAccent: '#C87D20',
+      logoSubtitle: '#3E1F0D'
     }
   },
   'custom': {
@@ -281,21 +324,27 @@ export const PRESET_THEMES: Record<AppThemeId, AppThemeDefinition> = {
     badge: '🎨 Custom',
     category: 'custom',
     colors: {
-      appBg: '#0F172A',
-      canvasBg: '#131B2E',
-      surface: '#1E293B',
-      surfaceSubtle: '#151F32',
-      surfaceHover: '#2A384F',
-      card: '#1E293B',
-      text: '#E2E8F0',
-      textMuted: '#94A3B8',
-      accent: '#38BDF8',
-      accentHover: '#0284C7',
-      border: '#334155',
-      borderSubtle: '#1E293B',
+      appBg: '#101726',
+      canvasBg: '#141D2F',
+      surface: '#1B263B',
+      surfaceSubtle: '#131C2E',
+      surfaceHover: '#24324C',
+      card: '#1B263B',
+      text: '#FFFFFF',
+      textMuted: '#B0BEC5',
+      accent: '#29B6F6',
+      accentHover: '#0288D1',
+      border: '#2B3A55',
+      borderSubtle: '#1B263B',
       edgeColor: '#64748B',
-      dotGridColor: '#334155',
-      isDark: true
+      dotGridColor: '#2B3A55',
+      isDark: true,
+      logoGradStart: '#6366F1',
+      logoGradMid: '#0EA5E9',
+      logoGradEnd: '#34D399',
+      logoWordPrimary: '#FFFFFF',
+      logoWordAccent: '#29B6F6',
+      logoSubtitle: '#C5D1DE'
     }
   }
 };
@@ -344,6 +393,14 @@ export function applyThemeToDocument(colors: ThemeColors) {
   root.style.setProperty('--theme-border-subtle', colors.borderSubtle);
   root.style.setProperty('--theme-edge-color', colors.edgeColor);
   root.style.setProperty('--theme-dot-grid', colors.dotGridColor);
+
+  // Tokens de Identidad del Logo
+  root.style.setProperty('--theme-logo-grad-start', colors.logoGradStart || colors.accentHover);
+  root.style.setProperty('--theme-logo-grad-mid', colors.logoGradMid || colors.accent);
+  root.style.setProperty('--theme-logo-grad-end', colors.logoGradEnd || colors.accent);
+  root.style.setProperty('--theme-logo-word-primary', colors.logoWordPrimary || colors.text);
+  root.style.setProperty('--theme-logo-word-accent', colors.logoWordAccent || colors.accent);
+  root.style.setProperty('--theme-logo-subtitle', colors.logoSubtitle || colors.textMuted);
 
   if (colors.isDark) {
     root.classList.add('dark');

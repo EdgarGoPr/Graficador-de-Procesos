@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useUiStore } from '../../store/useUiStore';
 import { PRESET_THEMES, AppThemeId, ThemeColors } from '../../types/theme';
+import { LogoPS } from '../common/LogoPS';
 import {
   Palette,
   X,
@@ -174,6 +175,17 @@ export const ThemeCustomizationModal: React.FC = () => {
                         <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-theme-surface-subtle border border-theme-border text-theme-text-muted">
                           {theme.badge}
                         </span>
+                      </div>
+
+                      {/* Vista Previa Identidad Visual y Logo por Temática */}
+                      <div
+                        className="mb-2.5 px-3 py-2.5 rounded-lg border flex items-center justify-center shadow-inner"
+                        style={{
+                          backgroundColor: theme.colors.appBg,
+                          borderColor: theme.colors.border
+                        }}
+                      >
+                        <LogoPS size="sm" themeOverride={theme.id} showSubtitle={true} />
                       </div>
 
                       <p className="text-[11px] text-theme-text-muted mb-3 leading-relaxed">

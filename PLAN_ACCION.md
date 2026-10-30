@@ -915,7 +915,87 @@ Este documento constituye la **Hoja de Ruta Maestra Oficial para el Desarrollo F
 Todas las etapas se implementarán respetando rigurosamente:
 1. **La aprobación previa del usuario sobre este `PLAN_ACCION.md`** antes de escribir o modificar código.
 2. **La arquitectura 100% Web Cloud Nativa** (React + TypeScript + Vite + Neon PostgreSQL).
-3. **La actualización del archivo Excel `HISTORIAS_DE_USUARIO_PROCESSTUDIO.xlsx`** (`PST-069` a `PST-088`).
+3. **La actualización del archivo Excel `HISTORIAS_DE_USUARIO_PROCESSTUDIO.xlsx`** (`PST-069` a `PST-089`).
 4. **La compilación limpia (`npm run build`) y el commit/push automático a Git tras cada entrega aprobada**.
+
+---
+
+## 15. Plan de Acción: Identidad Visual Dinámica por Temática — Logos Vectoriales, Paletas Cromáticas y Tipografía (`PST-089`)
+
+### 15.1. Objetivo del Requerimiento
+Alinear integralmente el isotipo/logotipo (`LogoPS`), las paletas de colores de las **6 temáticas oficiales** y la jerarquía tipográfica de **ProcesStudio** con la lámina de identidad visual proporcionada por el usuario, de modo que al cambiar entre cualquiera de los 6 temas (*ProcesStudio Slate Pro (Mate)*, *Midnight Executive*, *Forest Sage*, *Nebula Modern*, *Nordic Studio Light* y *Warm Sandpaper*), el logo, los colores de interfaz y las fuentes se adapten dinámicamente a la versión correspondiente de la imagen.
+
+### 15.2. Análisis Técnico de la Imagen de Referencia
+
+#### A. Isotipo Vectorial `PS` con Flujo de Procesos (SVG Dinámico)
+El isotipo reemplazará el recuadro actual por un **vector SVG de alta precisión** que reproduce fielmente el monograma **`PS`** conectado por nodos y flujos de proceso:
+- **Letra `P` (izquierda):** Trazo vertical con nodo circular en la base inferior, bucle superior abierto conectado a una flecha horizontal inferior (`→`) hacia la `S`.
+- **Línea de flujo diagonal (circuito):** Atraviesa desde el extremo inferior izquierdo (nodo circular), pasa por un nodo circular central dentro del bucle de la `P` y culmina en un nodo cuadrado redondeado en el extremo superior derecho sobre la `S`.
+- **Letra `S` (derecha):** Curva sinuosa continua con una flecha interna que acompaña la curvatura central y un sombreado sutil (`drop-shadow`).
+- **Gradiente adaptativo por temática (`logoGradientStops`):** Cada una de las 6 temáticas define su propio gradiente multicapa para el isotipo SVG:
+  1. **ProcesStudio Slate Pro (Mate) (`antigravity-dark`):** Gradiente tricolor de Violeta/Azul (`#6366F1` → `#0EA5E9`) en la base/izquierda hacia Cian/Verde Esmeralda (`#06B6D4` → `#34D399`) en la cima/derecha.
+  2. **Midnight Executive (`antigravity-cosmic`):** Gradiente ejecutivo de Azul Real (`#2563EB`) a Azul Acero Claro (`#60A5FA` → `#93C5FD`).
+  3. **Forest Sage (`antigravity-emerald`):** Gradiente orgánico de Verde Bosque Esmeralda (`#10B981`) a Verde Salvia Menta (`#34D399` → `#6EE7B7`).
+  4. **Nebula Modern (`antigravity-purple`):** Gradiente espacial de Púrpura Intenso (`#8B5CF6`) a Lavanda Brillante (`#A78BFA` → `#C4B5FD`).
+  5. **Nordic Studio Light (`antigravity-light`):** Gradiente nórdico de Azul Océano Profundo (`#0C4A6E` → `#0369A1`) a Cian Cerúleo Vibrante (`#0EA5E9` → `#06B6D4`).
+  6. **Warm Sandpaper (`antigravity-solar`):** Gradiente cálido de Marrón Espresso Profundo (`#4A2511` → `#6F3B16`) a Ámbar Dorado Ocre (`#D97706` → `#E59838`).
+
+#### B. Logotipo Tipográfico (`ProcesStudio` + `PLATAFORMA DE PROCESOS`)
+- **Primera parte (`Proces`):** Tipografía Sans-Serif geométrica en peso **ExtraBold / Bold (`font-extrabold`)**, estilo recto (normal), color primario de alto contraste según el tema (`#FFFFFF` en los 4 temas oscuros, `#0F2942` en *Nordic Studio Light*, y `#3E1F0D` en *Warm Sandpaper*).
+- **Segunda parte (`Studio`):** Tipografía en peso **ExtraBold / Bold Cursiva (`font-extrabold italic`)**, coloreada con el acento identitario exacto de cada temática:
+  - *Slate Pro (Mate):* `#29B6F6`
+  - *Midnight Executive:* `#60A5FA`
+  - *Forest Sage:* `#52B788` / `#6EE7B7`
+  - *Nebula Modern:* `#A78BFA`
+  - *Nordic Studio Light:* `#0284C7`
+  - *Warm Sandpaper:* `#C87D20`
+- **Subtítulo (`PLATAFORMA DE PROCESOS`):** Texto en mayúsculas (`uppercase`), peso ligero/regular (`font-normal`), con espaciado expandido (`tracking-[0.22em]`) alineado exactamente debajo de `ProcesStudio`, visible en tamaños `md`, `lg` y `xl` (y configurable mediante prop `showSubtitle`).
+
+#### C. Ajuste de Paletas Cromáticas y Fondos de las 6 Temáticas (`src/types/theme.ts`)
+Se calibrarán los códigos hexadecimales de `PRESET_THEMES` y `CARD_THEME_PRESETS` para coincidir con la atmósfera exacta de cada cuadrante de la imagen:
+
+| Temática | ID Interno | Fondo Principal (`appBg`) | Lienzo (`canvasBg`) | Superficie (`surface`) | Texto `"Proces"` (`text`) | Acento `"Studio"` (`accent`) | Subtítulo (`textMuted`) |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **ProcesStudio Slate Pro (Mate)** | `antigravity-dark` | `#101726` | `#141D2F` | `#1B263B` | `#FFFFFF` | `#29B6F6` | `#B0BEC5` |
+| **Midnight Executive** | `antigravity-cosmic` | `#090E1A` | `#0C1322` | `#131C31` | `#FFFFFF` | `#5B9BD5` | `#94A3B8` |
+| **Forest Sage** | `antigravity-emerald` | `#0A1914` | `#0E211B` | `#142E26` | `#FFFFFF` | `#57B894` | `#98B4AA` |
+| **Nebula Modern** | `antigravity-purple` | `#11091C` | `#160D24` | `#1F1333` | `#FFFFFF` | `#9F7AEA` | `#A39BB5` |
+| **Nordic Studio Light** | `antigravity-light` | `#F4F6F9` | `#ECF0F5` | `#FFFFFF` | `#0F2942` | `#1A85B8` | `#1E293B` |
+| **Warm Sandpaper** | `antigravity-solar` | `#FAF6EE` | `#F3EDE0` | `#FFFDF9` | `#3E1F0D` | `#C87D20` | `#4A2C18` |
+
+#### D. Fuentes Tipográficas (`index.html` y `tailwind.config.js`)
+- Incorporación de **`Plus Jakarta Sans`** / **`Inter`** (con soporte explícito para pesos `400, 500, 600, 700, 800` y variantes **`italic` `700i, 800i`** en Google Fonts dentro de `index.html`) para lograr el trazo limpio de `Proces`, la cursiva fluida de `Studio` y el tracking geométrico de `PLATAFORMA DE PROCESOS`.
+- Actualización del **Favicon SVG** en `index.html` y de las tarjetas de previsualización en `ThemeCustomizationModal.tsx` para mostrar una vista previa en miniatura del logo de cada temática dentro del selector de temas.
+
+---
+
+### 15.3. Archivos a Modificar
+
+1. **`index.html`:**
+   - Actualización de la importación de Google Fonts incluyendo las variantes cursivas (`ital,wght@0,400..800;1,600..800`) para que `Studio` luzca idéntico a la imagen.
+   - Actualización del favicon vectorial SVG con el nuevo isotipo `PS`.
+2. **`src/types/theme.ts`:**
+   - Extensión de `ThemeColors` con tokens específicos de marca (`logoGradStart`, `logoGradMid`, `logoGradEnd`, `logoWordPrimary`, `logoWordAccent`, `logoSubtitle`) e inyección en variables CSS (`--theme-logo-*`).
+   - Calibración exacta de los colores de las 6 temáticas en `PRESET_THEMES` según la tabla 15.2.C.
+3. **`src/components/common/LogoPS.tsx`:**
+   - Rediseño completo del componente con el **isotipo SVG vectorial `PS`** (trazos de letras P y S, línea de flujo diagonal, 3 nodos circulares, 1 nodo cuadrado redondeado y 2 puntas de flecha), gradiente dinámico conectado a la temática activa (o forzado por prop `themePreviewId`), texto **`Proces`** + **`Studio`** (en cursiva coloreada) y subtítulo **`PLATAFORMA DE PROCESOS`**.
+4. **`src/components/modals/ThemeCustomizationModal.tsx`:**
+   - Integración de la vista previa en vivo del `LogoPS` específico de cada temática dentro de cada tarjeta del selector de temas, permitiendo al usuario ver exactamente las 6 variantes tal como en la imagen compartida.
+
+---
+
+### 15.4. Registro de Historia de Usuario (`PST-089`)
+
+- **ID:** `PST-089`
+- **Módulo / Componente:** Identidad Visual, Branding & Temáticas
+- **Título:** Rediseño de Logotipo Vectorial `PS`, Tipografía y Paletas Cromáticas Dinámicas por Temática
+- **Historia de Usuario:** *Como usuario de ProcesStudio, quiero que el logotipo (isotipo de flujo `PS`, texto `ProcesStudio` con cursiva de acento y leyenda `PLATAFORMA DE PROCESOS`), los colores de interfaz y las fuentes se adapten dinámicamente a cada una de las 6 temáticas oficiales tal como se especifica en la guía de identidad visual, para contar con una estética coherente y fiel al diseño institucional en cada modo visual.*
+- **Criterios de Aceptación:**
+  1. Nuevo isotipo vectorial SVG en `LogoPS.tsx` que replica el monograma `PS` con circuito de proceso, nodos y flechas, aplicando el gradiente propio de cada temática.
+  2. Tipografía del logotipo estructurada con `Proces` en bold recto, `Studio` en bold italic con el color de acento del tema, y el subtítulo `PLATAFORMA DE PROCESOS` con espaciado expandido.
+  3. Calibración exacta de fondos, superficies, textos y acentos para las 6 temáticas: *ProcesStudio Slate Pro (Mate)*, *Midnight Executive*, *Forest Sage*, *Nebula Modern*, *Nordic Studio Light* y *Warm Sandpaper*.
+  4. Previsualización del logo de cada temática en las tarjetas de `ThemeCustomizationModal.tsx`.
+- **Estado:** `Implementado / Producción`
+
 
 

@@ -19,25 +19,25 @@ export default {
           warning: '#F59E0B',
           danger: '#EF4444',
         },
-        // Colores Modo Claro
+        // Colores Modo Claro (Nordic Studio Light)
         light: {
-          bg: '#F8F9FA',
+          bg: '#F4F6F9',
           surface: '#FFFFFF',
-          text: '#1E293B',
-          accent: '#0284C7',
-          muted: '#64748B',
-          border: '#E2E8F0',
-          hover: '#F1F5F9',
+          text: '#0F2942',
+          accent: '#1A85B8',
+          muted: '#475569',
+          border: '#DCE3EC',
+          hover: '#ECF0F5',
         },
-        // Colores Modo Oscuro
+        // Colores Modo Oscuro (ProcesStudio Slate Pro Mate)
         dark: {
-          bg: '#0F172A',
-          surface: '#1E293B',
-          text: '#E2E8F0',
-          accent: '#38BDF8',
+          bg: '#101726',
+          surface: '#1B263B',
+          text: '#FFFFFF',
+          accent: '#29B6F6',
           muted: '#94A3B8',
-          border: '#334155',
-          hover: '#283548',
+          border: '#2B3A55',
+          hover: '#24324C',
         },
         // Dynamic theme tokens
         theme: {
@@ -67,11 +67,12 @@ export default {
         }
       },
       fontFamily: {
-        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
-        mono: ['JetBrains Mono', 'Fira Code', 'Consolas', 'monospace'],
+        sans: ['"Plus Jakarta Sans"', 'Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+        brand: ['"Plus Jakarta Sans"', 'Inter', 'sans-serif'],
+        mono: ['"JetBrains Mono"', 'Fira Code', 'Consolas', 'monospace'],
       },
       boxShadow: {
-        'glow-accent': '0 0 15px -3px rgba(56, 189, 248, 0.35)',
+        'glow-accent': '0 0 15px -3px rgba(41, 182, 246, 0.35)',
         'glow-green': '0 0 15px -3px rgba(16, 185, 129, 0.35)',
         'glow-blue': '0 0 15px -3px rgba(59, 130, 246, 0.35)',
         'glow-amber': '0 0 15px -3px rgba(245, 158, 11, 0.35)',
@@ -81,4 +82,3 @@ export default {
   },
   plugins: [],
 }
-
