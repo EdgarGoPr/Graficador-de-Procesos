@@ -1311,3 +1311,44 @@ Completar la migración a web eliminando la lógica de escritorio que sigue acti
   4. `README.md` actualizado a arquitectura web.
   5. `npm run build` sin errores; guardado, carga, duplicado, borrado, importación y exportación de proyectos sin regresiones.
 - **Estado:** `Implementado / Producción`
+
+
+---
+
+## 20. Plan de Acción: Retiro de GitHub Pages y Despliegue Exclusivo en Vercel (`PST-094`)
+
+### 20.1. Objetivo
+Dejar de publicar la aplicación en GitHub Pages y que Vercel sea el único destino de despliegue, con la configuración versionada en el repositorio.
+
+### 20.2. Detalle Técnico
+
+#### 1. Cambios en el repositorio
+- Eliminar `.github/workflows/deploy.yml` (hoy publica en Pages en cada `push` a `main`).
+- Crear `vercel.json` con `buildCommand: "npx tsc && npx vite build"` (omite la generación del `.xlsx`, que es solo documentación local), `outputDirectory: "dist"`, `framework: "vite"` y cabeceras básicas de seguridad (`X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`).
+- `vite.config.ts`: `base: './'` → `base: '/'` (Vercel sirve desde la raíz del dominio; `./` era para Electron/Pages) y retirar el comentario sobre Electron.
+- `README.md`: reemplazar la URL de GitHub Pages y la sección "Despliegue" por Vercel.
+
+#### 2. Pasos manuales (no se pueden hacer desde el código)
+1. **GitHub → Settings → Pages:** cambiar *Source* a "None" (o "Unpublish site") para que `edgargopr.github.io/Graficador-de-Procesos/` deje de responder.
+2. **Google Cloud Console → Credenciales → OAuth Client ID:** en *Orígenes autorizados de JavaScript* y *URI de redireccionamiento* agregar la URL de Vercel y quitar la de `github.io`. `googleAuthService.ts` usa `window.location.origin` como `redirect_uri`, por lo que sin este paso el login con Google falla en Vercel.
+3. **Vercel → Project → Settings → Environment Variables:** definir `VITE_GOOGLE_CLIENT_ID` y `VITE_GEMINI_API_KEY`. **No definir `VITE_NEON_DATABASE_URL`**; si ya existe, eliminarla y redeployar (se incrusta en el JavaScript público).
+4. **Google Cloud → API Key de Gemini:** restringirla por *referrer HTTP* al dominio de Vercel, ya que toda variable `VITE_*` queda visible en el navegador.
+5. **Vercel → Settings → Git:** confirmar que *Production Branch* sea `main`.
+
+### 20.3. Riesgos
+> [!WARNING]
+> - Mientras la base de datos de Neon no pase por una API intermedia, el despliegue en Vercel funcionará con `localStorage` (sin Neon). Es el mismo comportamiento que tenía Pages.
+> - Quien tenga guardada la URL de GitHub Pages dejará de poder acceder; los datos en `localStorage` pertenecen a cada dominio, por lo que los proyectos creados en `github.io` **no aparecen** automáticamente en Vercel. Antes de apagar Pages hay que usar *Descargar respaldo JSON* en cada proyecto e *Importar JSON* en Vercel.
+
+### 20.4. Registro de Historia de Usuario (`PST-094`)
+- **ID:** `PST-094`
+- **Módulo / Componente:** Infraestructura, Despliegue & DevOps
+- **Título:** Retiro de GitHub Pages y despliegue exclusivo en Vercel
+- **Historia de Usuario:** *Como responsable del sistema, quiero que la aplicación se publique únicamente en Vercel y no en GitHub Pages, para tener un único punto de acceso, evitar versiones duplicadas desactualizadas y centralizar la configuración y las variables de entorno.*
+- **Criterios de Aceptación:**
+  1. Eliminado el workflow de GitHub Pages; ningún `push` dispara el despliegue en Pages.
+  2. `vercel.json` y `base: '/'` versionados; el build de Vercel finaliza sin errores.
+  3. `README.md` apunta a la URL de Vercel.
+  4. Pages deshabilitado en GitHub y OAuth de Google actualizado a la nueva URL.
+  5. Proyectos migrados mediante respaldo e importación JSON antes de apagar Pages.
+- **Estado:** `Implementado / Producción`

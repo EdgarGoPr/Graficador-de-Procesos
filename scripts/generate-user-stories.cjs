@@ -843,6 +843,15 @@ function generateExcel() {
       criteriosAceptacion: '1. Sin referencias a isElectron, procesosStorage, MiAppProcesos_USB ni Explorador de Windows en src/.\n2. DatabaseConfigModal.tsx eliminado y ProjectDashboard.tsx sin código inalcanzable.\n3. setup-neon-db.cjs sin contraseña en el código y .env.example documentado.\n4. README.md actualizado a arquitectura web.\n5. npm run build sin errores y sin regresiones en guardado, carga, duplicado, borrado, importación y exportación de proyectos.',
       fechaImplementacion: '2026-10-30',
       estado: 'Implementado / Producción'
+    },
+    {
+      id: 'PST-094',
+      modulo: 'Infraestructura, Despliegue & DevOps',
+      titulo: 'Retiro de GitHub Pages y despliegue exclusivo en Vercel con restablecimiento garantizado de proyectos base (WiseCX)',
+      historiaUsuario: 'Como responsable del sistema, quiero que la aplicación se publique únicamente en Vercel y no en GitHub Pages, garantizando que los proyectos oficiales base (Gestión de Actas y Soporte WiseCX) estén siempre presentes, para tener un único punto de acceso en producción y evitar pérdidas de visibilidad.',
+      criteriosAceptacion: '1. Eliminado el workflow de GitHub Pages (.github/workflows/deploy.yml); ningún push dispara el despliegue en Pages.\n2. vercel.json y base: "/" versionados; el build de Vercel finaliza sin errores.\n3. README.md apunta a https://graficador-de-procesos.vercel.app/.\n4. StorageService.initializeStorage() garantiza la presencia del proyecto WiseCX (PRC-DGSTI-2026-001) en localStorage aunque el navegador ya tuviera un índice previo.',
+      fechaImplementacion: '2026-10-30',
+      estado: 'Implementado / Producción'
     }
   );
   console.log('📊 Generando archivo Excel de Historias de Usuario...');

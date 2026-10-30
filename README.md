@@ -2,7 +2,7 @@
 
 Aplicación web para el modelado, diagnóstico, compresión jerárquica y documentación técnica de procesos administrativos, sancionatorios y legales complejos.
 
-- **Acceso web:** https://edgargopr.github.io/Graficador-de-Procesos/
+- **Acceso web:** https://graficador-de-procesos.vercel.app/
 - **Manual de uso:** [`docs/MANUAL_DE_USO.pdf`](docs/MANUAL_DE_USO.pdf)
 
 ---
@@ -53,9 +53,7 @@ node --env-file=.env scripts/setup-neon-db.cjs
 
 ## 4. Despliegue
 
-El despliegue es automático con GitHub Actions (`.github/workflows/deploy.yml`): cada `git push` a `main` compila y publica en GitHub Pages.
-
-Configuración inicial: en GitHub, **Settings → Pages → Build and deployment → Source: GitHub Actions**.
+El despliegue en producción se realiza automáticamente en **Vercel** (`https://graficador-de-procesos.vercel.app/`) con cada `git push` a la rama `main`, utilizando la configuración declarada en [`vercel.json`](vercel.json).
 
 ---
 

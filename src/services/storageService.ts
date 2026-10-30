@@ -3,6 +3,7 @@ import { sampleProjects } from './defaultProjects';
 import { NeonClient } from './neonClient';
 import { PostgresStorageService } from './postgresStorageService';
 import { calculateTotalLeadTime } from './leadTimeCalculator';
+import { MasterCatalogsService } from './masterCatalogsService';
 
 /**
  * Portable POSIX-safe File Name Sanitizer
@@ -68,21 +69,28 @@ export class StorageService {
       return !isLegacy;
     });
 
-    // If storage was empty or uninitialized, seed with official default projects
-    if (!rawIndex || cleanFileNames.length === 0) {
-      const initialFiles: string[] = [];
-      for (const sample of sampleProjects) {
-        const filename = sanitizeFilename(
-          sample.documentControl.documentTitle,
-          sample.documentControl.version,
-          sample.documentControl.createdAt
-        );
+    // Ensure official default projects are present in local storage unless explicitly deleted to trash
+    const deletedFiles = new Set(
+      (MasterCatalogsService.getCatalogsSync().deletedProjects || []).map(p => p.fileName)
+    );
+    const updatedFiles = [...cleanFileNames];
+    let indexChanged = !rawIndex || cleanFileNames.length !== fileNames.length;
+
+    for (const sample of sampleProjects) {
+      const filename = sanitizeFilename(
+        sample.documentControl.documentTitle,
+        sample.documentControl.version,
+        sample.documentControl.createdAt
+      );
+      if (!updatedFiles.includes(filename) && !deletedFiles.has(filename)) {
         localStorage.setItem(LOCAL_STORAGE_KEY_PREFIX + filename, JSON.stringify({ ...sample, fileName: filename }));
-        initialFiles.push(filename);
+        updatedFiles.push(filename);
+        indexChanged = true;
       }
-      localStorage.setItem(LOCAL_STORAGE_INDEX_KEY, JSON.stringify(initialFiles));
-    } else if (cleanFileNames.length !== fileNames.length) {
-      localStorage.setItem(LOCAL_STORAGE_INDEX_KEY, JSON.stringify(cleanFileNames));
+    }
+
+    if (indexChanged) {
+      localStorage.setItem(LOCAL_STORAGE_INDEX_KEY, JSON.stringify(updatedFiles));
     }
   }
 
