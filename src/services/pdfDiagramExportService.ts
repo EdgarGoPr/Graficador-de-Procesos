@@ -10,7 +10,9 @@ export function calculateAutoFrames(
   format: PageFormat = 'A4',
   orientation: PageOrientation = 'landscape'
 ): PrintFrame[] {
-  const nodes = project.nodes || [];
+  // Exclude internal working notes (Sticky Notes)
+  const rawNodes = project.nodes || [];
+  const nodes = rawNodes.filter((n) => n.type !== 'StickyNote');
   if (nodes.length === 0) {
     const dim = DEFAULT_PAGE_DIMENSIONS[format][orientation];
     return [
@@ -83,6 +85,39 @@ export function calculateAutoFrames(
   return frames;
 }
 
+function escapeXml(str: any): string {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+}
+
+function wrapText(text: string, maxCharsPerLine: number, maxLines: number = 3): string[] {
+  if (!text) return [];
+  const words = text.trim().split(/\s+/);
+  const lines: string[] = [];
+  let currentLine = '';
+
+  for (const word of words) {
+    if ((currentLine + ' ' + word).trim().length <= maxCharsPerLine) {
+      currentLine = (currentLine + ' ' + word).trim();
+    } else {
+      if (currentLine) lines.push(currentLine);
+      currentLine = word;
+      if (lines.length >= maxLines - 1) break;
+    }
+  }
+  if (currentLine && lines.length < maxLines) {
+    lines.push(currentLine);
+  } else if (currentLine) {
+    lines[lines.length - 1] = lines[lines.length - 1] + '...';
+  }
+  return lines;
+}
+
 /**
  * Generates an SVG string representation of a specific cropped frame area of the process
  */
@@ -91,8 +126,12 @@ export function generateFrameSvg(
   frame: PrintFrame,
   themeMode: 'light' | 'dark' = 'light'
 ): string {
-  const nodes = project.nodes || [];
-  const edges = project.edges || [];
+  // Exclude internal working notes (Sticky Notes)
+  const rawNodes = project.nodes || [];
+  const nodes = rawNodes.filter((n) => n.type !== 'StickyNote');
+
+  const nodeMap = new Map(nodes.map((n) => [n.id, n]));
+  const edges = (project.edges || []).filter((e) => nodeMap.has(e.source) && nodeMap.has(e.target));
 
   const isDark = themeMode === 'dark';
   const bgColor = isDark ? '#0F172A' : '#FFFFFF';
@@ -138,7 +177,6 @@ export function generateFrameSvg(
     });
 
   // 2. Draw Connections (Edges)
-  const nodeMap = new Map(nodes.map((n) => [n.id, n]));
   edges.forEach((edge) => {
     const sNode = nodeMap.get(edge.source);
     const tNode = nodeMap.get(edge.target);
@@ -192,86 +230,156 @@ export function generateFrameSvg(
     }
   });
 
-  // 3. Draw Functional Nodes
+  // 3. Draw Authentic BPMN Functional Nodes
   nodes
     .filter((n) => n.type !== 'PoolLane')
     .forEach((node) => {
-      const nodeData = node.data as Record<string, any> | undefined;
-      const isSticky = node.type === 'StickyNote';
-      const w = (node.style?.width as number) || (node.measured?.width || node.width || (isSticky ? 220 : 210)) as number;
-      const h = (node.style?.height as number) || (node.measured?.height || node.height || (isSticky ? 140 : 120)) as number;
+      const nodeData = (node.data || {}) as Record<string, any>;
+      const w = (node.style?.width as number) || (node.measured?.width || node.width || 210) as number;
+      const h = (node.style?.height as number) || (node.measured?.height || node.height || 120) as number;
       const x = node.position.x;
       const y = node.position.y;
 
-      const rawTitle = String(nodeData?.title || 'Actividad');
-      const title = rawTitle.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-      const idCode = String(nodeData?.standardId || 'ID');
-      const rawRole = String(nodeData?.roleName || nodeData?.laneName || '');
-      const role = rawRole.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-      const rawSystem = String(nodeData?.itSystem || '');
-      const itSystem = rawSystem.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      const rawTitle = String(nodeData.title || '');
+      const idCode = String(nodeData.standardId || '');
+      const role = String(nodeData.responsible || nodeData.roleName || nodeData.laneName || '');
+      const itSystem = String(nodeData.itSystem || '');
+      const description = String(nodeData.description || '');
 
-      if (isSticky) {
-        const rawDesc = String(nodeData?.description || '');
-        const desc = rawDesc.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-        const relatedNode = nodeData?.relatedNodeId ? nodes.find((n) => n.id === nodeData.relatedNodeId) : null;
-        const relData = relatedNode?.data as Record<string, any> | undefined;
-        const effectiveResp = String(relData?.responsible || relData?.roleName || nodeData?.responsible || nodeData?.roleName || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-        svg += `  <g id="${node.id}" filter="url(#shadow_${frame.id})">
-    <rect x="${x}" y="${y}" width="${w}" height="${h}" rx="8" fill="#FEF08A" stroke="#EAB308" stroke-width="1.5" />
-    <text x="${x + 12}" y="${y + 22}" fill="#854D0E" font-weight="700" font-size="11.5">${title.substring(0, 26)}</text>
-    <text x="${x + 12}" y="${y + 42}" fill="#713F12" font-size="9.5">${desc.substring(0, 36)}</text>
-    ${desc.length > 36 ? `<text x="${x + 12}" y="${y + 56}" fill="#713F12" font-size="9.5">${desc.substring(36, 72)}</text>` : ''}
-    ${desc.length > 72 ? `<text x="${x + 12}" y="${y + 70}" fill="#713F12" font-size="9.5">${desc.substring(72, 108)}...</text>` : ''}
-    <text x="${x + 12}" y="${y + h - 12}" fill="#713F12" font-size="9" font-family="monospace">${effectiveResp ? `Resp: ${effectiveResp.substring(0, 24)}` : idCode}</text>
+      const isStart = node.type === 'StartEvent';
+      const isEnd = node.type === 'EndEvent';
+      const isGateway = node.type?.includes('Gateway');
+      const isSubprocess = node.type === 'SubProcess';
+
+      if (isStart) {
+        const cx = x + w / 2;
+        const cy = y + h / 2;
+        const r = Math.min(w, h) / 2 - 2;
+        const strokeColor = nodeData.customBorderColor || '#10B981';
+        const titleLines = wrapText(rawTitle, 16, 2);
+
+        svg += `  <g id="node_${node.id}" filter="url(#shadow_${frame.id})">
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="${nodeBg}" stroke="${strokeColor}" stroke-width="2.5" />
+    <circle cx="${cx}" cy="${cy - 12}" r="11" fill="#10B981" fill-opacity="0.18" />
+    <polygon points="${cx - 3},${cy - 16} ${cx + 5},${cy - 12} ${cx - 3},${cy - 8}" fill="#10B981" />
+    <text x="${cx}" y="${cy + 6}" text-anchor="middle" fill="#10B981" font-size="9" font-weight="bold" font-family="monospace">${escapeXml(idCode || 'INI')}</text>
+    ${titleLines[0] ? `<text x="${cx}" y="${cy + 17}" text-anchor="middle" fill="${textColor}" font-size="8.5" font-weight="500">${escapeXml(titleLines[0])}</text>` : ''}
+    ${titleLines[1] ? `<text x="${cx}" y="${cy + 27}" text-anchor="middle" fill="${textColor}" font-size="8.5" font-weight="500">${escapeXml(titleLines[1])}</text>` : ''}
+  </g>\n`;
+      } else if (isEnd) {
+        const cx = x + w / 2;
+        const cy = y + h / 2;
+        const r = Math.min(w, h) / 2 - 2;
+        const strokeColor = nodeData.customBorderColor || '#EF4444';
+        const titleLines = wrapText(rawTitle, 16, 2);
+
+        svg += `  <g id="node_${node.id}" filter="url(#shadow_${frame.id})">
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="${nodeBg}" stroke="${strokeColor}" stroke-width="3.5" />
+    <circle cx="${cx}" cy="${cy - 12}" r="11" fill="#EF4444" fill-opacity="0.18" />
+    <rect x="${cx - 4.5}" y="${cy - 16.5}" width="9" height="9" rx="1.5" fill="#EF4444" />
+    <text x="${cx}" y="${cy + 6}" text-anchor="middle" fill="#EF4444" font-size="9" font-weight="bold" font-family="monospace">${escapeXml(idCode || 'FIN')}</text>
+    ${titleLines[0] ? `<text x="${cx}" y="${cy + 17}" text-anchor="middle" fill="${textColor}" font-size="8.5" font-weight="500">${escapeXml(titleLines[0])}</text>` : ''}
+    ${titleLines[1] ? `<text x="${cx}" y="${cy + 27}" text-anchor="middle" fill="${textColor}" font-size="8.5" font-weight="500">${escapeXml(titleLines[1])}</text>` : ''}
+  </g>\n`;
+      } else if (isGateway) {
+        const cx = x + w / 2;
+        const diamondSize = 64;
+        const diamondTop = y + 4;
+        const diamondCenter = diamondTop + diamondSize / 2;
+        const strokeColor = nodeData.customBorderColor || '#F59E0B';
+        const isParallel = node.type?.includes('Parallel');
+
+        const pillW = Math.max(110, Math.min(w, 140));
+        const pillH = Math.max(38, h - diamondSize - 10);
+        const pillX = cx - pillW / 2;
+        const pillY = diamondTop + diamondSize + 6;
+        const titleLines = wrapText(rawTitle, 18, 2);
+
+        svg += `  <g id="node_${node.id}" filter="url(#shadow_${frame.id})">
+    <!-- Diamond -->
+    <polygon points="${cx},${diamondTop} ${cx + 32},${diamondCenter} ${cx},${diamondTop + diamondSize} ${cx - 32},${diamondCenter}" fill="${nodeBg}" stroke="${strokeColor}" stroke-width="2.5" />
+    ${
+      isParallel
+        ? `<!-- Plus icon -->
+    <line x1="${cx}" y1="${diamondCenter - 10}" x2="${cx}" y2="${diamondCenter + 10}" stroke="#F59E0B" stroke-width="3" stroke-linecap="round" />
+    <line x1="${cx - 10}" y1="${diamondCenter}" x2="${cx + 10}" y2="${diamondCenter}" stroke="#F59E0B" stroke-width="3" stroke-linecap="round" />`
+        : `<!-- X icon -->
+    <line x1="${cx - 8}" y1="${diamondCenter - 8}" x2="${cx + 8}" y2="${diamondCenter + 8}" stroke="#F59E0B" stroke-width="3" stroke-linecap="round" />
+    <line x1="${cx + 8}" y1="${diamondCenter - 8}" x2="${cx - 8}" y2="${diamondCenter + 8}" stroke="#F59E0B" stroke-width="3" stroke-linecap="round" />`
+    }
+    <!-- Label Pill under Diamond -->
+    <rect x="${pillX}" y="${pillY}" width="${pillW}" height="${pillH}" rx="6" fill="${nodeBg}" stroke="${gridColor}" stroke-width="1" />
+    <text x="${cx}" y="${pillY + 13}" text-anchor="middle" fill="#F59E0B" font-size="9" font-weight="bold" font-family="monospace">${escapeXml(idCode || (isParallel ? 'PAR' : 'GTW'))}</text>
+    ${titleLines[0] ? `<text x="${cx}" y="${pillY + 24}" text-anchor="middle" fill="${textColor}" font-size="9.5" font-weight="500">${escapeXml(titleLines[0])}</text>` : ''}
+    ${titleLines[1] ? `<text x="${cx}" y="${pillY + 34}" text-anchor="middle" fill="${textColor}" font-size="9.5" font-weight="500">${escapeXml(titleLines[1])}</text>` : ''}
   </g>\n`;
       } else {
-        const isStart = node.type === 'StartEvent';
-        const isEnd = node.type === 'EndEvent';
-        const isGateway = node.type?.includes('Gateway');
-        const isQuality = node.type === 'QualityCheckpointEvent';
-        const isSubprocess = node.type === 'SubProcess';
-
+        // Task or SubProcess Card
         let strokeColor = '#0284C7';
         let headerBg = '#0284C7';
-        let headerTextColor = '#FFFFFF';
+        let headerTextColor = isDark ? '#38BDF8' : '#0284C7';
+        let badgeLabel = 'User Task';
 
-        if (isStart) {
-          strokeColor = '#10B981';
-          headerBg = '#059669';
-        } else if (isEnd) {
-          strokeColor = '#EF4444';
-          headerBg = '#DC2626';
-        } else if (isGateway) {
-          strokeColor = '#F59E0B';
-          headerBg = '#D97706';
-        } else if (isQuality) {
-          strokeColor = '#8B5CF6';
-          headerBg = '#7C3AED';
-        } else if (isSubprocess) {
+        if (isSubprocess) {
           strokeColor = '#6366F1';
-          headerBg = '#4F46E5';
+          headerBg = '#6366F1';
+          headerTextColor = isDark ? '#A5B4FC' : '#4F46E5';
+          badgeLabel = 'Subproceso';
+        } else if (nodeData.nodeType === 'SERVICE_TASK') {
+          strokeColor = '#06B6D4';
+          headerBg = '#06B6D4';
+          headerTextColor = isDark ? '#67E8F9' : '#0891B2';
+          badgeLabel = 'Service Task';
+        } else if (nodeData.nodeType === 'MANUAL_TASK') {
+          strokeColor = '#F59E0B';
+          headerBg = '#F59E0B';
+          headerTextColor = isDark ? '#FCD34D' : '#D97706';
+          badgeLabel = 'Manual Task';
         }
 
-        if (nodeData?.customBorderColor) strokeColor = nodeData.customBorderColor;
-        if (nodeData?.customHeaderBgColor) headerBg = nodeData.customHeaderBgColor;
+        if (nodeData.customBorderColor) strokeColor = nodeData.customBorderColor;
+        if (nodeData.customHeaderBgColor) headerBg = nodeData.customHeaderBgColor;
 
-        svg += `  <g id="${node.id}" filter="url(#shadow_${frame.id})">
-    <rect x="${x}" y="${y}" width="${w}" height="${h}" rx="10" fill="${nodeBg}" stroke="${strokeColor}" stroke-width="1.8" />
-    <path d="M ${x} ${y + 10} Q ${x} ${y} ${x + 10} ${y} L ${x + w - 10} ${y} Q ${x + w} ${y} ${x + w} ${y + 10} L ${x + w} ${y + 26} L ${x} ${y + 26} Z" fill="${headerBg}" />
-    <text x="${x + 8}" y="${y + 17}" fill="${headerTextColor}" font-weight="700" font-size="9.5" font-family="monospace">${idCode}</text>
-    <text x="${x + w - 8}" y="${y + 17}" text-anchor="end" fill="${headerTextColor}" font-size="8.5" font-weight="500">${role.substring(0, 18)}</text>
+        const badgeW = badgeLabel.length * 6 + 14;
+        const titleLines = wrapText(rawTitle || 'Sin título', 26, 2);
+        const descLines = wrapText(description, 32, 2);
+
+        svg += `  <g id="node_${node.id}" filter="url(#shadow_${frame.id})">
+    <!-- Card Frame -->
+    <rect x="${x}" y="${y}" width="${w}" height="${h}" rx="12" fill="${nodeBg}" stroke="${strokeColor}" stroke-width="1.8" />
     
+    <!-- Header -->
+    <path d="M ${x} ${y + 12} A 12 12 0 0 1 ${x + 12} ${y} L ${x + w - 12} ${y} A 12 12 0 0 1 ${x + w} ${y + 12} L ${x + w} ${y + 26} L ${x} ${y + 26} Z" fill="${headerBg}" fill-opacity="${isDark ? 0.18 : 0.12}" />
+    <line x1="${x}" y1="${y + 26}" x2="${x + w}" y2="${y + 26}" stroke="${gridColor}" stroke-width="0.8" />
+
+    <!-- Standard ID -->
+    <text x="${x + 10}" y="${y + 17}" fill="${headerTextColor}" font-size="9.5" font-weight="bold" font-family="monospace">${escapeXml(idCode)}</text>
+
+    <!-- Badge -->
+    <rect x="${x + w - badgeW - 8}" y="${y + 6}" width="${badgeW}" height="15" rx="7.5" fill="${headerBg}" fill-opacity="${isDark ? 0.25 : 0.15}" stroke="${strokeColor}" stroke-width="0.8" stroke-opacity="0.5" />
+    <text x="${x + w - badgeW / 2 - 8}" y="${y + 17}" text-anchor="middle" fill="${headerTextColor}" font-size="8.5" font-weight="600">${escapeXml(badgeLabel)}</text>
+
     <!-- Title -->
-    <text x="${x + 10}" y="${y + 44}" fill="${textColor}" font-weight="700" font-size="10.5">${title.substring(0, 24)}</text>
-    ${title.length > 24 ? `<text x="${x + 10}" y="${y + 58}" fill="${textColor}" font-weight="700" font-size="10.5">${title.substring(24, 48)}</text>` : ''}
-    ${title.length > 48 ? `<text x="${x + 10}" y="${y + 72}" fill="${textColor}" font-weight="700" font-size="10.5">${title.substring(48, 72)}...</text>` : ''}
-    
-    <!-- Footer Tag: System -->
-    ${itSystem ? `
-    <rect x="${x + 8}" y="${y + h - 20}" width="${Math.min(itSystem.length * 6 + 12, w - 16)}" height="14" rx="4" fill="${isDark ? '#334155' : '#F1F5F9'}" />
-    <text x="${x + 12}" y="${y + h - 10}" fill="${textMutedColor}" font-size="8" font-weight="600">${itSystem.substring(0, 20)}</text>
-    ` : ''}
+    ${titleLines[0] ? `<text x="${x + 10}" y="${y + 42}" fill="${textColor}" font-size="11" font-weight="bold">${escapeXml(titleLines[0])}</text>` : ''}
+    ${titleLines[1] ? `<text x="${x + 10}" y="${y + 55}" fill="${textColor}" font-size="11" font-weight="bold">${escapeXml(titleLines[1])}</text>` : ''}
+
+    <!-- Description -->
+    ${descLines[0] ? `<text x="${x + 10}" y="${y + 70}" fill="${textMutedColor}" font-size="9">${escapeXml(descLines[0])}</text>` : ''}
+    ${descLines[1] ? `<text x="${x + 10}" y="${y + 82}" fill="${textMutedColor}" font-size="9">${escapeXml(descLines[1])}</text>` : ''}
+
+    <!-- Footer Divider & Meta -->
+    <line x1="${x + 10}" y1="${y + h - 22}" x2="${x + w - 10}" y2="${y + h - 22}" stroke="${gridColor}" stroke-width="0.8" />
+    ${itSystem ? `<text x="${x + 10}" y="${y + h - 9}" fill="#0284C7" font-size="8.5">⚙️ ${escapeXml(itSystem)}</text>` : ''}
+    ${role ? `<text x="${x + w - 10}" y="${y + h - 9}" text-anchor="end" fill="#6366F1" font-size="8.5">👤 ${escapeXml(role)}</text>` : ''}
+
+    ${
+      isSubprocess
+        ? `<!-- SubProcess [+] Marker -->
+    <rect x="${x + w / 2 - 8}" y="${y + h - 7}" width="16" height="14" rx="2" fill="${nodeBg}" stroke="${strokeColor}" stroke-width="1.5" />
+    <line x1="${x + w / 2 - 4}" y1="${y + h}" x2="${x + w / 2 + 4}" y2="${y + h}" stroke="${strokeColor}" stroke-width="1.5" />
+    <line x1="${x + w / 2}" y1="${y + h - 4}" x2="${x + w / 2}" y2="${y + h + 4}" stroke="${strokeColor}" stroke-width="1.5" />`
+        : ''
+    }
   </g>\n`;
       }
     });
@@ -283,7 +391,7 @@ export function generateFrameSvg(
 /**
  * Converts an SVG string to a high-resolution PNG data URL
  */
-async function svgToDataUrl(svgString: string, width: number, height: number, scale: number = 2.5): Promise<string> {
+async function svgToDataUrl(svgString: string, width: number, height: number, scale: number = 3): Promise<string> {
   return new Promise((resolve, reject) => {
     const img = new Image();
     const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
@@ -403,7 +511,7 @@ export async function exportMultiPageDiagramPdf(
 
     // 2. Render and draw the cropped Frame SVG
     const svgString = generateFrameSvg(project, frame, themeMode);
-    const imgDataUrl = await svgToDataUrl(svgString, frame.width, frame.height, 2.5);
+    const imgDataUrl = await svgToDataUrl(svgString, frame.width, frame.height, 3);
 
     pdf.addImage(
       imgDataUrl,

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useCanvasStore } from '../../store/useCanvasStore';
 import { useProjectStore } from '../../store/useProjectStore';
 import { useUiStore } from '../../store/useUiStore';
+import { useAuthStore } from '../../store/useAuthStore';
 import {
   X,
   Trash2,
@@ -82,6 +83,9 @@ export const PropertiesPanel: React.FC = () => {
 
   const { currentProject } = useProjectStore();
   const { setActiveRightTab, openSubProcessDetail, showNotification, setManageLanesModalOpen } = useUiStore();
+  const { currentCanvasPermission } = useAuthStore();
+  const isReadOnly = currentCanvasPermission === 'READ_ONLY';
+  const isComments = currentCanvasPermission === 'COMMENTS';
 
   const [activeSection, setActiveSection] = useState<'content' | 'style'>('content');
   const [cardStyleScope, setCardStyleScope] = useState<'single' | 'same_type' | 'all'>('single');
@@ -135,6 +139,7 @@ export const PropertiesPanel: React.FC = () => {
     const currentStroke = edge.data?.strokeColor || '#38BDF8';
     const currentWidth = edge.data?.strokeWidth || 2;
     const isAnimated = edge.data?.isAnimated || false;
+    const isEdgeEditable = !isReadOnly && !isComments;
 
     return (
       <div className="flex-1 h-full bg-theme-surface flex flex-col select-none overflow-y-auto transition-colors">
@@ -149,17 +154,30 @@ export const PropertiesPanel: React.FC = () => {
             </div>
           </div>
           <div className="flex items-center space-x-1">
-            <button
-              onClick={() => deleteSelected()}
-              title="Eliminar flujo"
-              className="p-1.5 rounded hover:bg-[#EF4444]/15 text-[#EF4444] transition-colors"
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
+            {isEdgeEditable && (
+              <button
+                onClick={() => deleteSelected()}
+                title="Eliminar flujo"
+                className="p-1.5 rounded hover:bg-[#EF4444]/15 text-[#EF4444] transition-colors"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            )}
           </div>
         </div>
 
-        <div className="p-4 space-y-4 text-xs">
+        {!isEdgeEditable && (
+          <div className="mx-3 mt-3 p-2.5 rounded-lg bg-sky-500/10 border border-sky-500/25 flex items-center space-x-2 text-sky-400 text-xs">
+            <Lock className="w-4 h-4 shrink-0" />
+            <span>
+              {isReadOnly
+                ? 'Modo Solo Lectura: Las transiciones están bloqueadas para edición.'
+                : 'Modo Comentarios: Las transiciones están bloqueadas para edición.'}
+            </span>
+          </div>
+        )}
+
+        <div className={`p-4 space-y-4 text-xs ${!isEdgeEditable ? 'pointer-events-none opacity-75 cursor-not-allowed select-text' : ''}`}>
           {/* Conexión origen -> destino */}
           <div className="space-y-2">
             <label className="text-[10px] font-bold uppercase tracking-wider text-theme-text-muted font-mono">
@@ -591,6 +609,7 @@ export const PropertiesPanel: React.FC = () => {
 
   const customBg = data.customBgColor || '';
   const customBorder = data.customBorderColor || '';
+  const isNodeEditable = !isReadOnly && (!isComments || node.type === 'StickyNote');
 
   return (
     <div className="flex-1 h-full bg-theme-surface flex flex-col select-none overflow-y-auto transition-colors">
@@ -606,15 +625,28 @@ export const PropertiesPanel: React.FC = () => {
           </div>
         </div>
         <div className="flex items-center space-x-1">
-          <button
-            onClick={() => deleteSelected()}
-            title="Eliminar elemento"
-            className="p-1.5 rounded hover:bg-[#EF4444]/15 text-[#EF4444] transition-colors"
-          >
-            <Trash2 className="w-4 h-4" />
-          </button>
+          {isNodeEditable && (
+            <button
+              onClick={() => deleteSelected()}
+              title="Eliminar elemento"
+              className="p-1.5 rounded hover:bg-[#EF4444]/15 text-[#EF4444] transition-colors"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          )}
         </div>
       </div>
+
+      {!isNodeEditable && (
+        <div className="mx-3 mt-3 p-2.5 rounded-lg bg-sky-500/10 border border-sky-500/25 flex items-center space-x-2 text-sky-400 text-xs">
+          <Lock className="w-4 h-4 shrink-0" />
+          <span>
+            {isReadOnly
+              ? 'Modo Solo Lectura: Las propiedades están bloqueadas para edición.'
+              : 'Modo Comentarios: Solo se permite la edición de Notas Adhesivas.'}
+          </span>
+        </div>
+      )}
 
       {/* Tab Switcher: Contenido vs Estilo */}
       <div className="flex border-b border-theme-border bg-theme-surface-subtle/60 p-1 gap-1">
@@ -645,7 +677,7 @@ export const PropertiesPanel: React.FC = () => {
       </div>
 
       {/* Form Content */}
-      <div className="p-4 space-y-4 text-xs">
+      <div className={`p-4 space-y-4 text-xs ${!isNodeEditable ? 'pointer-events-none opacity-75 cursor-not-allowed select-text' : ''}`}>
         {/* SECCIÓN ESTILO Y APARIENCIA */}
         {activeSection === 'style' && (
           <div className="space-y-4">

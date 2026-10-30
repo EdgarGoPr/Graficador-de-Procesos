@@ -75,6 +75,10 @@ const ProcessCanvasInternal: React.FC = () => {
     copySelection,
     pasteSelection,
     selectedNodeIds,
+    selectedNodeId,
+    selectedEdgeId,
+    enterSubProcess,
+    getActiveGraph,
     isCanvasLocked,
     subProcessPath
   } = useCanvasStore();
@@ -153,6 +157,15 @@ const ProcessCanvasInternal: React.FC = () => {
     [selectNode, setPropertiesPanelOpen]
   );
 
+  const handleNodeDoubleClick = useCallback(
+    (_event: React.MouseEvent, node: any) => {
+      if (node.type === 'SubProcess') {
+        enterSubProcess(node.id);
+      }
+    },
+    [enterSubProcess]
+  );
+
   const onEdgeClick = useCallback(
     (_: React.MouseEvent, edge: any) => {
       selectEdge(edge.id);
@@ -199,11 +212,15 @@ const ProcessCanvasInternal: React.FC = () => {
           return;
         }
         if (currentCanvasPermission === 'COMMENTS') {
-          const currentNodes = currentProject?.nodes || [];
-          const nonSticky = currentNodes.some(
-            (n) => selectedNodeIds.includes(n.id) && n.type !== 'StickyNote'
+          const active = getActiveGraph();
+          const targetIds = selectedNodeIds.length > 0 ? selectedNodeIds : (selectedNodeId ? [selectedNodeId] : []);
+          const hasNonSticky = targetIds.some(
+            (id) => {
+              const n = active.nodes.find((item) => item.id === id);
+              return n && n.type !== 'StickyNote';
+            }
           );
-          if (nonSticky) {
+          if (hasNonSticky || selectedEdgeId) {
             showNotification('En modo Comentarios solo puedes eliminar Notas Adhesivas.', 'warning');
             return;
           }
@@ -553,12 +570,12 @@ const ProcessCanvasInternal: React.FC = () => {
 
       {/* Permission Mode Pill Indicator */}
       {!concurrencyConflictNotice && isReadOnly && (
-        <div className="absolute top-3 left-1/2 -translate-x-1/2 z-40 bg-sky-600/90 text-white text-[11px] font-semibold px-3 py-1 rounded-full shadow-lg border border-sky-400/40 backdrop-blur-md flex items-center space-x-1.5 pointer-events-none">
+        <div className="absolute bottom-5 left-1/2 -translate-x-1/2 z-30 bg-sky-600/90 text-white text-[11px] font-semibold px-3 py-1 rounded-full shadow-lg border border-sky-400/40 backdrop-blur-md flex items-center space-x-1.5 pointer-events-none">
           <span>👁️ Modo Solo Lectura (Inspección y Exportación)</span>
         </div>
       )}
       {!concurrencyConflictNotice && isComments && (
-        <div className="absolute top-3 left-1/2 -translate-x-1/2 z-40 bg-amber-600/90 text-white text-[11px] font-semibold px-3 py-1 rounded-full shadow-lg border border-amber-400/40 backdrop-blur-md flex items-center space-x-1.5 pointer-events-none">
+        <div className="absolute bottom-5 left-1/2 -translate-x-1/2 z-30 bg-amber-600/90 text-white text-[11px] font-semibold px-3 py-1 rounded-full shadow-lg border border-amber-400/40 backdrop-blur-md flex items-center space-x-1.5 pointer-events-none">
           <span>💬 Modo Comentarios (Solo Inserción de Notas Adhesivas)</span>
         </div>
       )}
@@ -570,6 +587,7 @@ const ProcessCanvasInternal: React.FC = () => {
         onEdgesChange={onEdgesChange}
         onConnect={handleConnect}
         onNodeClick={onNodeClick}
+        onNodeDoubleClick={handleNodeDoubleClick}
         onEdgeClick={onEdgeClick}
         onPaneClick={onPaneClick}
         onNodeDragStart={onNodeDragStart}
@@ -583,6 +601,7 @@ const ProcessCanvasInternal: React.FC = () => {
         multiSelectionKeyCode={['Shift']}
         nodesDraggable={!isCanvasLocked && !isReadOnly}
         nodesConnectable={!isCanvasLocked && !isReadOnly && !isComments}
+        deleteKeyCode={isReadOnly ? null : (isComments ? null : ['Backspace', 'Delete'])}
         elementsSelectable={true}
         panOnDrag={true}
         panOnScroll={true}

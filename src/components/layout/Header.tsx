@@ -28,7 +28,6 @@ import {
   Flame,
   GitCompare,
   ArrowDownToLine,
-  Tv,
   ChevronDown,
   Sparkles,
   Check,
@@ -36,7 +35,6 @@ import {
   Users,
   Pencil,
   Wand2,
-  GraduationCap,
   Search
 } from 'lucide-react';
 
@@ -65,12 +63,9 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
     setExportCenterModalOpen,
     setSimulationModalOpen,
     setVersionDiffModalOpen,
-    setPresentationModalOpen,
     setDocumentationModalOpen,
     setTextToDiagramModalOpen,
     setCommandPaletteOpen,
-    setTutorialModalOpen,
-    setInteractiveTourActive,
     showNotification,
     isPropertiesPanelOpen,
     setPropertiesPanelOpen,
@@ -180,16 +175,11 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
       ) {
         e.preventDefault();
         handleRedo();
-      } else if (e.key === 'F5' || ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'p' || e.key === 'P'))) {
-        if (canAccessToolsMenu) {
-          e.preventDefault();
-          setPresentationModalOpen(true);
-        }
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [currentProject, hasUnsavedChanges, canUndo, canRedo, undo, redo, setPresentationModalOpen, canAccessToolsMenu]);
+  }, [currentProject, hasUnsavedChanges, canUndo, canRedo, undo, redo, canAccessToolsMenu]);
 
   const handleSave = async () => {
     if (!currentProject) return;
@@ -509,28 +499,6 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
                         </div>
                       </button>
 
-                      {/* Prezi Presentation */}
-                      <button
-                        onClick={() => {
-                          setPresentationModalOpen(true);
-                          setIsToolsMenuOpen(false);
-                        }}
-                        className="w-full flex items-center justify-between px-3 py-2 text-xs hover:bg-theme-surface-subtle transition-colors text-left text-theme-text group cursor-pointer"
-                      >
-                        <div className="flex items-center space-x-2.5">
-                          <Tv className="w-4 h-4 text-theme-accent group-hover:scale-110 transition-transform" />
-                          <div>
-                            <div className="font-bold flex items-center space-x-1.5">
-                              <span>Presentación (Prezi)</span>
-                            </div>
-                            <div className="text-[10px] text-theme-text-muted">Paseo dinámico paso a paso</div>
-                          </div>
-                        </div>
-                        <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-theme-surface-subtle border border-theme-border text-theme-text-muted">
-                          F5
-                        </span>
-                      </button>
-
                       {/* Quality Audit Linter */}
                       <button
                         onClick={() => {
@@ -626,42 +594,6 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
                       )}
                     </>
                   )}
-
-                  {/* Tutorial y Centro de Aprendizaje dentro de Herramientas */}
-                  <button
-                    onClick={() => {
-                      setTutorialModalOpen(true);
-                      setIsToolsMenuOpen(false);
-                    }}
-                    className={`w-full flex items-center justify-between px-3 py-2 text-xs hover:bg-theme-surface-subtle transition-colors text-left text-theme-text group cursor-pointer ${
-                      currentProject ? 'border-t border-theme-border/60 mt-1 pt-1.5' : ''
-                    }`}
-                  >
-                    <div className="flex items-center space-x-2.5">
-                      <GraduationCap className="w-4 h-4 text-amber-400 group-hover:scale-110 transition-transform" />
-                      <div>
-                        <div className="font-bold text-amber-400">Tutorial y Guía de Uso</div>
-                        <div className="text-[10px] text-theme-text-muted">Centro de aprendizaje y guía rápida</div>
-                      </div>
-                    </div>
-                  </button>
-
-                  {/* Iniciar Tour Guiado Interactivo */}
-                  <button
-                    onClick={() => {
-                      setInteractiveTourActive(true);
-                      setIsToolsMenuOpen(false);
-                    }}
-                    className="w-full flex items-center justify-between px-3 py-2 text-xs hover:bg-theme-surface-subtle transition-colors text-left text-theme-text group cursor-pointer"
-                  >
-                    <div className="flex items-center space-x-2.5">
-                      <Sparkles className="w-4 h-4 text-emerald-400 group-hover:scale-110 transition-transform" />
-                      <div>
-                        <div className="font-semibold text-emerald-400">Tour Guiado Interactivo</div>
-                        <div className="text-[10px] text-theme-text-muted">Recorrido paso a paso en pantalla</div>
-                      </div>
-                    </div>
-                  </button>
                 </div>
               )}
             </div>
@@ -768,9 +700,11 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
                   }
                 >
                   <Save className="w-3.5 h-3.5" />
-                  <span className="hidden md:inline">
-                    {isSaving ? 'Guardando...' : hasUnsavedChanges ? 'Guardar' : 'Guardado'}
-                  </span>
+                  {(isSaving || hasUnsavedChanges) && (
+                    <span className="hidden md:inline">
+                      {isSaving ? 'Guardando...' : 'Guardar'}
+                    </span>
+                  )}
                 </button>
               )}
             </div>
@@ -785,10 +719,10 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
                   ? 'px-3 py-1.5 bg-theme-accent/15 hover:bg-theme-accent hover:text-white border-theme-accent/30 text-theme-accent shadow-sm'
                   : 'p-1.5 bg-theme-surface-subtle hover:bg-theme-surface text-theme-text hover:text-theme-accent border-theme-border/80'
               }`}
-              title="Crear un nuevo proyecto de proceso"
+              title="Crear un nuevo proyecto"
             >
               <Plus className="w-3.5 h-3.5" />
-              {!currentProject && <span className="hidden sm:inline">Nuevo Proceso</span>}
+              {!currentProject && <span className="hidden sm:inline">Nuevo Proyecto</span>}
             </button>
           )}
 

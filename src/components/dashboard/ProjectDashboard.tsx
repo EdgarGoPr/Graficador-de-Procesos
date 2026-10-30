@@ -164,7 +164,7 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ onOpenNewMod
               Gestor de Proyectos de Procesos
             </h1>
             <p className="text-sm text-theme-text-muted mt-1 max-w-2xl">
-              Modelado, visualización y auditoría de procesos BPMN 2.0 e ISO 9001:2015.
+              Modelado, visualización y auditoría de procesos
             </p>
           </div>
 
@@ -226,9 +226,7 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ onOpenNewMod
           <div className="flex items-center space-x-2 text-xs text-theme-text-muted font-mono">
             <Layers className="w-3.5 h-3.5 text-theme-accent" />
             <span>
-              {currentUser?.role === 'USER'
-                ? `${filteredGroups.length} proceso${filteredGroups.length === 1 ? '' : 's'} disponible${filteredGroups.length === 1 ? '' : 's'}`
-                : `${filteredGroups.length} proceso${filteredGroups.length === 1 ? '' : 's'} (${projectList.length} archivo${projectList.length === 1 ? '' : 's'} en disco)`}
+              {`${filteredGroups.length} proyecto${filteredGroups.length === 1 ? '' : 's'} disponible${filteredGroups.length === 1 ? '' : 's'}`}
             </span>
           </div>
         </div>

@@ -14,6 +14,7 @@ import { BpmnNodeData, BpmnNodeType, SequenceFlowData, BPMN_NODE_TYPES } from '.
 import { PrintFrame, PageFormat, PageOrientation, DEFAULT_PAGE_DIMENSIONS } from '../types/printFrame';
 import { calculateAutoFrames } from '../services/pdfDiagramExportService';
 import { useProjectStore } from './useProjectStore';
+import { useAuthStore } from './useAuthStore';
 import {
   validateSubProcessCompression,  compressNodesInGraph,
   decompressSubProcessInGraph,
@@ -351,7 +352,12 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
     const targetNode = active.nodes.find((n) => n.id === nodeId);
     if (!targetNode) return;
 
-    useProjectStore.getState().pushSnapshot(`Ingresar al subproceso ${targetNode.data.title}`);
+    const { currentCanvasPermission } = useAuthStore.getState();
+    const isReadOnly = currentCanvasPermission === 'READ_ONLY';
+
+    if (!isReadOnly) {
+      useProjectStore.getState().pushSnapshot(`Ingresar al subproceso ${targetNode.data.title}`);
+    }
 
     const newPathItem: SubProcessPathItem = {
       id: targetNode.id,
@@ -362,8 +368,10 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
 
     // Ensure child canvas is initialized in project
     const subGraph = getGraphForPath(project, nextPath);
-    const updatedProject = updateGraphForPath(project, nextPath, subGraph.nodes, subGraph.edges);
-    useProjectStore.getState().setProjectData(updatedProject);
+    if (!isReadOnly) {
+      const updatedProject = updateGraphForPath(project, nextPath, subGraph.nodes, subGraph.edges);
+      useProjectStore.getState().setProjectData(updatedProject);
+    }
 
     set({
       subProcessPath: nextPath,
@@ -559,18 +567,29 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
 
     const { isCanvasLocked } = get();
     const activeGraph = get().getActiveGraph();
+    const { currentCanvasPermission } = useAuthStore.getState();
+    const isReadOnly = currentCanvasPermission === 'READ_ONLY';
+    const isComments = currentCanvasPermission === 'COMMENTS';
 
-    // Filter out drag position changes if canvas is locked or if the specific node is locked
+    // Filter out forbidden removals and drag position changes
     const validChanges = changes.filter((change) => {
+      if (change.type === 'remove') {
+        if (isReadOnly) return false;
+        if (isComments) {
+          const targetNode = activeGraph.nodes.find((n) => n.id === change.id);
+          if (targetNode?.type !== 'StickyNote') return false;
+        }
+      }
       if (change.type === 'position' && change.dragging) {
-        if (isCanvasLocked) return false;
+        if (isCanvasLocked || isReadOnly) return false;
         const draggingNode = activeGraph.nodes.find((n) => n.id === change.id);
         if (draggingNode?.data?.isLocked) return false;
+        if (isComments && draggingNode?.type !== 'StickyNote') return false;
       }
       return true;
     });
 
-    // Apply Real Magnetic Snapping during drag    const LANE_SNAP = 25;
+    // Apply Real Magnetic Snapping during drag    const LANE_SNAP = 25;
     const modifiedChanges = validChanges.map((change) => {
       if (change.type === 'position' && change.position && change.dragging) {
         const draggingNode = activeGraph.nodes.find((n) => n.id === change.id);
@@ -656,8 +675,19 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
   },
 
   onEdgesChange: (changes) => {
+    const { currentCanvasPermission } = useAuthStore.getState();
+    const isReadOnly = currentCanvasPermission === 'READ_ONLY';
+    const isComments = currentCanvasPermission === 'COMMENTS';
+
+    const validChanges = changes.filter((change) => {
+      if (change.type === 'remove' && (isReadOnly || isComments)) {
+        return false;
+      }
+      return true;
+    });
+
     const activeGraph = get().getActiveGraph();
-    const nextEdges = applyEdgeChanges(changes, activeGraph.edges);
+    const nextEdges = applyEdgeChanges(validChanges, activeGraph.edges);
     get().setActiveGraph(activeGraph.nodes, nextEdges);
   },
 
@@ -887,6 +917,10 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
   },
 
   decompressSubProcess: (subProcessNodeId: string) => {
+    const { currentCanvasPermission } = useAuthStore.getState();
+    if (currentCanvasPermission === 'READ_ONLY' || currentCanvasPermission === 'COMMENTS') {
+      return { success: false, error: 'Acción no permitida en modo Solo Lectura o Comentarios' };
+    }
     const projectStore = useProjectStore.getState();
     const currentProject = projectStore.currentProject;
     if (!currentProject) {
@@ -1294,8 +1328,15 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
   },
 
   updateNodeData: (nodeId: string, updates: Partial<BpmnNodeData>) => {
-    useProjectStore.getState().pushSnapshot('Modificar elemento');
+    const { currentCanvasPermission } = useAuthStore.getState();
+    if (currentCanvasPermission === 'READ_ONLY') return;
+
     const active = get().getActiveGraph();
+    const targetNode = active.nodes.find((n) => n.id === nodeId);
+    if (!targetNode) return;
+    if (currentCanvasPermission === 'COMMENTS' && targetNode.type !== 'StickyNote') return;
+
+    useProjectStore.getState().pushSnapshot('Modificar elemento');
     const nextNodes = active.nodes.map((node) => {
       if (node.id === nodeId) {
         return {
@@ -1359,6 +1400,14 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
   },
 
   applyCardStyleToScope: (targetNodeId: string, scope: 'single' | 'same_type' | 'all', styleChanges: Partial<BpmnNodeData>) => {
+    const { currentCanvasPermission } = useAuthStore.getState();
+    if (currentCanvasPermission === 'READ_ONLY') return;
+
+    const activeGraph = get().getActiveGraph();
+    const target = activeGraph.nodes.find((n) => n.id === targetNodeId);
+    if (!target && scope !== 'all') return;
+    if (currentCanvasPermission === 'COMMENTS' && target?.type !== 'StickyNote') return;
+
     const projectStore = useProjectStore.getState();
     const project = projectStore.currentProject;
     if (!project) return;
@@ -1476,6 +1525,9 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
   },
 
   updateEdgeData: (edgeId: string, updates: Partial<SequenceFlowData>, pushSnapshot: boolean = true) => {
+    const { currentCanvasPermission } = useAuthStore.getState();
+    if (currentCanvasPermission === 'READ_ONLY' || currentCanvasPermission === 'COMMENTS') return;
+
     if (pushSnapshot) {
       useProjectStore.getState().pushSnapshot('Modificar conector');
     }
@@ -1500,6 +1552,9 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
   },
 
   bulkUpdateNodeColors: (filter, colors) => {
+    const { currentCanvasPermission } = useAuthStore.getState();
+    if (currentCanvasPermission === 'READ_ONLY' || currentCanvasPermission === 'COMMENTS') return;
+
     const projectStore = useProjectStore.getState();
     const currentProject = projectStore.currentProject;
     if (!currentProject) return;
@@ -1560,6 +1615,12 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
 
   deleteSelected: () => {
     const { selectedNodeIds, selectedNodeId, selectedEdgeId } = get();
+    const { currentCanvasPermission } = useAuthStore.getState();
+    const isReadOnly = currentCanvasPermission === 'READ_ONLY';
+    const isComments = currentCanvasPermission === 'COMMENTS';
+
+    if (isReadOnly) return;
+
     const projectStore = useProjectStore.getState();
     const currentProject = projectStore.currentProject;
     if (!currentProject) return;
@@ -1567,9 +1628,17 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
     const targetNodeIds = selectedNodeIds.length > 0 ? selectedNodeIds : (selectedNodeId ? [selectedNodeId] : []);
 
     if (targetNodeIds.length > 0) {
+      const active = get().getActiveGraph();
+      if (isComments) {
+        const hasNonSticky = targetNodeIds.some((id) => {
+          const n = active.nodes.find((item) => item.id === id);
+          return n && n.type !== 'StickyNote';
+        });
+        if (hasNonSticky) return;
+      }
+
       projectStore.pushSnapshot('Eliminar selección');
       const deleteSet = new Set(targetNodeIds);
-      const active = get().getActiveGraph();
       const nextNodes = active.nodes
         .filter((n) => !deleteSet.has(n.id))
         .map((n) => {
@@ -1590,6 +1659,7 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
       get().setActiveGraph(nextNodes, nextEdges);
       set({ selectedNodeId: null, selectedNodeIds: [] });
     } else if (selectedEdgeId) {
+      if (isComments) return;
       useProjectStore.getState().pushSnapshot('Eliminar conector');
       const active = get().getActiveGraph();
       const nextEdges = active.edges.filter(e => e.id !== selectedEdgeId);
@@ -1753,6 +1823,9 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
   },
 
   deleteLane: (laneId: string) => {
+    const { currentCanvasPermission } = useAuthStore.getState();
+    if (currentCanvasPermission === 'READ_ONLY' || currentCanvasPermission === 'COMMENTS') return;
+
     const projectStore = useProjectStore.getState();
     const currentProject = projectStore.currentProject;
     if (!currentProject || !currentProject.pools[0]?.lanes) return;

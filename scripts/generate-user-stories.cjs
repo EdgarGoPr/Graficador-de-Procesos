@@ -870,6 +870,15 @@ function generateExcel() {
       criteriosAceptacion: '1. Eliminadas las funciones wrapper sin uso compressNodesToSubProcess y decompressSubProcessToCanvas en subprocessService.ts.\n2. Eliminadas las 120 declaraciones/imports locales sin uso en servicios, stores y componentes UI.\n3. Activados "noUnusedLocals": true y "noUnusedParameters": true en tsconfig.json.\n4. npx tsc --noEmit y npm run build finalizan con 0 errores.',
       fechaImplementacion: '2026-10-30',
       estado: 'Implementado / Producción'
+    },
+    {
+      id: 'PST-097',
+      modulo: 'Seguridad, UX y Exportación BPMN',
+      titulo: 'Restricción RBAC de Solo Lectura y Comentarista, Ajustes UI y Exportaciones de Alta Fidelidad',
+      historiaUsuario: 'Como usuario y auditor del sistema, quiero que los roles de Solo Lectura y Comentarista tengan restringida la edición o eliminación de nodos y propiedades de proceso, que el doble clic en subprocesos permita su inspección, que la UI esté desprovista de redundancias o herramientas temporales, y que las exportaciones PNG/PDF/SVG reproduzcan fielmente las formas BPMN (diamantes, círculos y tarjetas enriquecidas) sin notas internas, para garantizar una experiencia confiable, segura y formal.',
+      criteriosAceptacion: '1. En Header, el botón de guardado muestra únicamente el icono cuando el proyecto está guardado.\n2. En rol READ_ONLY, se bloquea la eliminación y edición de propiedades de nodos; en rol COMMENTS, solo se permite manipular Notas Adhesivas.\n3. Doble clic sobre tarjetas de subproceso ingresa al diagrama interno para inspección en cualquier rol.\n4. El cartel de modo de permisos se reubica al margen inferior, sin obstruir la barra de navegación de subprocesos.\n5. Botón + en margen superior dice "Crear un nuevo proyecto".\n6. Pestaña de proyectos muestra "X proyecto(s) disponible(s)".\n7. Subtítulo principal ajustado a "Modelado, visualización y auditoría de procesos".\n8. Herramienta Presentación Prezi desactivada temporalmente.\n9. Opciones redundantes (Tutorial y Tour) removidas del menú Herramientas.\n10. Exportaciones PNG a 300 DPI (escala 3) y SVG con formas auténticas BPMN (compuertas en diamante con icono, eventos en círculo, tarjetas enriquecidas con roles y sistemas).\n11. Láminas PDF con las mismas formas fieles BPMN y resolución mejorada.\n12. Notas adhesivas internas excluidas de todas las exportaciones oficiales.',
+      fechaImplementacion: '2026-10-30',
+      estado: 'Implementado / Producción'
     }
   );
   console.log('📊 Generando archivo Excel de Historias de Usuario...');

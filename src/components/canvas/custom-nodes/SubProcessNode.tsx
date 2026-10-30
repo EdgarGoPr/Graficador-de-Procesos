@@ -5,12 +5,15 @@ import { hexToRgba } from '../../../types/theme';
 import { getNodeTextContrast } from '../../../utils/nodeContrast';
 import { useUiStore } from '../../../store/useUiStore';
 import { useCanvasStore } from '../../../store/useCanvasStore';
+import { useAuthStore } from '../../../store/useAuthStore';
 import { Layers, Maximize2, ListOrdered, FolderOpen, Plus, FolderInput, ExternalLink } from 'lucide-react';
 
 export const SubProcessNode = memo(({ id, data, selected }: NodeProps<any>) => {
   const nodeData = data as BpmnNodeData;
   const { openSubProcessDetail, showNotification } = useUiStore();
   const { decompressSubProcess, enterSubProcess } = useCanvasStore();
+  const { currentCanvasPermission } = useAuthStore();
+  const canEdit = currentCanvasPermission !== 'READ_ONLY' && currentCanvasPermission !== 'COMMENTS';
 
   const handleOpenLink = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -151,7 +154,7 @@ export const SubProcessNode = memo(({ id, data, selected }: NodeProps<any>) => {
             </div>
 
             <div className="flex items-center space-x-1 shrink-0">
-              {stepsCount > 0 && (
+              {canEdit && stepsCount > 0 && (
                 <button
                   type="button"
                   onClick={handleDecompress}

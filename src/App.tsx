@@ -20,7 +20,6 @@ import { QualityAuditModal } from './components/quality/QualityAuditModal';
 import { ExportCenterModal } from './components/export/ExportCenterModal';
 import { SimulationModal } from './components/simulation/SimulationModal';
 import { VersionDiffModal } from './components/diff/VersionDiffModal';
-import { ProcessPresentationModal } from './components/presentation/ProcessPresentationModal';
 import { ManageLanesModal } from './components/modals/ManageLanesModal';
 import { ProcessDocumentationModal } from './components/documentation/ProcessDocumentationModal';
 import { MasterCatalogsModal } from './components/catalogs/MasterCatalogsModal';
@@ -232,9 +231,6 @@ export const App: React.FC = () => {
           isOpen={isVersionDiffModalOpen}
           onClose={() => setVersionDiffModalOpen(false)}
         />
-
-        {/* Process Presentation (Prezi Mode) Modal */}
-        <ProcessPresentationModal />
 
         {/* Manage Lanes (Swimlanes) Modal */}
         <ManageLanesModal />

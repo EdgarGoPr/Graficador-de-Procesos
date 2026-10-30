@@ -63,7 +63,7 @@ export const ExportCenterModal: React.FC<ExportCenterModalProps> = ({ isOpen, on
   const handleExportPng = async () => {
     try {
       setIsExporting('png');
-      await downloadPngFile(currentProject, 2);
+      await downloadPngFile(currentProject, 3);
       showNotification('Imagen PNG HD descargada correctamente', 'success');
       onClose();
     } catch (e) {

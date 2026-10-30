@@ -1428,3 +1428,73 @@ Eliminar la totalidad de los imports, tipos, variables locales, parámetros y wr
 - **Módulo / Componente:** Arquitectura, Calidad de Código & Compilador TypeScript
 - **Título:** Limpieza integral de imports/variables locales ociosas y activación de `noUnusedLocals` y `noUnusedParameters` en TypeScript
 - **Estado:** `Implementado / Producción`
+
+
+---
+
+## 23. Plan de Acción: Correcciones de Usabilidad, Bloqueo Read-Only, Navegación y Fidelidad de Exportación BPMN (`PST-097`)
+
+### 23.1. Objetivo
+Implementar el conjunto de 13 ajustes solicitados para blindar el modo Solo Lectura, resolver superposiciones visuales, corregir etiquetas del gestor y elevar la fidelidad gráfica de las exportaciones (PNG, SVG, PDF) para que reflejen con precisión las formas BPMN (diamantes, círculos, tarjetas completas) excluyendo notas adhesivas internas.
+
+### 23.2. Detalle Técnico de los 14 Puntos
+
+1. **Botón "Guardado" solo icono en cabecera:**
+   - **`src/components/layout/Header.tsx`:** Cuando el estado sea guardado (`!isSaving && !hasUnsavedChanges`), renderizar únicamente el icono `<Save className="w-3.5 h-3.5" />` sin el texto `"Guardado"`.
+2. **Blindaje estricto de permisos Solo Lectura (`READ_ONLY`):**
+   - **`src/components/layout/PropertiesPanel.tsx`:** Si `currentCanvasPermission === 'READ_ONLY'`, deshabilitar todos los inputs, textareas, selects, botones de color y botones de eliminación (`deleteSelected`), exhibiendo un cartel informativo de modo lectura.
+   - **`src/store/useCanvasStore.ts`:**
+     - En `onNodesChange` y `onEdgesChange`: si `change.type === 'remove'` y `currentCanvasPermission === 'READ_ONLY'`, descartar la operación.
+     - En `deleteSelected()`, `updateNodeData()`, `updateNodeDataAtomic()`, `updateEdgeData()`: abortar si el permiso es `READ_ONLY`.
+   - **`src/components/canvas/ProcessCanvas.tsx`:** Enviar `deleteKeyCode={isReadOnly ? null : (isComments ? null : ['Backspace', 'Delete'])}` a `<ReactFlow>`.
+3. **Doble clic en tarjetas de Subprocesos para usuarios Solo Lectura y Comentaristas:**
+   - **`src/components/canvas/ProcessCanvas.tsx`:** Pasar `onNodeDoubleClick={(_event, node) => { if (node.type === 'SubProcess') enterSubProcess(node.id); }}` a `<ReactFlow>` para asegurar que el doble clic abra el subproceso en cualquier rol.
+   - **`src/components/canvas/custom-nodes/SubProcessNode.tsx`:** Ocultar el botón "Descomprimir" si el usuario tiene rol `READ_ONLY` o `COMMENTS`, manteniendo plenamente funcionales los botones "Detalle" e "Ingresar".
+4. **Reubicación de carteles de modo (Solo Lectura y Comentarios) para no tapar la navegación:**
+   - **`src/components/canvas/ProcessCanvas.tsx`:** Mover los indicadores de `top-3 left-1/2` a `bottom-5 left-1/2 -translate-x-1/2 z-30` con diseño flotante y backdrop-blur, liberando por completo el espacio superior de la barra de navegación de subprocesos (`SubProcessBreadcrumbs`).
+5. **Texto del botón superior derecho (`+`):**
+   - **`src/components/layout/Header.tsx`:** Actualizar `title="Crear un nuevo proyecto"` y la etiqueta `"Crear un nuevo proyecto"` en lugar de `"Crear un nuevo proyecto de proceso"`.
+6. **Texto de conteo en la pestaña Proyectos:**
+   - **`src/components/dashboard/ProjectDashboard.tsx`:** Estandarizar la leyenda a `"${filteredGroups.length} proyecto(s) disponible(s)"` unificada tanto para rol `USER` como `ADMIN`.
+7. **Subtítulo principal del Gestor de Proyectos:**
+   - **`src/components/dashboard/ProjectDashboard.tsx`:** Cambiar `"Modelado, visualización y auditoría de procesos BPMN 2.0 e ISO 9001:2015."` por `"Modelado, visualización y auditoría de procesos"`.
+8. **Desactivar temporalmente la herramienta "Presentación Prezi":**
+   - **`src/components/layout/Header.tsx`:** Remover la opción "Presentación (Prezi)" del dropdown `Herramientas` y desactivar el atajo `F5`.
+   - **`src/App.tsx`:** Desactivar la renderización de `<ProcessPresentationModal />`.
+9. **Eliminar redundancia de "Tutorial y Guía de Uso" y "Tour Guiado" en Herramientas:**
+   - **`src/components/layout/Header.tsx`:** Remover ambos botones del menú `Herramientas` (permanecen disponibles en el menú de usuario `UserProfileMenu`).
+10. **PNG de Alta Resolución fiel al lienzo:**
+    - **`src/services/imageExportService.ts`:**
+      - Reemplazar la generación rectangular básica por componentes vectoriales auténticos:
+        - **Compuertas (Gateways):** Rombo a 45 grados (`<polygon>`) con ícono central (`X` o `+`) y badge inferior con ID y título.
+        - **Eventos de Inicio/Fin:** Círculos estilizados (`<circle>`) con ícono interno y color canónico.
+        - **Tareas:** Tarjetas redondeadas con cabecera diferenciada por tipo de tarea (`UserTask`, `ServiceTask`, `ManualTask`), identificador estándar, rol responsable, texto de título y descripción con auto-wrap SVG, y etiquetas de sistema informático (`SIGEP`, `SAM`, etc.).
+        - **Subprocesos:** Tarjetas con insignia y marcador BPMN `[+]`.
+      - Escalar la exportación PNG a resolución ultra nítida de 300 DPI (`scale: 3`).
+11. **Láminas del Diagrama en PDF con formas BPMN reales:**
+    - **`src/services/pdfDiagramExportService.ts`:** Integrar en `generateFrameSvg` las mismas formas vectoriales BPMN fieles (diamantes, círculos, tarjetas ricas con sistemas y roles, marcador `[+]`).
+12. **Diagrama vectorial SVG fiel al lienzo:**
+    - Al unificar `generateProcessSvg` en `imageExportService.ts`, la descarga SVG vectorial adoptará automáticamente los polígonos, círculos y tarjetas con tipografía y proporciones idénticas al lienzo.
+13. **Exclusión estricta de Notas Adhesivas en todas las exportaciones:**
+    - En `imageExportService.ts` y `pdfDiagramExportService.ts`, filtrar estrictamente `nodes.filter((n) => n.type !== 'PoolLane' && n.type !== 'StickyNote')`. Las notas adhesivas no se mostrarán en PNG, SVG ni Láminas PDF.
+14. **Blindaje de Restricciones del Rol "Modo Comentarios" (`COMMENTS`):**
+    - Homologar el comportamiento de `COMMENTS` con `READ_ONLY` para todos los elementos BPMN del proceso:
+      - **Solo creación/edición de Notas Adhesivas:** La única acción de escritura permitida es colocar notas (`StickyNote`), editarlas y eliminarlas.
+      - **Bloqueo de modificación BPMN:** En `PropertiesPanel.tsx`, si el nodo seleccionado NO es `StickyNote`, todos los controles se bloquean y deshabilitan idéntico a Solo Lectura, ocultando botones de borrado.
+      - **Protección en Store:** En `useCanvasStore.ts`, `updateNodeData`, `onNodesChange` (remove) y `deleteSelected` rechazan cualquier modificación sobre nodos que no sean `StickyNote` o sobre cualquier flujo de secuencia / conector.
+
+### 23.3. Registro de Historia de Usuario (`PST-097`)
+- **ID:** `PST-097`
+- **Módulo / Componente:** UX, Gobernanza de Permisos, Canvas & Motor Gráfico de Exportación
+- **Título:** Blindaje integral de permisos Solo Lectura y Comentarios, correcciones de interfaz y motor de exportación BPMN fiel de alta resolución (PNG, SVG, PDF)
+- **Historia de Usuario:** *Como usuario, comentarista y auditor de procesos, quiero que los modos Solo Lectura y Comentarios bloqueen efectivamente cualquier edición no autorizada, que los subprocesos se puedan explorar libremente con doble clic, que las etiquetas de interfaz sean exactas y que las exportaciones en PNG, SVG y PDF repliquen con fidelidad absoluta las formas del lienzo sin incluir notas internas.*
+- **Criterios de Aceptación:**
+  1. Botón de guardado solo icono en estado guardado.
+  2. Usuario `READ_ONLY` no puede borrar nodos ni editar propiedades en `PropertiesPanel`.
+  3. Usuario `COMMENTS` solo puede crear, editar o eliminar notas adhesivas; tiene bloqueada toda edición sobre nodos BPMN y flujos.
+  4. Doble clic en subproceso abre el subproceso en cualquier rol.
+  5. Carteles de Solo Lectura y Comentarios reubicados en la base del lienzo sin tapar `SubProcessBreadcrumbs`.
+  6. Textos actualizados en `Header.tsx` y `ProjectDashboard.tsx` ("Crear un nuevo proyecto", "X proyectos disponibles", subtítulo limpio).
+  7. "Presentación Prezi", "Tutorial" y "Tour" retirados del menú `Herramientas`.
+  8. Exportaciones PNG, SVG y PDF generan compuertas en rombo, eventos circulares, tarjetas ricas de tareas y subprocesos con información completa a 300 DPI, omitiendo totalmente las notas adhesivas.
+- **Estado:** `Implementado / Producción`
