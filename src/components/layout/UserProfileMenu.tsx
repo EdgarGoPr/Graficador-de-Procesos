@@ -14,8 +14,6 @@ import {
   User,
   Sparkles,
   ExternalLink,
-  Laptop,
-  Database,
   GraduationCap,
   Command
 } from 'lucide-react';
@@ -34,7 +32,6 @@ export const UserProfileMenu: React.FC<UserProfileMenuProps> = ({ onOpenFolder }
     toggleTheme,
     setThemeModalOpen,
     showNotification,
-    setMasterCatalogsModalOpen,
     setTutorialModalOpen,
     setInteractiveTourActive,
     setCommandPaletteOpen
@@ -156,11 +153,14 @@ export const UserProfileMenu: React.FC<UserProfileMenuProps> = ({ onOpenFolder }
         />
       </button>
 
-      {/* Floating Dropdown Card */}
+      {/* Floating Dropdown Card (Solid / Less Transparent Background) */}
       {isOpen && (
-        <div className="absolute right-0 top-full mt-2 w-72 bg-theme-surface/98 backdrop-blur-2xl border border-theme-border/90 rounded-2xl shadow-2xl p-1.5 z-50 animate-in fade-in zoom-in-95 duration-150">
+        <div
+          style={{ backgroundColor: 'var(--theme-surface)' }}
+          className="absolute right-0 top-full mt-2 w-72 bg-theme-surface border border-theme-border rounded-2xl shadow-2xl p-1.5 z-50 animate-in fade-in zoom-in-95 duration-150"
+        >
           {/* Header: User Profile Card */}
-          <div className="p-3 bg-gradient-to-b from-theme-surface-subtle/70 to-transparent rounded-xl border border-theme-border/40 mb-1">
+          <div className="p-3 bg-theme-surface-subtle rounded-xl border border-theme-border/60 mb-1">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-theme-accent to-indigo-500 flex items-center justify-center text-white font-bold text-base shadow-md">
                 {userInitial}
@@ -198,7 +198,7 @@ export const UserProfileMenu: React.FC<UserProfileMenuProps> = ({ onOpenFolder }
                   setAdminConsoleOpen(true);
                   setIsOpen(false);
                 }}
-                className="w-full flex items-center justify-between p-2.5 rounded-xl bg-gradient-to-r from-theme-accent/10 to-indigo-500/10 hover:from-theme-accent/20 hover:to-indigo-500/20 border border-theme-accent/30 text-left transition-all group cursor-pointer"
+                className="w-full flex items-center justify-between p-2.5 rounded-xl bg-gradient-to-r from-theme-accent/15 to-indigo-500/15 hover:from-theme-accent/25 hover:to-indigo-500/25 border border-theme-accent/40 text-left transition-all group cursor-pointer"
               >
                 <div className="flex items-center space-x-2.5">
                   <div className="p-1.5 rounded-lg bg-theme-accent/20 text-theme-accent group-hover:scale-110 transition-transform">
@@ -210,7 +210,7 @@ export const UserProfileMenu: React.FC<UserProfileMenuProps> = ({ onOpenFolder }
                       <Sparkles className="w-3 h-3 text-amber-400" />
                     </div>
                     <div className="text-[10px] text-theme-text-muted leading-tight">
-                      Gobernanza, usuarios, roles y auditoría ISO 9001
+                      Usuarios, permisos de módulos, catálogos ABM y auditoría
                     </div>
                   </div>
                 </div>
@@ -222,22 +222,8 @@ export const UserProfileMenu: React.FC<UserProfileMenuProps> = ({ onOpenFolder }
           {/* Preferences & Utilities Section */}
           <div className="py-1 px-1 space-y-0.5">
             <div className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-theme-text-muted/70">
-              Herramientas Maestras & Ayuda
+              Ayuda & Navegación
             </div>
-
-            <button
-              onClick={() => {
-                setMasterCatalogsModalOpen(true);
-                setIsOpen(false);
-              }}
-              className="w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-xs text-theme-text hover:bg-theme-surface-subtle transition-colors cursor-pointer"
-            >
-              <div className="flex items-center space-x-2.5">
-                <Database className="w-4 h-4 text-sky-400" />
-                <span>Catálogos Maestros (ABMs)</span>
-              </div>
-              <span className="text-[10px] text-sky-400 font-mono font-bold">CRUD</span>
-            </button>
 
             <button
               onClick={() => {
@@ -250,7 +236,6 @@ export const UserProfileMenu: React.FC<UserProfileMenuProps> = ({ onOpenFolder }
                 <GraduationCap className="w-4 h-4 text-emerald-400" />
                 <span>Centro de Tutoriales y Guía</span>
               </div>
-              <span className="text-[10px] text-emerald-400 font-medium">Aprender</span>
             </button>
 
             <button
@@ -264,7 +249,6 @@ export const UserProfileMenu: React.FC<UserProfileMenuProps> = ({ onOpenFolder }
                 <Sparkles className="w-4 h-4 text-amber-400" />
                 <span>Iniciar Tour Guiado Interactivo</span>
               </div>
-              <span className="text-[10px] text-amber-400 font-mono">6 Pasos</span>
             </button>
 
             <button
@@ -278,7 +262,7 @@ export const UserProfileMenu: React.FC<UserProfileMenuProps> = ({ onOpenFolder }
                 <Command className="w-4 h-4 text-indigo-400" />
                 <span>Paleta Rápida de Comandos</span>
               </div>
-              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-theme-surface border border-theme-border text-theme-text-muted">
+              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-theme-surface-subtle border border-theme-border text-theme-text-muted">
                 Ctrl+K
               </span>
             </button>
@@ -300,12 +284,12 @@ export const UserProfileMenu: React.FC<UserProfileMenuProps> = ({ onOpenFolder }
                 )}
                 <span>Apariencia</span>
               </div>
-              <span className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-theme-surface border border-theme-border text-theme-text-muted">
+              <span className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-theme-surface-subtle border border-theme-border text-theme-text-muted">
                 {theme === 'dark' ? 'Modo Oscuro' : 'Modo Claro'}
               </span>
             </button>
 
-            {/* Antigravity IDE Themes */}
+            {/* Paleta de Colores & Temas (sin palabra Antigravity) */}
             <button
               onClick={() => {
                 setThemeModalOpen(true);
@@ -317,7 +301,6 @@ export const UserProfileMenu: React.FC<UserProfileMenuProps> = ({ onOpenFolder }
                 <Palette className="w-4 h-4 text-purple-400" />
                 <span>Paleta de Colores & Temas</span>
               </div>
-              <span className="text-[10px] text-theme-accent font-medium">Antigravity</span>
             </button>
 
             {/* Open Folder in Local / Web */}

@@ -62,9 +62,6 @@ export const ThemeCustomizationModal: React.FC = () => {
             <div>
               <h3 className="text-sm font-bold text-theme-text flex items-center space-x-2">
                 <span>Personalización de Temas y Colores</span>
-                <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full bg-theme-accent/15 text-theme-accent border border-theme-accent/30">
-                  Antigravity IDE
-                </span>
               </h3>
               <p className="text-xs text-theme-text-muted">
                 Configurá temáticas integrales, fondos de pizarra y herencia de colores

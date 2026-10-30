@@ -1,11 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useProjectStore } from '../../store/useProjectStore';
+import { useUiStore } from '../../store/useUiStore';
 import { AuthService } from '../../services/authService';
 import { PermissionService } from '../../services/permissionService';
 import { AuditLoggerService } from '../../services/auditLoggerService';
 import { AuditPdfExportService } from '../../services/auditPdfExportService';
-import { AppUser, AuditLogEntry, CanvasPermission, ProjectUserPermission, UserAccessRequest, UserRole } from '../../types/auth';
+import { MasterCatalogsService } from '../../services/masterCatalogsService';
+import {
+  ALL_SYSTEM_MODULES,
+  AppUser,
+  AuditLogEntry,
+  CanvasPermission,
+  MODULE_PRESET_PROFILES,
+  ProjectUserPermission,
+  SYSTEM_MODULE_LABELS,
+  SystemModuleKey,
+  UserAccessRequest,
+  UserRole
+} from '../../types/auth';
 import {
   Shield,
   Users,
@@ -27,15 +40,20 @@ import {
   PenTool,
   Lock,
   UserPlus,
-  Pencil
+  Pencil,
+  Database,
+  LayoutGrid,
+  CheckSquare,
+  Square
 } from 'lucide-react';
 import { UserFormModal } from './UserFormModal';
 
-type AdminTab = 'REQUESTS' | 'USERS' | 'CANVAS_PERMS' | 'AUDIT_LOGS' | '2FA_SECURITY';
+type AdminTab = 'REQUESTS' | 'USERS' | 'CANVAS_PERMS' | 'CATALOGS_ABM' | 'AUDIT_LOGS' | '2FA_SECURITY';
 
 export const AdminConsoleModal: React.FC = () => {
-  const { isAdminConsoleOpen, setAdminConsoleOpen, currentUser } = useAuthStore();
+  const { isAdminConsoleOpen, setAdminConsoleOpen, currentUser, setCurrentUser } = useAuthStore();
   const { projectList } = useProjectStore();
+  const { setMasterCatalogsModalOpen, showNotification } = useUiStore();
 
   const [activeTab, setActiveTab] = useState<AdminTab>('REQUESTS');
   const [users, setUsers] = useState<AppUser[]>([]);
@@ -283,14 +301,26 @@ export const AdminConsoleModal: React.FC = () => {
 
           <button
             onClick={() => setActiveTab('CANVAS_PERMS')}
-            className={`py-3 px-3.5 border-b-2 text-xs font-semibold flex items-center space-x-2 transition-all ${
+            className={`py-3 px-3.5 border-b-2 text-xs font-semibold flex items-center space-x-2 transition-all whitespace-nowrap ${
               activeTab === 'CANVAS_PERMS'
                 ? 'border-theme-accent text-theme-accent'
                 : 'border-transparent text-theme-text-muted hover:text-theme-text'
             }`}
           >
             <FolderKanban className="w-4 h-4" />
-            <span>Asignación de Lienzos</span>
+            <span>Módulos & Lienzos</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('CATALOGS_ABM')}
+            className={`py-3 px-3.5 border-b-2 text-xs font-semibold flex items-center space-x-2 transition-all whitespace-nowrap ${
+              activeTab === 'CATALOGS_ABM'
+                ? 'border-theme-accent text-theme-accent'
+                : 'border-transparent text-theme-text-muted hover:text-theme-text'
+            }`}
+          >
+            <Database className="w-4 h-4 text-emerald-400" />
+            <span>Catálogos ABM</span>
           </button>
 
           <button
@@ -575,7 +605,116 @@ export const AdminConsoleModal: React.FC = () => {
                   No hay usuarios con rol 'USER' dados de alta aún. Aprueba solicitudes o crea usuarios primero.
                 </div>
               ) : (
-                <div className="border border-theme-border rounded-2xl overflow-hidden">
+                <>
+                  {/* Panel de Acceso a Módulos y Vistas del Sistema para el Usuario Seleccionado */}
+                  {(() => {
+                    const targetU = users.find((u) => u.id === selectedUserForPerms);
+                    if (!targetU) return null;
+                    const userMods: SystemModuleKey[] =
+                      targetU.allowedModules && Array.isArray(targetU.allowedModules)
+                        ? targetU.allowedModules
+                        : [...ALL_SYSTEM_MODULES];
+
+                    const handleToggleUserModule = async (modKey: SystemModuleKey) => {
+                      if (!currentUser) return;
+                      const nextMods = userMods.includes(modKey)
+                        ? userMods.filter((m) => m !== modKey)
+                        : [...userMods, modKey];
+                      if (nextMods.length === 0) {
+                        showNotification('El usuario debe tener al menos un módulo habilitado.', 'warning');
+                        return;
+                      }
+                      const res = await AuthService.updateUserModulesByAdmin(currentUser, targetU.id, nextMods);
+                      if (res.ok && res.user) {
+                        setUsers((prev) => prev.map((item) => (item.id === targetU.id ? res.user! : item)));
+                        if (currentUser.id === targetU.id) {
+                          setCurrentUser(res.user);
+                        }
+                      }
+                    };
+
+                    const handleApplyPresetToUser = async (presetModules: SystemModuleKey[], presetName: string) => {
+                      if (!currentUser) return;
+                      const res = await AuthService.updateUserModulesByAdmin(currentUser, targetU.id, presetModules);
+                      if (res.ok && res.user) {
+                        setUsers((prev) => prev.map((item) => (item.id === targetU.id ? res.user! : item)));
+                        showNotification(`Perfil "${presetName}" aplicado a ${targetU.fullName}`, 'success');
+                      }
+                    };
+
+                    return (
+                      <div className="p-4 rounded-2xl bg-theme-bg/50 border border-theme-border space-y-3">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <div>
+                            <h4 className="text-xs font-bold text-theme-text flex items-center gap-1.5">
+                              <LayoutGrid className="w-4 h-4 text-theme-accent" />
+                              <span>1. Módulos y Vistas del Sistema habilitados para {targetU.fullName}</span>
+                            </h4>
+                            <p className="text-[11px] text-theme-text-muted">
+                              Activa o desactiva qué secciones y sub-vistas puede ver este usuario en su barra superior:
+                            </p>
+                          </div>
+                          <div className="flex flex-wrap gap-1.5">
+                            {MODULE_PRESET_PROFILES.map((preset) => (
+                              <button
+                                key={preset.id}
+                                type="button"
+                                onClick={() => handleApplyPresetToUser([...preset.modules], preset.name)}
+                                title={preset.description}
+                                className="px-2.5 py-1 rounded-lg bg-theme-surface hover:bg-theme-surface-hover border border-theme-border text-[10px] font-semibold text-theme-text hover:text-theme-accent transition-colors cursor-pointer"
+                              >
+                                ⚡ {preset.name}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5">
+                          {SYSTEM_MODULE_LABELS.map((mod) => {
+                            const isChecked = userMods.includes(mod.key);
+                            return (
+                              <button
+                                key={mod.key}
+                                type="button"
+                                onClick={() => handleToggleUserModule(mod.key)}
+                                className={`p-2.5 rounded-xl border text-left flex items-start space-x-2.5 transition-all cursor-pointer ${
+                                  isChecked
+                                    ? 'bg-theme-accent/15 border-theme-accent/50 text-theme-text shadow-xs'
+                                    : 'bg-theme-surface/40 border-theme-border/60 text-theme-text-muted opacity-75'
+                                }`}
+                              >
+                                {isChecked ? (
+                                  <CheckSquare className="w-4 h-4 text-theme-accent shrink-0 mt-0.5" />
+                                ) : (
+                                  <Square className="w-4 h-4 text-theme-text-muted shrink-0 mt-0.5" />
+                                )}
+                                <div>
+                                  <div className="text-xs font-bold flex items-center gap-1.5">
+                                    <span>{mod.label}</span>
+                                    {mod.group === 'VIEWS' && (
+                                      <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-theme-surface border border-theme-border text-theme-text-muted">
+                                        Vistas & PDF
+                                      </span>
+                                    )}
+                                  </div>
+                                  <div className="text-[10px] text-theme-text-muted leading-tight mt-0.5">
+                                    {mod.description}
+                                  </div>
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  })()}
+
+                  <div className="pt-2">
+                    <h4 className="text-xs font-bold text-theme-text mb-2 flex items-center gap-1.5">
+                      <FolderKanban className="w-4 h-4 text-theme-accent" />
+                      <span>2. Asignación de Permisos por Proyecto / Lienzo</span>
+                    </h4>
+                    <div className="border border-theme-border rounded-2xl overflow-hidden">
                   <table className="w-full text-left text-xs">
                     <thead className="bg-theme-bg/60 border-b border-theme-border text-[11px] uppercase tracking-wider text-theme-text-muted">
                       <tr>
@@ -641,8 +780,107 @@ export const AdminConsoleModal: React.FC = () => {
                       })}
                     </tbody>
                   </table>
-                </div>
+                    </div>
+                  </div>
+                </>
               )}
+            </div>
+          )}
+
+          {/* ============================================================= */}
+          {/* PESTAÑA 3.B: CATÁLOGOS MAESTROS Y ABMs CORPORATIVOS           */}
+          {/* ============================================================= */}
+          {activeTab === 'CATALOGS_ABM' && (
+            <div className="space-y-4">
+              <div className="flex flex-wrap items-center justify-between gap-3 p-4 rounded-2xl bg-theme-bg/50 border border-theme-border">
+                <div>
+                  <h3 className="text-sm font-bold text-theme-text flex items-center gap-2">
+                    <Database className="w-4 h-4 text-emerald-400" />
+                    <span>Centro Maestro de Catálogos y ABMs del Sistema</span>
+                  </h3>
+                  <p className="text-xs text-theme-text-muted mt-0.5">
+                    Administra de forma centralizada todas las tablas maestras que alimentan los formularios, carriles y reportes de ProcesStudio.
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    setAdminConsoleOpen(false);
+                    setMasterCatalogsModalOpen(true);
+                  }}
+                  className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-lg flex items-center space-x-2 transition-all cursor-pointer"
+                >
+                  <Database className="w-4 h-4" />
+                  <span>Abrir Gestor Completo de Catálogos ABM</span>
+                </button>
+              </div>
+
+              {(() => {
+                const cats = MasterCatalogsService.getCatalogsSync();
+                const summaryCards = [
+                  {
+                    title: 'Unidades Organizativas / Áreas',
+                    count: cats.orgUnits.length,
+                    desc: 'Direcciones, gerencias y secretarías con código y titular responsable.',
+                    color: 'text-sky-400 border-sky-500/30 bg-sky-500/10'
+                  },
+                  {
+                    title: 'Roles y Cargos Funcionales (Carriles)',
+                    count: cats.roles.length,
+                    desc: 'Puestos operativos vinculables en 1 clic como Swimlanes del lienzo.',
+                    color: 'text-indigo-400 border-indigo-500/30 bg-indigo-500/10'
+                  },
+                  {
+                    title: 'Marcos Normativos y Legales',
+                    count: cats.normatives.length,
+                    desc: 'Leyes, decretos, ordenanzas y normas ISO aplicables a los procedimientos.',
+                    color: 'text-amber-400 border-amber-500/30 bg-amber-500/10'
+                  },
+                  {
+                    title: 'Sistemas TI, Formularios y Registros',
+                    count: cats.systemsDocs.length,
+                    desc: 'Plataformas informáticas, formularios y expedientes para entradas/salidas SIPOC.',
+                    color: 'text-emerald-400 border-emerald-500/30 bg-emerald-500/10'
+                  },
+                  {
+                    title: 'Catálogo de Riesgos y Controles',
+                    count: cats.risksControls.length,
+                    desc: 'Riesgos operativos tipificados con sus controles mitigantes preventivos/detectivos.',
+                    color: 'text-rose-400 border-rose-500/30 bg-rose-500/10'
+                  },
+                  {
+                    title: 'Papelera de Reciclaje de Proyectos',
+                    count: cats.deletedProjects.length,
+                    desc: 'Proyectos dados de baja con capacidad de restauración inmediata en 1 clic.',
+                    color: 'text-purple-400 border-purple-500/30 bg-purple-500/10'
+                  }
+                ];
+
+                return (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {summaryCards.map((c, i) => (
+                      <div
+                        key={i}
+                        onClick={() => {
+                          setAdminConsoleOpen(false);
+                          setMasterCatalogsModalOpen(true);
+                        }}
+                        className="p-4 rounded-2xl bg-theme-bg/40 hover:bg-theme-bg/70 border border-theme-border hover:border-theme-accent/50 transition-all cursor-pointer flex flex-col justify-between space-y-3"
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <h4 className="text-xs font-bold text-theme-text">{c.title}</h4>
+                          <span className={`px-2.5 py-0.5 rounded-full text-xs font-mono font-extrabold border ${c.color}`}>
+                            {c.count}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-theme-text-muted leading-relaxed">{c.desc}</p>
+                        <div className="text-[11px] font-semibold text-theme-accent flex items-center gap-1 pt-1">
+                          <span>Gestionar ABM (Alta / Baja / Modificación) →</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()}
             </div>
           )}
 

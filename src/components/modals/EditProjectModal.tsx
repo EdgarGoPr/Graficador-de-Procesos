@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useProjectStore } from '../../store/useProjectStore';
 import { useUiStore } from '../../store/useUiStore';
 import { useAuthStore } from '../../store/useAuthStore';
@@ -158,9 +159,12 @@ export const EditProjectModal: React.FC<EditProjectModalProps> = ({
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 backdrop-blur-md p-4 animate-fadeIn select-none">
-      <div className="w-full max-w-lg bg-theme-surface border border-theme-border rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+  return createPortal(
+    <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/75 backdrop-blur-md p-4 overflow-y-auto animate-fadeIn select-none">
+      <div
+        className="w-full max-w-lg border border-theme-border rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[calc(100vh-2rem)] my-auto"
+        style={{ backgroundColor: 'var(--theme-surface)' }}
+      >
         {/* Header */}
         <div className="px-6 py-4 bg-theme-surface-subtle border-b border-theme-border flex items-center justify-between shrink-0">
           <div className="flex items-center space-x-3">
@@ -288,6 +292,7 @@ export const EditProjectModal: React.FC<EditProjectModalProps> = ({
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };

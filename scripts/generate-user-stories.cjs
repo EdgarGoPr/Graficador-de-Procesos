@@ -807,6 +807,15 @@ function generateExcel() {
       criteriosAceptacion: '1. Nuevo isotipo vectorial SVG en LogoPS.tsx que replica el monograma PS con circuito de proceso, nodos y flechas, aplicando el gradiente propio de cada temática.\n2. Tipografía del logotipo estructurada con Proces en bold recto, Studio en bold italic con el color de acento del tema, y el subtítulo PLATAFORMA DE PROCESOS con espaciado expandido.\n3. Calibración exacta de fondos, superficies, textos y acentos para las 6 temáticas: ProcesStudio Slate Pro (Mate), Midnight Executive, Forest Sage, Nebula Modern, Nordic Studio Light y Warm Sandpaper.\n4. Previsualización del logo de cada temática en las tarjetas de ThemeCustomizationModal.tsx y en el modal de acceso.',
       fechaImplementacion: '2026-10-30',
       estado: 'Implementado / Producción'
+    },
+    {
+      id: 'PST-090',
+      modulo: 'Gobernanza de Módulos, Cabecera & Experiencia de Usuario',
+      titulo: 'Permisos Granulares por Módulo/Vista para cada Usuario, Reorganización de Cabecera/Herramientas y Corrección de Modales',
+      historiaUsuario: 'Como administrador de ProcesStudio, quiero configurar a qué módulos y vistas del sistema tiene acceso cada usuario (Proyectos, Lienzo, Manual PDF, Matriz SIPOC, Matriz RACI, Flujograma Secuencial, Herramientas, Centro de Exportación y Creación de Procesos), contar con los Catálogos ABM integrados en la Consola de Administración, y disponer de menús desplegables sólidos sin recortes visuales ni textos innecesarios, para adaptar la interfaz al rol exacto de cada colaborador.',
+      criteriosAceptacion: '1. Integración de Catálogos ABM dentro de AdminConsoleModal.tsx y retiro de la barra superior y menú de usuario.\n2. Ubicación exclusiva de Generar desde Texto / Plantillas y Tutorial dentro del desplegable Herramientas, retirando Participantes & Permisos de dicho menú.\n3. Corrección definitiva del posicionamiento de EditProjectModal, ProjectParticipantsModal y NewRevisionModal fuera del contenedor <header> y con createPortal para evitar recortes en el borde superior.\n4. Fondos opacos sólidos en la barra de herramientas y en los desplegables de Herramientas, Vistas & Manual PDF y UserProfileMenu, y eliminación de las etiquetas Antigravity IDE, Antigravity, CRUD, Aprender, 6 Pasos, BPMN (en Lienzo) y & Ficha ISO 9001 (en Manual PDF).\n5. Gestión por usuario de módulos habilitados (Proyectos, Lienzo, Manual PDF, Matriz SIPOC, Matriz RACI, Flujograma Secuencial, Herramientas, Exportar, Crear Proceso) desde UserFormModal y AdminConsoleModal con presets rápidos de 1 clic y ocultamiento dinámico en la interfaz.',
+      fechaImplementacion: '2026-10-30',
+      estado: 'Implementado / Producción'
     }
   );
   console.log('📊 Generando archivo Excel de Historias de Usuario...');

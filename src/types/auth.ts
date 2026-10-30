@@ -8,6 +8,123 @@ export type UserStatus = 'ACTIVE' | 'INACTIVE' | 'BLOCKED';
 export type ResetRequestStatus = 'NONE' | 'REQUESTED' | 'CODE_ISSUED';
 export type CanvasPermission = 'READ_ONLY' | 'COMMENTS' | 'EDITOR';
 
+export type SystemModuleKey =
+  | 'DASHBOARD'
+  | 'CANVAS'
+  | 'VIEW_REPORT'
+  | 'VIEW_SIPOC'
+  | 'VIEW_RACI'
+  | 'VIEW_FLOWCHART'
+  | 'TOOLS_MENU'
+  | 'EXPORT_CENTER'
+  | 'CREATE_PROJECTS';
+
+export const ALL_SYSTEM_MODULES: SystemModuleKey[] = [
+  'DASHBOARD',
+  'CANVAS',
+  'VIEW_REPORT',
+  'VIEW_SIPOC',
+  'VIEW_RACI',
+  'VIEW_FLOWCHART',
+  'TOOLS_MENU',
+  'EXPORT_CENTER',
+  'CREATE_PROJECTS'
+];
+
+export const SYSTEM_MODULE_LABELS: {
+  key: SystemModuleKey;
+  label: string;
+  group: 'MAIN' | 'VIEWS' | 'EXTRAS';
+  description: string;
+}[] = [
+  {
+    key: 'DASHBOARD',
+    label: 'Proyectos',
+    group: 'MAIN',
+    description: 'Acceso al panel general de proyectos y listado documental'
+  },
+  {
+    key: 'CANVAS',
+    label: 'Lienzo',
+    group: 'MAIN',
+    description: 'Acceso al espacio de graficación visual e inspección de nodos'
+  },
+  {
+    key: 'VIEW_REPORT',
+    label: 'Manual PDF',
+    group: 'VIEWS',
+    description: 'Vista y descarga del Manual de Procedimientos estandarizado en PDF'
+  },
+  {
+    key: 'VIEW_SIPOC',
+    label: 'Matriz SIPOC',
+    group: 'VIEWS',
+    description: 'Proveedores, Entradas, Proceso, Salidas y Clientes'
+  },
+  {
+    key: 'VIEW_RACI',
+    label: 'Matriz RACI',
+    group: 'VIEWS',
+    description: 'Matriz de roles y asignación de responsabilidades'
+  },
+  {
+    key: 'VIEW_FLOWCHART',
+    label: 'Flujograma Secuencial',
+    group: 'VIEWS',
+    description: 'Vista ejecutiva horizontal paso a paso'
+  },
+  {
+    key: 'TOOLS_MENU',
+    label: 'Menú de Herramientas',
+    group: 'EXTRAS',
+    description: 'Texto a BPMN/Plantillas, Simulador, Auditor, Prezi y Tutorial'
+  },
+  {
+    key: 'EXPORT_CENTER',
+    label: 'Centro de Exportación',
+    group: 'EXTRAS',
+    description: 'Botón de descargas múltiples (PDF, PNG, SVG, XML, Word)'
+  },
+  {
+    key: 'CREATE_PROJECTS',
+    label: 'Crear Nuevos Procesos',
+    group: 'EXTRAS',
+    description: 'Habilita el botón "+ Nuevo Proceso" para iniciar proyectos propios'
+  }
+];
+
+export const MODULE_PRESET_PROFILES: {
+  id: string;
+  name: string;
+  description: string;
+  modules: SystemModuleKey[];
+}[] = [
+  {
+    id: 'FULL_ANALYST',
+    name: 'Acceso Completo (Analista / Editor)',
+    description: 'Todos los módulos, lienzo, vistas y herramientas habilitados',
+    modules: [...ALL_SYSTEM_MODULES]
+  },
+  {
+    id: 'AUDITOR_READER',
+    name: 'Lector Documental / Auditor',
+    description: 'Proyectos y todas las Vistas & Manual PDF (sin Lienzo ni creación)',
+    modules: ['DASHBOARD', 'VIEW_REPORT', 'VIEW_SIPOC', 'VIEW_RACI', 'VIEW_FLOWCHART', 'EXPORT_CENTER']
+  },
+  {
+    id: 'VISUAL_OPERATOR',
+    name: 'Operador de Lienzo',
+    description: 'Proyectos, Lienzo, Flujograma Secuencial y Herramientas',
+    modules: ['DASHBOARD', 'CANVAS', 'VIEW_FLOWCHART', 'TOOLS_MENU']
+  },
+  {
+    id: 'MANUAL_ONLY',
+    name: 'Solo Manual PDF y Proyectos',
+    description: 'Exclusivamente consulta de Proyectos y descarga de Manual PDF',
+    modules: ['DASHBOARD', 'VIEW_REPORT']
+  }
+];
+
 export interface AppUser {
   id: string;
   email: string;
@@ -16,6 +133,7 @@ export interface AppUser {
   organizationUnit: string;
   role: UserRole;
   status: UserStatus;
+  allowedModules?: SystemModuleKey[];
   googleId?: string | null;
   avatarUrl?: string | null;
   resetRequestStatus: ResetRequestStatus;
@@ -27,6 +145,20 @@ export interface AppUser {
   isTotpEnabled: boolean;
   createdAt: string;
   updatedAt: string;
+}
+
+/**
+ * Evalúa si un usuario tiene permiso para visualizar/acceder a un módulo del sistema (PST-090).
+ * Los Administradores tienen acceso total siempre. Si un usuario existente no tiene allowedModules definido,
+ * por retrocompatibilidad posee todos los módulos hasta que el Admin los restrinja.
+ */
+export function hasUserModuleAccess(user: AppUser | null | undefined, moduleKey: SystemModuleKey): boolean {
+  if (!user) return false;
+  if (user.role === 'ADMIN') return true;
+  if (!user.allowedModules || !Array.isArray(user.allowedModules)) {
+    return true;
+  }
+  return user.allowedModules.includes(moduleKey);
 }
 
 export interface UserAccessRequest {
@@ -110,6 +242,7 @@ export interface CreateUserPayload {
   organizationUnit: string;
   role: UserRole;
   status: UserStatus;
+  allowedModules?: SystemModuleKey[];
   passwordMode: 'GENERATE_CODE' | 'MANUAL_PASSWORD';
   manualPassword?: string;
 }
@@ -119,6 +252,7 @@ export interface UpdateUserPayload {
   organizationUnit: string;
   role: UserRole;
   status: UserStatus;
+  allowedModules?: SystemModuleKey[];
   mustChangePassword?: boolean;
   newPassword?: string;
 }

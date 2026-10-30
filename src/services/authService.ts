@@ -1,4 +1,4 @@
-import { AppUser, CreateUserPayload, UpdateUserPayload, UserAccessRequest, UserRole, UserStatus } from '../types/auth';
+import { ALL_SYSTEM_MODULES, AppUser, CreateUserPayload, SystemModuleKey, UpdateUserPayload, UserAccessRequest, UserRole, UserStatus } from '../types/auth';
 import { NeonClient } from './neonClient';
 import {
   generate6DigitCode,
@@ -51,10 +51,14 @@ export class AuthService {
             must_change_password BOOLEAN NOT NULL DEFAULT FALSE,
             totp_secret VARCHAR(64) NULL,
             is_totp_enabled BOOLEAN NOT NULL DEFAULT FALSE,
+            allowed_modules JSONB NULL,
             created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
             updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
           );
         `;
+        try {
+          await sql`ALTER TABLE app_users ADD COLUMN IF NOT EXISTS allowed_modules JSONB NULL;`;
+        } catch {}
 
         // 2. Solicitudes de acceso
         await sql`
@@ -874,6 +878,7 @@ export class AuthService {
       organizationUnit: payload.organizationUnit.trim(),
       role: payload.role,
       status: payload.status,
+      allowedModules: payload.allowedModules && payload.allowedModules.length > 0 ? payload.allowedModules : [...ALL_SYSTEM_MODULES],
       passwordHash: initialHash,
       resetRequestStatus,
       resetCode: initialCode || null,
@@ -891,7 +896,7 @@ export class AuthService {
           INSERT INTO app_users (
             id, email, password_hash, full_name, organization_unit, role, status,
             reset_request_status, reset_code, reset_code_expires_at, must_change_password,
-            created_at, updated_at
+            allowed_modules, created_at, updated_at
           ) VALUES (
             ${newUser.id}::uuid,
             ${newUser.email},
@@ -904,6 +909,7 @@ export class AuthService {
             ${newUser.resetCode},
             ${newUser.resetCodeExpiresAt ? newUser.resetCodeExpiresAt : null},
             ${newUser.mustChangePassword},
+            ${JSON.stringify(newUser.allowedModules || ALL_SYSTEM_MODULES)}::jsonb,
             NOW(),
             NOW()
           );
@@ -990,6 +996,7 @@ export class AuthService {
       organizationUnit: payload.organizationUnit.trim(),
       role: payload.role,
       status: payload.status,
+      allowedModules: payload.allowedModules ?? targetUser.allowedModules ?? [...ALL_SYSTEM_MODULES],
       mustChangePassword: payload.mustChangePassword ?? targetUser.mustChangePassword,
       updatedAt: new Date().toISOString()
     };
@@ -1010,6 +1017,7 @@ export class AuthService {
               status = ${updatedUser.status},
               password_hash = ${newHash},
               must_change_password = ${updatedUser.mustChangePassword},
+              allowed_modules = ${JSON.stringify(updatedUser.allowedModules || ALL_SYSTEM_MODULES)}::jsonb,
               updated_at = NOW()
             WHERE id = ${targetUserId}::uuid;
           `;
@@ -1021,6 +1029,7 @@ export class AuthService {
               role = ${updatedUser.role},
               status = ${updatedUser.status},
               must_change_password = ${updatedUser.mustChangePassword},
+              allowed_modules = ${JSON.stringify(updatedUser.allowedModules || ALL_SYSTEM_MODULES)}::jsonb,
               updated_at = NOW()
             WHERE id = ${targetUserId}::uuid;
           `;
@@ -1168,6 +1177,63 @@ export class AuthService {
     return { ok: true };
   }
 
+  /**
+   * Actualiza los módulos y vistas del sistema habilitados para un usuario específico (PST-090)
+   */
+  public static async updateUserModulesByAdmin(
+    adminUser: AppUser,
+    targetUserId: string,
+    allowedModules: SystemModuleKey[]
+  ): Promise<{ ok: boolean; user?: AppUser; error?: string }> {
+    if (adminUser.role !== 'ADMIN') {
+      return { ok: false, error: 'Solo administradores pueden gestionar el acceso a módulos.' };
+    }
+    const targetUser = await this.findUserById(targetUserId);
+    if (!targetUser) {
+      return { ok: false, error: 'Usuario no encontrado.' };
+    }
+
+    const updatedUser: AppUser = {
+      ...targetUser,
+      allowedModules,
+      updatedAt: new Date().toISOString()
+    };
+
+    const sql = NeonClient.getSql();
+    if (sql) {
+      try {
+        await sql`
+          UPDATE app_users
+          SET allowed_modules = ${JSON.stringify(allowedModules)}::jsonb, updated_at = NOW()
+          WHERE id = ${targetUserId}::uuid;
+        `;
+      } catch (err) {
+        console.warn('Error actualizando allowed_modules en Neon:', err);
+      }
+    }
+
+    const localUsers = this.getLocalUsers();
+    const idx = localUsers.findIndex((u) => u.id === targetUserId);
+    if (idx !== -1) {
+      localUsers[idx] = updatedUser;
+      localStorage.setItem(LOCAL_STORAGE_USERS_FALLBACK, JSON.stringify(localUsers));
+    }
+
+    const current = this.getCurrentUser();
+    if (current && current.id === targetUserId) {
+      this.setCurrentUser(updatedUser);
+    }
+
+    await AuditLoggerService.log(
+      'USER_UPDATED_BY_ADMIN',
+      adminUser,
+      targetUser.email,
+      { targetUserId, updatedAllowedModules: allowedModules }
+    );
+
+    return { ok: true, user: updatedUser };
+  }
+
   // ==========================================================================
   // CONSULTAS AUXILIARES
   // ==========================================================================
@@ -1181,7 +1247,7 @@ export class AuthService {
             id, email, password_hash, full_name, organization_unit, role, status,
             google_id, avatar_url, reset_request_status, reset_requested_at,
             reset_code, reset_code_expires_at, must_change_password,
-            totp_secret, is_totp_enabled, created_at, updated_at
+            totp_secret, is_totp_enabled, allowed_modules, created_at, updated_at
           FROM app_users
           ORDER BY created_at DESC;
         `) as any[];
@@ -1307,6 +1373,7 @@ export class AuthService {
       mustChangePassword: Boolean(r.must_change_password),
       totpSecret: r.totp_secret,
       isTotpEnabled: Boolean(r.is_totp_enabled),
+      allowedModules: Array.isArray(r.allowed_modules) ? r.allowed_modules : [...ALL_SYSTEM_MODULES],
       createdAt: typeof r.created_at === 'string' ? r.created_at : new Date(r.created_at).toISOString(),
       updatedAt: typeof r.updated_at === 'string' ? r.updated_at : new Date(r.updated_at).toISOString()
     };

@@ -997,5 +997,82 @@ Se calibrarán los códigos hexadecimales de `PRESET_THEMES` y `CARD_THEME_PRESE
   4. Previsualización del logo de cada temática en las tarjetas de `ThemeCustomizationModal.tsx`.
 - **Estado:** `Implementado / Producción`
 
+---
+
+## 16. Plan de Acción: Reorganización de Cabecera/Menús, Corrección de Modales, Opacidad Visual y Control de Acceso por Módulos para cada Usuario (`PST-090`)
+
+### 16.1. Objetivo del Requerimiento
+Optimizar la ergonomía y limpieza de la barra superior (`Header.tsx`), el menú de perfil (`UserProfileMenu.tsx`), el modal de temas (`ThemeCustomizationModal.tsx`) y la Consola de Administración (`AdminConsoleModal.tsx`), corrigiendo el recorte superior en modales de cabecera, aumentando la opacidad de los menús desplegables e implementando un **sistema granular de permisos por módulo y vista para cada usuario**.
+
+---
+
+### 16.2. Detalle Técnico de los Ajustes Solicitados
+
+#### 1. Reubicación de Acciones y Limpieza de Cabecera (`Header.tsx`, `UserProfileMenu.tsx`, `AdminConsoleModal.tsx`)
+- **Catálogos ABM dentro de la Consola de Administración:**
+  - Se retira el botón directo `Catálogos ABM` de la barra superior (`Header.tsx`) y del menú de usuario regular (`UserProfileMenu.tsx`).
+  - Se integra una nueva pestaña/sección **`Catálogos Maestros (ABMs)`** dentro de la **Consola de Administración (`AdminConsoleModal.tsx`)** para que el Administrador gestione centralizadamente Unidades Organizativas, Roles/Cargos, Marcos Normativos, Sistemas TI/Formularios, Riesgos y Papelera de Proyectos.
+- **Tutorial dentro del desplegable de Herramientas:**
+  - Se retira el botón independiente `🎓 Tutorial` de la barra superior (`Header.tsx`).
+  - Se incorpora **`Tutorial y Centro de Aprendizaje`** (junto con el acceso al Tour Guiado) dentro del menú desplegable **`Herramientas`** (el cual estará disponible en la barra superior siempre que el usuario tenga permiso a Herramientas o Tutorial).
+- **Texto a BPMN / Plantillas exclusivamente en Herramientas:**
+  - Se elimina el botón suelto `Texto a BPMN / Plantillas` de la barra superior, manteniendo la opción **`Generar desde Texto / Plantillas`** únicamente dentro del desplegable **`Herramientas`**.
+- **Retiro de "Participantes & Permisos" del menú Herramientas:**
+  - Se elimina el ítem `Participantes & Permisos` del desplegable `Herramientas` (conservando su botón de icono directo en el clúster de acciones de la derecha y en las tarjetas de proyecto).
+- **Simplificación de Textos de Navegación:**
+  - El botón **`Lienzo BPMN`** pasa a llamarse **`Lienzo`**.
+  - En el desplegable *Vistas & Manual PDF*, la opción **`Manual PDF & Ficha ISO 9001`** pasa a llamarse **`Manual PDF`**.
+
+#### 2. Corrección de Modales Cortados en la Parte Superior (`Header.tsx`)
+- **Causa raíz identificada:** Los modales `EditProjectModal` (*Editar Ficha del Proceso*), `ProjectParticipantsModal` (*Participantes y Permisos*) y `NewRevisionModal` estaban renderizados **dentro** de la etiqueta `<header className="... backdrop-blur-md">`. En CSS, la propiedad `backdrop-filter` crea un nuevo bloque contenedor (*containing block*) para elementos `position: fixed`, provocando que los modales quedaran atrapados y recortados por el borde superior del `<header>`.
+- **Solución definitiva:** Extraer el renderizado de `EditProjectModal`, `ProjectParticipantsModal` y `NewRevisionModal` **fuera** de la etiqueta `<header>` mediante un fragmento raíz (`<> <header>...</header> {modales} </>`), garantizando que se centren perfectamente en toda la pantalla (`100vw × 100vh`) sin ningún recorte.
+
+#### 3. Opacidad Sólida en Menús Desplegables y Limpieza de Etiquetas (`Header.tsx`, `UserProfileMenu.tsx`, `ThemeCustomizationModal.tsx`)
+- **Fondo sólido (no transparente) en desplegables:**
+  - Los menús desplegables de **`Herramientas`**, **`Vistas & Manual PDF`** y **`Menú de Perfil de Usuario`** utilizarán fondo 100% sólido (`bg-theme-surface` con `style={{ backgroundColor: 'var(--theme-surface)' }}`) y sombra profunda para evitar que los nodos y líneas del lienzo se trasluzcan por detrás.
+- **Limpieza de etiquetas y badges:**
+  - En `ThemeCustomizationModal.tsx`: Se elimina el badge `Antigravity IDE`.
+  - En `UserProfileMenu.tsx`: Se elimina la palabra `Antigravity` al lado de *Paleta de Colores & Temas*, y se eliminan los textos `CRUD`, `Aprender` y `6 Pasos` junto con las opciones reubicadas.
+
+#### 4. Control Granular de Acceso a Módulos del Sistema por Usuario (`PST-090`)
+Se incorpora en el modelo de usuario (`AppUser` en `src/types/auth.ts`) la propiedad `allowedModules: SystemModuleKey[]` administrable desde la **Consola de Administración** (tanto al Crear/Editar un usuario en `UserFormModal.tsx` como en una matriz rápida dentro de `AdminConsoleModal.tsx`):
+
+- **Módulos y Vistas Configurables por Usuario:**
+  1. `DASHBOARD` — **Proyectos** (Panel general de proyectos)
+  2. `CANVAS` — **Lienzo** (Editor/visor gráfico del proceso)
+  3. **Vistas & Manual PDF** (se muestra el desplegable si tiene al menos una sub-vista activa):
+     - `VIEW_REPORT` — **Manual PDF**
+     - `VIEW_SIPOC` — **Matriz SIPOC**
+     - `VIEW_RACI` — **Matriz RACI**
+     - `VIEW_FLOWCHART` — **Flujograma Secuencial**
+- **Sugerencias adicionales incluidas para un control institucional completo:**
+  4. `TOOLS_MENU` — **Desplegable de Herramientas** (Simulador, Auditor de Calidad, Comparador, Presentación, Texto a BPMN, Tutorial)
+  5. `EXPORT_CENTER` — **Centro de Exportación** (Botón de descargas múltiples)
+  6. `CREATE_PROJECTS` — **Crear Nuevos Procesos** (Botón *+ Nuevo Proceso*)
+- **Perfiles Rápidos Predefinidos (1-Clic para el Administrador):**
+  - **Acceso Total (Analista / Editor):** Habilita todos los módulos y vistas.
+  - **Consulta y Auditoría (Lector Documental):** Habilita *Proyectos*, *Manual PDF*, *Matriz SIPOC*, *Matriz RACI* y *Flujograma Secuencial* (oculta el Lienzo y las herramientas de edición).
+  - **Modelador Operativo:** Habilita *Proyectos*, *Lienzo*, *Flujograma Secuencial* y *Herramientas*.
+- **Comportamiento reactivo en la interfaz (`Header.tsx` y `App.tsx`):**
+  - Cada usuario verá en su barra superior **únicamente** los botones, pestañas y sub-ítems de *Vistas & Manual PDF* que tenga habilitados.
+  - Si el usuario no tiene acceso a la vista actual, el sistema lo redirige automáticamente al primer módulo que tenga habilitado.
+
+---
+
+### 16.3. Registro de Historia de Usuario (`PST-090`)
+
+- **ID:** `PST-090`
+- **Módulo / Componente:** Gobernanza de Módulos, Cabecera & Experiencia de Usuario
+- **Título:** Permisos Granulares por Módulo/Vista para cada Usuario, Reorganización de Cabecera/Herramientas y Corrección de Modales
+- **Historia de Usuario:** *Como administrador de ProcesStudio, quiero configurar a qué módulos y vistas del sistema tiene acceso cada usuario (Proyectos, Lienzo, Manual PDF, Matriz SIPOC, Matriz RACI, Flujograma Secuencial, Herramientas y Creación de Procesos), contar con los Catálogos ABM integrados en la Consola de Administración, y disponer de menús desplegables sólidos sin recortes visuales ni textos innecesarios, para adaptar la interfaz al rol exacto de cada colaborador.*
+- **Criterios de Aceptación:**
+  1. Integración de Catálogos ABM dentro de `AdminConsoleModal.tsx` y retiro de la barra superior.
+  2. Ubicación exclusiva de *Generar desde Texto / Plantillas* y *Tutorial* dentro del desplegable `Herramientas`, retirando *Participantes & Permisos* de dicho menú.
+  3. Corrección definitiva del posicionamiento de `EditProjectModal`, `ProjectParticipantsModal` y `NewRevisionModal` fuera del contenedor `<header>` para evitar recortes en el borde superior.
+  4. Fondos opacos sólidos en los desplegables de `Herramientas`, `Vistas & Manual PDF` y `UserProfileMenu`, y eliminación de las etiquetas `Antigravity IDE`, `Antigravity`, `CRUD`, `Aprender`, `6 Pasos`, `BPMN` (en Lienzo) y `& Ficha ISO 9001` (en Manual PDF).
+  5. Gestión por usuario de módulos habilitados (`Proyectos`, `Lienzo`, `Manual PDF`, `Matriz SIPOC`, `Matriz RACI`, `Flujograma Secuencial`, `Herramientas`, `Exportar`, `Crear Proceso`) con presets rápidos de 1 clic y ocultamiento dinámico en la interfaz.
+- **Estado:** `Implementado / Producción`
+
+
 
 

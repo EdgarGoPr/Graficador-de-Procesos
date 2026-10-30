@@ -33,6 +33,7 @@ import { AdminConsoleModal } from './components/admin/AdminConsoleModal';
 import { IdleLockOverlay } from './components/auth/IdleLockOverlay';
 import { IdleWarningToast } from './components/auth/IdleWarningToast';
 import { PermissionService } from './services/permissionService';
+import { hasUserModuleAccess } from './types/auth';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
 import { VersionBadge } from './components/common/VersionBadge';
 import { CheckCircle2, Info, AlertCircle, AlertTriangle, X } from 'lucide-react';
@@ -66,9 +67,37 @@ export const App: React.FC = () => {
     initializeAuth();
   }, [initialize, initializeAuth]);
 
-  // Guard de visualización estricta de lienzos para usuarios regulares
+  // Guard de visualización estricta de lienzos y módulos habilitados para usuarios regulares
   useEffect(() => {
-    if (currentUser && currentUser.role === 'USER' && activeView === 'CANVAS' && currentProject?.fileName) {
+    if (!currentUser) return;
+
+    const viewModuleMap: Record<string, Parameters<typeof hasUserModuleAccess>[1]> = {
+      DASHBOARD: 'DASHBOARD',
+      CANVAS: 'CANVAS',
+      REPORT: 'VIEW_REPORT',
+      SIPOC: 'VIEW_SIPOC',
+      RACI: 'VIEW_RACI',
+      FLOWCHART: 'VIEW_FLOWCHART'
+    };
+
+    const requiredModule = viewModuleMap[activeView];
+    if (requiredModule && !hasUserModuleAccess(currentUser, requiredModule)) {
+      const fallbackOrder: Array<{ view: typeof activeView; mod: Parameters<typeof hasUserModuleAccess>[1] }> = [
+        { view: 'DASHBOARD', mod: 'DASHBOARD' },
+        { view: 'CANVAS', mod: 'CANVAS' },
+        { view: 'REPORT', mod: 'VIEW_REPORT' },
+        { view: 'FLOWCHART', mod: 'VIEW_FLOWCHART' },
+        { view: 'SIPOC', mod: 'VIEW_SIPOC' },
+        { view: 'RACI', mod: 'VIEW_RACI' }
+      ];
+      const allowedFallback = fallbackOrder.find(item => hasUserModuleAccess(currentUser, item.mod));
+      if (allowedFallback && allowedFallback.view !== activeView) {
+        setActiveView(allowedFallback.view);
+        return;
+      }
+    }
+
+    if (currentUser.role === 'USER' && activeView === 'CANVAS' && currentProject?.fileName) {
       const perm = PermissionService.getUserPermissionForProject(currentUser, currentProject.fileName);
       if (!perm) {
         showNotification('Acceso denegado: este lienzo no está asignado a tu usuario.', 'warning');

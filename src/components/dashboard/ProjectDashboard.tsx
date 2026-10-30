@@ -23,6 +23,7 @@ import { ProjectParticipantsModal } from '../modals/ProjectParticipantsModal';
 import { EditProjectModal } from '../modals/EditProjectModal';
 import { useAuthStore } from '../../store/useAuthStore';
 import { PermissionService } from '../../services/permissionService';
+import { hasUserModuleAccess } from '../../types/auth';
 
 interface ProjectDashboardProps {
   onOpenNewModal: () => void;
@@ -97,7 +98,17 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ onOpenNewMod
 
     const ok = await openProject(fileName);
     if (ok) {
-      setActiveView('CANVAS');
+      if (hasUserModuleAccess(currentUser, 'CANVAS')) {
+        setActiveView('CANVAS');
+      } else if (hasUserModuleAccess(currentUser, 'VIEW_REPORT')) {
+        setActiveView('REPORT');
+      } else if (hasUserModuleAccess(currentUser, 'VIEW_FLOWCHART')) {
+        setActiveView('FLOWCHART');
+      } else if (hasUserModuleAccess(currentUser, 'VIEW_SIPOC')) {
+        setActiveView('SIPOC');
+      } else if (hasUserModuleAccess(currentUser, 'VIEW_RACI')) {
+        setActiveView('RACI');
+      }
       if (lockResult.message) {
         showNotification(lockResult.message, 'warning');
       } else {
@@ -153,7 +164,11 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ onOpenNewMod
       // If desired, open the imported project immediately
       const ok = await openProject(result.fileName);
       if (ok) {
-        setActiveView('CANVAS');
+        if (hasUserModuleAccess(currentUser, 'CANVAS')) {
+          setActiveView('CANVAS');
+        } else if (hasUserModuleAccess(currentUser, 'VIEW_REPORT')) {
+          setActiveView('REPORT');
+        }
       }
     } else {
       showNotification(`❌ Error al importar: ${result.error || 'Archivo inválido'}`, 'error');
@@ -196,7 +211,7 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ onOpenNewMod
             />
 
             {/* Import JSON button */}
-            {currentUser && (
+            {currentUser && hasUserModuleAccess(currentUser, 'CREATE_PROJECTS') && (
               <button
                 onClick={() => fileInputRef.current?.click()}
                 className="flex items-center space-x-2 px-3.5 py-2.5 rounded-xl bg-theme-surface-subtle hover:bg-theme-surface text-theme-text border border-theme-border text-sm font-semibold transition-colors hover:border-emerald-500/50"
@@ -207,7 +222,7 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ onOpenNewMod
               </button>
             )}
 
-            {currentUser && (
+            {currentUser && hasUserModuleAccess(currentUser, 'CREATE_PROJECTS') && (
               <button
                 onClick={onOpenNewModal}
                 className="flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#0284C7] to-[#3B82F6] hover:brightness-110 text-white text-sm font-bold shadow-lg shadow-blue-500/20 transition-all hover:scale-[1.02]"
@@ -254,7 +269,7 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ onOpenNewMod
                 ? 'Puedes crear un nuevo proyecto propio con el botón inferior o solicitar al Administrador la asignación de lienzos existentes.'
                 : 'Creá un nuevo proyecto o verificá los archivos JSON en tu almacenamiento.'}
             </p>
-            {currentUser && (
+            {currentUser && hasUserModuleAccess(currentUser, 'CREATE_PROJECTS') && (
               <button
                 onClick={onOpenNewModal}
                 className="mt-4 px-4 py-2 rounded-lg bg-theme-accent text-white text-xs font-semibold hover:bg-theme-accent-hover inline-flex items-center space-x-1.5"
