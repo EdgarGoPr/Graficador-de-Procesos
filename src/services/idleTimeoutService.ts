@@ -12,7 +12,6 @@ export class IdleTimeoutService {
   private static onWarningCb: ((remainingSeconds: number) => void) | null = null;
   private static onTimeoutCb: (() => void) | null = null;
   private static isInitialized = false;
-  private static lastActivityTime = Date.now();
 
   public static init(
     onWarning: (remainingSeconds: number) => void,
@@ -37,7 +36,6 @@ export class IdleTimeoutService {
   }
 
   public static resetTimers(): void {
-    this.lastActivityTime = Date.now();
     this.clearTimers();
 
     // 1. Temporizador de advertencia (a los 28 minutos)
@@ -58,11 +56,5 @@ export class IdleTimeoutService {
   public static clearTimers(): void {
     if (this.warningTimer) clearTimeout(this.warningTimer);
     if (this.lockTimer) clearTimeout(this.lockTimer);
-  }
-
-  public static destroy(): void {
-    this.clearTimers();
-    this.onWarningCb = null;
-    this.onTimeoutCb = null;
   }
 }

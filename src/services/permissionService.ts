@@ -36,17 +36,6 @@ export class PermissionService {
   }
 
   /**
-   * Obtiene la lista de nombres de archivo de lienzos asignados al usuario
-   */
-  public static async getAssignedProjectFileNames(user: AppUser | null): Promise<string[] | 'ALL'> {
-    if (!user) return [];
-    if (user.role === 'ADMIN') return 'ALL'; // Administrador ve todos
-
-    const perms = await this.listUserPermissions(user.id);
-    return perms.map(p => p.projectFileName);
-  }
-
-  /**
    * Lista todas las asignaciones de un usuario
    */
   public static async listUserPermissions(userId: string): Promise<ProjectUserPermission[]> {

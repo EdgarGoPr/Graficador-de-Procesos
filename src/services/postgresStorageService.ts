@@ -5,15 +5,6 @@ import { sanitizeFilename } from './storageService';
 
 export class PostgresStorageService {
   /**
-   * Checks if Neon is configured and accessible
-   */
-  public static async isAvailable(): Promise<boolean> {
-    if (!NeonClient.isConfigured()) return false;
-    const test = await NeonClient.testConnection();
-    return test.ok;
-  }
-
-  /**
    * List project summaries directly from indexed columns (< 2ms)
    */
   public static async listProjectSummaries(): Promise<ProjectSummary[]> {
@@ -54,22 +45,6 @@ export class PostgresStorageService {
       }));
     } catch (err) {
       console.error('Error fetching project summaries from PostgreSQL/Neon:', err);
-      return [];
-    }
-  }
-
-  /**
-   * List all project file names
-   */
-  public static async listProjects(): Promise<string[]> {
-    const sql = NeonClient.getSql();
-    if (!sql) return [];
-
-    try {
-      const rows = (await sql`SELECT file_name FROM process_projects ORDER BY updated_at DESC;`) as any[];
-      return rows.map((r: any) => r.file_name);
-    } catch (err) {
-      console.error('Error listing project filenames from Neon:', err);
       return [];
     }
   }
@@ -208,106 +183,5 @@ export class PostgresStorageService {
       console.error(`Error deleting project ${fileName} from Neon:`, err);
       return false;
     }
-  }
-
-  /**
-   * Duplicate a project in Neon
-   */
-  public static async duplicateProject(sourceFileName: string): Promise<string | null> {
-    const original = await this.loadProject(sourceFileName);
-    if (!original) return null;
-
-    const copyTitle = `${original.documentControl.documentTitle} (Copia)`;
-    const newFileName = sanitizeFilename(copyTitle, original.documentControl.version);
-
-    const duplicated: ProcessProjectFile = {
-      ...original,
-      documentControl: {
-        ...original.documentControl,
-        documentTitle: copyTitle,
-        documentCode: `${original.documentControl.documentCode}-CPY`,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      },
-      fileName: newFileName
-    };
-
-    await this.saveProject(duplicated);
-    return newFileName;
-  }
-
-  /**
-   * Search projects using Full-Text search and Trigram fuzzy matching
-   */
-  public static async searchProjects(query: string): Promise<ProjectSummary[]> {
-    const sql = NeonClient.getSql();
-    if (!sql) return [];
-
-    const clean = query.trim();
-    if (!clean) return this.listProjectSummaries();
-
-    try {
-      const rows = (await sql`
-        SELECT 
-          file_name,
-          document_code,
-          document_title,
-          version,
-          author_name,
-          organization_unit,
-          node_count,
-          total_lead_time_minutes,
-          risk_count,
-          checkpoint_count,
-          updated_at
-        FROM process_projects
-        WHERE 
-          search_vector @@ plainto_tsquery('spanish', ${clean})
-          OR document_title ILIKE ${'%' + clean + '%'}
-          OR document_code ILIKE ${'%' + clean + '%'}
-          OR author_name ILIKE ${'%' + clean + '%'}
-        ORDER BY 
-          ts_rank(search_vector, plainto_tsquery('spanish', ${clean})) DESC,
-          updated_at DESC;
-      `) as any[];
-
-      return rows.map((r: any) => ({
-        fileName: r.file_name,
-        documentTitle: r.document_title,
-        documentCode: r.document_code,
-        version: r.version,
-        authorName: r.author_name,
-        organizationUnit: r.organization_unit,
-        updatedAt: typeof r.updated_at === 'string' ? r.updated_at : new Date(r.updated_at).toISOString(),
-        nodeCount: Number(r.node_count) || 0,
-        totalLeadTimeHours: Math.round(((Number(r.total_lead_time_minutes) || 0) / 60) * 10) / 10,
-        totalLeadTimeBusinessDays: Math.round(((Number(r.total_lead_time_minutes) || 0) / (60 * 8)) * 10) / 10,
-        riskCount: Number(r.risk_count) || 0,
-        checkpointCount: Number(r.checkpoint_count) || 0
-      }));
-    } catch (err) {
-      console.error('Error searching projects in Neon:', err);
-      return [];
-    }
-  }
-
-  /**
-   * Bulk upload projects from local sources (USB / defaultProjects / localStorage) into Neon
-   */
-  public static async migrateProjects(projects: ProcessProjectFile[]): Promise<{ succeeded: number; failed: number }> {
-    let succeeded = 0;
-    let failed = 0;
-
-    for (const proj of projects) {
-      try {
-        await this.saveProject(proj);
-        succeeded++;
-      } catch (err) {
-        console.error(`Failed to migrate project ${proj.fileName || proj.documentControl?.documentTitle}:`, err);
-        failed++;
-      }
-    }
-
-    return { succeeded, failed };
   }
 }

@@ -3,7 +3,7 @@ import { ProcessProjectFile } from '../types/project';
 /**
  * Generates ISO/IEC 19510 OMG Standard BPMN 2.0 XML with full diagram interchange (BPMNDI)
  */
-export function exportToBpmnXml(project: ProcessProjectFile): string {
+function exportToBpmnXml(project: ProcessProjectFile): string {
   const sanitize = (str: string) =>
     (str || '')
       .replace(/&/g, '&amp;')
@@ -13,7 +13,6 @@ export function exportToBpmnXml(project: ProcessProjectFile): string {
       .replace(/'/g, '&apos;');
 
   const processId = `Process_${project.documentControl.documentCode.replace(/[^a-zA-Z0-9_]/g, '_')}`;
-  const now = new Date().toISOString();
 
   let xml = `<?xml version="1.0" encoding="UTF-8"?>
 <bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
@@ -23,8 +22,8 @@ export function exportToBpmnXml(project: ProcessProjectFile): string {
                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                   id="Definitions_ProcesStudio_${Date.now()}"
                   targetNamespace="http://processtudio.io/bpmn"
-                  exporter="ProcesStudio Portable"
-                  exporterVersion="1.0.0">
+                  exporter="ProcesStudio Web"
+                  exporterVersion="2.4.2">
 
   <bpmn:collaboration id="Collaboration_1">
     <bpmn:participant id="Participant_1" name="${sanitize(project.documentControl.documentTitle)}" processRef="${processId}" />

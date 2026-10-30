@@ -11,11 +11,9 @@ interface UiStoreState {
   currentThemeId: AppThemeId;
   baseThemeId: AppThemeId; // Temática base activa sobre la cual se aplican personalizaciones
   customThemeColors: ThemeColors;
-  isSidebarOpen: boolean;
   isPropertiesPanelOpen: boolean;
   activeRightTab: RightPanelTab;
   activeSubProcessNodeId: string | null;
-  searchFilter: string;
   activeNotification: { message: string; type: 'success' | 'info' | 'error' | 'warning' } | null;
   isThemeModalOpen: boolean;
   isQualityAuditModalOpen: boolean;
@@ -52,13 +50,11 @@ interface UiStoreState {
   setTutorialModalOpen: (open: boolean) => void;
   setInteractiveTourActive: (active: boolean) => void;
   toggleTheme: () => void;
-  toggleSidebar: () => void;
   togglePropertiesPanel: () => void;
   setPropertiesPanelOpen: (open: boolean) => void;
   setActiveRightTab: (tab: RightPanelTab) => void;
   openSubProcessDetail: (nodeId: string) => void;
   closeSubProcessDetail: () => void;
-  setSearchFilter: (query: string) => void;
   showNotification: (message: string, type?: 'success' | 'info' | 'error' | 'warning') => void;
   clearNotification: () => void;
 }
@@ -114,11 +110,9 @@ export const useUiStore = create<UiStoreState>((set, get) => ({
   currentThemeId: initialData.themeId,
   baseThemeId: initialData.baseId,
   customThemeColors: initialData.customColors,
-  isSidebarOpen: true,
   isPropertiesPanelOpen: true,
   activeRightTab: 'NAVIGATOR',
   activeSubProcessNodeId: null,
-  searchFilter: '',
   activeNotification: null,
   isThemeModalOpen: false,
   isQualityAuditModalOpen: false,
@@ -212,13 +206,11 @@ export const useUiStore = create<UiStoreState>((set, get) => ({
     get().setAppTheme(nextId);
   },
 
-  toggleSidebar: () => set((state) => ({ isSidebarOpen: !state.isSidebarOpen })),
   togglePropertiesPanel: () => set((state) => ({ isPropertiesPanelOpen: !state.isPropertiesPanelOpen })),
   setPropertiesPanelOpen: (open) => set({ isPropertiesPanelOpen: open }),
   setActiveRightTab: (tab) => set({ activeRightTab: tab, isPropertiesPanelOpen: true }),
   openSubProcessDetail: (nodeId) => set({ activeSubProcessNodeId: nodeId }),
   closeSubProcessDetail: () => set({ activeSubProcessNodeId: null }),
-  setSearchFilter: (query) => set({ searchFilter: query }),
   showNotification: (message, type = 'success') => {
     set({ activeNotification: { message, type } });
     setTimeout(() => {

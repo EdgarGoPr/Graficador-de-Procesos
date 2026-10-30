@@ -5,8 +5,7 @@ import { StorageService } from '../services/storageService';
 import { CanvasSnapshot, createSnapshot, pushToHistory } from '../services/historyManager';
 import {
   bumpVersion,
-  generateRevisionFilename,
-  groupProjectsByProcess
+  generateRevisionFilename
 } from '../services/processVersionManager';
 import { useAuthStore } from './useAuthStore';
 import { PermissionService } from '../services/permissionService';
@@ -26,7 +25,6 @@ interface ProjectStoreState {
   isSaving: boolean;
   lastSavedAt: string | null;
   hasUnsavedChanges: boolean;
-  projectsDirectoryPath: string;
 
   // History (Undo / Redo)
   past: CanvasSnapshot[];
@@ -38,7 +36,6 @@ interface ProjectStoreState {
   initialize: () => Promise<void>;
   refreshProjectList: () => Promise<void>;
   openProject: (fileName: string) => Promise<boolean>;
-  openLatestVersion: (groupKeyOrCode: string) => Promise<boolean>;
   createNewProject: (title: string, authorName: string, orgUnit: string) => Promise<string>;
   saveCurrentProject: () => Promise<boolean>;
   saveProjectAsNewRevision: (options?: SaveRevisionOptions) => Promise<string | null>;
@@ -72,7 +69,6 @@ export const useProjectStore = create<ProjectStoreState>((set, get) => ({
   isSaving: false,
   lastSavedAt: null,
   hasUnsavedChanges: false,
-  projectsDirectoryPath: '../Proyectos/',
 
   past: [],
   future: [],
@@ -109,16 +105,6 @@ export const useProjectStore = create<ProjectStoreState>((set, get) => ({
       return true;
     }
     set({ isLoading: false });
-    return false;
-  },
-
-  openLatestVersion: async (groupKeyOrCode: string) => {
-    const { projectList, openProject } = get();
-    const groups = groupProjectsByProcess(projectList);
-    const targetGroup = groups.find(g => g.groupKey === groupKeyOrCode || g.documentCode === groupKeyOrCode);
-    if (targetGroup && targetGroup.latestVersion) {
-      return await openProject(targetGroup.latestVersion.fileName);
-    }
     return false;
   },
 

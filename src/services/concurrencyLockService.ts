@@ -7,7 +7,6 @@ const LOCK_DURATION_MS = 5 * 60 * 1000; // 5 minutos de vigencia por latido
 
 export class ConcurrencyLockService {
   private static heartbeatInterval: any = null;
-  private static currentLockedProject: string | null = null;
 
   /**
    * Intenta adquirir el candado de edición sobre un lienzo
@@ -84,7 +83,6 @@ export class ConcurrencyLockService {
       localStorage.setItem(LOCAL_STORAGE_LOCKS_FALLBACK, JSON.stringify(updated));
     }
 
-    this.currentLockedProject = projectFileName;
     this.startHeartbeat(projectFileName, user);
 
     await AuditLoggerService.log('CANVAS_LOCK_ACQUIRED', user, projectFileName);
@@ -102,54 +100,10 @@ export class ConcurrencyLockService {
   }
 
   /**
-   * Consulta el estado de bloqueo de un lienzo
-   */
-  public static async checkLock(
-    projectFileName: string,
-    currentUserId: string
-  ): Promise<{ isLocked: boolean; lockedBy?: string; isLockedByMe: boolean }> {
-    const sql = NeonClient.getSql();
-    if (sql) {
-      try {
-        const rows = (await sql`
-          SELECT project_file_name, user_id, user_name, expires_at
-          FROM canvas_active_locks
-          WHERE project_file_name = ${projectFileName} AND expires_at > NOW()
-          LIMIT 1;
-        `) as any[];
-
-        if (rows && rows.length > 0) {
-          const lock = rows[0];
-          return {
-            isLocked: true,
-            lockedBy: lock.user_name,
-            isLockedByMe: lock.user_id === currentUserId
-          };
-        }
-      } catch (err) {
-        console.warn('Error al verificar candado en Neon:', err);
-      }
-    }
-
-    const locks = this.getLocalLocks().filter(l => new Date(l.expiresAt).getTime() > Date.now());
-    const lock = locks.find(l => l.projectFileName === projectFileName);
-    if (lock) {
-      return {
-        isLocked: true,
-        lockedBy: lock.userName,
-        isLockedByMe: lock.userId === currentUserId
-      };
-    }
-
-    return { isLocked: false, isLockedByMe: false };
-  }
-
-  /**
    * Libera voluntariamente el candado de edición
    */
   public static async releaseLock(projectFileName: string, user: AppUser): Promise<void> {
     this.stopHeartbeat();
-    this.currentLockedProject = null;
 
     const sql = NeonClient.getSql();
     if (sql) {

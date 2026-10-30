@@ -11,7 +11,7 @@ export interface AudioRecordingResult {
   mimeType: string;
 }
 
-export class WebAudioRecorder {
+class WebAudioRecorder {
   private mediaRecorder: MediaRecorder | null = null;
   private audioChunks: Blob[] = [];
   private stream: MediaStream | null = null;
@@ -21,10 +21,6 @@ export class WebAudioRecorder {
 
   public isRecording(): boolean {
     return this.mediaRecorder?.state === 'recording';
-  }
-
-  public isPaused(): boolean {
-    return this.mediaRecorder?.state === 'paused';
   }
 
   public async startRecording(onTick?: (seconds: number) => void): Promise<boolean> {
@@ -80,18 +76,6 @@ export class WebAudioRecorder {
       console.error('Error al acceder al micrófono:', err);
       this.cleanup();
       throw err;
-    }
-  }
-
-  public pause(): void {
-    if (this.mediaRecorder && this.mediaRecorder.state === 'recording') {
-      this.mediaRecorder.pause();
-    }
-  }
-
-  public resume(): void {
-    if (this.mediaRecorder && this.mediaRecorder.state === 'paused') {
-      this.mediaRecorder.resume();
     }
   }
 

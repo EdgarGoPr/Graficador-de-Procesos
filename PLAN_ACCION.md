@@ -1352,3 +1352,54 @@ Dejar de publicar la aplicación en GitHub Pages y que Vercel sea el único dest
   4. Pages deshabilitado en GitHub y OAuth de Google actualizado a la nueva URL.
   5. Proyectos migrados mediante respaldo e importación JSON antes de apagar Pages.
 - **Estado:** `Implementado / Producción`
+
+
+---
+
+## 21. Plan de Acción: Limpieza Interna de Código Muerto, Métodos Huérfanos y Remanentes de Escritorio (`PST-095`)
+
+### 21.1. Objetivo
+Sanear internamente los módulos activos de `src/` que aún conservan métodos, propiedades de estado, tipos exportados sin consumidores o leyendas residuales de la etapa de escritorio (`../Proyectos/`, `"ProcesStudio Portable"`, métodos huérfanos tras retirar `DatabaseConfigModal.tsx`).
+
+### 21.2. Detalle Técnico por Archivo
+
+1. **[`src/store/useProjectStore.ts`](src/store/useProjectStore.ts)**
+   - Eliminar `projectsDirectoryPath: string` (línea 29) y su inicialización `projectsDirectoryPath: '../Proyectos/'` (línea 75): remanente directo del directorio local de la versión `.exe`.
+   - Eliminar la acción `openLatestVersion` (líneas 41 y 115–123): ningún componente la invoca.
+2. **[`src/components/common/ErrorBoundary.tsx`](src/components/common/ErrorBoundary.tsx)**
+   - Eliminar la prop no utilizada `fallbackView?: () => void` y el import sin uso `LayoutDashboard` (líneas 2 y 6).
+   - Actualizar textos heredados de escritorio: reemplazar `"ProcesStudio Portable"` (línea 47) por `"ProcesStudio Web"` y reemplazar `"Tus archivos de proyectos en ../Proyectos/ están seguros"` (línea 56) por `"Tus proyectos guardados están seguros. Podés recargar la aplicación para restablecer el estado."`.
+3. **[`src/services/storageService.ts`](src/services/storageService.ts)**
+   - Eliminar el tipo exportado sin uso `export type StorageMode = 'NEON' | 'LOCALSTORAGE'` (línea 35).
+   - Eliminar `getProjectsPath()` (líneas 48–53): quedó sin consumidores tras eliminar el indicador de carpeta local en `ProjectDashboard` y `UserProfileMenu`.
+   - Eliminar `listProjects()` (líneas 151–163): método público sin ningún llamador externo (la app usa `listProjectSummaries()` e internamente `listLocalProjects()`).
+   - Eliminar `syncAllLocalProjectsToNeon()` (líneas 303–332): era invocado únicamente por el modal eliminado `DatabaseConfigModal.tsx`.
+4. **[`src/services/postgresStorageService.ts`](src/services/postgresStorageService.ts)**
+   - Eliminar `isAvailable()` (líneas 10–14): sin consumidores.
+   - Eliminar `listProjects()` (líneas 64–75): solo era llamado por `StorageService.listProjects()`, también obsoleto.
+   - Eliminar `duplicateProject()` (líneas 216–237): `StorageService.duplicateProject()` resuelve el duplicado directamente mediante `loadProject` + `saveProject`, sin llamar a `PostgresStorageService.duplicateProject()`.
+   - Eliminar `searchProjects()` (líneas 242–292): búsqueda SQL que nunca fue conectada a la UI (el filtrado en `ProjectDashboard` es en memoria).
+   - Eliminar `migrateProjects()` (líneas 297–312): solo era invocado por `StorageService.syncAllLocalProjectsToNeon()` y por el script eliminado `sync-local-to-neon.cjs`.
+5. **[`src/services/neonClient.ts`](src/services/neonClient.ts)**
+   - Eliminar la interfaz no consumida `export interface NeonConnectionStatus` (líneas 10–16).
+   - Eliminar `STORAGE_KEY_NEON_URL`, la lectura de `localStorage` en `getConnectionString()` y el método `setConnectionString()` (líneas 8, 28–33, 44–55): pertenecían al modal eliminado `DatabaseConfigModal.tsx`. La conexión se resuelve exclusivamente por `VITE_NEON_DATABASE_URL`.
+   - Eliminar `testConnection()` (líneas 88–108): solo era consumido por `DatabaseConfigModal.tsx` y `PostgresStorageService.isAvailable()`.
+6. **[`src/services/permissionService.ts`](src/services/permissionService.ts)**
+   - Eliminar `getAssignedProjectFileNames()` asíncrono (líneas 41–47): nunca es invocado; toda la app consume la variante síncrona `getAssignedProjectFileNamesSync()`.
+7. **[`src/services/concurrencyLockService.ts`](src/services/concurrencyLockService.ts)**
+   - Eliminar `private static currentLockedProject` (líneas 10, 87, 152, escrita pero nunca leída) y el método `checkLock()` (líneas 107–145, sin consumidores).
+8. **[`src/services/idleTimeoutService.ts`](src/services/idleTimeoutService.ts)**
+   - Eliminar `private static lastActivityTime` (líneas 15, 40, escrita pero nunca leída) y el método `destroy()` (líneas 63–67, sin consumidores).
+9. **[`src/services/webAudioRecorder.ts`](src/services/webAudioRecorder.ts)**
+   - Quitar `export` de la clase `WebAudioRecorder` (solo se consume la instancia `webAudioRecorder`) y eliminar los métodos sin uso `isPaused()`, `pause()` y `resume()` (líneas 26–28, 86–96).
+10. **[`src/services/bpmnXmlExporter.ts`](src/services/bpmnXmlExporter.ts) y [`src/services/documentExtractorService.ts`](src/services/documentExtractorService.ts)**
+    - En `bpmnXmlExporter.ts`: quitar `export` de `exportToBpmnXml` (solo se usa internamente en `downloadBpmnXmlFile`), eliminar la constante `now` sin uso (línea 16) y cambiar `exporter="ProcesStudio Portable"` por `exporter="ProcesStudio Web"` (línea 26).
+    - En `documentExtractorService.ts`: quitar referencia a Electron en el comentario de la línea 7.
+11. **[`src/store/useUiStore.ts`](src/store/useUiStore.ts)**
+    - Eliminar el estado `isSidebarOpen` y la acción `toggleSidebar` (líneas 14, 55, 117, 194) y el estado `searchFilter` y `setSearchFilter` (líneas 18, 61, 121, 214): huérfanos de una barra lateral antigua que nunca se leen en ningún componente.
+
+### 21.3. Registro de Historia de Usuario (`PST-095`)
+- **ID:** `PST-095`
+- **Módulo / Componente:** Arquitectura, Calidad de Código & Mantenimiento
+- **Título:** Auditoría interna y depuración de métodos, estados y remanentes de escritorio en módulos activos
+- **Estado:** `Implementado / Producción`

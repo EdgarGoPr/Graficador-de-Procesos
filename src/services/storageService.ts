@@ -32,24 +32,12 @@ export function sanitizeFilename(title: string, version: string, dateStr?: strin
 const LOCAL_STORAGE_KEY_PREFIX = 'procesos_studio_proj_';
 const LOCAL_STORAGE_INDEX_KEY = 'procesos_studio_project_index';
 
-export type StorageMode = 'NEON' | 'LOCALSTORAGE';
-
 /**
  * Universal Storage Service (Neon Cloud PostgreSQL + Browser LocalStorage)
  */
 export class StorageService {
   public static isNeonConfigured(): boolean {
     return NeonClient.isConfigured();
-  }
-
-  /**
-   * Gets a human-readable description of the active storage backend
-   */
-  public static async getProjectsPath(): Promise<string> {
-    if (this.isNeonConfigured()) {
-      return 'Neon Serverless PostgreSQL (Cloud)';
-    }
-    return 'Navegador Web (localStorage)';
   }
 
   /**
@@ -144,23 +132,6 @@ export class StorageService {
     }
 
     return summaries;
-  }
-
-  /**
-   * List all projects file names
-   */
-  public static async listProjects(): Promise<string[]> {
-    if (this.isNeonConfigured()) {
-      try {
-        const neonFiles = await PostgresStorageService.listProjects();
-        if (neonFiles.length > 0) {
-          return neonFiles;
-        }
-      } catch (err) {
-        console.warn('Neon listProjects failed, using local:', err);
-      }
-    }
-    return await this.listLocalProjects();
   }
 
   /**
@@ -288,40 +259,6 @@ export class StorageService {
 
     await this.saveProject(duplicated);
     return newFileName;
-  }
-
-  /**
-   * Sincroniza todos los proyectos locales y de muestra a Neon en un solo paso
-   */
-  public static async syncAllLocalProjectsToNeon(): Promise<{ succeeded: number; failed: number }> {
-    if (!this.isNeonConfigured()) {
-      throw new Error('No hay base de datos Neon configurada.');
-    }
-
-    const projectsToSync: ProcessProjectFile[] = [];
-    const localFileNames = await this.listLocalProjects();
-
-    for (const fn of localFileNames) {
-      const p = await this.loadLocalProject(fn);
-      if (p) projectsToSync.push(p);
-    }
-
-    // Include sample projects if not already included
-    for (const sample of sampleProjects) {
-      const exists = projectsToSync.some(
-        p => p.documentControl.documentCode === sample.documentControl.documentCode
-      );
-      if (!exists) {
-        const fn = sanitizeFilename(
-          sample.documentControl.documentTitle,
-          sample.documentControl.version,
-          sample.documentControl.createdAt
-        );
-        projectsToSync.push({ ...sample, fileName: fn });
-      }
-    }
-
-    return await PostgresStorageService.migrateProjects(projectsToSync);
   }
 
   /**

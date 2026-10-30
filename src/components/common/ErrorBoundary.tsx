@@ -1,9 +1,8 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
-import { AlertTriangle, RefreshCw, LayoutDashboard } from 'lucide-react';
+import { AlertTriangle, RefreshCw } from 'lucide-react';
 
 interface Props {
   children: ReactNode;
-  fallbackView?: () => void;
 }
 
 interface State {
@@ -44,7 +43,7 @@ export class ErrorBoundary extends Component<Props, State> {
               </div>
               <div>
                 <h2 className="text-base font-bold text-white">Se detectó una incidencia en la vista</h2>
-                <p className="text-xs text-slate-400">ProcesStudio Portable &bull; Recuperación Segura</p>
+                <p className="text-xs text-slate-400">ProcesStudio Web &bull; Recuperación Segura</p>
               </div>
             </div>
 
@@ -53,7 +52,7 @@ export class ErrorBoundary extends Component<Props, State> {
             </div>
 
             <p className="text-xs text-slate-300">
-              Tus archivos de proyectos en <code>../Proyectos/</code> están seguros. Podés recargar la aplicación para restablecer el estado.
+              Tus proyectos guardados están seguros. Podés recargar la aplicación para restablecer el estado.
             </p>
 
             <div className="flex items-center justify-end space-x-3 pt-2">

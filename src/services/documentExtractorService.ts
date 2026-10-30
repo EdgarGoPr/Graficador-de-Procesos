@@ -4,7 +4,7 @@ import pdfWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import mammoth from 'mammoth';
 import { getGeminiApiKey } from './aiRecommendationService';
 
-// Configuración del worker de PDF.js para Vite / Electron
+// Configuración del worker de PDF.js para Vite
 if (typeof window !== 'undefined' && pdfjsLib.GlobalWorkerOptions) {
   pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
 }

@@ -852,6 +852,15 @@ function generateExcel() {
       criteriosAceptacion: '1. Eliminado el workflow de GitHub Pages (.github/workflows/deploy.yml); ningún push dispara el despliegue en Pages.\n2. vercel.json y base: "/" versionados; el build de Vercel finaliza sin errores.\n3. README.md apunta a https://graficador-de-procesos.vercel.app/.\n4. StorageService.initializeStorage() garantiza la presencia del proyecto WiseCX (PRC-DGSTI-2026-001) en localStorage aunque el navegador ya tuviera un índice previo.',
       fechaImplementacion: '2026-10-30',
       estado: 'Implementado / Producción'
+    },
+    {
+      id: 'PST-095',
+      modulo: 'Arquitectura, Calidad de Código & Mantenimiento',
+      titulo: 'Auditoría interna y depuración quirúrgica de métodos, estados y remanentes de escritorio en módulos activos',
+      historiaUsuario: 'Como arquitecto y equipo de ingeniería de software, quiero eliminar funciones, métodos, estados de stores, tipos exportados e imports sin uso y leyendas heredadas de la versión portable en los módulos activos, para mantener una base de código limpia, mantenible y 100% alineada al entorno web.',
+      criteriosAceptacion: '1. Eliminados projectsDirectoryPath, openLatestVersion y el import huérfano groupProjectsByProcess en useProjectStore.ts.\n2. Actualizadas leyendas en ErrorBoundary.tsx y bpmnXmlExporter.ts de "ProcesStudio Portable" y "../Proyectos/" a "ProcesStudio Web".\n3. Eliminados métodos y tipos huérfanos en storageService.ts, postgresStorageService.ts, neonClient.ts, permissionService.ts, concurrencyLockService.ts, idleTimeoutService.ts, webAudioRecorder.ts y useUiStore.ts.\n4. Compilación limpia con tsc y vite build sin errores.',
+      fechaImplementacion: '2026-10-30',
+      estado: 'Implementado / Producción'
     }
   );
   console.log('📊 Generando archivo Excel de Historias de Usuario...');
