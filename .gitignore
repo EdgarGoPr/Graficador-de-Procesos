@@ -47,3 +47,6 @@ lerna-debug.log*
 *.sln
 *.sw?
 Thumbs.db
+
+# Respaldo local de proyectos (datos de usuario, no versionar)
+respaldo-proyectos/

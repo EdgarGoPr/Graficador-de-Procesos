@@ -825,6 +825,15 @@ function generateExcel() {
       criteriosAceptacion: '1. Eliminación de la cápsula segmentada asimétrica que agrupaba Proyectos, Lienzo y Vistas.\n2. Implementación de botones de navegación individuales y homogéneos para Proyectos, Lienzo, Vistas & Manual PDF y Herramientas con idéntica altura (py-2), padding (px-3.5), bordes (rounded-xl border border-theme-border), fondo (bg-theme-surface-subtle hover:bg-theme-surface) e iconos en color acento (text-theme-accent).\n3. Estado activo y desplegado homogéneo (bg-theme-accent/20 text-theme-accent border-theme-accent/50 shadow-sm font-bold).\n4. Rediseño del menú desplegable "Vistas & Manual PDF" con ancho de 72 (w-72), fondo sólido, iconos escalables en hover y descripción de dos líneas (título + subtítulo explicativo) idéntico a "Herramientas".\n5. Sincronización en HISTORIAS_DE_USUARIO_PROCESSTUDIO.xlsx y confirmación de cero errores de compilación.',
       fechaImplementacion: '2026-10-30',
       estado: 'Implementado / Producción'
+    },
+    {
+      id: 'PST-092',
+      modulo: 'Arquitectura, Mantenimiento & Deuda Técnica',
+      titulo: 'Limpieza estructural de dependencias y archivos huérfanos post-migración a web',
+      historiaUsuario: 'Como equipo de desarrollo, quiero eliminar el runtime de escritorio (Electron, lanzador C#, empaquetado USB) y los componentes sin uso, para reducir el peso del repositorio, acelerar la instalación y el build, y evitar confusión sobre la arquitectura vigente.',
+      criteriosAceptacion: '1. electron y sus scripts/propiedades eliminados de package.json y package-lock.json.\n2. Eliminadas las carpetas electron/, src-launcher/, MiAppProcesos_USB/ y data/, los scripts de escritorio y los componentes huérfanos SelectionToolbar y SwimlaneBackground sin referencias rotas.\n3. npm run build finaliza sin errores y el despliegue web no se ve afectado.\n4. Manuales conservados en docs/ y proyectos locales respaldados en respaldo-proyectos/ (ignorado por git).',
+      fechaImplementacion: '2026-10-30',
+      estado: 'Implementado / Producción'
     }
   );
   console.log('📊 Generando archivo Excel de Historias de Usuario...');

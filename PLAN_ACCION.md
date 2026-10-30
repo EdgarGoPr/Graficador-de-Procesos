@@ -1204,3 +1204,60 @@ Eliminar la disparidad visual en la barra central de navegación donde `Proyecto
 
 
 
+
+
+---
+
+## 18. Plan de Acción: Limpieza Estructural Post-Migración Escritorio → Web (`PST-092`)
+
+### 18.1. Objetivo
+Eliminar dependencias, scripts y archivos huérfanos del runtime de escritorio (Electron / lanzador C# / pendrive USB) identificados en la auditoría, sin tocar ningún archivo con referencias activas en la versión web.
+
+### 18.2. Alcance (solo elementos sin referencias activas)
+
+#### A. `package.json` / `package-lock.json`
+- Desinstalar `electron` (`npm uninstall electron`).
+- Eliminar `"main": "electron/main.cjs"`.
+- Eliminar el script `"start:portable"`.
+- Quitar `node scripts/sync-dist.cjs` del script `"build"` (queda `tsc && vite build && node scripts/generate-user-stories.cjs`).
+- Actualizar `description` (quitar "Portable Windows Desktop").
+- Quitar `ELECTRON_SKIP_BINARY_DOWNLOAD` de `.github/workflows/deploy.yml` (ya no hay binario que omitir).
+
+#### B. Archivos y carpetas a eliminar
+1. `electron/` (`main.cjs`, `preload.cjs`)
+2. `src-launcher/` (`Launcher.cs`, `app.manifest`)
+3. `scripts/sign-exe.ps1`
+4. `scripts/generate-pdf.cjs`
+5. `scripts/sync-dist.cjs`
+6. `scripts/sync-local-to-neon.cjs`
+7. `src/components/canvas/SelectionToolbar.tsx` (sin importaciones)
+8. `src/components/canvas/SwimlaneBackground.tsx` (sin importaciones)
+9. `MiAppProcesos_USB/` (ejecutables, binarios Electron, copias de `dist`, caché)
+10. `data/` (caché de Chromium, ya ignorada en `.gitignore`)
+
+#### C. Fuera de alcance (se conservan: tienen referencias activas o requieren decisión)
+- `src/components/dashboard/DatabaseConfigModal.tsx`: está importado en `ProjectDashboard.tsx`. Se tratará en un paso posterior de refactor.
+- Ramas `isElectron()` en `storageService.ts`, `Header.tsx`, `UserProfileMenu.tsx`, `ProjectCard.tsx`, `ProjectDashboard.tsx`: código activo. Se tratarán en el paso de refactor.
+- `scripts/setup-neon-db.cjs`, `scripts/*.sql`: esquema de base de datos aún útil.
+- `vite.config.ts` (`base: './'`): se mantiene porque funciona en GitHub Pages.
+
+### 18.3. Riesgos y puntos a decidir
+> [!WARNING]
+> - `MiAppProcesos_USB/` contiene `MANUAL_DE_USO.html/.md/.pdf`, `Proyectos/` y una copia del `.xlsx`. Si querés conservar el manual, hay que moverlo antes de borrar la carpeta.
+> - `scripts/setup-neon-db.cjs` y `scripts/sync-local-to-neon.cjs` tienen una cadena de conexión de Neon con contraseña hardcodeada y versionada en git. Recomiendo rotar esa credencial en Neon (aunque se borre el archivo, queda en el historial).
+> - Se perderá la capacidad de generar el `.exe` portable (decisión irreversible salvo desde git).
+
+### 18.4. Verificación
+`npm install` → `npm run build` (cero errores `tsc`/Vite) → búsqueda de referencias rotas a los archivos eliminados → commit y push.
+
+### 18.5. Registro de Historia de Usuario (`PST-092`)
+- **ID:** `PST-092`
+- **Módulo / Componente:** Arquitectura, Mantenimiento & Deuda Técnica
+- **Título:** Limpieza estructural de dependencias y archivos huérfanos post-migración a web
+- **Historia de Usuario:** *Como equipo de desarrollo, quiero eliminar el runtime de escritorio (Electron, lanzador C#, empaquetado USB) y los componentes sin uso, para reducir el peso del repositorio, acelerar la instalación y el build, y evitar confusión sobre la arquitectura vigente.*
+- **Criterios de Aceptación:**
+  1. `electron` y sus scripts/propiedades eliminados de `package.json` y `package-lock.json`.
+  2. Eliminadas las rutas listadas en 18.2.B sin referencias rotas.
+  3. `npm run build` finaliza sin errores y el despliegue web no se ve afectado.
+  4. Registro en `HISTORIAS_DE_USUARIO_PROCESSTUDIO.xlsx`.
+- **Estado:** `Implementado / Producción`
