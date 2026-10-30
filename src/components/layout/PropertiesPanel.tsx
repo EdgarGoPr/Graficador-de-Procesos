@@ -44,6 +44,7 @@ import {
 } from '../../types/process';
 import { CARD_THEME_PRESETS, hexToRgba } from '../../types/theme';
 import { buildIsoDurationString } from '../../services/leadTimeCalculator';
+import { MasterCatalogsService } from '../../services/masterCatalogsService';
 
 const CARD_BG_SWATCHES = [
   { label: 'Original', color: '' },
@@ -1614,7 +1615,8 @@ export const PropertiesPanel: React.FC = () => {
               </label>
               <input
                 type="text"
-                placeholder="Herramienta utilizada"
+                list="abm-systems-datalist"
+                placeholder="Herramienta utilizada (ABM)"
                 value={data.itSystem || ''}
                 onChange={(e) => handleUpdate({ itSystem: e.target.value })}
                 className="w-full bg-theme-surface-subtle border border-theme-border rounded px-2 py-1 text-theme-text text-xs focus:border-theme-accent outline-none mt-0.5"
@@ -1644,7 +1646,8 @@ export const PropertiesPanel: React.FC = () => {
                 return (
                   <input
                     type="text"
-                    placeholder="Responsable de la tarea"
+                    list="abm-roles-datalist"
+                    placeholder="Responsable de la tarea (ABM)"
                     value={data.responsible || ''}
                     onChange={(e) => handleUpdate({ responsible: e.target.value })}
                     className="w-full bg-theme-surface-subtle border border-theme-border rounded px-2 py-1 text-theme-text text-xs focus:border-theme-accent outline-none mt-0.5"
@@ -1660,7 +1663,8 @@ export const PropertiesPanel: React.FC = () => {
             </label>
             <input
               type="text"
-              placeholder="Norma, instructivo o procedimiento"
+              list="abm-normatives-datalist"
+              placeholder="Norma, instructivo o procedimiento (ABM)"
               value={data.legalFramework || ''}
               onChange={(e) => handleUpdate({ legalFramework: e.target.value })}
               className="w-full bg-theme-surface-subtle border border-theme-border rounded px-2 py-1 text-theme-text text-xs focus:border-theme-accent outline-none mt-0.5"
@@ -1854,7 +1858,8 @@ export const PropertiesPanel: React.FC = () => {
             <div className="flex space-x-1">
               <input
                 type="text"
-                placeholder="Agregar insumo..."
+                list="abm-records-datalist"
+                placeholder="Agregar insumo (o elegir de ABM)..."
                 value={newInputText}
                 onChange={(e) => setNewInputText(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleAddInput()}
@@ -1885,7 +1890,8 @@ export const PropertiesPanel: React.FC = () => {
             <div className="flex space-x-1">
               <input
                 type="text"
-                placeholder="Agregar entregable..."
+                list="abm-records-datalist"
+                placeholder="Agregar entregable (o elegir de ABM)..."
                 value={newOutputText}
                 onChange={(e) => setNewOutputText(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleAddOutput()}
@@ -1929,9 +1935,19 @@ export const PropertiesPanel: React.FC = () => {
           <div className="space-y-1.5 p-2 bg-theme-surface-subtle border border-theme-border rounded-lg">
             <input
               type="text"
-              placeholder="Descripción del riesgo operativo..."
+              list="abm-risks-datalist"
+              placeholder="Descripción del riesgo operativo (ABM)..."
               value={newRiskDesc}
-              onChange={(e) => setNewRiskDesc(e.target.value)}
+              onChange={(e) => {
+                const val = e.target.value;
+                setNewRiskDesc(val);
+                const matchedRisk = MasterCatalogsService.getCatalogsSync().risksControls.find(
+                  (rk) => rk.riskDescription === val || `${rk.code} - ${rk.riskDescription}` === val
+                );
+                if (matchedRisk && !newMitigation) {
+                  setNewMitigation(matchedRisk.mitigatingControl);
+                }
+              }}
               className="w-full bg-theme-surface-subtle border border-theme-border rounded px-2 py-1 text-xs text-theme-text outline-none"
             />
             <input
@@ -1947,6 +1963,31 @@ export const PropertiesPanel: React.FC = () => {
             >
               <Plus className="w-3 h-3" />
               <span>Registrar Riesgo y Mitigación</span>
+              <datalist id="abm-systems-datalist">
+                {MasterCatalogsService.getCatalogsSync().systemsDocs.filter((s) => s.category === 'SISTEMA_IT').map((s) => (
+                  <option key={s.id} value={s.name}>{s.code}</option>
+                ))}
+              </datalist>
+              <datalist id="abm-roles-datalist">
+                {MasterCatalogsService.getCatalogsSync().roles.map((r) => (
+                  <option key={r.id} value={r.name}>{r.code} ({r.organizationUnit})</option>
+                ))}
+              </datalist>
+              <datalist id="abm-normatives-datalist">
+                {MasterCatalogsService.getCatalogsSync().normatives.map((n) => (
+                  <option key={n.id} value={`${n.code} - ${n.title}`}>{n.category}</option>
+                ))}
+              </datalist>
+              <datalist id="abm-records-datalist">
+                {MasterCatalogsService.getCatalogsSync().systemsDocs.filter((s) => s.category !== 'SISTEMA_IT').map((s) => (
+                  <option key={s.id} value={`${s.code} ${s.name}`}>{s.category}</option>
+                ))}
+              </datalist>
+              <datalist id="abm-risks-datalist">
+                {MasterCatalogsService.getCatalogsSync().risksControls.map((rk) => (
+                  <option key={rk.id} value={rk.riskDescription}>{rk.code} - Control: {rk.mitigatingControl}</option>
+                ))}
+              </datalist>
             </button>
           </div>
         </div>

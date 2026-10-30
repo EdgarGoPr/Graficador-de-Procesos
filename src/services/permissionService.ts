@@ -255,6 +255,40 @@ export class PermissionService {
   }
 
   /**
+   * Asigna permisos masivamente a todos los usuarios activos de una Unidad Organizativa (PST-085)
+   */
+  public static async assignPermissionByOrganizationUnit(
+    operatorUser: AppUser,
+    organizationUnitName: string,
+    projectFileName: string,
+    permissionLevel: CanvasPermission,
+    allUsers: AppUser[],
+    projectInfo?: { authorName?: string; createdByEmail?: string; createdByUserId?: string } | null
+  ): Promise<{ ok: boolean; count: number; error?: string }> {
+    if (!this.canUserManageProjectParticipants(operatorUser, projectInfo)) {
+      return { ok: false, count: 0, error: 'Solo los administradores o el creador pueden asignar permisos por área.' };
+    }
+
+    const targetUsers = allUsers.filter(
+      (u) =>
+        u.status === 'ACTIVE' &&
+        u.organizationUnit.trim().toLowerCase() === organizationUnitName.trim().toLowerCase()
+    );
+
+    if (targetUsers.length === 0) {
+      return { ok: false, count: 0, error: `No hay usuarios activos registrados bajo el área "${organizationUnitName}".` };
+    }
+
+    let count = 0;
+    for (const u of targetUsers) {
+      const res = await this.assignPermission(operatorUser, u.id, projectFileName, permissionLevel, projectInfo);
+      if (res.ok) count++;
+    }
+
+    return { ok: true, count };
+  }
+
+  /**
    * Lista todos los participantes de un proyecto específico con su información de perfil
    */
   public static async listProjectParticipants(projectFileName: string): Promise<Array<{

@@ -14,6 +14,36 @@ export interface DocumentRevision {
   changeDescription: string;
 }
 
+export interface ProcessKpiDefinition {
+  id: string;
+  name: string;
+  formula: string;
+  target: string;
+  frequency: string;
+  responsible: string;
+}
+
+export interface ProcessGlossaryTerm {
+  id: string;
+  term: string;
+  definition: string;
+}
+
+export interface ProcessManualMetadata {
+  detailedScope?: string; // Alcance detallado: inicio y fin operativo
+  operationalPolicies?: string[]; // Políticas y reglas de negocio del procedimiento
+  glossary?: ProcessGlossaryTerm[]; // Glosario de términos y siglas
+  kpis?: ProcessKpiDefinition[]; // Indicadores clave de desempeño (KPIs)
+  associatedRecords?: string[]; // Formularios, registros y anexos vinculados
+  preparedByRole?: string; // Cargo de quien elaboró
+  reviewedByName?: string; // Nombre de quien revisó
+  reviewedByRole?: string; // Cargo de quien revisó
+  approvedByName?: string; // Nombre de quien aprobó
+  approvedByRole?: string; // Cargo de quien aprobó
+  effectiveDate?: string; // Fecha de entrada en vigencia
+  additionalObservations?: string; // Notas o consideraciones adicionales para el PDF
+}
+
 export interface ProjectDocumentControl {
   documentTitle: string;
   documentCode: string; // e.g. "PRC-TF-2026-001"
@@ -28,6 +58,7 @@ export interface ProjectDocumentControl {
   status: 'DRAFT' | 'IN_REVIEW' | 'APPROVED' | 'EFFECTIVE';
   legalNormativeBasis: string[]; // Leyes, ordenanzas y decretos base
   revisionHistory: DocumentRevision[];
+  manualMetadata?: ProcessManualMetadata;
 }
 
 export interface ProcessProjectFile {

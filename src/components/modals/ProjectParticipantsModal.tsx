@@ -3,6 +3,7 @@ import { useAuthStore } from '../../store/useAuthStore';
 import { useUiStore } from '../../store/useUiStore';
 import { PermissionService } from '../../services/permissionService';
 import { AuthService } from '../../services/authService';
+import { MasterCatalogsService } from '../../services/masterCatalogsService';
 import { AppUser, CanvasPermission } from '../../types/auth';
 import {
   Users,
@@ -18,7 +19,8 @@ import {
   X,
   Search,
   RefreshCw,
-  FolderGit2
+  FolderGit2,
+  Building2
 } from 'lucide-react';
 
 export interface ProjectForParticipants {
@@ -64,8 +66,16 @@ export const ProjectParticipantsModal: React.FC<ProjectParticipantsModalProps> =
   // Form states for adding participant
   const [selectedUserId, setSelectedUserId] = useState('');
   const [selectedLevel, setSelectedLevel] = useState<CanvasPermission>('READ_ONLY');
+  const [selectedOrgUnitForBulk, setSelectedOrgUnitForBulk] = useState('');
+  const [selectedBulkLevel, setSelectedBulkLevel] = useState<CanvasPermission>('READ_ONLY');
   const [userSearchFilter, setUserSearchFilter] = useState('');
   const [participantSearchFilter, setParticipantSearchFilter] = useState('');
+
+  const availableOrgUnits = useMemo(() => {
+    const fromCatalog = MasterCatalogsService.getCatalogsSync().orgUnits.map(u => u.name);
+    const fromUsers = allUsers.map(u => u.organizationUnit).filter(Boolean);
+    return Array.from(new Set([...fromCatalog, ...fromUsers]));
+  }, [allUsers]);
 
   const canManage = useMemo(() => {
     return PermissionService.canUserManageProjectParticipants(currentUser, project);
@@ -389,13 +399,80 @@ export const ProjectParticipantsModal: React.FC<ProjectParticipantsModalProps> =
                   <button
                     type="submit"
                     disabled={isSubmitting || !selectedUserId}
-                    className="w-full py-2 px-3 rounded-lg bg-theme-accent hover:bg-theme-accent-hover text-white font-bold text-xs transition-all shadow-md shadow-theme-accent/20 flex items-center justify-center space-x-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full py-2 px-3 rounded-lg bg-theme-accent hover:bg-theme-accent-hover text-white font-bold text-xs transition-all shadow-md shadow-theme-accent/20 flex items-center justify-center space-x-1.5 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                   >
                     <UserPlus className="w-3.5 h-3.5" />
                     <span>Asignar</span>
                   </button>
                 </div>
               </form>
+
+              {/* Bulk Assignment by Organization Unit (PST-085) */}
+              <div className="pt-3 border-t border-theme-border/80">
+                <div className="flex items-center space-x-2 mb-2">
+                  <Building2 className="w-3.5 h-3.5 text-emerald-400" />
+                  <span className="text-[11px] font-bold text-theme-text uppercase tracking-wider">
+                    Asignación Masiva por Unidad Organizativa / Área
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+                  <div className="md:col-span-6">
+                    <select
+                      value={selectedOrgUnitForBulk}
+                      onChange={(e) => setSelectedOrgUnitForBulk(e.target.value)}
+                      className="w-full bg-theme-surface border border-theme-border rounded-lg px-3 py-1.5 text-xs text-theme-text focus:border-theme-accent outline-none"
+                    >
+                      <option value="">-- Seleccionar Unidad Organizativa completa --</option>
+                      {availableOrgUnits.map((uo) => (
+                        <option key={uo} value={uo}>
+                          🏢 {uo}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="md:col-span-4">
+                    <select
+                      value={selectedBulkLevel}
+                      onChange={(e) => setSelectedBulkLevel(e.target.value as CanvasPermission)}
+                      className="w-full bg-theme-surface border border-theme-border rounded-lg px-3 py-1.5 text-xs text-theme-text focus:border-theme-accent outline-none font-semibold"
+                    >
+                      <option value="READ_ONLY">👁️ Solo Lectura para el Área</option>
+                      <option value="COMMENTS">💬 Comentarios para el Área</option>
+                      <option value="EDITOR">✏️ Editor para el Área</option>
+                    </select>
+                  </div>
+                  <div className="md:col-span-2">
+                    <button
+                      type="button"
+                      disabled={isSubmitting || !selectedOrgUnitForBulk}
+                      onClick={async () => {
+                        if (!currentUser || !project || !selectedOrgUnitForBulk) return;
+                        setIsSubmitting(true);
+                        const res = await PermissionService.assignPermissionByOrganizationUnit(
+                          currentUser,
+                          selectedOrgUnitForBulk,
+                          project.fileName,
+                          selectedBulkLevel,
+                          allUsers,
+                          project
+                        );
+                        setIsSubmitting(false);
+                        if (res.ok) {
+                          showNotification(`Permiso asignado a ${res.count} usuario(s) de "${selectedOrgUnitForBulk}"`, 'success');
+                          setSelectedOrgUnitForBulk('');
+                          await loadData();
+                        } else {
+                          showNotification(res.error || 'No se encontraron usuarios en el área seleccionada', 'warning');
+                        }
+                      }}
+                      className="w-full py-1.5 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition-all flex items-center justify-center space-x-1 disabled:opacity-50 cursor-pointer"
+                    >
+                      <Building2 className="w-3.5 h-3.5" />
+                      <span>Habilitar Área</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
           ) : (
             <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center space-x-3 text-amber-300">

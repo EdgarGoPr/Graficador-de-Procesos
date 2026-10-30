@@ -220,3 +220,35 @@ export async function downloadPngFile(project: ProcessProjectFile, scale: number
     img.src = url;
   });
 }
+
+
+export async function renderProjectToPngDataUrl(project: ProcessProjectFile, scale: number = 1.6, _mode: 'light' | 'dark' = 'light'): Promise<string> {
+  const svgString = generateProcessSvg(project);
+  const img = new Image();
+  const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+  const url = URL.createObjectURL(svgBlob);
+
+  return new Promise((resolve, reject) => {
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.max(img.width * scale, 400);
+      canvas.height = Math.max(img.height * scale, 200);
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        URL.revokeObjectURL(url);
+        reject(new Error('No se pudo inicializar canvas 2D'));
+        return;
+      }
+      ctx.scale(scale, scale);
+      ctx.drawImage(img, 0, 0);
+      const dataUrl = canvas.toDataURL('image/png');
+      URL.revokeObjectURL(url);
+      resolve(dataUrl);
+    };
+    img.onerror = (e) => {
+      URL.revokeObjectURL(url);
+      reject(e);
+    };
+    img.src = url;
+  });
+}

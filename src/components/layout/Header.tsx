@@ -1,9 +1,13 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { useProjectStore } from '../../store/useProjectStore';
-import { useUiStore, ActiveView } from '../../store/useUiStore';
+import { useUiStore } from '../../store/useUiStore';
 import { useAuthStore } from '../../store/useAuthStore';
 import { StorageService } from '../../services/storageService';
 import { PermissionService } from '../../services/permissionService';
+import {
+  autoLayoutProcessCanvas,
+  calculateProcessReadinessScore
+} from '../../services/autoLayoutAndGeneratorService';
 import { LogoPS } from '../common/LogoPS';
 import { NewRevisionModal } from '../modals/NewRevisionModal';
 import { ProjectParticipantsModal } from '../modals/ProjectParticipantsModal';
@@ -18,7 +22,6 @@ import {
   Save,
   Plus,
   Shield,
-  FolderOpen,
   Compass,
   Undo2,
   Redo2,
@@ -31,7 +34,11 @@ import {
   Check,
   GitCommit,
   Users,
-  Pencil
+  Pencil,
+  Database,
+  Wand2,
+  GraduationCap,
+  Search
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -48,6 +55,8 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
     redo,
     canUndo,
     canRedo,
+    setProjectData,
+    pushSnapshot
   } = useProjectStore();
 
   const {
@@ -59,6 +68,10 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
     setVersionDiffModalOpen,
     setPresentationModalOpen,
     setDocumentationModalOpen,
+    setMasterCatalogsModalOpen,
+    setTextToDiagramModalOpen,
+    setCommandPaletteOpen,
+    setTutorialModalOpen,
     showNotification,
     isPropertiesPanelOpen,
     setPropertiesPanelOpen,
@@ -81,10 +94,14 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
     ? PermissionService.canUserManageProjectParticipants(currentUser, currentProject.documentControl)
     : false;
 
+  const readiness = useMemo(
+    () => calculateProcessReadinessScore(currentProject),
+    [currentProject]
+  );
+
   const viewsMenuRef = useRef<HTMLDivElement>(null);
   const toolsMenuRef = useRef<HTMLDivElement>(null);
 
-  // Close menus on click outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (viewsMenuRef.current && !viewsMenuRef.current.contains(event.target as Node)) {
@@ -114,6 +131,19 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
         showNotification('↪️ Acción rehecha (Ctrl+Y)', 'info');
       }
     }
+  };
+
+  const handleAutoLayout = () => {
+    if (!currentProject) return;
+    if (currentCanvasPermission === 'READ_ONLY' || currentCanvasPermission === 'COMMENTS') {
+      showNotification('Se requiere permiso de Editor para auto-ordenar el lienzo.', 'warning');
+      return;
+    }
+    pushSnapshot('Antes de Auto-Ordenar Lienzo');
+    const aligned = autoLayoutProcessCanvas(currentProject);
+    setProjectData(aligned);
+    setActiveView('CANVAS');
+    showNotification('✨ ¡Lienzo auto-ordenado y alineado por carril!', 'success');
   };
 
   // Global keyboard shortcuts
@@ -156,7 +186,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
       if (StorageService.isElectron()) {
         showNotification(`Proyecto guardado en ../Proyectos/${currentProject.fileName}`, 'success');
       } else {
-        showNotification(`Proyecto guardado en el navegador (${currentProject.fileName})`, 'success');
+        showNotification(`Proyecto guardado (${currentProject.fileName})`, 'success');
       }
     }
   };
@@ -239,9 +269,23 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
               <div className="flex items-center space-x-2 text-[10px] text-theme-text-muted font-mono">
                 <span className="text-theme-accent font-semibold">{currentProject.documentControl.documentCode}</span>
                 <span>&bull;</span>
-                <span className="text-[#F59E0B] font-semibold">{currentProject.documentControl.version}</span>
+                <span className="text-[#F59E0B] font-semibold">v{currentProject.documentControl.version}</span>
                 <span>&bull;</span>
-                <span className="truncate max-w-[120px]">{currentProject.documentControl.authorName}</span>
+                <button
+                  onClick={() => setActiveView('REPORT')}
+                  title={
+                    readiness.missingTips.length > 0
+                      ? `Completitud documental: ${readiness.scorePercentage}%. Sugerencia: ${readiness.missingTips[0]}`
+                      : '¡Proceso 100% completo y listo para descargar Manual PDF!'
+                  }
+                  className={`px-1.5 py-0.2 rounded font-bold cursor-pointer ${
+                    readiness.scorePercentage >= 80
+                      ? 'bg-emerald-500/15 text-emerald-400'
+                      : 'bg-amber-500/15 text-amber-400'
+                  }`}
+                >
+                  Salud PDF: {readiness.scorePercentage}%
+                </button>
               </div>
             </div>
           </div>
@@ -292,37 +336,37 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
                 setIsViewsMenuOpen((v) => !v);
                 setIsToolsMenuOpen(false);
               }}
-              className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+              className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all cursor-pointer ${
                 isAnalyticalViewActive || isViewsMenuOpen
                   ? 'bg-theme-surface text-theme-accent shadow-sm border border-theme-border font-bold'
                   : 'text-theme-text-muted hover:text-theme-text hover:bg-theme-surface/50'
               }`}
             >
               <Table className="w-3.5 h-3.5" />
-              <span>Vistas & Matrices</span>
+              <span>Vistas & Manual PDF</span>
               <ChevronDown className={`w-3 h-3 transition-transform ${isViewsMenuOpen ? 'rotate-180' : ''}`} />
             </button>
 
             {/* Views Dropdown Card */}
             {isViewsMenuOpen && (
-              <div className="absolute top-full mt-1.5 left-0 w-60 bg-theme-surface/95 backdrop-blur-xl border border-theme-border rounded-xl shadow-2xl py-1.5 z-50 animate-in fade-in zoom-in-95">
+              <div className="absolute top-full mt-1.5 left-0 w-64 bg-theme-surface/95 backdrop-blur-xl border border-theme-border rounded-xl shadow-2xl py-1.5 z-50 animate-in fade-in zoom-in-95">
                 <button
                   onClick={() => {
-                    setActiveView('FLOWCHART');
+                    setActiveView('REPORT');
                     setIsViewsMenuOpen(false);
                   }}
-                  className={`w-full flex items-center justify-between px-3 py-2 text-xs hover:bg-theme-surface-subtle transition-colors text-left ${
-                    activeView === 'FLOWCHART' ? 'text-theme-accent font-bold bg-theme-accent/10' : 'text-theme-text'
+                  className={`w-full flex items-center justify-between px-3 py-2 text-xs hover:bg-theme-surface-subtle transition-colors text-left cursor-pointer ${
+                    activeView === 'REPORT' ? 'text-theme-accent font-bold bg-theme-accent/10' : 'text-theme-text'
                   }`}
                 >
                   <div className="flex items-center space-x-2.5">
-                    <Workflow className="w-4 h-4 text-sky-400" />
+                    <FileCheck className="w-4 h-4 text-amber-400" />
                     <div>
-                      <div className="font-medium">Flujograma de Procesos</div>
-                      <div className="text-[10px] text-theme-text-muted">Vista simplificada horizontal</div>
+                      <div className="font-bold text-amber-400">Manual PDF & Ficha ISO 9001</div>
+                      <div className="text-[10px] text-theme-text-muted">Generador automatizado de documento</div>
                     </div>
                   </div>
-                  {activeView === 'FLOWCHART' && <Check className="w-3.5 h-3.5 text-theme-accent" />}
+                  {activeView === 'REPORT' && <Check className="w-3.5 h-3.5 text-theme-accent" />}
                 </button>
 
                 <button
@@ -330,7 +374,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
                     setActiveView('SIPOC');
                     setIsViewsMenuOpen(false);
                   }}
-                  className={`w-full flex items-center justify-between px-3 py-2 text-xs hover:bg-theme-surface-subtle transition-colors text-left ${
+                  className={`w-full flex items-center justify-between px-3 py-2 text-xs hover:bg-theme-surface-subtle transition-colors text-left cursor-pointer ${
                     activeView === 'SIPOC' ? 'text-theme-accent font-bold bg-theme-accent/10' : 'text-theme-text'
                   }`}
                 >
@@ -338,7 +382,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
                     <Table className="w-4 h-4 text-emerald-400" />
                     <div>
                       <div className="font-medium">Matriz SIPOC</div>
-                      <div className="text-[10px] text-theme-text-muted">Insumos, proveedores y clientes</div>
+                      <div className="text-[10px] text-theme-text-muted">Proveedores, entradas, salidas y clientes</div>
                     </div>
                   </div>
                   {activeView === 'SIPOC' && <Check className="w-3.5 h-3.5 text-theme-accent" />}
@@ -349,7 +393,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
                     setActiveView('RACI');
                     setIsViewsMenuOpen(false);
                   }}
-                  className={`w-full flex items-center justify-between px-3 py-2 text-xs hover:bg-theme-surface-subtle transition-colors text-left ${
+                  className={`w-full flex items-center justify-between px-3 py-2 text-xs hover:bg-theme-surface-subtle transition-colors text-left cursor-pointer ${
                     activeView === 'RACI' ? 'text-theme-accent font-bold bg-theme-accent/10' : 'text-theme-text'
                   }`}
                 >
@@ -365,36 +409,46 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
 
                 <button
                   onClick={() => {
-                    setActiveView('REPORT');
+                    setActiveView('FLOWCHART');
                     setIsViewsMenuOpen(false);
                   }}
-                  className={`w-full flex items-center justify-between px-3 py-2 text-xs hover:bg-theme-surface-subtle transition-colors text-left border-t border-theme-border/60 mt-1 pt-1.5 ${
-                    activeView === 'REPORT' ? 'text-theme-accent font-bold bg-theme-accent/10' : 'text-theme-text'
+                  className={`w-full flex items-center justify-between px-3 py-2 text-xs hover:bg-theme-surface-subtle transition-colors text-left cursor-pointer ${
+                    activeView === 'FLOWCHART' ? 'text-theme-accent font-bold bg-theme-accent/10' : 'text-theme-text'
                   }`}
                 >
                   <div className="flex items-center space-x-2.5">
-                    <FileCheck className="w-4 h-4 text-amber-400" />
+                    <Workflow className="w-4 h-4 text-sky-400" />
                     <div>
-                      <div className="font-medium">Documento & Reporte Técnico</div>
-                      <div className="text-[10px] text-theme-text-muted">Memoria técnica y especificaciones</div>
+                      <div className="font-medium">Flujograma Secuencial</div>
+                      <div className="text-[10px] text-theme-text-muted">Vista ejecutiva horizontal</div>
                     </div>
                   </div>
-                  {activeView === 'REPORT' && <Check className="w-3.5 h-3.5 text-theme-accent" />}
+                  {activeView === 'FLOWCHART' && <Check className="w-3.5 h-3.5 text-theme-accent" />}
                 </button>
               </div>
             )}
           </div>
         </div>
 
-        {/* Direct Button: Bóveda Documental IA */}
+        {/* Direct Button: Catálogos ABM */}
+        <button
+          onClick={() => setMasterCatalogsModalOpen(true)}
+          className="flex items-center space-x-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-theme-surface-subtle hover:bg-theme-surface text-theme-text border border-theme-border transition-all shadow-xs cursor-pointer"
+          title="Abrir Centro Maestro de Catálogos y ABMs (Unidades Organizativas, Cargos/Carriles, Leyes, Sistemas, Riesgos y Papelera)"
+        >
+          <Database className="w-3.5 h-3.5 text-emerald-400" />
+          <span className="hidden xl:inline">Catálogos ABM</span>
+        </button>
+
+        {/* Direct Button: Generador IA / Plantillas cuando hay proyecto */}
         {currentProject && (
           <button
-            onClick={() => setDocumentationModalOpen(true)}
-            className="flex items-center space-x-1.5 px-3 py-2 rounded-lg text-xs font-semibold bg-gradient-to-r from-violet-500/10 to-indigo-500/10 hover:from-violet-500/20 hover:to-indigo-500/20 text-violet-400 border border-violet-500/30 transition-all shadow-sm cursor-pointer"
-            title="Abrir Bóveda Documental del Proceso (textos normativos, notas de voz y Gemini AI)"
+            onClick={() => setTextToDiagramModalOpen(true)}
+            className="hidden xl:flex items-center space-x-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-sky-500/15 to-purple-500/15 hover:from-sky-500/25 hover:to-purple-500/25 text-sky-400 border border-sky-500/30 transition-all shadow-xs cursor-pointer"
+            title="Generar Diagrama BPMN desde Texto o aplicar Plantilla Pre-Armada"
           >
-            <Sparkles className="w-3.5 h-3.5 text-violet-400 animate-pulse" />
-            <span className="hidden md:inline">Documentación IA</span>
+            <Wand2 className="w-3.5 h-3.5 text-sky-400" />
+            <span>Texto a BPMN / Plantillas</span>
           </button>
         )}
 
@@ -406,7 +460,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
                 setIsToolsMenuOpen((t) => !t);
                 setIsViewsMenuOpen(false);
               }}
-              className={`flex items-center space-x-1.5 px-3 py-2 rounded-lg text-xs font-semibold border transition-all ${
+              className={`flex items-center space-x-1.5 px-3 py-2 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
                 isToolsMenuOpen
                   ? 'bg-theme-accent/20 text-theme-accent border-theme-accent/50 shadow-sm'
                   : 'bg-theme-surface-subtle hover:bg-theme-surface text-theme-text border-theme-border'
@@ -419,14 +473,48 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
 
             {/* Tools Dropdown Card */}
             {isToolsMenuOpen && (
-              <div className="absolute top-full mt-1.5 left-0 w-64 bg-theme-surface/95 backdrop-blur-xl border border-theme-border rounded-xl shadow-2xl py-1.5 z-50 animate-in fade-in zoom-in-95">
-                {/* Bóveda Documental IA */}
+              <div className="absolute top-full mt-1.5 left-0 w-72 bg-theme-surface/95 backdrop-blur-xl border border-theme-border rounded-xl shadow-2xl py-1.5 z-50 animate-in fade-in zoom-in-95">
+                {/* 1. Generador Texto a Diagrama y Plantillas */}
+                <button
+                  onClick={() => {
+                    setTextToDiagramModalOpen(true);
+                    setIsToolsMenuOpen(false);
+                  }}
+                  className="w-full flex items-center justify-between px-3 py-2 text-xs hover:bg-theme-surface-subtle transition-colors text-left text-theme-text group cursor-pointer"
+                >
+                  <div className="flex items-center space-x-2.5">
+                    <Wand2 className="w-4 h-4 text-sky-400 group-hover:scale-110 transition-transform" />
+                    <div>
+                      <div className="font-bold text-sky-400">Generar desde Texto / Plantillas</div>
+                      <div className="text-[10px] text-theme-text-muted">Crea el diagrama completo en 1 clic</div>
+                    </div>
+                  </div>
+                </button>
+
+                {/* 2. Magic Auto-Layout */}
+                <button
+                  onClick={() => {
+                    handleAutoLayout();
+                    setIsToolsMenuOpen(false);
+                  }}
+                  className="w-full flex items-center justify-between px-3 py-2 text-xs hover:bg-theme-surface-subtle transition-colors text-left text-theme-text group cursor-pointer"
+                >
+                  <div className="flex items-center space-x-2.5">
+                    <Sparkles className="w-4 h-4 text-emerald-400 group-hover:scale-110 transition-transform" />
+                    <div>
+                      <div className="font-bold text-emerald-400">✨ Auto-Ordenar Lienzo (1-Clic)</div>
+                      <div className="text-[10px] text-theme-text-muted">Alinea carriles y figuras sin cruces</div>
+                    </div>
+                  </div>
+                </button>
+
+                {/* 3. Bóveda Documental IA */}
                 <button
                   onClick={() => {
                     setDocumentationModalOpen(true);
                     setIsToolsMenuOpen(false);
                   }}
-                  className="w-full flex items-center justify-between px-3 py-2 text-xs hover:bg-theme-surface-subtle transition-colors text-left text-theme-text group"
+                  className="w-full flex items-center justify-between px-3 py-2 text-xs hover:bg-theme-surface-subtle transition-colors text-left text-theme-text group border-t border-theme-border/60 mt-1 pt-1.5 cursor-pointer"
                 >
                   <div className="flex items-center space-x-2.5">
                     <Sparkles className="w-4 h-4 text-violet-400 group-hover:scale-110 transition-transform" />
@@ -446,14 +534,13 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
                     setPresentationModalOpen(true);
                     setIsToolsMenuOpen(false);
                   }}
-                  className="w-full flex items-center justify-between px-3 py-2 text-xs hover:bg-theme-surface-subtle transition-colors text-left text-theme-text group"
+                  className="w-full flex items-center justify-between px-3 py-2 text-xs hover:bg-theme-surface-subtle transition-colors text-left text-theme-text group cursor-pointer"
                 >
                   <div className="flex items-center space-x-2.5">
                     <Tv className="w-4 h-4 text-theme-accent group-hover:scale-110 transition-transform" />
                     <div>
                       <div className="font-bold flex items-center space-x-1.5">
                         <span>Presentación (Prezi)</span>
-                        <span className="w-1.5 h-1.5 rounded-full bg-theme-accent animate-pulse" />
                       </div>
                       <div className="text-[10px] text-theme-text-muted">Paseo dinámico paso a paso</div>
                     </div>
@@ -469,7 +556,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
                     setQualityAuditModalOpen(true);
                     setIsToolsMenuOpen(false);
                   }}
-                  className="w-full flex items-center justify-between px-3 py-2 text-xs hover:bg-theme-surface-subtle transition-colors text-left text-theme-text group"
+                  className="w-full flex items-center justify-between px-3 py-2 text-xs hover:bg-theme-surface-subtle transition-colors text-left text-theme-text group cursor-pointer"
                 >
                   <div className="flex items-center space-x-2.5">
                     <Shield className="w-4 h-4 text-emerald-400 group-hover:scale-110 transition-transform" />
@@ -486,7 +573,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
                     setSimulationModalOpen(true);
                     setIsToolsMenuOpen(false);
                   }}
-                  className="w-full flex items-center justify-between px-3 py-2 text-xs hover:bg-theme-surface-subtle transition-colors text-left text-theme-text group"
+                  className="w-full flex items-center justify-between px-3 py-2 text-xs hover:bg-theme-surface-subtle transition-colors text-left text-theme-text group cursor-pointer"
                 >
                   <div className="flex items-center space-x-2.5">
                     <Flame className="w-4 h-4 text-amber-400 group-hover:scale-110 transition-transform" />
@@ -503,7 +590,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
                     setVersionDiffModalOpen(true);
                     setIsToolsMenuOpen(false);
                   }}
-                  className="w-full flex items-center justify-between px-3 py-2 text-xs hover:bg-theme-surface-subtle transition-colors text-left text-theme-text group"
+                  className="w-full flex items-center justify-between px-3 py-2 text-xs hover:bg-theme-surface-subtle transition-colors text-left text-theme-text group cursor-pointer"
                 >
                   <div className="flex items-center space-x-2.5">
                     <GitCompare className="w-4 h-4 text-sky-400 group-hover:scale-110 transition-transform" />
@@ -514,7 +601,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
                   </div>
                 </button>
 
-                {/* Subprocess Navigator (Canvas mode only) */}
+                {/* Subprocess Navigator */}
                 {activeView === 'CANVAS' && (
                   <button
                     onClick={() => {
@@ -526,7 +613,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
                       }
                       setIsToolsMenuOpen(false);
                     }}
-                    className="w-full flex items-center justify-between px-3 py-2 text-xs hover:bg-theme-surface-subtle transition-colors text-left text-theme-text border-t border-theme-border/60 mt-1 pt-1.5 group"
+                    className="w-full flex items-center justify-between px-3 py-2 text-xs hover:bg-theme-surface-subtle transition-colors text-left text-theme-text border-t border-theme-border/60 mt-1 pt-1.5 group cursor-pointer"
                   >
                     <div className="flex items-center space-x-2.5">
                       <Compass className="w-4 h-4 text-purple-400 group-hover:scale-110 transition-transform" />
@@ -546,7 +633,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
                         setIsEditModalOpen(true);
                         setIsToolsMenuOpen(false);
                       }}
-                      className="w-full flex items-center justify-between px-3 py-2 text-xs hover:bg-theme-surface-subtle transition-colors text-left text-theme-text border-t border-theme-border/60 mt-1 pt-1.5 group"
+                      className="w-full flex items-center justify-between px-3 py-2 text-xs hover:bg-theme-surface-subtle transition-colors text-left text-theme-text border-t border-theme-border/60 mt-1 pt-1.5 group cursor-pointer"
                     >
                       <div className="flex items-center space-x-2.5">
                         <Pencil className="w-4 h-4 text-amber-400 group-hover:scale-110 transition-transform" />
@@ -562,7 +649,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
                         setIsParticipantsModalOpen(true);
                         setIsToolsMenuOpen(false);
                       }}
-                      className="w-full flex items-center justify-between px-3 py-2 text-xs hover:bg-theme-surface-subtle transition-colors text-left text-theme-text border-t border-theme-border/60 mt-1 pt-1.5 group"
+                      className="w-full flex items-center justify-between px-3 py-2 text-xs hover:bg-theme-surface-subtle transition-colors text-left text-theme-text border-t border-theme-border/60 mt-1 pt-1.5 group cursor-pointer"
                     >
                       <div className="flex items-center space-x-2.5">
                         <Users className="w-4 h-4 text-theme-accent group-hover:scale-110 transition-transform" />
@@ -581,7 +668,26 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
       </div>
 
       {/* Right: Unified Action Cluster & Integrated User Profile Menu */}
-      <div className="flex items-center space-x-2.5 shrink-0">
+      <div className="flex items-center space-x-2 shrink-0">
+        {/* Quick Search / Command Palette (Ctrl+K) */}
+        <button
+          onClick={() => setCommandPaletteOpen(true)}
+          className="p-2 rounded-xl bg-theme-surface-subtle hover:bg-theme-surface border border-theme-border/80 text-theme-text-muted hover:text-theme-accent transition-all cursor-pointer"
+          title="Buscador Global y Paleta de Comandos Rápida (Ctrl + K)"
+        >
+          <Search className="w-3.5 h-3.5" />
+        </button>
+
+        {/* Tutorial & Guided Tour Button */}
+        <button
+          onClick={() => setTutorialModalOpen(true)}
+          className="flex items-center space-x-1 px-2.5 py-1.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-amber-400 text-xs font-bold transition-all cursor-pointer"
+          title="Abrir Tutorial Paso a Paso y Centro de Aprendizaje"
+        >
+          <GraduationCap className="w-4 h-4" />
+          <span className="hidden lg:inline">Tutorial</span>
+        </button>
+
         {/* Project Actions Cluster (When a Project is Active) */}
         {currentProject && (
           <div className="flex items-center space-x-1.5">
@@ -630,7 +736,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
               <button
                 onClick={() => setExportCenterModalOpen(true)}
                 className="p-1.5 rounded-lg text-theme-text hover:text-theme-accent hover:bg-theme-surface transition-all cursor-pointer"
-                title="Centro de Exportación: PNG HD, SVG Vectorial, PDF, BPMN 2.0 XML y Word (.doc)"
+                title="Centro de Exportación: Manual Oficial PDF (ISO 9001), PNG HD, SVG, BPMN XML y Word"
               >
                 <ArrowDownToLine className="w-3.5 h-3.5" />
               </button>
@@ -640,7 +746,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
                 onClick={() => setIsRevisionModalOpen(true)}
                 disabled={isSaving}
                 className="p-1.5 rounded-lg text-theme-text hover:text-theme-accent hover:bg-theme-surface transition-all cursor-pointer"
-                title="Guardar como nueva versión inmutable (Multi-equipo)"
+                title="Guardar como nueva versión inmutable"
               >
                 <GitCommit className="w-3.5 h-3.5" />
               </button>
@@ -689,7 +795,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewProjectModal }) => {
         <UserProfileMenu onOpenFolder={handleOpenFolder} />
       </div>
 
-      {/* New Revision Modal for Multi-Device safe saving */}
+      {/* New Revision Modal */}
       {isRevisionModalOpen && (
         <NewRevisionModal
           isOpen={isRevisionModalOpen}

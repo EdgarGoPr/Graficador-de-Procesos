@@ -23,6 +23,11 @@ import { VersionDiffModal } from './components/diff/VersionDiffModal';
 import { ProcessPresentationModal } from './components/presentation/ProcessPresentationModal';
 import { ManageLanesModal } from './components/modals/ManageLanesModal';
 import { ProcessDocumentationModal } from './components/documentation/ProcessDocumentationModal';
+import { MasterCatalogsModal } from './components/catalogs/MasterCatalogsModal';
+import { TextToDiagramModal } from './components/modals/TextToDiagramModal';
+import { CommandPaletteModal } from './components/modals/CommandPaletteModal';
+import { TutorialCenterModal } from './components/tutorial/TutorialCenterModal';
+import { InteractiveTourOverlay } from './components/tutorial/InteractiveTourOverlay';
 import { AuthModal } from './components/auth/AuthModal';
 import { AdminConsoleModal } from './components/admin/AdminConsoleModal';
 import { IdleLockOverlay } from './components/auth/IdleLockOverlay';
@@ -80,7 +85,7 @@ export const App: React.FC = () => {
           CARGANDO PROCESSTUDIO WEB...
         </h2>
         <p className="text-xs text-theme-text-muted mt-1 font-mono">
-          Inicializando persistencia y seguridad relacional
+          Inicializando persistencia, catálogos ABM y seguridad relacional
         </p>
       </div>
     );
@@ -208,6 +213,13 @@ export const App: React.FC = () => {
         {/* Process Documentation & AI Context Modal */}
         <ProcessDocumentationModal />
 
+        {/* v2.0 Modals: Master Catalogs ABMs, Text-to-Diagram, Command Palette, Tutorial & Interactive Tour */}
+        <MasterCatalogsModal />
+        <TextToDiagramModal />
+        <CommandPaletteModal />
+        <TutorialCenterModal />
+        <InteractiveTourOverlay />
+
         {/* Modales de Autenticación, Gobernanza y Seguridad */}
         <AuthModal />
         <AdminConsoleModal />
@@ -221,5 +233,3 @@ export const App: React.FC = () => {
   );
 };
 export default App;
-
-

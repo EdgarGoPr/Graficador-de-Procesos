@@ -2,7 +2,6 @@ import { create } from 'zustand';
 import { ProcessProjectFile, ProjectSummary } from '../types/project';
 import { ProcessDocumentationItem } from '../types/ai';
 import { StorageService } from '../services/storageService';
-import { calculateTotalLeadTime } from '../services/leadTimeCalculator';
 import { CanvasSnapshot, createSnapshot, pushToHistory } from '../services/historyManager';
 import {
   bumpVersion,
@@ -11,6 +10,8 @@ import {
 } from '../services/processVersionManager';
 import { useAuthStore } from './useAuthStore';
 import { PermissionService } from '../services/permissionService';
+import { MasterCatalogsService } from '../services/masterCatalogsService';
+import { AuditLoggerService } from '../services/auditLoggerService';
 
 interface SaveRevisionOptions {
   bumpType?: 'patch' | 'minor' | 'major';
@@ -43,6 +44,7 @@ interface ProjectStoreState {
   saveProjectAsNewRevision: (options?: SaveRevisionOptions) => Promise<string | null>;
   duplicateProject: (fileName: string) => Promise<string | null>;
   deleteProject: (fileName: string) => Promise<boolean>;
+  restoreProjectFromTrash: (fileName: string) => Promise<boolean>;
   importProjectFromFile: (file: File) => Promise<{ success: boolean; fileName?: string; error?: string }>;
   setProjectData: (project: ProcessProjectFile) => void;
   updateDocumentControl: (updates: Partial<ProcessProjectFile['documentControl']>) => void;
@@ -80,6 +82,7 @@ export const useProjectStore = create<ProjectStoreState>((set, get) => ({
   initialize: async () => {
     set({ isLoading: true });
     await StorageService.initializeStorage();
+    await MasterCatalogsService.initialize();
     await get().refreshProjectList();
     set({ isLoading: false });
   },
@@ -139,7 +142,7 @@ export const useProjectStore = create<ProjectStoreState>((set, get) => ({
         status: 'DRAFT',
         createdByEmail: currentUser?.email,
         createdByUserId: currentUser?.id,
-        legalNormativeBasis: ['Normativa aplicable general'],
+        legalNormativeBasis: ['ISO 9001:2015', 'ISO/IEC 19510 (BPMN 2.0)'],
         revisionHistory: [
           {
             revisionDate: now,
@@ -288,6 +291,14 @@ export const useProjectStore = create<ProjectStoreState>((set, get) => ({
   },
 
   deleteProject: async (fileName: string) => {
+    const currentUser = useAuthStore.getState().currentUser;
+    try {
+      const existing = await StorageService.loadProject(fileName);
+      if (existing) {
+        await MasterCatalogsService.moveProjectToTrash(existing, currentUser?.email || 'sistema@processtudio.com');
+      }
+    } catch {}
+
     const success = await StorageService.deleteProject(fileName);
     if (success) {
       const { currentProject } = get();
@@ -297,6 +308,29 @@ export const useProjectStore = create<ProjectStoreState>((set, get) => ({
       await get().refreshProjectList();
     }
     return success;
+  },
+
+  restoreProjectFromTrash: async (fileName: string) => {
+    const entry = await MasterCatalogsService.removeProjectFromTrash(fileName);
+    if (!entry || !entry.projectData) return false;
+
+    const restoredFileName = await StorageService.saveProject({
+      ...entry.projectData,
+      fileName: entry.fileName
+    });
+
+    const currentUser = useAuthStore.getState().currentUser;
+    if (currentUser) {
+      AuditLoggerService.log(
+        'PROJECT_RESTORED_FROM_TRASH',
+        currentUser,
+        restoredFileName,
+        { title: entry.documentTitle, code: entry.documentCode }
+      );
+    }
+
+    await get().refreshProjectList();
+    return true;
   },
 
   importProjectFromFile: async (file: File) => {
@@ -309,13 +343,9 @@ export const useProjectStore = create<ProjectStoreState>((set, get) => ({
     return result;
   },
 
-  /**
-   * Updates in-memory project data and automatically triggers a debounced save to disk
-   */
   setProjectData: (project: ProcessProjectFile) => {
     set({ currentProject: project, hasUnsavedChanges: true });
 
-    // Debounced automatic background persistence (800ms)
     if (autoSaveTimeout) {
       clearTimeout(autoSaveTimeout);
     }
@@ -446,8 +476,6 @@ export const useProjectStore = create<ProjectStoreState>((set, get) => ({
     get().setProjectData(updatedProject);
   },
 
-  // --- UNDO / REDO IMPLEMENTATION ---
-
   pushSnapshot: (description?: string) => {
     const { currentProject, past } = get();
     if (!currentProject) return;
@@ -462,7 +490,7 @@ export const useProjectStore = create<ProjectStoreState>((set, get) => ({
 
     set({
       past: nextPast,
-      future: [], // New action invalidates redo history
+      future: [],
       canUndo: true,
       canRedo: false
     });
@@ -472,7 +500,6 @@ export const useProjectStore = create<ProjectStoreState>((set, get) => ({
     const { currentProject, past, future } = get();
     if (!currentProject || past.length === 0) return false;
 
-    // Current state becomes the next future redo state
     const currentSnap = createSnapshot(
       currentProject.nodes,
       currentProject.edges,
@@ -481,7 +508,6 @@ export const useProjectStore = create<ProjectStoreState>((set, get) => ({
     );
     const newFuture = [currentSnap, ...future];
 
-    // Pop the most recent past snapshot
     const targetSnapshot = past[past.length - 1];
     const newPast = past.slice(0, past.length - 1);
 
@@ -520,7 +546,6 @@ export const useProjectStore = create<ProjectStoreState>((set, get) => ({
     const { currentProject, past, future } = get();
     if (!currentProject || future.length === 0) return false;
 
-    // Current state becomes past snapshot
     const currentSnap = createSnapshot(
       currentProject.nodes,
       currentProject.edges,
@@ -529,7 +554,6 @@ export const useProjectStore = create<ProjectStoreState>((set, get) => ({
     );
     const newPast = pushToHistory(past, currentSnap);
 
-    // Pop first future snapshot
     const targetSnapshot = future[0];
     const newFuture = future.slice(1);
 

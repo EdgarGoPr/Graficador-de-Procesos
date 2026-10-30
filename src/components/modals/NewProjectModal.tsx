@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useProjectStore } from '../../store/useProjectStore';
 import { useUiStore } from '../../store/useUiStore';
 import { useAuthStore } from '../../store/useAuthStore';
-import { X, Plus, Shield, Building2, User, FileText } from 'lucide-react';
+import { MasterCatalogsService } from '../../services/masterCatalogsService';
+import { X, Plus, Shield, Building2, User, FileText, Wand2 } from 'lucide-react';
 
 interface NewProjectModalProps {
   isOpen: boolean;
@@ -11,12 +12,15 @@ interface NewProjectModalProps {
 
 export const NewProjectModal: React.FC<NewProjectModalProps> = ({ isOpen, onClose }) => {
   const { createNewProject } = useProjectStore();
-  const { setActiveView, showNotification } = useUiStore();
+  const { setActiveView, showNotification, setTextToDiagramModalOpen } = useUiStore();
   const { currentUser } = useAuthStore();
 
   const [title, setTitle] = useState('');
   const [author, setAuthor] = useState('');
   const [orgUnit, setOrgUnit] = useState('');
+  const [openWizardAfter, setOpenWizardAfter] = useState(false);
+
+  const catalogs = MasterCatalogsService.getCatalogsSync();
 
   useEffect(() => {
     if (isOpen) {
@@ -44,9 +48,13 @@ export const NewProjectModal: React.FC<NewProjectModalProps> = ({ isOpen, onClos
     showNotification(`Proyecto creado: ${fileName}`, 'success');
     setActiveView('CANVAS');
     onClose();
+    if (openWizardAfter) {
+      setTimeout(() => setTextToDiagramModalOpen(true), 150);
+    }
     setTitle('');
     setAuthor('');
     setOrgUnit('');
+    setOpenWizardAfter(false);
   };
 
   return (
@@ -60,12 +68,12 @@ export const NewProjectModal: React.FC<NewProjectModalProps> = ({ isOpen, onClos
             </div>
             <div>
               <h3 className="text-sm font-bold text-theme-text">Crear Nuevo Proyecto BPMN 2.0</h3>
-              <p className="text-[11px] text-theme-text-muted">Se guardará como archivo JSON en ../Proyectos/</p>
+              <p className="text-[11px] text-theme-text-muted">Conectado a los Catálogos Maestros (ABM)</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg hover:bg-theme-surface-hover text-theme-text-muted hover:text-theme-text transition-colors"
+            className="p-1.5 rounded-lg hover:bg-theme-surface-hover text-theme-text-muted hover:text-theme-text transition-colors cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -81,7 +89,7 @@ export const NewProjectModal: React.FC<NewProjectModalProps> = ({ isOpen, onClos
             <input
               type="text"
               required
-              placeholder="Título del procedimiento o proceso"
+              placeholder="Ej: Procedimiento de Recepción y Resolución de Reclamos"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               className="w-full bg-theme-surface-subtle border border-theme-border rounded-xl px-3 py-2 text-theme-text placeholder-theme-text-muted focus:border-theme-accent outline-none text-xs"
@@ -103,30 +111,52 @@ export const NewProjectModal: React.FC<NewProjectModalProps> = ({ isOpen, onClos
           </div>
 
           <div>
-            <label className="flex items-center text-[11px] font-bold text-theme-text mb-1">
-              <Building2 className="w-3.5 h-3.5 mr-1.5 text-[#F59E0B]" />
-              Unidad Organizativa / Dependencia
+            <label className="flex items-center justify-between text-[11px] font-bold text-theme-text mb-1">
+              <span className="flex items-center">
+                <Building2 className="w-3.5 h-3.5 mr-1.5 text-[#F59E0B]" />
+                Unidad Organizativa / Dependencia (Catálogo ABM)
+              </span>
             </label>
             <input
               type="text"
-              placeholder="Unidad organizativa o área"
+              list="abm-org-units-new"
+              placeholder="Selecciona del catálogo o escribe una unidad..."
               value={orgUnit}
               onChange={(e) => setOrgUnit(e.target.value)}
               className="w-full bg-theme-surface-subtle border border-theme-border rounded-xl px-3 py-2 text-theme-text placeholder-theme-text-muted focus:border-[#F59E0B] outline-none text-xs"
             />
+            <datalist id="abm-org-units-new">
+              {catalogs.orgUnits.map((u) => (
+                <option key={u.id} value={u.name} />
+              ))}
+            </datalist>
           </div>
+
+          {/* Option to launch AI / Template Generator immediately */}
+          <label className="flex items-center space-x-2.5 p-3 rounded-xl bg-sky-500/10 border border-sky-500/30 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={openWizardAfter}
+              onChange={(e) => setOpenWizardAfter(e.target.checked)}
+              className="rounded border-theme-border text-theme-accent"
+            />
+            <Wand2 className="w-4 h-4 text-sky-400 shrink-0" />
+            <span className="text-[11px] text-theme-text font-medium">
+              Abrir el <strong>Generador desde Texto / Plantillas</strong> al crear para armar el diagrama automáticamente
+            </span>
+          </label>
 
           <div className="pt-4 border-t border-theme-border flex items-center justify-end space-x-3">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-xl bg-theme-surface-subtle hover:bg-theme-surface border border-theme-border text-theme-text text-xs font-semibold transition-colors"
+              className="px-4 py-2 rounded-xl bg-theme-surface-subtle hover:bg-theme-surface border border-theme-border text-theme-text text-xs font-semibold transition-colors cursor-pointer"
             >
               Cancelar
             </button>
             <button
               type="submit"
-              className="flex items-center space-x-1.5 px-5 py-2 rounded-xl bg-gradient-to-r from-[#0284C7] to-[#3B82F6] hover:brightness-110 text-white text-xs font-bold shadow-lg shadow-blue-500/20 transition-transform active:scale-95"
+              className="flex items-center space-x-1.5 px-5 py-2 rounded-xl bg-gradient-to-r from-[#0284C7] to-[#3B82F6] hover:brightness-110 text-white text-xs font-bold shadow-lg shadow-blue-500/20 transition-transform active:scale-95 cursor-pointer"
             >
               <Plus className="w-4 h-4" />
               <span>Crear Proyecto</span>
@@ -137,4 +167,3 @@ export const NewProjectModal: React.FC<NewProjectModalProps> = ({ isOpen, onClos
     </div>
   );
 };
-

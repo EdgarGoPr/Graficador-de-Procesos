@@ -25,6 +25,12 @@ interface UiStoreState {
   isPresentationModalOpen: boolean;
   isManageLanesModalOpen: boolean;
   isDocumentationModalOpen: boolean;
+  isMasterCatalogsModalOpen: boolean;
+  isTextToDiagramModalOpen: boolean;
+  isTemplatesModalOpen: boolean;
+  isCommandPaletteOpen: boolean;
+  isTutorialModalOpen: boolean;
+  isInteractiveTourActive: boolean;
 
   setActiveView: (view: ActiveView) => void;
   setTheme: (theme: ThemeMode) => void;
@@ -39,6 +45,12 @@ interface UiStoreState {
   setPresentationModalOpen: (open: boolean) => void;
   setManageLanesModalOpen: (open: boolean) => void;
   setDocumentationModalOpen: (open: boolean) => void;
+  setMasterCatalogsModalOpen: (open: boolean) => void;
+  setTextToDiagramModalOpen: (open: boolean) => void;
+  setTemplatesModalOpen: (open: boolean) => void;
+  setCommandPaletteOpen: (open: boolean) => void;
+  setTutorialModalOpen: (open: boolean) => void;
+  setInteractiveTourActive: (active: boolean) => void;
   toggleTheme: () => void;
   toggleSidebar: () => void;
   togglePropertiesPanel: () => void;
@@ -116,6 +128,12 @@ export const useUiStore = create<UiStoreState>((set, get) => ({
   isPresentationModalOpen: false,
   isManageLanesModalOpen: false,
   isDocumentationModalOpen: false,
+  isMasterCatalogsModalOpen: false,
+  isTextToDiagramModalOpen: false,
+  isTemplatesModalOpen: false,
+  isCommandPaletteOpen: false,
+  isTutorialModalOpen: false,
+  isInteractiveTourActive: false,
 
   setActiveView: (view) => set({ activeView: view }),
 
@@ -124,10 +142,6 @@ export const useUiStore = create<UiStoreState>((set, get) => ({
     get().setAppTheme(targetThemeId);
   },
 
-  /**
-   * Sets the active base theme.
-   * Copies the full preset color scheme as the new baseline for subsequent customizations.
-   */
   setAppTheme: (themeId) => {
     localStorage.setItem('procesos_theme_id', themeId);
     
@@ -152,14 +166,10 @@ export const useUiStore = create<UiStoreState>((set, get) => ({
     }
   },
 
-  /**
-   * Updates specific color variables while keeping the rest derived from the active base theme.
-   */
   updateCustomTheme: (updates) => {
     const baseId = get().baseThemeId;
     const baseColors = PRESET_THEMES[baseId]?.colors || get().customThemeColors;
     
-    // Merge: base colors + existing custom overrides + new updates
     const nextCustom: ThemeColors = {
       ...baseColors,
       ...get().customThemeColors,
@@ -177,9 +187,6 @@ export const useUiStore = create<UiStoreState>((set, get) => ({
     });
   },
 
-  /**
-   * Modifies only the canvas background color, maintaining the entire active base theme.
-   */
   setCanvasBgColor: (color) => {
     get().updateCustomTheme({ canvasBg: color });
   },
@@ -192,6 +199,12 @@ export const useUiStore = create<UiStoreState>((set, get) => ({
   setPresentationModalOpen: (open) => set({ isPresentationModalOpen: open }),
   setManageLanesModalOpen: (open) => set({ isManageLanesModalOpen: open }),
   setDocumentationModalOpen: (open) => set({ isDocumentationModalOpen: open }),
+  setMasterCatalogsModalOpen: (open) => set({ isMasterCatalogsModalOpen: open }),
+  setTextToDiagramModalOpen: (open) => set({ isTextToDiagramModalOpen: open }),
+  setTemplatesModalOpen: (open) => set({ isTemplatesModalOpen: open }),
+  setCommandPaletteOpen: (open) => set({ isCommandPaletteOpen: open }),
+  setTutorialModalOpen: (open) => set({ isTutorialModalOpen: open }),
+  setInteractiveTourActive: (active) => set({ isInteractiveTourActive: active }),
 
   toggleTheme: () => {
     const isCurrentlyDark = get().theme === 'dark';

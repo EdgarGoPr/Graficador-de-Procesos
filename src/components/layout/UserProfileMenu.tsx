@@ -14,7 +14,10 @@ import {
   User,
   Sparkles,
   ExternalLink,
-  Laptop
+  Laptop,
+  Database,
+  GraduationCap,
+  Command
 } from 'lucide-react';
 
 interface UserProfileMenuProps {
@@ -26,7 +29,16 @@ export const UserProfileMenu: React.FC<UserProfileMenuProps> = ({ onOpenFolder }
   const menuRef = useRef<HTMLDivElement>(null);
 
   const { currentUser, setAdminConsoleOpen, logout, openAuthModal } = useAuthStore();
-  const { theme, toggleTheme, setThemeModalOpen, showNotification } = useUiStore();
+  const {
+    theme,
+    toggleTheme,
+    setThemeModalOpen,
+    showNotification,
+    setMasterCatalogsModalOpen,
+    setTutorialModalOpen,
+    setInteractiveTourActive,
+    setCommandPaletteOpen
+  } = useUiStore();
   const { currentProject } = useProjectStore();
 
   // Close when clicking outside
@@ -210,6 +222,68 @@ export const UserProfileMenu: React.FC<UserProfileMenuProps> = ({ onOpenFolder }
           {/* Preferences & Utilities Section */}
           <div className="py-1 px-1 space-y-0.5">
             <div className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-theme-text-muted/70">
+              Herramientas Maestras & Ayuda
+            </div>
+
+            <button
+              onClick={() => {
+                setMasterCatalogsModalOpen(true);
+                setIsOpen(false);
+              }}
+              className="w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-xs text-theme-text hover:bg-theme-surface-subtle transition-colors cursor-pointer"
+            >
+              <div className="flex items-center space-x-2.5">
+                <Database className="w-4 h-4 text-sky-400" />
+                <span>Catálogos Maestros (ABMs)</span>
+              </div>
+              <span className="text-[10px] text-sky-400 font-mono font-bold">CRUD</span>
+            </button>
+
+            <button
+              onClick={() => {
+                setTutorialModalOpen(true);
+                setIsOpen(false);
+              }}
+              className="w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-xs text-theme-text hover:bg-theme-surface-subtle transition-colors cursor-pointer"
+            >
+              <div className="flex items-center space-x-2.5">
+                <GraduationCap className="w-4 h-4 text-emerald-400" />
+                <span>Centro de Tutoriales y Guía</span>
+              </div>
+              <span className="text-[10px] text-emerald-400 font-medium">Aprender</span>
+            </button>
+
+            <button
+              onClick={() => {
+                setInteractiveTourActive(true);
+                setIsOpen(false);
+              }}
+              className="w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-xs text-theme-text hover:bg-theme-surface-subtle transition-colors cursor-pointer"
+            >
+              <div className="flex items-center space-x-2.5">
+                <Sparkles className="w-4 h-4 text-amber-400" />
+                <span>Iniciar Tour Guiado Interactivo</span>
+              </div>
+              <span className="text-[10px] text-amber-400 font-mono">6 Pasos</span>
+            </button>
+
+            <button
+              onClick={() => {
+                setCommandPaletteOpen(true);
+                setIsOpen(false);
+              }}
+              className="w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-xs text-theme-text hover:bg-theme-surface-subtle transition-colors cursor-pointer"
+            >
+              <div className="flex items-center space-x-2.5">
+                <Command className="w-4 h-4 text-indigo-400" />
+                <span>Paleta Rápida de Comandos</span>
+              </div>
+              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-theme-surface border border-theme-border text-theme-text-muted">
+                Ctrl+K
+              </span>
+            </button>
+
+            <div className="px-2.5 pt-2 pb-1 text-[10px] font-bold uppercase tracking-wider text-theme-text-muted/70">
               Personalización & Entorno
             </div>
 

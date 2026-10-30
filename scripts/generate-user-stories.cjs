@@ -744,6 +744,62 @@ const userStories = [
 ];
 
 function generateExcel() {
+  userStories.push(
+    {
+      id: 'PST-083',
+      modulo: 'Graficación Inteligente & Productividad',
+      titulo: 'Generador de Diagramas desde Texto Natural / Voz, Auto-Layout Mágico y Biblioteca de Plantillas',
+      historiaUsuario: 'Como analista de procesos, quiero transformar una descripción en lenguaje natural o una plantilla predefinida en un diagrama BPMN 2.0 estructurado con carriles y nodos conectados, y contar con un botón de Auto-Layout de 1 clic, para ahorrar días de trabajo en el dibujo manual de procesos.',
+      criteriosAceptacion: '1. Modal "Texto/Voz a Diagrama" que analiza pasos numerados o párrafos y genera automáticamente carriles (Swimlanes), nodos (Inicio, Tareas, Compuertas, Puntos de Control, Fin) y conexiones secuenciales.\n2. Galería integrada de Plantillas de Procesos listas para usar (Atención de Solicitudes/Trámites, Compras y Contrataciones, Gestión de No Conformidades ISO 9001, Incorporación de Personal RRHH).\n3. Motor de "Auto-Layout Mágico" de 1 clic en la barra del lienzo que ordena todas las tarjetas dentro de sus carriles sin solapamientos y alinea el flujo de izquierda a derecha.',
+      fechaImplementacion: '2026-10-30',
+      estado: 'Implementado / Producción'
+    },
+    {
+      id: 'PST-084',
+      modulo: 'Documentación Estandarizada & Exportación PDF',
+      titulo: 'Generador Automatizado de Manual de Procedimientos Estandarizado en PDF Nativo (ISO 9001)',
+      historiaUsuario: 'Como responsable de calidad o dueño de proceso, quiero descargar un Manual de Procedimientos estandarizado en archivo PDF nativo (.pdf) que combine automáticamente todo lo graficado en el lienzo (diagrama visual, inventario paso a paso, SIPOC, RACI, riesgos y plazos SLA) junto con secciones complementarias autocompletables (alcance, políticas, glosario, KPIs y firmas), para obtener la documentación oficial lista para auditoría sin redactar documentos manualmente.',
+      criteriosAceptacion: '1. Sección de "Ficha Enriquecida del Manual" dentro de la vista Manual ISO con campos para Alcance, Políticas de Operación, Indicadores KPI, Glosario y Cuadro de Firmas (Elaboró, Revisó, Aprobó).\n2. Botón "Autocompletar desde el Lienzo" que redacta automáticamente políticas operativas, glosario, alcance e indicadores basándose en los nodos, plazos y puntos de control graficados.\n3. Compilador PDF nativo (jspdf) de 1 clic que descarga el archivo .pdf con Portada Institucional, Control Documental, Diagrama BPMN embebido en alta resolución, Descripción Paso a Paso por rol, Matrices SIPOC, RACI y Riesgos, Historial de Versiones y Sello Criptográfico SHA-256.',
+      fechaImplementacion: '2026-10-30',
+      estado: 'Implementado / Producción'
+    },
+    {
+      id: 'PST-085',
+      modulo: 'Gobernanza, Usuarios & Permisos',
+      titulo: 'Ciclo Completo de Usuarios, Permisos Masivos por Área y Flujo de Aprobación Documental',
+      historiaUsuario: 'Como administrador y líder de área, quiero gestionar el ciclo de vida completo de usuarios (incluyendo baja/eliminación segura), asignar permisos de proyectos de forma masiva por Unidad Organizativa y controlar el estado formal del documento (Borrador, En Revisión, Aprobado, Vigente), para asegurar una gobernanza institucional completa.',
+      criteriosAceptacion: '1. Baja lógica y eliminación segura de usuarios desde la Consola de Administración con reasignación/limpieza de permisos y registro en el log de auditoría.\n2. Asignación masiva de permisos en ProjectParticipantsModal permitiendo otorgar acceso (Lectura, Comentarios o Editor) a todos los miembros de una Unidad Organizativa en un solo clic.\n3. Flujo de estado documental formal en cada proyecto (DRAFT, IN_REVIEW, APPROVED, EFFECTIVE) con trazabilidad de quién aprobó y fecha de vigencia.',
+      fechaImplementacion: '2026-10-30',
+      estado: 'Implementado / Producción'
+    },
+    {
+      id: 'PST-086',
+      modulo: 'Catálogos Maestros & ABMs del Sistema',
+      titulo: 'Centro Integral de ABMs Maestros (Áreas, Roles, Normativas, Sistemas TI, Riesgos y Papelera)',
+      historiaUsuario: 'Como administrador o analista de organización y métodos, quiero contar con un módulo centralizado de ABMs (Altas, Bajas y Modificaciones) para todas las entidades maestras de la aplicación (Unidades Organizativas, Roles/Cargos, Marcos Normativos, Sistemas TI/Formularios, Riesgos/Controles y Papelera de Proyectos), para estandarizar los datos en todos los procesos y evitar la carga manual repetitiva.',
+      criteriosAceptacion: '1. Modal "Catálogos Maestros (ABMs)" accesible desde la cabecera y menú de perfil con interfaz CRUD completa (Alta, Baja, Modificación, Búsqueda y Filtro) para las 5 entidades maestras.\n2. Persistencia híbrida sincronizada en Neon PostgreSQL y almacenamiento local con datos semilla institucionales pre-cargados.\n3. Conectividad directa: los formularios de Propiedades del Nodo, Creación/Edición de Carriles y Ficha del Proyecto permiten seleccionar elementos directamente desde los catálogos ABM.\n4. Papelera de Reciclaje de Proyectos con baja lógica (Soft-Delete) y restauración en 1 clic.',
+      fechaImplementacion: '2026-10-30',
+      estado: 'Implementado / Producción'
+    },
+    {
+      id: 'PST-087',
+      modulo: 'Experiencia de Usuario & Velocidad Operativa',
+      titulo: 'Paleta de Comandos Rápida (Ctrl+K) y Semáforo de Completitud Documental en Tiempo Real',
+      historiaUsuario: 'Como usuario de ProcesStudio, quiero disponer de un buscador global de comandos (Ctrl+K) y un indicador de salud/completitud del proceso en tiempo real, para navegar instantáneamente por la aplicación y saber con exactitud qué datos faltan antes de emitir el PDF oficial.',
+      criteriosAceptacion: '1. Paleta de comandos global invocable con Ctrl+K (o botón en cabecera) que permite buscar nodos del lienzo, cambiar de vista, ejecutar herramientas y abrir ABMs desde el teclado.\n2. Indicador porcentual de "Salud Documental (0% - 100%)" en la barra superior que evalúa si el proceso está listo para exportación PDF e indica con 1 clic qué nodos requieren atención.',
+      fechaImplementacion: '2026-10-30',
+      estado: 'Implementado / Producción'
+    },
+    {
+      id: 'PST-088',
+      modulo: 'Capacitación & Onboarding de Usuario',
+      titulo: 'Centro de Aprendizaje Ilustrado y Tour Guiado Interactivo Paso a Paso',
+      historiaUsuario: 'Como nuevo usuario de ProcesStudio, quiero contar con un tutorial interactivo guiado sobre la pantalla y un Centro de Aprendizaje breve y visual, para aprender a graficar procesos, usar los catálogos ABM y descargar el Manual PDF estandarizado en pocos minutos sin necesitar capacitación externa.',
+      criteriosAceptacion: '1. Botón "Tutorial / Ayuda" en la barra superior y menú de usuario que abre el Centro de Aprendizaje dividido en módulos breves (Lienzo y Nodos, Carriles y ABMs, Matrices SIPOC/RACI, Exportación PDF y Permisos).\n2. Modo "Tour Guiado Interactivo" que resalta paso a paso las secciones reales de la interfaz con explicaciones claras y botones "Siguiente / Anterior / Finalizar".\n3. Acceso directo desde el tutorial para cargar un proceso de ejemplo o iniciar el generador asistido.',
+      fechaImplementacion: '2026-10-30',
+      estado: 'Implementado / Producción'
+    }
+  );
   console.log('📊 Generando archivo Excel de Historias de Usuario...');
 
   // Create worksheet data

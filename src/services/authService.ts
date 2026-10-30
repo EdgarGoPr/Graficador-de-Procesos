@@ -1123,6 +1123,51 @@ export class AuthService {
     return { ok: true };
   }
 
+  /**
+   * Baja / Eliminación segura de usuario por el Administrador (PST-085)
+   */
+  public static async deleteUserByAdmin(
+    adminUser: AppUser,
+    targetUserId: string
+  ): Promise<{ ok: boolean; error?: string }> {
+    if (adminUser.role !== 'ADMIN') {
+      return { ok: false, error: 'Solo los administradores pueden dar de baja o eliminar usuarios.' };
+    }
+    if (adminUser.id === targetUserId) {
+      return { ok: false, error: 'No puedes eliminar tu propia cuenta de Administrador en sesión activa.' };
+    }
+
+    const target = await this.findUserById(targetUserId);
+    if (!target) {
+      return { ok: false, error: 'Usuario no encontrado.' };
+    }
+    if (target.email.toLowerCase() === 'egdeprada@gmail.com') {
+      return { ok: false, error: 'La cuenta de Administrador Principal está protegida contra eliminación.' };
+    }
+
+    const sql = NeonClient.getSql();
+    if (sql) {
+      try {
+        await sql`DELETE FROM project_user_permissions WHERE user_id = ${targetUserId}::uuid;`;
+        await sql`DELETE FROM app_users WHERE id = ${targetUserId}::uuid;`;
+      } catch (err) {
+        console.warn('Error al eliminar usuario en Neon:', err);
+      }
+    }
+
+    const localUsers = this.getLocalUsers().filter((u) => u.id !== targetUserId);
+    localStorage.setItem(LOCAL_STORAGE_USERS_FALLBACK, JSON.stringify(localUsers));
+
+    await AuditLoggerService.log(
+      'USER_DELETED_BY_ADMIN',
+      adminUser,
+      target.email,
+      { deletedUserId: targetUserId, fullName: target.fullName, organizationUnit: target.organizationUnit }
+    );
+
+    return { ok: true };
+  }
+
   // ==========================================================================
   // CONSULTAS AUXILIARES
   // ==========================================================================

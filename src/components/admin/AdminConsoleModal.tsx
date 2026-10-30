@@ -499,16 +499,36 @@ export const AdminConsoleModal: React.FC = () => {
                             Generar Código 6 Dígitos
                           </button>
                           {u.id !== currentUser.id && (
-                            <button
-                              onClick={() => handleToggleUserStatus(u)}
-                              className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all ${
-                                u.status === 'ACTIVE'
-                                  ? 'border border-red-500/30 text-red-400 hover:bg-red-500/10'
-                                  : 'border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10'
-                              }`}
-                            >
-                              {u.status === 'ACTIVE' ? 'Desactivar' : 'Activar'}
-                            </button>
+                            <>
+                              <button
+                                onClick={() => handleToggleUserStatus(u)}
+                                className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all ${
+                                  u.status === 'ACTIVE'
+                                    ? 'border border-amber-500/30 text-amber-400 hover:bg-amber-500/10'
+                                    : 'border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10'
+                                }`}
+                              >
+                                {u.status === 'ACTIVE' ? 'Desactivar' : 'Activar'}
+                              </button>
+                              {u.email.toLowerCase() !== 'egdeprada@gmail.com' && (
+                                <button
+                                  onClick={async () => {
+                                    if (window.confirm(`¿Confirmas eliminar definitivamente la cuenta de ${u.fullName} (${u.email}) y revocar sus accesos?`)) {
+                                      const res = await AuthService.deleteUserByAdmin(currentUser, u.id);
+                                      if (res.ok) {
+                                        loadAllData();
+                                      } else {
+                                        alert(res.error || 'Error al eliminar usuario');
+                                      }
+                                    }
+                                  }}
+                                  className="px-2.5 py-1 rounded-lg border border-red-500/30 text-red-400 hover:bg-red-500/15 text-[11px] font-semibold transition-all"
+                                  title="Dar de baja y eliminar usuario"
+                                >
+                                  Eliminar
+                                </button>
+                              )}
+                            </>
                           )}
                         </td>
                       </tr>

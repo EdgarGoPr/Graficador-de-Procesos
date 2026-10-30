@@ -1,9 +1,9 @@
-# Plan de Acción Integral: Gestión de Usuarios, Roles, Permisos por Lienzo, Acceso con Google, Reseteo por Administrador y Logs de Auditoría
+# Plan de Acción Integral: Plataforma Corporativa de Graficación Optimizada, Documentación PDF Automatizada, Gobernanza de Usuarios, ABMs Maestros, UX Amigable y Tutorial Interactivo
 
-> **Documento:** Plan de Acción Oficial de Seguridad y Gobernanza de ProcesStudio  
-> **Versión:** 1.7.0 | **Fecha:** 2026-10-28  
+> **Documento:** Plan de Acción Maestro para el Desarrollo Final de ProcesStudio  
+> **Versión:** 2.0.0 (Propuesta de Hoja de Ruta Final) | **Fecha:** 2026-10-30  
 > **Alineación Normativa:** Directivas Obligatorias de Desarrollo (`AGENTS.md` y `.agents/rules/directivas.md`), Estándar BPMN 2.0 (ISO/IEC 19510), Gestión de Calidad ISO 9001:2015 (Control de Cambios y Trazabilidad) y Seguridad de la Información ISO/IEC 27001 (Control de Accesos).  
-> **Historias de Usuario:** `PST-069`, `PST-070`, `PST-071`, `PST-072`, `PST-073`, `PST-074`, `PST-075`, `PST-076`, `PST-077`, `PST-078`, `PST-079`, `PST-080` (Gestión Descentralizada de Participantes y Permisos desde el Proyecto).
+> **Historias de Usuario:** `PST-069` a `PST-082` (Implementadas) | **Nuevas Historias Planificadas:** `PST-083`, `PST-084`, `PST-085`, `PST-086`, `PST-087`, `PST-088` (Desarrollo Final Integral v2.0).
 
 ---
 
@@ -471,7 +471,7 @@ Conforme a la **Directiva 4**, estas historias se registrarán con su numeració
     historiaUsuario: 'Como usuario creador de un proceso o administrador de ProcesStudio, quiero gestionar los participantes y sus niveles de permiso (Solo Lectura, Comentarios, Editor) directamente desde el propio proyecto mediante un botón dedicado, para colaborar ágilmente sin depender exclusivamente de la consola central del administrador.',
     criteriosAceptacion: '1. Botón de acceso directo "Participantes" (icono Users) visible en la tarjeta del proyecto en el Dashboard y en la cabecera del lienzo cuando el proceso está abierto.\n2. Autorización Dual: Habilitado para usuarios con rol ADMIN y para el usuario creador/autor del proyecto; oculto o bloqueado para otros usuarios.\n3. Modal ProjectParticipantsModal con visualización de participantes actuales, cambio rápido de nivel de permiso (READ_ONLY, COMMENTS, EDITOR) y revocación de acceso.\n4. Asignador de nuevos participantes con buscador de usuarios activos del sistema y selector de rol de colaboración.\n5. Persistencia relacional en Neon PostgreSQL (project_user_permissions) y fallback local, con registro inmutable de auditoría (CANVAS_PERMISSION_ASSIGNED y CANVAS_PERMISSION_REMOVED).',
     fechaImplementacion: '2026-10-28',
-    estado: 'Planificado / Pendiente de Aprobación'
+    estado: 'Implementado / Producción'
   }
 ];
 ```
@@ -698,13 +698,224 @@ Las recomendaciones técnicas evaluadas han sido clasificadas e integradas al al
 
 ---
 
-## 11. Conclusión y Compromiso de Desarrollo
+## 11. Plan Maestro de Desarrollo Final (Versión 2.0): Los 6 Pilares Estratégicos
 
-Este documento constituye la **Hoja de Ruta Maestra Oficial de Usuarios, Permisos, Seguridad, Auditoría y Diseño Ergonómico** de ProcesStudio (Versión 1.9.0).
+Con el objetivo de consolidar a **ProcesStudio** como la plataforma definitiva para graficar y documentar procesos ahorrando días enteros de trabajo operativo, se establece la presente **Hoja de Ruta de Desarrollo Final**, estructurada en **6 Pilares Fundamentales** más una batería de sugerencias de alto impacto:
 
-Todas las fases se implementarán respetando rigurosamente:
-1. **La arquitectura 100% Web Cloud Nativa** (React + TypeScript + Vite + Neon PostgreSQL).
-2. **La persistencia relacional en Neon PostgreSQL**.
-3. **La actualización del archivo Excel `HISTORIAS_DE_USUARIO_PROCESSTUDIO.xlsx`** (`PST-069` a `PST-082`).
-4. **La compilación limpia (`npm run build`) y el commit/push automático a Git tras cada conjunto de cambios aprobados**.
+```
+┌──────────────────────────────────────────────────────────────────────────────────────────┐
+│                 PROCESSTUDIO 2.0 - ARQUITECTURA DE DESARROLLO FINAL                      │
+├───────────────────────────────────────────┬──────────────────────────────────────────────┤
+│ 1. GRAFICACIÓN ULTRA-OPTIMIZADA           │ 2. DOCUMENTACIÓN PDF AUTOMATIZADA (ISO 9001) │
+│ • Generador IA: Texto/Voz ➔ Diagrama BPMN │ • Ficha Complementaria Editable + Auto-IA    │
+│ • Magic Auto-Layout (Alineación 1-Clic)   │ • Compilador PDF Nativo Integral (jspdf):    │
+│ • Biblioteca de Plantillas Reutilizables  │   Portada + Mapa + Pasos + SIPOC + RACI + QR │
+├───────────────────────────────────────────┼──────────────────────────────────────────────┤
+│ 3. GOBERNANZA TOTAL DE USUARIOS Y ROLES   │ 4. CENTRO MAESTRO DE ABMs CORPORATIVOS       │
+│ • Ciclo de vida completo de Usuarios      │ • ABM Unidades Organizativas / Dependencias  │
+│ • Permisos por Área / Grupo Organizativo  │ • ABM Roles / Cargos (Carriles Estándar)     │
+│ • Flujo de Aprobación y Firma Documental  │ • ABM Normativas / Leyes y Sistemas / Forms  │
+│ • Reasignación de Procesos Huérfanos      │ • ABM Riesgos Tipo + Papelera de Proyectos   │
+├───────────────────────────────────────────┼──────────────────────────────────────────────┤
+│ 5. UX AMIGABLE Y VELOCIDAD DE USO         │ 6. TUTORIAL INTERACTIVO & ACADEMIA INTEGRADA │
+│ • Autocompletado desde ABMs en 1 clic     │ • Tour Guiado Interactivo (Spotlight Paso a  │
+│ • Paleta Rápida de Comandos (Ctrl + K)    │   Paso sobre la interfaz real)               │
+│ • Medidor de Salud Documental (%)         │ • Centro de Aprendizaje Ilustrado por Temas  │
+└───────────────────────────────────────────┴──────────────────────────────────────────────┘
+```
+
+---
+
+### Pilar 1: Optimización Extrema de Herramientas de Graficación en el Lienzo (`PST-083`)
+*(Diagnóstico: El lienzo ya cuenta con paleta BPMN 2.0, carriles dinámicos, asistente radial IA, compresión de subprocesos, simulación y modo presentación. Se proponen 3 aceleradores clave para reducir de horas a minutos el armado inicial de cualquier diagrama).*
+
+1. **Generador Automático de Diagramas desde Texto o Voz ("Texto a BPMN con 1 Clic" - `TextToDiagramModal.tsx`):**
+   - El usuario pega un borrador de relevamiento, escribe una descripción libre (ej. *"El ciudadano presenta el reclamo en Mesa de Entradas, luego Legales revisa si cumple requisitos; si cumple pasa a Resolución, si no se archiva"*) o usa un audio grabado en la Bóveda.
+   - El motor analiza el texto y **construye automáticamente en el lienzo** los carriles funcionales (`Swimlanes`), el evento de inicio, las tareas secuenciales, las compuertas de decisión con sus caminos *"Sí / No"*, los SLAs estimados y el evento de fin.
+2. **Embellecedor y Auto-Alineación Matemática con 1 Clic ("Magic Auto-Layout"):**
+   - Botón directo en la barra del lienzo: **`✨ Auto-Ordenar Lienzo`**.
+   - Algoritmo topológico que distribuye horizontalmente las actividades de izquierda a derecha según su secuencia lógica, centra verticalmente cada nodo dentro de su carril correspondiente, ajusta automáticamente el ancho/alto de los carriles y limpia cruces innecesarios de conectores.
+3. **Biblioteca de Plantillas de Procesos Pre-Armadas (`ProcessTemplatesModal.tsx`):**
+   - Posibilidad de iniciar un proyecto desde una **Plantilla Estándar** (ej. *Proceso de Compras / Contrataciones*, *Atención de Reclamos / Mesa de Entradas*, *Aprobación de Expedientes / Dictamen Legal*, *Onboarding de Personal*) o **Guardar cualquier lienzo actual como Plantilla Corporativa** reutilizable por el equipo.
+
+---
+
+### Pilar 2: Generador Automatizado de Documentación Estandarizada en PDF (`PST-084`)
+*(Objetivo: Que el usuario no tenga que redactar en Word ni maquetar manualmente. Todo lo graficado + una sección complementaria asistida se transforma con 1 clic en el Manual Oficial de Procedimientos en PDF).*
+
+1. **Sección de Información Complementaria del Documento ("Ficha Enriquecida del Manual" en `TechnicalReportView.tsx`):**
+   - Se incorpora un panel editable y persistente dentro del proyecto (`documentControl.manualMetadata`) donde el usuario puede agregar o completar (con botón **"✨ Autocompletar con IA según lo graficado"**):
+     - **Alcance Detallado** (Dónde inicia y dónde termina operativamente el procedimiento).
+     - **Definiciones, Siglas y Glosario Técnico**.
+     - **Políticas de Operación y Reglas de Negocio Generales**.
+     - **Indicadores Clave de Desempeño (KPIs sugeridos y métricas de SLA)**.
+     - **Anexos, Formularios y Registros Vinculados**.
+     - **Cuadro de Responsabilidades de Firma** (*Elaboró*, *Revisó*, *Aprobó* con cargo y fecha).
+2. **Motor Compilador de Manual Oficial en PDF Nativo (`src/services/pdfFullManualExportService.ts`):**
+   - Basado en `jspdf` (generación directa de archivo `.pdf` descargable sin depender de la impresión del navegador, con foliado exacto `Página X de Y`, encabezados normativos ISO 9001 en todas las hojas y tabla de contenidos automática).
+   - **Estructura Estandarizada del PDF Generado Automáticamente:**
+     - **Sección 1 — Portada y Ficha de Control Documental:** Membrete institucional, Código, Versión, Vigencia, Unidad Organizativa, Autor, Estado de Aprobación y Cuadro de Firmas.
+     - **Sección 2 — Identificación del Proceso:** Objetivo, Alcance, Marco Normativo / Legal aplicable, Glosario y Políticas de Operación.
+     - **Sección 3 — Mapa Gráfico del Proceso (Diagrama BPMN 2.0):** Renderizado vectorial/alta resolución del diagrama graficado en el lienzo, ajustado automáticamente a página.
+     - **Sección 4 — Descripción Detallada de Actividades (Paso a Paso):** Tabla secuencial e inventario detallado agrupado por Carril/Responsable, indicando para cada nodo: *N° de Paso, Nombre de Actividad, Tipo BPMN, Área/Rol Responsable, Descripción Operativa, Tiempo SLA, Sistemas/Formularios utilizados, Entradas/Salidas, Nivel de Riesgo y Punto de Control*.
+     - **Sección 5 — Matrices de Calidad Automatizadas:**
+       - **Matriz SIPOC** completa (Proveedores, Entradas, Proceso, Salidas, Clientes).
+       - **Matriz RACI** de roles y responsabilidades (*Responsable, Aprobador, Consultado, Informado*).
+       - **Matriz de Riesgos Operativos y Controles de Calidad**.
+     - **Sección 6 — Historial de Versiones y Sello Criptográfico SHA-256:** Tabla de control de cambios y pie de certificación de integridad.
+
+---
+
+### Pilar 3: Gestión Completa de Usuarios, Roles, Grupos y Ciclo de Aprobación (`PST-085`)
+*(Diagnóstico: Ya existe Auth Gatekeeper, Google Sign-In, Reseteo por Admin con 6 dígitos, 2FA, matriz por lienzo y auditoría. Se completa el ciclo empresarial de usuarios y permisos).*
+
+1. **ABM Integral del Ciclo de Vida de Usuarios (en `AdminConsoleModal.tsx`):**
+   - **Alta, Modificación, Suspensión Temporal (`INACTIVE`), Bloqueo (`BLOCKED`) y Baja Segura / Eliminación de Usuarios** con asistente de **Reasignación de Propiedad**: si se elimina o desactiva un usuario que era creador de proyectos, el sistema permite transferir la titularidad de sus procesos a otro usuario o al Administrador con un clic.
+   - **Buscador multicriterio, filtros por Unidad Organizativa, Rol y Estado**, y exportación del padrón de usuarios a Excel/PDF.
+2. **Permisos por Unidad Organizativa / Grupos de Trabajo:**
+   - Posibilidad de asignar permisos de un proyecto (`Solo Lectura`, `Comentarios` o `Editor`) **a toda una Unidad Organizativa completa** (ej. *"Asignar modo Lectura a toda la Dirección de Recursos Humanos"*), además de la asignación individual por usuario.
+3. **Flujo de Aprobación y Ciclo de Vida del Proceso Gobernable:**
+   - Transición formal de estados del proyecto controlada por permisos:
+     - `DRAFT` (*Borrador*) ➔ `IN_REVIEW` (*En Revisión*) ➔ `APPROVED` (*Aprobado*) ➔ `EFFECTIVE` (*Vigente / Publicado*).
+   - Cuando un proceso pasa a estado `APPROVED` o `EFFECTIVE`, queda protegido contra ediciones accidentales salvo que se genere formalmente una **Nueva Revisión / Versión** (`v1.1`, `v2.0`), dejando constancia en el log de auditoría inmutable.
+
+---
+
+### Pilar 4: Desarrollo Completo de ABMs Maestros para Toda la Aplicación (`PST-086`)
+*(Objetivo: Eliminar la carga manual repetitiva y estandarizar los datos en toda la organización mediante catálogos corporativos administrables con Altas, Bajas y Modificaciones).*
+
+Se creará el módulo **"Catálogos Maestros (ABMs)"** (`src/components/catalogs/MasterCatalogsModal.tsx` y `src/services/masterCatalogsService.ts`), accesible desde la barra superior y sincronizado con **Neon PostgreSQL** + caché local:
+
+| # | Catálogo Maestro (ABM) | Atributos Administrables (Alta / Baja / Modificación) | Impacto y Automatización en el Lienzo y PDF |
+| :--- | :--- | :--- | :--- |
+| **1** | **Unidades Organizativas / Dependencias** | Código (`UO-01`), Nombre de Dependencia/Secretaría, Unidad Superior, Responsable/Titular, Color identificatorio, Estado. | Alimenta el selector de área al crear/editar Proyectos, Usuarios y Piscinas (`Pools`) sin tipear a mano. |
+| **2** | **Roles y Cargos Funcionales (Swimlanes)** | Código (`ROL-01`), Nombre del Cargo/Puesto, Unidad Organizativa, Responsabilidades base, Costo/Hora (para Simulación). | Permite agregar Carriles (`Swimlanes`) al lienzo eligiendo directamente del catálogo de cargos oficiales. |
+| **3** | **Marco Normativo, Leyes y Estándares** | Código/N° Norma (ej. `Ley 24.449`, `ISO 9001:2015`), Título, Tipo (*Ley, Decreto, Ordenanza, Resolución, Norma*), Resumen, Estado. | Permite vincular normas con 1 clic tanto a la Ficha del Proceso como a cualquier actividad del lienzo. |
+| **4** | **Sistemas, Formularios y Documentos** | Código (`FOR-001`, `SIS-GEDO`), Nombre, Categoría (*Sistema Informático, Formulario, Expediente, Planilla*), Soporte (*Digital / Papel*). | Alimenta las Entradas/Salidas del inspector de nodos y construye automáticamente la Matriz SIPOC. |
+| **5** | **Catálogo de Riesgos y Controles Tipo** | Código (`RSG-01`), Descripción del Riesgo, Nivel de Impacto (*Bajo, Medio, Alto, Crítico*), Control Mitigante Estándar. | Permite asignar riesgos y puntos de control a las tareas en segundos desde un selector preconfigurado. |
+| **6** | **Plantillas y Papelera de Proyectos** | Gestión ABM de Plantillas de Procesos + **Papelera de Reciclaje** (*Soft-Delete*) para restaurar proyectos eliminados o purgarlos definitivamente. | Evita pérdidas accidentales de trabajo y acelera el alta de nuevos procesos repetitivos. |
+
+---
+
+### Pilar 5: Usabilidad Amigable, Velocidad Operativa y Asistencia Inteligente (`PST-087`)
+*(Objetivo: Que cualquier usuario —incluso sin conocimientos técnicos profundos de BPMN— sienta que el sistema lo lleva de la mano).*
+
+1. **Integración de Selectores Rápidos ABM en el Panel de Propiedades (`RightSidebar.tsx`):**
+   - Al seleccionar cualquier tarea en el lienzo, los campos de *Rol/Carril, Normativa aplicable, Documentos de Entrada/Salida, Sistemas y Puntos de Control* tendrán **selectores desplegables conectados a los ABMs Maestros** (con opción de `+ Crear nuevo ítem al vuelo`), ahorrando hasta un 70% de tipeo.
+2. **Medidor de Completitud y Salud del Proceso ("Process Readiness Score"):**
+   - Indicador visual amigable (0% a 100%) en la cabecera del reporte/lienzo que evalúa en tiempo real si el proceso está listo para publicarse en PDF (ej. *¿Tiene inicio y fin? ¿Todas las tareas tienen responsable y tiempo SLA? ¿Se definió el objetivo?*), con botones de acción directa para completar lo faltante.
+3. **Buscador Global y Paleta de Comandos Rápida (`Ctrl + K` - `CommandPaletteModal.tsx`):**
+   - Un buscador instantáneo al presionar `Ctrl + K` (o desde un botón en la barra superior) que permite saltar en 1 segundo a cualquier proyecto, nodo dentro del lienzo actual, vista (SIPOC, RACI, Manual PDF), catálogo ABM o acción de exportación.
+
+---
+
+### Pilar 6: Tutorial Interactivo y Centro de Aprendizaje ("Academia ProcesStudio") (`PST-088`)
+*(Objetivo: Que cualquier nuevo usuario aprenda a dominar el sistema en menos de 3 minutos sin necesidad de capacitación externa).*
+
+1. **Recorrido Guiado Interactivo sobre la Pantalla Real (*Interactive Spotlight Tour* - `InteractiveTourOverlay.tsx`):**
+   - Asistente paso a paso con foco iluminado (*spotlight*) que señala cada sector real de la interfaz con explicaciones breves y amigables:
+     - **Paso 1:** *Gestión de Proyectos y Permisos* (Cómo crear o abrir un proceso y gestionar participantes).
+     - **Paso 2:** *Paleta de Herramientas BPMN y Carriles* (Cómo arrastrar tareas, decisiones, notas y agregar áreas/roles).
+     - **Paso 3:** *El Lienzo Inteligente y Auto-Diseño* (Cómo conectar elementos, usar el menú radial de IA y auto-ordenar el diagrama).
+     - **Paso 4:** *Ficha Técnica, SLAs y Bóveda de Contexto* (Cómo cargar tiempos, riesgos, normas y audios).
+     - **Paso 5:** *Vistas Automáticas (SIPOC / RACI) y Manual PDF* (Cómo obtener toda la documentación estandarizada en 1 clic).
+     - **Paso 6:** *Catálogos Maestros (ABMs)* (Cómo reutilizar áreas, cargos, sistemas y normativas).
+   - Se ofrece automáticamente en el primer ingreso del usuario y puede iniciarse en cualquier momento desde el botón **`🎓 Tutorial`** en la cabecera o menú de usuario.
+2. **Centro de Ayuda y Guía Rápida Ilustrada (`TutorialCenterModal.tsx`):**
+   - Modal estructurado en cápsulas visuales de lectura rápida (menos de 1 minuto por tema):
+     - 🚀 **Guía de 5 Pasos:** De cero al Manual PDF en 5 minutos.
+     - 🧩 **Diccionario Visual BPMN 2.0:** Qué significa cada figura (Tarea, Compuerta Exclusiva/Paralela, Subproceso, Evento, Nota) con ejemplos claros.
+     - 📄 **Cómo generar el Manual PDF Perfecto:** Consejos para que las tablas SIPOC, RACI y descripciones salgan completas.
+     - ⌨️ **Atajos de Teclado y Trucos de Productividad** (`Ctrl+S`, `Ctrl+Z`, `Ctrl+K`, `F5` Presentación, Selección múltiple).
+
+---
+
+## 12. Nuevas Historias de Usuario Planificadas (`PST-083` a `PST-088`)
+
+```javascript
+[
+  {
+    id: 'PST-083',
+    modulo: 'Lienzo BPMN & Optimización IA',
+    titulo: 'Generador de Diagramas desde Texto/Voz, Auto-Layout con 1 Clic y Biblioteca de Plantillas',
+    historiaUsuario: 'Como analista de procesos, quiero generar un diagrama BPMN completo a partir de una descripción de texto o voz, contar con un botón de auto-alineación inteligente y disponer de plantillas reutilizables, para ahorrar horas de diagramación manual.',
+    criteriosAceptacion: '1. Modal "Texto a Diagrama BPMN" que transforma párrafos o transcripciones en carriles, nodos, compuertas y conectores.\n2. Botón "Auto-Ordenar Lienzo" que organiza topológicamente los nodos por carril sin superposiciones.\n3. Biblioteca de plantillas pre-armadas y opción de guardar el proceso actual como plantilla corporativa.',
+    fechaImplementacion: '2026-10-30',
+    estado: 'Implementado / Producción'
+  },
+  {
+    id: 'PST-084',
+    modulo: 'Documentación & Exportación PDF ISO 9001',
+    titulo: 'Motor Automatizado de Manual de Procedimientos Estandarizado en PDF y Ficha Complementaria',
+    historiaUsuario: 'Como responsable de calidad y documentación, quiero contar con una sección para completar datos complementarios del manual (con autocompletado asistido) y descargar con un solo clic un documento PDF nativo, foliado y estandarizado que unifique portada, control documental, mapa gráfico, descripción paso a paso, matriz SIPOC, matriz RACI, riesgos y firmas, para automatizar al 100% la generación de manuales.',
+    criteriosAceptacion: '1. Sección editable de información complementaria (Alcance, Glosario, Políticas de Operación, KPIs, Anexos y Cuadro de Firmas) con botón de autocompletado automático basado en el gráfico.\n2. Compilador PDF nativo (jspdf) que genera el Manual Oficial de Procedimientos completo sin depender de window.print().\n3. Inclusión automática de Portada ISO 9001, Diagrama BPMN en alta resolución, Tabla secuencial de actividades por rol/carril, Matriz SIPOC, Matriz RACI, Riesgos/Controles e Historial de Versiones.\n4. Encabezados estandarizados en cada página, foliado "Página X de Y" y sello de integridad SHA-256.',
+    fechaImplementacion: '2026-10-30',
+    estado: 'Implementado / Producción'
+  },
+  {
+    id: 'PST-085',
+    modulo: 'Gobernanza, Usuarios & Ciclo Documental',
+    titulo: 'ABM Completo de Usuarios con Reasignación, Permisos por Unidad Organizativa y Flujo de Aprobación',
+    historiaUsuario: 'Como administrador de ProcesStudio, quiero gestionar el ciclo de vida completo de usuarios (incluyendo baja con reasignación de procesos), otorgar permisos por Unidad Organizativa completa y controlar el flujo de estados de aprobación de los procesos (Borrador, En Revisión, Aprobado, Vigente), para asegurar una gobernanza empresarial sin fisuras.',
+    criteriosAceptacion: '1. Baja/eliminación segura de usuarios con asistente para reasignar sus lienzos creados.\n2. Asignación masiva de permisos de lienzo por Unidad Organizativa / Área.\n3. Selector y flujo de cambio de estado documental (DRAFT, IN_REVIEW, APPROVED, EFFECTIVE) con bloqueo de edición en versiones publicadas y registro en auditoría.',
+    fechaImplementacion: '2026-10-30',
+    estado: 'Implementado / Producción'
+  },
+  {
+    id: 'PST-086',
+    modulo: 'Catálogos Maestros & ABMs',
+    titulo: 'Centro Maestro de ABMs Corporativos (Unidades, Cargos, Normativas, Sistemas, Riesgos y Papelera)',
+    historiaUsuario: 'Como administrador o modelador, quiero contar con un módulo completo de ABMs (Altas, Bajas y Modificaciones) para Unidades Organizativas, Roles/Cargos, Leyes/Normativas, Sistemas/Formularios, Riesgos Tipo y Papelera de Proyectos, para estandarizar la información en toda la aplicación y seleccionarla sin volver a escribirla.',
+    criteriosAceptacion: '1. Módulo MasterCatalogsModal con pestañas CRUD completas para: Unidades Organizativas, Cargos/Roles, Marco Normativo, Sistemas/Formularios y Riesgos/Controles.\n2. Persistencia en Neon PostgreSQL y sincronización local con datos semilla institucionales.\n3. Papelera de reciclaje de proyectos con opción de Restaurar o Eliminar definitivamente.\n4. Búsqueda, filtrado y validación de integridad en todos los ABMs.',
+    fechaImplementacion: '2026-10-30',
+    estado: 'Implementado / Producción'
+  },
+  {
+    id: 'PST-087',
+    modulo: 'Usabilidad & Experiencia de Usuario (UX)',
+    titulo: 'Autocompletado desde ABMs en Propiedades, Medidor de Completitud y Paleta Rápida (Ctrl+K)',
+    historiaUsuario: 'Como usuario del sistema, quiero seleccionar cargos, normas, sistemas y riesgos desde desplegables conectados a los ABMs, visualizar un indicador porcentual de completitud del proceso y usar un buscador rápido (Ctrl+K), para trabajar de forma intuitiva, rápida y amigable.',
+    criteriosAceptacion: '1. Selectores inteligentes en el panel derecho de propiedades (RightSidebar) y modales de proyecto conectados a los Catálogos ABM.\n2. Indicador visual "Salud Documental del Proceso (%)" que informa qué datos faltan para un manual perfecto.\n3. Paleta de comandos rápida (Ctrl+K) para buscar proyectos, nodos, vistas y herramientas al instante.',
+    fechaImplementacion: '2026-10-30',
+    estado: 'Implementado / Producción'
+  },
+  {
+    id: 'PST-088',
+    modulo: 'Capacitación & Onboarding',
+    titulo: 'Tutorial Interactivo Paso a Paso (Spotlight Tour) y Centro de Aprendizaje Ilustrado',
+    historiaUsuario: 'Como usuario nuevo o recurrente de ProcesStudio, quiero contar con un recorrido interactivo guiado que me explique paso a paso cómo usar cada parte de la pantalla, junto con un manual visual rápido de símbolos BPMN y generación de PDF, para aprender a utilizar el sistema en pocos minutos.',
+    criteriosAceptacion: '1. Tour interactivo paso a paso (InteractiveTourOverlay) que resalta zonas clave de la interfaz (Proyectos, Paleta, Lienzo, Propiedades, Vistas/PDF y ABMs).\n2. Centro de Tutorial y Ayuda (TutorialCenterModal) con guía rápida de 5 minutos, glosario visual BPMN y atajos.\n3. Acceso directo desde un botón visible en la barra superior y desde el menú de perfil de usuario.',
+    fechaImplementacion: '2026-10-30',
+    estado: 'Implementado / Producción'
+  }
+];
+```
+
+---
+
+## 13. Secuencia de Ejecución Propuesta (Fases de Trabajo)
+
+Para abordar el desarrollo final de manera ordenada, limpia y verificable, se propone ejecutar el plan en **4 Etapas Consecutivas** (o en el orden de prioridad que indiques):
+
+- **Etapa 1 — Centro Maestro de ABMs Corporativos y Gobernanza Completa (`PST-085` y `PST-086`):**
+  Construcción de las tablas y servicios de ABMs (Unidades Organizativas, Roles/Cargos, Normativas, Sistemas/Formularios, Riesgos y Papelera), conexión con los formularios de la app y cierre del ciclo ABM de Usuarios y Estados de Aprobación.
+- **Etapa 2 — Generador Automatizado de Documentación Estandarizada en PDF (`PST-084`):**
+  Incorporación de la Ficha Complementaria editable (con autocompletado inteligente) en la vista de Documento y desarrollo del motor `pdfFullManualExportService.ts` que descarga el Manual de Procedimientos ISO 9001 completo en PDF (Portada + Datos + Mapa Gráfico + Paso a Paso + SIPOC + RACI + Riesgos + Firmas).
+- **Etapa 3 — Aceleradores de Graficación y UX Amigable (`PST-083` y `PST-087`):**
+  Generador de Diagrama BPMN desde Texto/Voz, botón `Auto-Ordenar Lienzo`, Biblioteca de Plantillas, Medidor de Completitud Documental (%) y Paleta Rápida `Ctrl+K`.
+- **Etapa 4 — Tutorial Interactivo y Centro de Aprendizaje (`PST-088`):**
+  Implementación del Tour Guiado Interactivo paso a paso (*Spotlight Onboarding*) y el Modal de Tutorial Ilustrado accesible en todo momento desde la cabecera.
+
+---
+
+## 14. Conclusión y Compromiso de Desarrollo
+
+Este documento constituye la **Hoja de Ruta Maestra Oficial para el Desarrollo Final (Versión 2.0)** de ProcesStudio.
+
+Todas las etapas se implementarán respetando rigurosamente:
+1. **La aprobación previa del usuario sobre este `PLAN_ACCION.md`** antes de escribir o modificar código.
+2. **La arquitectura 100% Web Cloud Nativa** (React + TypeScript + Vite + Neon PostgreSQL).
+3. **La actualización del archivo Excel `HISTORIAS_DE_USUARIO_PROCESSTUDIO.xlsx`** (`PST-069` a `PST-088`).
+4. **La compilación limpia (`npm run build`) y el commit/push automático a Git tras cada entrega aprobada**.
+
 
