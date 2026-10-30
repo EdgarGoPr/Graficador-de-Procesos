@@ -13,8 +13,6 @@ import {
   Layers,
   HelpCircle,
   PlusCircle,
-  ChevronLeft,
-  ChevronRight,
   PanelLeftClose,
   PanelLeftOpen,
   StickyNote

@@ -3,7 +3,7 @@ import { Handle, Position, NodeProps, NodeResizer } from '@xyflow/react';
 import { BpmnNodeData, BPMN_NODE_TYPES } from '../../../types/process';
 import { hexToRgba } from '../../../types/theme';
 import { getNodeTextContrast } from '../../../utils/nodeContrast';
-import { User, Cpu, Wrench, Clock, AlertTriangle, ShieldCheck, Server, ExternalLink } from 'lucide-react';
+import { User, Cpu, Wrench, Clock, AlertTriangle, ShieldCheck, ExternalLink } from 'lucide-react';
 
 export const TaskNode = memo(({ data, selected }: NodeProps<any>) => {
   const nodeData = data as BpmnNodeData;

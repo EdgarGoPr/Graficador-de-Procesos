@@ -7,11 +7,6 @@ import {
   Table,
   Download,
   Printer,
-  Shield,
-  UserCheck,
-  CheckCircle,
-  HelpCircle,
-  Sparkles,
   Info
 } from 'lucide-react';
 

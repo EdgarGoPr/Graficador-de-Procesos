@@ -1,5 +1,5 @@
 import { ProcessProjectFile } from '../types/project';
-import { ProjectDiffResult, NodeDiffItem, EdgeDiffItem, DiffChangeType } from '../types/diff';
+import { ProjectDiffResult, NodeDiffItem, EdgeDiffItem } from '../types/diff';
 
 export function compareProjects(
   baseProject: ProcessProjectFile,

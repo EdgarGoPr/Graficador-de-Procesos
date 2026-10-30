@@ -32,10 +32,7 @@ import {
   ZoomIn,
   ZoomOut,
   Shield,
-  Download,
-  Plus,
-  Layers,
-  Sparkles
+  Download
 } from 'lucide-react';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -63,9 +60,7 @@ const ProcessDiagramRenderer: React.FC = () => {
   const { currentProject } = useProjectStore();
   const {
     isPrintOverlayVisible,
-    togglePrintOverlay,
-    addPrintFrame,
-    autoLayoutPrintFrames
+    togglePrintOverlay
   } = useCanvasStore();
   const { zoomIn, zoomOut, fitView } = useReactFlow();
   const { currentThemeId, customThemeColors, showNotification } = useUiStore();

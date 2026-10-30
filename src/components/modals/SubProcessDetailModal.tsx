@@ -9,14 +9,9 @@ import {
   Plus,
   Trash2,
   Focus,
-  CheckCircle2,
   Clock,
-  ShieldCheck,
   Server,
   UserCheck,
-  FileSpreadsheet,
-  AlertTriangle,
-  ArrowRight,
   FolderOpen
 } from 'lucide-react';
 
@@ -40,7 +35,7 @@ export const SubProcessDetailModal: React.FC<SubProcessDetailModalProps> = ({
 
   const [newStepTitle, setNewStepTitle] = useState('');
   const [newStepRole, setNewStepRole] = useState(subProcessNode?.data.roleName || '');
-  const [newStepSystem, setNewStepSystem] = useState(subProcessNode?.data.itSystem || '');
+  const [newStepSystem] = useState(subProcessNode?.data.itSystem || '');
   const [newStepDuration, setNewStepDuration] = useState('1 Día Hábil');
 
   if (!nodeId || !subProcessNode) return null;
@@ -178,7 +173,7 @@ export const SubProcessDetailModal: React.FC<SubProcessDetailModalProps> = ({
               </div>
             ) : (
               <div className="space-y-3">
-                {steps.map((step, idx) => (
+                {steps.map((step, _idx) => (
                   <div
                     key={step.id}
                     className="p-4 rounded-xl bg-theme-surface-subtle border border-theme-border hover:border-[#3B82F6]/60 transition-all flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-sm"

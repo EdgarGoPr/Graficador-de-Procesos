@@ -1,9 +1,9 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef } from 'react';
 import { ViewportPortal, Panel, useReactFlow } from '@xyflow/react';
 import { useProjectStore } from '../../store/useProjectStore';
 import { useCanvasStore } from '../../store/useCanvasStore';
 import { useUiStore } from '../../store/useUiStore';
-import { PrintFrame, PageFormat, PageOrientation, DEFAULT_PAGE_DIMENSIONS, getFrameAspectRatio } from '../../types/printFrame';
+import { PrintFrame, PageFormat, getFrameAspectRatio } from '../../types/printFrame';
 import { exportMultiPageDiagramPdf } from '../../services/pdfDiagramExportService';
 import {
   Printer,
@@ -12,10 +12,7 @@ import {
   Trash2,
   Download,
   X,
-  Layers,
-  RotateCw,
-  FileSpreadsheet,
-  CheckCircle2
+  RotateCw
 } from 'lucide-react';
 
 interface DragState {

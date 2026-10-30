@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ProcessGroupSummary, ProjectSummary } from '../../types/project';
+import { ProcessGroupSummary } from '../../types/project';
 import { StorageService } from '../../services/storageService';
 import { useUiStore } from '../../store/useUiStore';
 import { useAuthStore } from '../../store/useAuthStore';
@@ -18,9 +18,7 @@ import {
   HardDrive,
   ChevronDown,
   Sparkles,
-  GitCommit,
-  CheckCircle2,
-  FileCode2
+  GitCommit
 } from 'lucide-react';
 
 interface ProjectCardProps {

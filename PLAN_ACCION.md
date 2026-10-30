@@ -1403,3 +1403,28 @@ Sanear internamente los módulos activos de `src/` que aún conservan métodos, 
 - **Módulo / Componente:** Arquitectura, Calidad de Código & Mantenimiento
 - **Título:** Auditoría interna y depuración de métodos, estados y remanentes de escritorio en módulos activos
 - **Estado:** `Implementado / Producción`
+
+
+---
+
+## 22. Plan de Acción: Limpieza de Imports/Variables Locales Ociosas y Activación de `noUnusedLocals` (`PST-096`)
+
+### 22.1. Objetivo
+Eliminar la totalidad de los imports, tipos, variables locales, parámetros y wrappers sin uso detectados por `tsc --noEmit --noUnusedLocals --noUnusedParameters`, y activar permanentemente `"noUnusedLocals": true` y `"noUnusedParameters": true` en `tsconfig.json` para impedir futuras regresiones de código muerto.
+
+### 22.2. Detalle Técnico
+1. **[`src/services/subprocessService.ts`](src/services/subprocessService.ts) y [`src/store/useCanvasStore.ts`](src/store/useCanvasStore.ts):**
+   - Eliminar las funciones wrapper obsoletas `compressNodesToSubProcess` y `decompressSubProcessToCanvas` en `subprocessService.ts`, su import `ProcessProjectFile` y su importación en `useCanvasStore.ts`.
+   - Eliminar las constantes locales no leídas `SNAP_RADIUS`, `GAP_X`, `GAP_Y` en `useCanvasStore.ts`.
+2. **Servicios y Stores (`imageExportService.ts`, `pdfDiagramExportService.ts`, `processSimulator.ts`, `projectDiffService.ts`, `qualityLinter.ts`, `raciCalculator.ts`, `useAuthStore.ts`, `types/diff.ts`):**
+   - Remover parámetros, destructuring e imports no utilizados (`tWidth`, `relativeX`, `edges`, `pools`, `allNodes`, `DiffChangeType`, `UserRole`, `Edge`, `SequenceFlowData`).
+3. **Componentes UI (`ProjectDashboard.tsx`, `UserProfileMenu.tsx`, `AdminConsoleModal.tsx`, `PropertiesPanel.tsx`, etc.):**
+   - Remover imports de `StorageService`, íconos de `lucide-react` no renderizados y variables locales no leídas en los componentes de `src/components/`.
+4. **[`tsconfig.json`](tsconfig.json):**
+   - Cambiar `"noUnusedLocals": true` y `"noUnusedParameters": true`.
+
+### 22.3. Registro de Historia de Usuario (`PST-096`)
+- **ID:** `PST-096`
+- **Módulo / Componente:** Arquitectura, Calidad de Código & Compilador TypeScript
+- **Título:** Limpieza integral de imports/variables locales ociosas y activación de `noUnusedLocals` y `noUnusedParameters` en TypeScript
+- **Estado:** `Implementado / Producción`

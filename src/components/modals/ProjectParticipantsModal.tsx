@@ -11,16 +11,11 @@ import {
   UserPlus,
   Shield,
   Crown,
-  Eye,
-  MessageSquare,
-  Edit3,
   Trash2,
-  CheckCircle2,
   AlertCircle,
   X,
   Search,
   RefreshCw,
-  FolderGit2,
   Building2
 } from 'lucide-react';
 
@@ -69,7 +64,7 @@ export const ProjectParticipantsModal: React.FC<ProjectParticipantsModalProps> =
   const [selectedLevel, setSelectedLevel] = useState<CanvasPermission>('READ_ONLY');
   const [selectedOrgUnitForBulk, setSelectedOrgUnitForBulk] = useState('');
   const [selectedBulkLevel, setSelectedBulkLevel] = useState<CanvasPermission>('READ_ONLY');
-  const [userSearchFilter, setUserSearchFilter] = useState('');
+  const [, setUserSearchFilter] = useState('');
   const [participantSearchFilter, setParticipantSearchFilter] = useState('');
 
   const availableOrgUnits = useMemo(() => {
@@ -124,15 +119,6 @@ export const ProjectParticipantsModal: React.FC<ProjectParticipantsModalProps> =
     if (u.status !== 'ACTIVE') return false;
     const isAlreadyParticipant = participants.some(p => p.userId === u.id);
     return !isAlreadyParticipant;
-  });
-
-  const filteredAvailableUsers = availableUsersToAdd.filter(u => {
-    const term = userSearchFilter.toLowerCase();
-    return (
-      u.fullName.toLowerCase().includes(term) ||
-      u.email.toLowerCase().includes(term) ||
-      (u.organizationUnit && u.organizationUnit.toLowerCase().includes(term))
-    );
   });
 
   const filteredParticipants = participants.filter(p => {

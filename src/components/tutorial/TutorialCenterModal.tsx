@@ -11,9 +11,7 @@ import {
   X,
   CheckCircle2,
   Sparkles,
-  Users,
-  Wand2,
-  Layers
+  Users
 } from 'lucide-react';
 
 type TutorialTab = 'QUICK_START' | 'CANVAS_GUIDE' | 'PDF_MANUAL' | 'ABM_PERMS' | 'SHORTCUTS';

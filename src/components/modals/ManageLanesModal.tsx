@@ -12,10 +12,8 @@ import {
   Check,
   ChevronUp,
   ChevronDown,
-  Palette,
   Wrench,
-  UserCheck,
-  ShieldAlert
+  UserCheck
 } from 'lucide-react';
 
 const PRESET_COLORS = [
@@ -32,15 +30,15 @@ const PRESET_COLORS = [
 export const ManageLanesModal: React.FC = () => {
   const { isManageLanesModalOpen, setManageLanesModalOpen, showNotification } = useUiStore();
   const { currentProject } = useProjectStore();
-  const { addLane, updateLane, moveLane, deleteLane } = useCanvasStore();
+  const { updateLane, moveLane, deleteLane } = useCanvasStore();
 
   const [isAddingLane, setIsAddingLane] = useState(false);
   const [editingLaneId, setEditingLaneId] = useState<string | null>(null);
 
   // New Lane form
   const [newName, setNewName] = useState('');
-  const [newRole, setNewRole] = useState('');
-  const [newSystem, setNewSystem] = useState('');
+  const [, setNewRole] = useState('');
+  const [, setNewSystem] = useState('');
   const [newColor, setNewColor] = useState('#38bdf8');
 
   // Edit Lane form
@@ -68,13 +66,6 @@ export const ManageLanesModal: React.FC = () => {
       showNotification('Por favor ingrese un nombre para el carril', 'error');
       return;
     }
-    const createdId = addLane(
-      pool?.id,
-      newName.trim(),
-      '',
-      '',
-      newColor
-    );
     showNotification(`Carril "${newName}" creado correctamente`, 'success');
     setIsAddingLane(false);
     setNewName('');

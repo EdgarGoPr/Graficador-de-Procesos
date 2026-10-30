@@ -2,19 +2,14 @@ import React, { useState, useMemo } from 'react';
 import { useProjectStore } from '../../store/useProjectStore';
 import { useCanvasStore } from '../../store/useCanvasStore';
 import { useUiStore } from '../../store/useUiStore';
-import { runQualityAudit, IssueSeverity, QualityIssue } from '../../services/qualityLinter';
+import { runQualityAudit, IssueSeverity } from '../../services/qualityLinter';
 import {
   Shield,
-  ShieldAlert,
-  ShieldCheck,
-  AlertTriangle,
-  Info,
   CheckCircle2,
   X,
   ArrowRight,
   Sparkles,
-  Search,
-  Filter
+  Search
 } from 'lucide-react';
 
 interface QualityAuditModalProps {

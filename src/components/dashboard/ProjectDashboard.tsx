@@ -1,7 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { useProjectStore } from '../../store/useProjectStore';
 import { useUiStore } from '../../store/useUiStore';
-import { StorageService } from '../../services/storageService';
 import { groupProjectsByProcess } from '../../services/processVersionManager';
 import { ProcessGroupSummary } from '../../types/project';
 import { ProjectCard } from './ProjectCard';

@@ -5,7 +5,7 @@ import * as XLSX from 'xlsx';
 
 export function computeRaciMatrix(
   nodes: Node<BpmnNodeData>[],
-  edges: Edge<SequenceFlowData>[],
+  _edges: Edge<SequenceFlowData>[],
   pools: PoolDefinition[]
 ): RaciMatrixData {
   const lanes = pools[0]?.lanes || [];

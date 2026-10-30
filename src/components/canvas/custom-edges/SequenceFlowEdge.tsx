@@ -26,7 +26,7 @@ export const SequenceFlowEdge = memo(({
   const updateEdgeData = useCanvasStore((state) => state.updateEdgeData);
   const selectEdge = useCanvasStore((state) => state.selectEdge);
 
-  const [isHovered, setIsHovered] = useState(false);
+  const [, setIsHovered] = useState(false);
   const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
   const draggingIndexRef = useRef<number | null>(null);
 

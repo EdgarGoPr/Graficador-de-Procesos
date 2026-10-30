@@ -5,13 +5,11 @@ import { bumpVersion, generateRevisionFilename } from '../../services/processVer
 import {
   GitCommit,
   Sparkles,
-  Layers,
   Laptop,
   Building2,
   FileCode2,
   X,
-  CheckCircle2,
-  ShieldAlert
+  CheckCircle2
 } from 'lucide-react';
 
 interface NewRevisionModalProps {

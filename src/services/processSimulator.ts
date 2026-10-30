@@ -27,7 +27,7 @@ export interface SimulationResult {
 
 export function runProcessSimulation(
   nodes: Node<BpmnNodeData>[],
-  edges: Edge<SequenceFlowData>[],
+  _edges: Edge<SequenceFlowData>[],
   pools: PoolDefinition[],
   params: {
     caseCount: number; // e.g. 100 cases
@@ -65,9 +65,7 @@ export function runProcessSimulation(
 
     // Simulate load accumulation based on position and dependencies
     const isStart = node.type === 'StartEvent';
-    const isEnd = node.type === 'EndEvent';
-    const relativeX = node.position?.x || 0;
-
+    const isEnd = node.type === 'EndEvent';
     // Longer tasks create higher queues
     const simulatedLoadFactor = Math.min(1.0, (procTime / 24) * (1 + Math.random() * 0.3));
     const processed = Math.floor(params.caseCount * (0.85 + Math.random() * 0.15));

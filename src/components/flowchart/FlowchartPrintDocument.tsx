@@ -10,8 +10,7 @@ import {
   Split,
   ShieldCheck,
   Clock,
-  Layers,
-  ArrowDown
+  Layers
 } from 'lucide-react';
 
 interface FlowchartPrintDocumentProps {

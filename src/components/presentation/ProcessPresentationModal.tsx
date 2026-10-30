@@ -14,7 +14,7 @@ import { useProjectStore } from '../../store/useProjectStore';
 import { useCanvasStore } from '../../store/useCanvasStore';
 import { useUiStore } from '../../store/useUiStore';
 import { extractProcessSequence, ProcessPresentationStep } from '../../utils/processSequenceExtractor';
-import { PRESET_THEMES, hexToRgba } from '../../types/theme';
+import { hexToRgba } from '../../types/theme';
 
 import { StartEventNode } from '../canvas/custom-nodes/StartEventNode';
 import { EndEventNode } from '../canvas/custom-nodes/EndEventNode';
@@ -41,14 +41,11 @@ import {
   AlertTriangle,
   CheckCircle2,
   ArrowRight,
-  ArrowLeft,
   User,
   GitBranch,
-  Layers,
   Sparkles,
   RotateCcw,
   CheckSquare,
-  ShieldCheck,
   FileText,
   Palette,
   Check,
@@ -244,9 +241,7 @@ export const ProcessPresentationModal: React.FC = () => {
   const { updateNodeData } = useCanvasStore();
   const {
     isPresentationModalOpen,
-    setPresentationModalOpen,
-    currentThemeId,
-    customThemeColors
+    setPresentationModalOpen
   } = useUiStore();
 
   const [currentStepIndex, setCurrentStepIndex] = useState(0);

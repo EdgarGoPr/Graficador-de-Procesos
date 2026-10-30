@@ -9,7 +9,6 @@ import {
   ShieldCheck,
   AlertTriangle,
   Clock,
-  Server,
   Scale,
   GitBranch,
   Layers,
@@ -22,8 +21,6 @@ import {
   Activity,
   FolderOpen,
   Type,
-  Eye,
-  Layout,
   Lock,
   Unlock,
   Tv,
@@ -37,12 +34,10 @@ import {
 } from 'lucide-react';
 import {
   BpmnNodeData,
-  GATEWAY_RESOLUTION_TYPES,
   TIME_UNIT_TYPES,
-  TimeUnitType,
-  GatewayResolutionType
+  TimeUnitType
 } from '../../types/process';
-import { CARD_THEME_PRESETS, hexToRgba } from '../../types/theme';
+import { CARD_THEME_PRESETS } from '../../types/theme';
 import { buildIsoDurationString } from '../../services/leadTimeCalculator';
 import { MasterCatalogsService } from '../../services/masterCatalogsService';
 
@@ -77,7 +72,6 @@ export const PropertiesPanel: React.FC = () => {
     updateNodeData,
     applyCardStyleToScope,
     updateEdgeData,
-    bulkUpdateNodeColors,
     bulkUpdateEdgeColors,
     decompressSubProcess,
     deleteSelected,
@@ -87,7 +81,7 @@ export const PropertiesPanel: React.FC = () => {
   } = useCanvasStore();
 
   const { currentProject } = useProjectStore();
-  const { setPropertiesPanelOpen, setActiveRightTab, openSubProcessDetail, showNotification, setManageLanesModalOpen } = useUiStore();
+  const { setActiveRightTab, openSubProcessDetail, showNotification, setManageLanesModalOpen } = useUiStore();
 
   const [activeSection, setActiveSection] = useState<'content' | 'style'>('content');
   const [cardStyleScope, setCardStyleScope] = useState<'single' | 'same_type' | 'all'>('single');

@@ -1,5 +1,5 @@
-import { Node, Edge } from '@xyflow/react';
-import { BpmnNodeData, SequenceFlowData } from './process';
+import { Node } from '@xyflow/react';
+import { BpmnNodeData } from './process';
 
 export type DiffChangeType = 'ADDED' | 'REMOVED' | 'MODIFIED' | 'UNCHANGED';
 

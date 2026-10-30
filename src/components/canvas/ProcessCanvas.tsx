@@ -89,7 +89,6 @@ const ProcessCanvasInternal: React.FC = () => {
     setPropertiesPanelOpen,
     currentThemeId,
     customThemeColors,
-    theme,
     showNotification
   } = useUiStore();
 

@@ -28,17 +28,11 @@ import {
   FileCheck,
   Check,
   X,
-  AlertCircle,
   Copy,
-  Search,
   Filter,
   CheckCircle2,
   QrCode,
   Smartphone,
-  Eye,
-  MessageSquare,
-  PenTool,
-  Lock,
   UserPlus,
   Pencil,
   Database,
@@ -60,14 +54,14 @@ export const AdminConsoleModal: React.FC = () => {
   const [requests, setRequests] = useState<UserAccessRequest[]>([]);
   const [permissions, setPermissions] = useState<ProjectUserPermission[]>([]);
   const [auditLogs, setAuditLogs] = useState<AuditLogEntry[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [, setIsLoading] = useState(false);
 
   // Filtros de Auditoría
   const [auditFilterUser, setAuditFilterUser] = useState('');
   const [auditFilterAction, setAuditFilterAction] = useState('ALL');
   const [auditFilterProject, setAuditFilterProject] = useState('');
   const [auditFilterStartDate, setAuditFilterStartDate] = useState('');
-  const [auditFilterEndDate, setAuditFilterEndDate] = useState('');
+  const [auditFilterEndDate] = useState('');
 
   // Selector de asignación de lienzos
   const [selectedUserForPerms, setSelectedUserForPerms] = useState<string>('');

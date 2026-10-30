@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useProjectStore } from '../../store/useProjectStore';
 import { useUiStore } from '../../store/useUiStore';
 import { detectNewerVersionAvailable } from '../../services/processVersionManager';
-import { Sparkles, ArrowRight, X, Clock, RefreshCw } from 'lucide-react';
+import { Sparkles, ArrowRight, X, RefreshCw } from 'lucide-react';
 
 export const NewerVersionBanner: React.FC = () => {
   const { currentProject, projectList, openProject, isLoading } = useProjectStore();

@@ -12,11 +12,10 @@ import {
   PlusSquare,
   Box,
   CircleDot,
-  RefreshCw,
-  ExternalLink
+  RefreshCw
 } from 'lucide-react';
 import { AiNodeRecommendation } from '../../types/ai';
-import { BpmnNodeType, BPMN_NODE_TYPES } from '../../types/process';
+import { BPMN_NODE_TYPES } from '../../types/process';
 
 interface AiSuggestionCardProps {
   isLoading: boolean;

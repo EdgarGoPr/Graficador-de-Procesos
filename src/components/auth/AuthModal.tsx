@@ -7,7 +7,6 @@ import {
   Lock,
   Mail,
   User,
-  Shield,
   KeyRound,
   ArrowRight,
   AlertCircle,

@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { AppUser, CanvasActiveLock, CanvasPermission, UserRole } from '../types/auth';
+import { AppUser, CanvasActiveLock, CanvasPermission } from '../types/auth';
 import { AuthService } from '../services/authService';
 import { GoogleAuthService } from '../services/googleAuthService';
 import { PermissionService } from '../services/permissionService';

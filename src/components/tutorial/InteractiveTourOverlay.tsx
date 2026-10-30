@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useUiStore, ActiveView } from '../../store/useUiStore';
 import { useProjectStore } from '../../store/useProjectStore';
 import {
-  GraduationCap,
   ArrowRight,
   ArrowLeft,
   X,

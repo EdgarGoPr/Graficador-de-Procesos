@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useUiStore } from '../../store/useUiStore';
-import { PRESET_THEMES, AppThemeId, ThemeColors } from '../../types/theme';
+import { PRESET_THEMES } from '../../types/theme';
 import { LogoPS } from '../common/LogoPS';
 import {
   Palette,

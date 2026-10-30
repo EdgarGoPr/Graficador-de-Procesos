@@ -1,6 +1,5 @@
 import React from 'react';
 import { NodeProps, Handle, Position, NodeResizer, useNodes } from '@xyflow/react';
-import { BpmnNodeData } from '../../../types/process';
 import { useCanvasStore } from '../../../store/useCanvasStore';
 import { Lock, Pin, User, Link2 } from 'lucide-react';
 

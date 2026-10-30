@@ -861,6 +861,15 @@ function generateExcel() {
       criteriosAceptacion: '1. Eliminados projectsDirectoryPath, openLatestVersion y el import huérfano groupProjectsByProcess en useProjectStore.ts.\n2. Actualizadas leyendas en ErrorBoundary.tsx y bpmnXmlExporter.ts de "ProcesStudio Portable" y "../Proyectos/" a "ProcesStudio Web".\n3. Eliminados métodos y tipos huérfanos en storageService.ts, postgresStorageService.ts, neonClient.ts, permissionService.ts, concurrencyLockService.ts, idleTimeoutService.ts, webAudioRecorder.ts y useUiStore.ts.\n4. Compilación limpia con tsc y vite build sin errores.',
       fechaImplementacion: '2026-10-30',
       estado: 'Implementado / Producción'
+    },
+    {
+      id: 'PST-096',
+      modulo: 'Arquitectura, Calidad de Código & Compilador TypeScript',
+      titulo: 'Limpieza integral de imports/variables locales ociosas y activación de noUnusedLocals y noUnusedParameters en TypeScript',
+      historiaUsuario: 'Como arquitecto y responsable de QA, quiero eliminar todos los imports, tipos, parámetros, variables locales y wrappers sin uso en componentes, stores y servicios, activando permanentemente noUnusedLocals y noUnusedParameters en tsconfig.json, para garantizar cero código muerto y prevenir regresiones.',
+      criteriosAceptacion: '1. Eliminadas las funciones wrapper sin uso compressNodesToSubProcess y decompressSubProcessToCanvas en subprocessService.ts.\n2. Eliminadas las 120 declaraciones/imports locales sin uso en servicios, stores y componentes UI.\n3. Activados "noUnusedLocals": true y "noUnusedParameters": true en tsconfig.json.\n4. npx tsc --noEmit y npm run build finalizan con 0 errores.',
+      fechaImplementacion: '2026-10-30',
+      estado: 'Implementado / Producción'
     }
   );
   console.log('📊 Generando archivo Excel de Historias de Usuario...');

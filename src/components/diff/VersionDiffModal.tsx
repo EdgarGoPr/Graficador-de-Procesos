@@ -11,9 +11,7 @@ import {
   Edit3,
   CheckCircle2,
   X,
-  ArrowRight,
-  FileCode,
-  Layers
+  ArrowRight
 } from 'lucide-react';
 
 interface VersionDiffModalProps {
@@ -184,7 +182,6 @@ export const VersionDiffModal: React.FC<VersionDiffModalProps> = ({ isOpen, onCl
             diffResult.nodeDiffs.map((diff) => {
               const isAdd = diff.changeType === 'ADDED';
               const isRem = diff.changeType === 'REMOVED';
-              const isMod = diff.changeType === 'MODIFIED';
 
               const badgeColor = isAdd
                 ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40'

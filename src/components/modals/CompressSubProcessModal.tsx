@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useCanvasStore } from '../../store/useCanvasStore';
 import { useUiStore } from '../../store/useUiStore';
 import { useProjectStore } from '../../store/useProjectStore';
-import { Layers, X, ArrowRight, AlertTriangle, CheckCircle2, Box } from 'lucide-react';
+import { X, ArrowRight, AlertTriangle, CheckCircle2, Box } from 'lucide-react';
 
 export const CompressSubProcessModal: React.FC = () => {
   const {

@@ -7,8 +7,6 @@ import {
   FileText,
   Mic,
   Square,
-  Play,
-  Pause,
   Trash2,
   Plus,
   Key,
@@ -29,7 +27,6 @@ import {
   setGeminiApiKey
 } from '../../services/aiRecommendationService';
 import { DocumentExtractorService } from '../../services/documentExtractorService';
-import { ProcessDocumentationItem } from '../../types/ai';
 
 export const ProcessDocumentationModal: React.FC = () => {
   const { isDocumentationModalOpen, setDocumentationModalOpen, showNotification } = useUiStore();

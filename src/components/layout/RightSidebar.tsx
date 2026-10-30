@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback } from 'react';
-import { useUiStore, RightPanelTab } from '../../store/useUiStore';
+import { useUiStore } from '../../store/useUiStore';
 import { useCanvasStore } from '../../store/useCanvasStore';
 import { useProjectStore } from '../../store/useProjectStore';
 import { ProcessHierarchyNavigator } from './ProcessHierarchyNavigator';
@@ -7,10 +7,7 @@ import { PropertiesPanel } from './PropertiesPanel';
 import {
   Compass,
   SlidersHorizontal,
-  X,
-  PanelRightClose,
-  PanelRightOpen,
-  Layers
+  PanelRightClose
 } from 'lucide-react';
 
 export const RightSidebar: React.FC = () => {

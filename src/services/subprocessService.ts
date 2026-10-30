@@ -8,7 +8,6 @@ import {
   CompressedNodeSnapshot,
   CompressedSubProcessSnapshot
 } from '../types/process';
-import { ProcessProjectFile } from '../types/project';
 
 export interface ValidationResult {
   isValid: boolean;
@@ -23,7 +22,7 @@ export interface ValidationResult {
  */
 export function validateSubProcessCompression(
   nodeIds: string[],
-  allNodes: Node<BpmnNodeData>[],
+  _allNodes: Node<BpmnNodeData>[],
   allEdges: Edge<SequenceFlowData>[]
 ): ValidationResult {
   if (!nodeIds || nodeIds.length < 2) {
@@ -282,42 +281,6 @@ export function compressNodesInGraph(
 }
 
 /**
- * Backward compatibility wrapper for project-level compression
- */
-export function compressNodesToSubProcess(
-  nodeIds: string[],
-  title: string,
-  standardId: string,
-  description: string,
-  project: ProcessProjectFile
-): { project: ProcessProjectFile; newSubProcessId: string } | { error: string } {
-  const result = compressNodesInGraph(
-    nodeIds,
-    title,
-    standardId,
-    description,
-    project.nodes,
-    project.edges,
-    project.pools[0]?.lanes[0]?.id,
-    project.pools[0]?.lanes[0]?.name,
-    project.pools[0]?.lanes[0]?.role
-  );
-
-  if ('error' in result) {
-    return result;
-  }
-
-  return {
-    project: {
-      ...project,
-      nodes: result.nodes,
-      edges: result.edges
-    },
-    newSubProcessId: result.newSubProcessId
-  };
-}
-
-/**
  * Decompresses an existing SubProcess node in an arbitrary graph (active canvas level),
  * restoring the EXACT original spatial layout and rewiring outer edges.
  */
@@ -519,28 +482,6 @@ export function decompressSubProcessInGraph(
     nodes: finalNodes,
     edges: finalEdges,
     unpackedNodeIds: unpackedNodes.map((n) => n.id)
-  };
-}
-
-/**
- * Backward compatibility wrapper for project-level decompression
- */
-export function decompressSubProcessToCanvas(
-  subProcessNodeId: string,
-  project: ProcessProjectFile
-): { project: ProcessProjectFile; unpackedNodeIds: string[] } | { error: string } {
-  const result = decompressSubProcessInGraph(subProcessNodeId, project.nodes, project.edges);
-  if ('error' in result) {
-    return result;
-  }
-
-  return {
-    project: {
-      ...project,
-      nodes: result.nodes,
-      edges: result.edges
-    },
-    unpackedNodeIds: result.unpackedNodeIds
   };
 }
 

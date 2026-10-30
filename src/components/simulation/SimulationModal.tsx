@@ -1,21 +1,16 @@
 import React, { useState, useMemo } from 'react';
 import { useProjectStore } from '../../store/useProjectStore';
-import { useCanvasStore } from '../../store/useCanvasStore';
 import { useUiStore } from '../../store/useUiStore';
-import { runProcessSimulation, SimulationResult } from '../../services/processSimulator';
+import { runProcessSimulation } from '../../services/processSimulator';
 import {
   Play,
   Flame,
-  Clock,
-  BarChart3,
   AlertTriangle,
   RotateCcw,
   CheckCircle2,
   X,
   Sparkles,
-  Users,
-  Activity,
-  Layers
+  Users
 } from 'lucide-react';
 
 interface SimulationModalProps {
@@ -25,7 +20,6 @@ interface SimulationModalProps {
 
 export const SimulationModal: React.FC<SimulationModalProps> = ({ isOpen, onClose }) => {
   const { currentProject } = useProjectStore();
-  const { bulkUpdateNodeColors } = useCanvasStore();
   const { showNotification, setActiveView } = useUiStore();
 
   const [caseCount, setCaseCount] = useState<number>(50);

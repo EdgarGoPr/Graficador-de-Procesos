@@ -15,10 +15,7 @@ import { PrintFrame, PageFormat, PageOrientation, DEFAULT_PAGE_DIMENSIONS } from
 import { calculateAutoFrames } from '../services/pdfDiagramExportService';
 import { useProjectStore } from './useProjectStore';
 import {
-  validateSubProcessCompression,
-  compressNodesToSubProcess,
-  decompressSubProcessToCanvas,
-  compressNodesInGraph,
+  validateSubProcessCompression,  compressNodesInGraph,
   decompressSubProcessInGraph,
   createClipboardPayload,
   pasteClipboardPayload,
@@ -573,12 +570,7 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
       return true;
     });
 
-    // Apply Real Magnetic Snapping during drag
-    const SNAP_RADIUS = 16;
-    const LANE_SNAP = 25;
-    const GAP_X = 40;
-    const GAP_Y = 30;
-
+    // Apply Real Magnetic Snapping during drag    const LANE_SNAP = 25;
     const modifiedChanges = validChanges.map((change) => {
       if (change.type === 'position' && change.position && change.dragging) {
         const draggingNode = activeGraph.nodes.find((n) => n.id === change.id);

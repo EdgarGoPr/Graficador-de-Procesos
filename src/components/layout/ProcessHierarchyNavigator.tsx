@@ -15,8 +15,7 @@ import {
   GitFork,
   PlayCircle,
   StopCircle,
-  FileCheck2,
-  Filter
+  FileCheck2
 } from 'lucide-react';
 import { BPMN_NODE_TYPES } from '../../types/process';
 

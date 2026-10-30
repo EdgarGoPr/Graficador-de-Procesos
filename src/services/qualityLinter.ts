@@ -39,7 +39,7 @@ export interface QualityAuditReport {
 export function runQualityAudit(
   nodes: Node<BpmnNodeData>[],
   edges: Edge<SequenceFlowData>[],
-  pools: PoolDefinition[]
+  _pools: PoolDefinition[]
 ): QualityAuditReport {
   const issues: QualityIssue[] = [];
 

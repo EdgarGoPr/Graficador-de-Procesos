@@ -65,9 +65,7 @@ export function generateProcessSvg(project: ProcessProjectFile): string {
     if (!sNode || !tNode) return;
 
     const sWidth = (sNode.measured?.width || sNode.width || 210) as number;
-    const sHeight = (sNode.measured?.height || sNode.height || 120) as number;
-    const tWidth = (tNode.measured?.width || tNode.width || 210) as number;
-    const tHeight = (tNode.measured?.height || tNode.height || 120) as number;
+    const sHeight = (sNode.measured?.height || sNode.height || 120) as number;    const tHeight = (tNode.measured?.height || tNode.height || 120) as number;
 
     const x1 = sNode.position.x + sWidth;
     const y1 = sNode.position.y + sHeight / 2;

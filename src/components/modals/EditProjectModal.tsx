@@ -13,9 +13,7 @@ import {
   Building2,
   Hash,
   Target,
-  Save,
-  CheckCircle2,
-  AlertCircle
+  Save
 } from 'lucide-react';
 
 export interface ProjectForEdit {

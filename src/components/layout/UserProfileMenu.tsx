@@ -23,7 +23,6 @@ export const UserProfileMenu: React.FC = () => {
     theme,
     toggleTheme,
     setThemeModalOpen,
-    showNotification,
     setTutorialModalOpen,
     setInteractiveTourActive,
     setCommandPaletteOpen
