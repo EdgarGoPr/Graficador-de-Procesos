@@ -10,6 +10,15 @@ export class PresenceService {
   private static lastActionTimestamp: number = Date.now();
   private static listenersInitialized = false;
   private static isCurrentlyLockedByMe = false;
+  private static currentUserRef: AppUser | null = null;
+  private static activeProjectFileNameRef: string | null = null;
+
+  /**
+   * Determina si el usuario local se encuentra en actividad activa (< 5 minutos desde última acción).
+   */
+  public static isUserCurrentlyActive(): boolean {
+    return (Date.now() - this.lastActionTimestamp) < IDLE_THRESHOLD_MS;
+  }
 
   /**
    * Registra una acción de usuario (movimiento, clic, tecla) manteniendo el estado activo.
@@ -34,6 +43,16 @@ export class PresenceService {
     window.addEventListener('keydown', onUserInteraction, { passive: true });
     window.addEventListener('touchstart', onUserInteraction, { passive: true });
     window.addEventListener('scroll', onUserInteraction, { passive: true });
+
+    // Cierre o descarga de ventana
+    const handleUnload = () => {
+      const user = this.currentUserRef;
+      if (user) {
+        this.stopPresenceHeartbeat(user, this.activeProjectFileNameRef);
+      }
+    };
+    window.addEventListener('beforeunload', handleUnload);
+    window.addEventListener('pagehide', handleUnload);
   }
 
   /**
@@ -46,6 +65,9 @@ export class PresenceService {
   ): void {
     this.initActivityListeners();
     this.stopPresenceHeartbeat();
+
+    this.currentUserRef = user;
+    this.activeProjectFileNameRef = activeProjectFileName || null;
 
     // Latido inicial inmediato
     this.sendPresencePing(user, activeProjectFileName, activeProjectTitle);
@@ -64,16 +86,19 @@ export class PresenceService {
       this.heartbeatInterval = null;
     }
 
-    if (user && activeProjectFileName && this.isCurrentlyLockedByMe) {
+    const targetUser = user || this.currentUserRef;
+    const targetProject = activeProjectFileName || this.activeProjectFileNameRef;
+
+    if (targetUser && targetProject && this.isCurrentlyLockedByMe) {
       try {
-        await ConcurrencyLockService.releaseLock(activeProjectFileName, user);
+        await ConcurrencyLockService.releaseLock(targetProject, targetUser);
         this.isCurrentlyLockedByMe = false;
       } catch {
         // ignore
       }
     }
 
-    if (user) {
+    if (targetUser) {
       const sql = NeonClient.getSql();
       if (sql) {
         try {
@@ -82,11 +107,46 @@ export class PresenceService {
               is_logged_in = false,
               active_project_file_name = NULL,
               active_project_title = NULL
-            WHERE user_id = ${user.id};
+            WHERE user_id = ${targetUser.id};
           `;
         } catch {
           // ignore
         }
+      }
+    }
+  }
+
+  /**
+   * Marca formalmente el cierre de sesión (logout), liberando presencia y caché
+   */
+  public static async markUserLoggedOut(user: AppUser): Promise<void> {
+    if (this.heartbeatInterval) {
+      clearInterval(this.heartbeatInterval);
+      this.heartbeatInterval = null;
+    }
+
+    this.isCurrentlyLockedByMe = false;
+    this.currentUserRef = null;
+    this.activeProjectFileNameRef = null;
+
+    try {
+      localStorage.removeItem(LOCAL_PRESENCE_KEY);
+    } catch {
+      // ignore
+    }
+
+    const sql = NeonClient.getSql();
+    if (sql) {
+      try {
+        await sql`
+          UPDATE user_presence SET
+            is_logged_in = false,
+            active_project_file_name = NULL,
+            active_project_title = NULL
+          WHERE user_id = ${user.id};
+        `;
+      } catch (err) {
+        console.warn('Error al marcar logout en user_presence de Neon:', err);
       }
     }
   }
@@ -243,4 +303,3 @@ export class PresenceService {
     return result;
   }
 }
-

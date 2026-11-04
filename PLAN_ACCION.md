@@ -1760,3 +1760,68 @@ Se requiere implementar una batería integral de 12 mejoras funcionales y refina
   13. Compilación TypeScript estricta con 0 errores (`npm run build`).
   14. Registro actualizado en `HISTORIAS_DE_USUARIO_PROCESSTUDIO.xlsx` y push automático a GitHub (`main`).
 - **Estado:** Implementado / Producción
+
+
+---
+
+## 27. Hoja de Ruta Técnica: Liberación Inmediata de Candados de Lienzo al Desloguearse o Cerrar Sesión (`PST-101`)
+
+### 27.1. Diagnóstico del Problema y Causa Raíz
+Al analizar el flujo de concurrencia y cierre de sesión:
+1. **Desincronización en `useAuthStore.logout`:** Cuando un usuario ejecuta el cierre de sesión (`logout`), solo se liberaba el candado si `activeCanvasLock` en el estado de Zustand coincidía exactamente con un proyecto abierto en ese instante. Si el usuario había navegado o el candado fue gestionado por `PresenceService`, `activeCanvasLock` no garantizaba la liberación completa de todos los candados en base de datos.
+2. **Candados Huérfanos en `canvas_active_locks`:** No existía una consulta que eliminara todos los candados asociados al `user_id` saliente (`DELETE FROM canvas_active_locks WHERE user_id = ${user.id}`). Como los candados tenían una vigencia remanente de hasta 5 minutos (o se renovaban en segundo plano), si otro usuario ingresaba al proyecto minutos después del logout, el sistema interpretaba que el primer usuario seguía editando activamente y degradaba la sesión a *Solo Lectura* con el cartel de conflicto.
+3. **Persistencia de Estado Conectado en `user_presence`:** En `App.tsx`, el efecto de limpieza llamaba a `PresenceService.stopPresenceHeartbeat()` sin argumentos cuando `currentUser` ya era `null`, lo que impedía que se ejecutara el `UPDATE user_presence SET is_logged_in = false, active_project_file_name = NULL WHERE user_id = ...`.
+4. **Validación Unilateral en `acquireLock`:** La consulta de adquisición de candado verificaba únicamente la existencia de una fila no vencida en `canvas_active_locks`, sin corroborar si el usuario dueño del candado continuaba efectivamente con sesión iniciada y activo en la tabla `user_presence`.
+
+---
+
+### 27.2. Plan de Intervención Arquitectónica
+
+#### Módulo 1: Liberación Total de Candados en `ConcurrencyLockService`
+- **Nuevo método `releaseAllUserLocks(user: AppUser): Promise<void>`:**
+  - Ejecuta de forma directa e incondicional:
+    ```sql
+    DELETE FROM canvas_active_locks WHERE user_id = ${user.id};
+    ```
+  - Limpia el almacenamiento de contingencia local (`localStorage`) filtrando cualquier candado del usuario.
+  - Detiene inmediatamente los latidos de extensión de candado (`stopHeartbeat()`).
+
+#### Módulo 2: Validación Cruzada de Candados contra Presencia Real en `acquireLock`
+- Al evaluar si existe un candado en conflicto para `project_file_name`:
+  - Se vincula mediante `LEFT JOIN user_presence` el estado actual del usuario poseedor del candado.
+  - Si el usuario poseedor:
+    1. Se encuentra deslogueado (`user_presence.is_logged_in = false`), o
+    2. Su última interacción supera el umbral de 5 minutos de inactividad (`NOW() - last_action_at >= 5 min`), o
+    3. No cuenta con latido reciente (`NOW() - last_heartbeat_at > 8 min`),
+  - **Acción:** El candado huérfano es eliminado automáticamente de la base de datos y se otorga el candado de edición pleno al nuevo usuario sin bloquearlo ni forzarlo a Solo Lectura.
+
+#### Módulo 3: Saneamiento Integral en `PresenceService`
+- Implementar `markUserLoggedOut(user: AppUser): Promise<void>`:
+  - Marca formalmente `is_logged_in = false`, `active_project_file_name = NULL`, `active_project_title = NULL` en `user_presence`.
+  - Detiene el intervalo de latidos y limpia la caché local de presencia.
+- Mantener referencias internas de usuario (`currentUserRef`) para asegurar que cualquier llamada a `stopPresenceHeartbeat()` ejecute la limpieza incluso si se llama sin argumentos.
+- Registrar evento `beforeunload` y `pagehide` en el navegador para liberar candados si el usuario cierra la ventana o pestaña abruptamente.
+
+#### Módulo 4: Orquestación en `useAuthStore.logout`
+- En el flujo asíncrono de `logout`:
+  - Invocación explícita e incondicional a `ConcurrencyLockService.releaseAllUserLocks(currentUser)`.
+  - Invocación explícita a `PresenceService.markUserLoggedOut(currentUser)`.
+  - Reseteo completo de estados de concurrencia y conflicto en la sesión local.
+
+---
+
+### 27.3. Registro de Historia de Usuario (`PST-101`)
+
+- **ID:** `PST-101`
+- **Módulo / Componente:** Concurrencia de Lienzo & Cierre de Sesión (Session Management)
+- **Título:** Liberación inmediata e incondicional de candados de lienzo y saneamiento de presencia al cerrar sesión (Logout)
+- **Historia de Usuario:** *Como usuario y modelador de ProcesStudio, quiero que al cerrar mi sesión en la aplicación o cerrar la ventana, todos los candados de edición sobre los lienzos que estuve trabajando se liberen de inmediato y mi estado de presencia pase a desconectado, para que cualquier otro usuario o yo mismo al reingresar podamos abrir y editar dichos diagramas sin falsos bloqueos de concurrencia ni restricciones de Solo Lectura indeseadas.*
+- **Criterios de Aceptación:**
+  1. Al presionar "Cerrar Sesión", `ConcurrencyLockService.releaseAllUserLocks` elimina de inmediato todos los registros del usuario en `canvas_active_locks`.
+  2. Al cerrar sesión, `user_presence` se actualiza inmediatamente marcando `is_logged_in = false` y limpiando el proyecto activo.
+  3. Al intentar adquirir un candado sobre un lienzo, si el candado previo pertenecía a un usuario deslogueado o con más de 5 minutos sin actividad, se descarta y se concede la edición al nuevo usuario.
+  4. Cierre de ventana o pestaña (`beforeunload` / `pagehide`) ejecuta la liberación de candados de contingencia.
+  5. Compilación TypeScript estricta con 0 advertencias y 0 errores (`npm run build`).
+  6. Actualización en `HISTORIAS_DE_USUARIO_PROCESSTUDIO.xlsx` e incremento de versión a `2.4.8` (`V 02.04.08`).
+  7. Commit y Auto-Push automático a GitHub (`main`).
+- **Estado:** Implementado / Producción

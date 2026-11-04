@@ -119,7 +119,7 @@ export const App: React.FC = () => {
     PresenceService.startPresenceHeartbeat(currentUser, activeProjectFileName, activeProjectTitle);
 
     return () => {
-      // no-op
+      PresenceService.stopPresenceHeartbeat(currentUser, activeProjectFileName);
     };
   }, [currentUser, activeView, currentProject?.fileName, currentProject?.documentControl.documentTitle]);
 

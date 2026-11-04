@@ -5,6 +5,7 @@ import { GoogleAuthService } from '../services/googleAuthService';
 import { PermissionService } from '../services/permissionService';
 import { ConcurrencyLockService } from '../services/concurrencyLockService';
 import { IdleTimeoutService } from '../services/idleTimeoutService';
+import { PresenceService } from '../services/presenceService';
 
 export type AuthModalMode = 'LOGIN' | 'REQUEST_ACCESS' | 'REQUEST_RESET' | 'FORCE_PASSWORD' | 'VERIFY_TOTP';
 
@@ -124,8 +125,16 @@ export const useAuthStore = create<AuthStoreState>((set, get) => ({
 
   logout: async () => {
     const { activeCanvasLock, currentUser } = get();
-    if (activeCanvasLock && currentUser) {
-      await ConcurrencyLockService.releaseLock(activeCanvasLock.projectFileName, currentUser);
+    if (currentUser) {
+      try {
+        if (activeCanvasLock) {
+          await ConcurrencyLockService.releaseLock(activeCanvasLock.projectFileName, currentUser);
+        }
+        await ConcurrencyLockService.releaseAllUserLocks(currentUser);
+        await PresenceService.markUserLoggedOut(currentUser);
+      } catch (err) {
+        console.warn('Error al liberar candados y presencia al desloguearse:', err);
+      }
     }
     await AuthService.logout();
     set({
@@ -133,6 +142,7 @@ export const useAuthStore = create<AuthStoreState>((set, get) => ({
       isAdminConsoleOpen: false,
       activeCanvasLock: null,
       currentCanvasPermission: null,
+      concurrencyConflictNotice: null,
       isLockedByInactivity: false,
       inactivityWarningSeconds: null
     });
