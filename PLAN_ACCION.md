@@ -1498,3 +1498,56 @@ Implementar el conjunto de 13 ajustes solicitados para blindar el modo Solo Lect
   7. "Presentación Prezi", "Tutorial" y "Tour" retirados del menú `Herramientas`.
   8. Exportaciones PNG, SVG y PDF generan compuertas en rombo, eventos circulares, tarjetas ricas de tareas y subprocesos con información completa a 300 DPI, omitiendo totalmente las notas adhesivas.
 - **Estado:** `Implementado / Producción`
+
+
+---
+
+## 24. Hoja de Ruta Técnica - Persistencia Exclusiva en la Nube (Neon PostgreSQL) sin Fallback Local (`PST-098`)
+
+### 24.1. Diagnóstico y Justificación Técnica
+Actualmente, `StorageService` implementa una estrategia híbrida con fallback local:
+1. `listProjectSummaries`: Intenta consultar a Neon PostgreSQL (`PostgresStorageService.listProjectSummaries()`). Si falla o si la lista está vacía, cae al fallback de `localStorage` del navegador iterando archivos simulados locales (`listLocalProjects()`).
+2. `loadProject`: Busca primero en Neon y, ante cualquier discrepancia o ausencia, carga desde el `localStorage`.
+3. `saveProject`: Realiza una escritura dual (*dual-write*), guardando siempre en `localStorage` y luego en Neon.
+4. `initializeStorage`: Si es el primer inicio en ese navegador, inyecta automáticamente proyectos de muestra (`sampleProjects`) en el `localStorage`.
+
+**Problema:**
+- Esta redundancia local provoca inconsistencias entre usuarios, dispositivos o navegadores, ya que proyectos que no existen en la base de datos centralizada pueden seguir apareciendo desde la memoria local del navegador, o proyectos eliminados en la nube pueden resurgir por el fallback.
+- Se requiere que la base de datos en la nube (PostgreSQL / Neon) sea la **única y exclusiva fuente de verdad** para consultar, listar, cargar, guardar y eliminar proyectos.
+
+### 24.2. Plan de Intervención Arquitectónica
+1. **Modificación de `StorageService.listProjectSummaries` (`src/services/storageService.ts`):**
+   - Eliminar el bloque de fallback a `listLocalProjects()` y el cálculo local de métricas.
+   - Invocar de forma directa y exclusiva a `PostgresStorageService.listProjectSummaries()`.
+   - Si la base de datos no está configurada o la consulta falla, retornar un arreglo vacío `[]` y registrar el error correspondiente en consola.
+2. **Modificación de `StorageService.loadProject`:**
+   - Cargar exclusivamente desde `PostgresStorageService.loadProject(fileName)`.
+   - Eliminar el llamado de contingencia a `loadLocalProject(fileName)`.
+3. **Modificación de `StorageService.saveProject`:**
+   - Persistir el proyecto directamente en PostgreSQL mediante `PostgresStorageService.saveProject(updatedProject)`.
+   - Remover el guardado redundante en `localStorage` (`procesos_studio_proj_*` y `procesos_studio_project_index`).
+4. **Modificación de `StorageService.deleteProject`:**
+   - Eliminar el registro exclusivamente en PostgreSQL mediante `PostgresStorageService.deleteProject(fileName)`.
+   - Remover la eliminación de claves en `localStorage`.
+5. **Modificación de `StorageService.initializeStorage`:**
+   - Desactivar la inyección de `sampleProjects` en el `localStorage` del navegador.
+   - Dejar la inicialización limpia para no ensuciar el almacenamiento del cliente.
+6. **Depuración de Código Muerto en `storageService.ts`:**
+   - Remover métodos y constantes locales huérfanas: `LOCAL_STORAGE_KEY_PREFIX`, `LOCAL_STORAGE_INDEX_KEY`, `listLocalProjects()` y `loadLocalProject()`.
+7. **Verificación de Integridad y Validación:**
+   - Ejecutar `npm run build` para asegurar 0 errores de TypeScript (`noUnusedLocals`, `noUnusedParameters`).
+   - Validar que el Dashboard liste exactamente los proyectos presentes en la base de datos Neon (4 proyectos actualmente en producción).
+
+### 24.3. Registro de Historia de Usuario (`PST-098`)
+- **ID:** `PST-098`
+- **Módulo / Componente:** Persistencia de Proyectos & Base de Datos Cloud (`StorageService`)
+- **Título:** Transición a persistencia exclusiva en la nube (Neon PostgreSQL) y remoción de consulta y fallback local en localStorage
+- **Historia de Usuario:** *Como usuario y administrador del sistema, quiero que la aplicación consulte, cargue, guarde y elimine proyectos de manera 100% exclusiva en la base de datos PostgreSQL en la nube (Neon), eliminando los fallbacks y cachés locales de proyectos en localStorage, para garantizar consistencia centralizada y evitar discrepancias entre navegadores o dispositivos.*
+- **Criterios de Aceptación:**
+  1. `StorageService.listProjectSummaries()` consulta únicamente a PostgreSQL (Neon) y no recurre a `localStorage`.
+  2. `StorageService.loadProject()` obtiene los proyectos exclusivamente desde PostgreSQL (Neon).
+  3. `StorageService.saveProject()` y `deleteProject()` operan exclusivamente sobre la base de datos en la nube.
+  4. `StorageService.initializeStorage()` no genera ni inyecta proyectos muestra en el `localStorage` del navegador.
+  5. Removidos todos los métodos y claves huérfanas de almacenamiento local de proyectos en `storageService.ts`.
+  6. Compilación TypeScript limpia con 0 advertencias y 0 errores.
+- **Estado:** `Implementado / Producción`

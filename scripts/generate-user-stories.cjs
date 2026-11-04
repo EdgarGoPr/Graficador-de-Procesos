@@ -879,6 +879,15 @@ function generateExcel() {
       criteriosAceptacion: '1. En Header, el botón de guardado muestra únicamente el icono cuando el proyecto está guardado.\n2. En rol READ_ONLY, se bloquea la eliminación y edición de propiedades de nodos; en rol COMMENTS, solo se permite manipular Notas Adhesivas.\n3. Doble clic sobre tarjetas de subproceso ingresa al diagrama interno para inspección en cualquier rol.\n4. El cartel de modo de permisos se reubica al margen inferior, sin obstruir la barra de navegación de subprocesos.\n5. Botón + en margen superior dice "Crear un nuevo proyecto".\n6. Pestaña de proyectos muestra "X proyecto(s) disponible(s)".\n7. Subtítulo principal ajustado a "Modelado, visualización y auditoría de procesos".\n8. Herramienta Presentación Prezi desactivada temporalmente.\n9. Opciones redundantes (Tutorial y Tour) removidas del menú Herramientas.\n10. Exportaciones PNG a 300 DPI (escala 3) y SVG con formas auténticas BPMN (compuertas en diamante con icono, eventos en círculo, tarjetas enriquecidas con roles y sistemas).\n11. Láminas PDF con las mismas formas fieles BPMN y resolución mejorada.\n12. Notas adhesivas internas excluidas de todas las exportaciones oficiales.',
       fechaImplementacion: '2026-10-30',
       estado: 'Implementado / Producción'
+    },
+    {
+      id: 'PST-098',
+      modulo: 'Persistencia de Proyectos & Base de Datos Cloud',
+      titulo: 'Transición a persistencia exclusiva en la nube (Neon PostgreSQL) y remoción de consulta y fallback local en localStorage',
+      historiaUsuario: 'Como usuario y administrador del sistema, quiero que la aplicación consulte, cargue, guarde y elimine proyectos de manera 100% exclusiva en la base de datos PostgreSQL en la nube (Neon), eliminando los fallbacks y cachés locales de proyectos en localStorage, para garantizar consistencia centralizada y evitar discrepancias entre navegadores o dispositivos.',
+      criteriosAceptacion: '1. StorageService.listProjectSummaries() consulta únicamente a PostgreSQL (Neon) y no recurre a localStorage.\n2. StorageService.loadProject() obtiene los proyectos exclusivamente desde PostgreSQL (Neon).\n3. StorageService.saveProject() y deleteProject() operan exclusivamente sobre la base de datos en la nube.\n4. StorageService.initializeStorage() no genera ni inyecta proyectos muestra en el localStorage del navegador.\n5. Removidos todos los métodos y claves huérfanas de almacenamiento local de proyectos en storageService.ts.\n6. Compilación TypeScript limpia con 0 advertencias y 0 errores.',
+      fechaImplementacion: '2026-11-04',
+      estado: 'Implementado / Producción'
     }
   );
   console.log('📊 Generando archivo Excel de Historias de Usuario...');

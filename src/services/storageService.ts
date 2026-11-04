@@ -1,9 +1,6 @@
 import { ProcessProjectFile, ProjectSummary } from '../types/project';
-import { sampleProjects } from './defaultProjects';
 import { NeonClient } from './neonClient';
 import { PostgresStorageService } from './postgresStorageService';
-import { calculateTotalLeadTime } from './leadTimeCalculator';
-import { MasterCatalogsService } from './masterCatalogsService';
 
 /**
  * Portable POSIX-safe File Name Sanitizer
@@ -29,11 +26,8 @@ export function sanitizeFilename(title: string, version: string, dateStr?: strin
   return `${date}_proc-${cleanTitle || 'proceso'}-v${cleanVersion || '1.0'}.json`;
 }
 
-const LOCAL_STORAGE_KEY_PREFIX = 'procesos_studio_proj_';
-const LOCAL_STORAGE_INDEX_KEY = 'procesos_studio_project_index';
-
 /**
- * Universal Storage Service (Neon Cloud PostgreSQL + Browser LocalStorage)
+ * Cloud Storage Service (Neon Cloud PostgreSQL exclusively)
  */
 export class StorageService {
   public static isNeonConfigured(): boolean {
@@ -41,140 +35,45 @@ export class StorageService {
   }
 
   /**
-   * Initializes local sample projects if first launch
+   * Cloud-exclusive storage initialization
    */
   public static async initializeStorage(): Promise<void> {
-    const rawIndex = localStorage.getItem(LOCAL_STORAGE_INDEX_KEY);
-    let fileNames: string[] = rawIndex ? JSON.parse(rawIndex) : [];
-
-    // Clean up legacy mock projects if still cached in browser
-    const legacyKeywords = ['descargos-transito', 'faltas-y-clausuras'];
-    const cleanFileNames = fileNames.filter(fn => {
-      const isLegacy = legacyKeywords.some(kw => fn.includes(kw));
-      if (isLegacy) {
-        localStorage.removeItem(LOCAL_STORAGE_KEY_PREFIX + fn);
-      }
-      return !isLegacy;
-    });
-
-    // Ensure official default projects are present in local storage unless explicitly deleted to trash
-    const deletedFiles = new Set(
-      (MasterCatalogsService.getCatalogsSync().deletedProjects || []).map(p => p.fileName)
-    );
-    const updatedFiles = [...cleanFileNames];
-    let indexChanged = !rawIndex || cleanFileNames.length !== fileNames.length;
-
-    for (const sample of sampleProjects) {
-      const filename = sanitizeFilename(
-        sample.documentControl.documentTitle,
-        sample.documentControl.version,
-        sample.documentControl.createdAt
-      );
-      if (!updatedFiles.includes(filename) && !deletedFiles.has(filename)) {
-        localStorage.setItem(LOCAL_STORAGE_KEY_PREFIX + filename, JSON.stringify({ ...sample, fileName: filename }));
-        updatedFiles.push(filename);
-        indexChanged = true;
-      }
-    }
-
-    if (indexChanged) {
-      localStorage.setItem(LOCAL_STORAGE_INDEX_KEY, JSON.stringify(updatedFiles));
-    }
+    // Cloud-exclusive storage: no local mock injection needed
   }
 
   /**
-   * Lists project summaries:
-   * - If Neon is configured, queries indexed columns directly (< 2ms)
-   * - Otherwise, iterates local files and computes metrics
+   * Lists project summaries exclusively from PostgreSQL (Neon Cloud Database)
    */
   public static async listProjectSummaries(): Promise<ProjectSummary[]> {
     if (this.isNeonConfigured()) {
       try {
-        const neonSummaries = await PostgresStorageService.listProjectSummaries();
-        if (neonSummaries.length > 0) {
-          return neonSummaries;
-        }
+        return await PostgresStorageService.listProjectSummaries();
       } catch (err) {
-        console.warn('Neon query failed, falling back to local storage:', err);
+        console.error('Error fetching project summaries from Neon:', err);
+        return [];
       }
     }
-
-    // Local fallback: load local projects and compute summaries
-    const fileNames = await this.listLocalProjects();
-    const summaries: ProjectSummary[] = [];
-
-    for (const fileName of fileNames) {
-      const proj = await this.loadLocalProject(fileName);
-      if (proj) {
-        const leadTime = calculateTotalLeadTime(proj.nodes || []);
-        const riskCount = (proj.nodes || []).reduce((acc, n) => acc + (n.data?.operationalRisks?.length || 0), 0);
-        const checkpointCount = (proj.nodes || []).filter(
-          n => n.data?.qualityCheckpoint || n.data?.nodeType === 'QualityCheckpointEvent'
-        ).length;
-
-        summaries.push({
-          fileName,
-          documentTitle: proj.documentControl.documentTitle,
-          documentCode: proj.documentControl.documentCode,
-          version: proj.documentControl.version,
-          authorName: proj.documentControl.authorName,
-          createdByEmail: proj.documentControl.createdByEmail,
-          createdByUserId: proj.documentControl.createdByUserId,
-          organizationUnit: proj.documentControl.organizationUnit,
-          updatedAt: proj.documentControl.updatedAt,
-          nodeCount: proj.nodes?.length || 0,
-          totalLeadTimeHours: leadTime.totalHours,
-          totalLeadTimeBusinessDays: leadTime.businessDays,
-          riskCount,
-          checkpointCount
-        });
-      }
-    }
-
-    return summaries;
+    console.warn('Neon database connection is not configured.');
+    return [];
   }
 
   /**
-   * List projects strictly from local storage (browser localStorage)
-   */
-  public static async listLocalProjects(): Promise<string[]> {
-    const rawIndex = localStorage.getItem(LOCAL_STORAGE_INDEX_KEY);
-    return rawIndex ? JSON.parse(rawIndex) : [];
-  }
-
-  /**
-   * Load project by fileName (Neon -> Fallback Local)
+   * Load project exclusively from PostgreSQL (Neon Cloud Database)
    */
   public static async loadProject(fileName: string): Promise<ProcessProjectFile | null> {
     if (this.isNeonConfigured()) {
       try {
-        const cloudProj = await PostgresStorageService.loadProject(fileName);
-        if (cloudProj) {
-          return cloudProj;
-        }
+        return await PostgresStorageService.loadProject(fileName);
       } catch (err) {
-        console.warn(`Could not load ${fileName} from Neon, trying local:`, err);
+        console.error(`Error loading project ${fileName} from Neon:`, err);
+        return null;
       }
     }
-    return await this.loadLocalProject(fileName);
+    return null;
   }
 
   /**
-   * Load project strictly from local storage
-   */
-  public static async loadLocalProject(fileName: string): Promise<ProcessProjectFile | null> {
-    try {
-      const raw = localStorage.getItem(LOCAL_STORAGE_KEY_PREFIX + fileName);
-      return raw ? JSON.parse(raw) : null;
-    } catch (err) {
-      console.error(`Error loading local project ${fileName}:`, err);
-      return null;
-    }
-  }
-
-  /**
-   * Save / Overwrite a project
-   * Persists both to local storage (for offline resilience) and to Neon (if configured)
+   * Save / Overwrite a project exclusively to PostgreSQL (Neon Cloud Database)
    */
   public static async saveProject(project: ProcessProjectFile): Promise<string> {
     const updatedProject: ProcessProjectFile = {
@@ -193,50 +92,33 @@ export class StorageService {
 
     updatedProject.fileName = fileName;
 
-    // 1. Always save to local storage for offline safety
-    localStorage.setItem(LOCAL_STORAGE_KEY_PREFIX + fileName, JSON.stringify(updatedProject));
-    const localFiles = await this.listLocalProjects();
-    if (!localFiles.includes(fileName)) {
-      localFiles.push(fileName);
-      localStorage.setItem(LOCAL_STORAGE_INDEX_KEY, JSON.stringify(localFiles));
-    }
-
-    // 2. If Neon is configured, persist to PostgreSQL
     if (this.isNeonConfigured()) {
-      try {
-        await PostgresStorageService.saveProject(updatedProject);
-      } catch (err) {
-        console.error('Failed to sync project to Neon:', err);
-      }
+      await PostgresStorageService.saveProject(updatedProject);
+    } else {
+      console.warn('Neon is not configured. Project was not persisted to cloud.');
     }
 
     return fileName;
   }
 
   /**
-   * Delete a project file (Neon + Local)
+   * Delete a project file exclusively from PostgreSQL (Neon Cloud Database)
    */
   public static async deleteProject(fileName: string): Promise<boolean> {
-    let success = true;
-
     if (this.isNeonConfigured()) {
       try {
         await PostgresStorageService.deleteProject(fileName);
+        return true;
       } catch (err) {
         console.error(`Error deleting ${fileName} from Neon:`, err);
-        success = false;
+        return false;
       }
     }
-
-    localStorage.removeItem(LOCAL_STORAGE_KEY_PREFIX + fileName);
-    const fileNames = (await this.listLocalProjects()).filter(f => f !== fileName);
-    localStorage.setItem(LOCAL_STORAGE_INDEX_KEY, JSON.stringify(fileNames));
-
-    return success;
+    return false;
   }
 
   /**
-   * Duplicate an existing project
+   * Duplicate an existing project in PostgreSQL
    */
   public static async duplicateProject(sourceFileName: string): Promise<string | null> {
     const original = await this.loadProject(sourceFileName);
