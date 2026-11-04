@@ -38,8 +38,8 @@ const SECTOR_ITEMS: RadialSectorItem[] = [
     title: 'Tarea',
     fullName: 'Tarea de Usuario',
     icon: User,
-    color: '#38BDF8',
-    badgeBg: 'rgba(56, 189, 248, 0.25)',
+    color: '#0284C7',
+    badgeBg: 'rgba(2, 132, 199, 0.25)',
     description: 'Actividad ejecutada por un rol o usuario'
   },
   {
@@ -47,8 +47,8 @@ const SECTOR_ITEMS: RadialSectorItem[] = [
     title: 'Servicio',
     fullName: 'Tarea de Servicio / TI',
     icon: Cpu,
-    color: '#06B6D4',
-    badgeBg: 'rgba(6, 182, 212, 0.25)',
+    color: '#0D9488',
+    badgeBg: 'rgba(13, 148, 136, 0.25)',
     description: 'Automatización o invocación de sistema'
   },
   {
@@ -65,8 +65,8 @@ const SECTOR_ITEMS: RadialSectorItem[] = [
     title: 'Paralelo',
     fullName: 'Bifurcación Paralela (AND)',
     icon: PlusSquare,
-    color: '#D97706',
-    badgeBg: 'rgba(217, 119, 6, 0.25)',
+    color: '#8B5CF6',
+    badgeBg: 'rgba(139, 92, 246, 0.25)',
     description: 'Ramas concurrentes simultáneas'
   },
   {
@@ -74,8 +74,8 @@ const SECTOR_ITEMS: RadialSectorItem[] = [
     title: 'Control',
     fullName: 'Punto de Calidad ISO',
     icon: ShieldCheck,
-    color: '#10B981',
-    badgeBg: 'rgba(16, 185, 129, 0.25)',
+    color: '#D946EF',
+    badgeBg: 'rgba(217, 70, 239, 0.25)',
     description: 'Control de calidad o verificación legal'
   },
   {
@@ -83,8 +83,8 @@ const SECTOR_ITEMS: RadialSectorItem[] = [
     title: 'Subproc',
     fullName: 'Subproceso Procedimental',
     icon: Box,
-    color: '#A855F7',
-    badgeBg: 'rgba(168, 85, 247, 0.25)',
+    color: '#6366F1',
+    badgeBg: 'rgba(99, 102, 241, 0.25)',
     description: 'Bloque con flujo operativo interno'
   },
   {

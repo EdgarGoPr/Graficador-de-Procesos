@@ -31,14 +31,14 @@ const NODE_TYPE_META: Record<
 > = {
   [BPMN_NODE_TYPES.USER_TASK]: {
     label: 'Tarea de Usuario',
-    color: '#38BDF8',
-    bg: 'rgba(56, 189, 248, 0.15)',
+    color: '#0284C7',
+    bg: 'rgba(2, 132, 199, 0.15)',
     icon: User
   },
   [BPMN_NODE_TYPES.SERVICE_TASK]: {
     label: 'Tarea de Servicio',
-    color: '#06B6D4',
-    bg: 'rgba(6, 182, 212, 0.15)',
+    color: '#0D9488',
+    bg: 'rgba(13, 148, 136, 0.15)',
     icon: Cpu
   },
   [BPMN_NODE_TYPES.EXCLUSIVE_GATEWAY]: {
@@ -49,20 +49,20 @@ const NODE_TYPE_META: Record<
   },
   [BPMN_NODE_TYPES.PARALLEL_GATEWAY]: {
     label: 'Bifurcación (AND)',
-    color: '#D97706',
-    bg: 'rgba(217, 119, 6, 0.15)',
+    color: '#8B5CF6',
+    bg: 'rgba(139, 92, 246, 0.15)',
     icon: PlusSquare
   },
   [BPMN_NODE_TYPES.QUALITY_CHECKPOINT_EVENT]: {
     label: 'Punto de Calidad ISO',
-    color: '#10B981',
-    bg: 'rgba(16, 185, 129, 0.15)',
+    color: '#D946EF',
+    bg: 'rgba(217, 70, 239, 0.15)',
     icon: ShieldCheck
   },
   [BPMN_NODE_TYPES.SUB_PROCESS]: {
     label: 'Subproceso',
-    color: '#A855F7',
-    bg: 'rgba(168, 85, 247, 0.15)',
+    color: '#6366F1',
+    bg: 'rgba(99, 102, 241, 0.15)',
     icon: Box
   },
   [BPMN_NODE_TYPES.END_EVENT]: {

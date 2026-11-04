@@ -1825,3 +1825,59 @@ Al analizar el flujo de concurrencia y cierre de sesión:
   6. Actualización en `HISTORIAS_DE_USUARIO_PROCESSTUDIO.xlsx` e incremento de versión a `2.4.8` (`V 02.04.08`).
   7. Commit y Auto-Push automático a GitHub (`main`).
 - **Estado:** Implementado / Producción
+
+
+---
+
+## 28. Hoja de Ruta Técnica: Sincronización de Paleta Cromática Distintiva en la Barra Lateral de Modelado y Menús de Nodos (`PST-102`)
+
+### 28.1. Diagnóstico del Problema y Requerimiento
+En el desarrollo de la historia `PST-100` (Ítem 11) se estableció una nueva paleta cromática predeterminada y distintiva por tipo de nodo BPMN en el lienzo, así como en las exportaciones vectoriales SVG, PNG y PDF, para evitar que actividades o compuertas compartan colores idénticos o confusos.
+
+Sin embargo, los botones e íconos de la **Paleta Lateral de Modelado** (`SidebarPalette.tsx`), así como los menús contextuales rápidos (`RadialNodeMenu.tsx`, `AiSuggestionCard.tsx`), continuaban utilizando las clases cromáticas anteriores:
+- `User Task`, `Service Task` y `SubProcess` compartían el mismo azul `#3B82F6`.
+- `Exclusive Gateway` y `Parallel Gateway` compartían el mismo color ámbar `#F59E0B`.
+- `Quality Checkpoint` figuraba con el mismo verde de `Start Event` (`#10B981`).
+
+El usuario requiere que los colores definidos en la nueva paleta distintiva se reflejen exactamente en cada una de las opciones y tarjetas de la barra lateral de modelado (`SidebarPalette.tsx`).
+
+---
+
+### 28.2. Plan de Intervención Arquitectónica
+
+#### Módulo 1: Actualización de `src/components/layout/SidebarPalette.tsx`
+Actualizar la constante `PALETTE_GROUPS` para aplicar la paleta distintiva exacta en cada ítem:
+1. **Start Event:** Verde Esmeralda (`#10B981`) -> `colorClass: 'text-[#10B981] border-[#10B981]/40'`, `bgClass: 'bg-[#10B981]/10 hover:bg-[#10B981]/20'`.
+2. **End Event:** Rojo Carmesí (`#EF4444`) -> `colorClass: 'text-[#EF4444] border-[#EF4444]/40'`, `bgClass: 'bg-[#EF4444]/10 hover:bg-[#EF4444]/20'`.
+3. **User Task:** Azul Cielo (`#0284C7`) -> `colorClass: 'text-[#0284C7] border-[#0284C7]/40'`, `bgClass: 'bg-[#0284C7]/10 hover:bg-[#0284C7]/20'`.
+4. **Service Task:** Verde Azulado / Teal (`#0D9488`) -> `colorClass: 'text-[#0D9488] border-[#0D9488]/40'`, `bgClass: 'bg-[#0D9488]/10 hover:bg-[#0D9488]/20'`.
+5. **Manual Task:** Naranja Intenso (`#EA580C`) -> `colorClass: 'text-[#EA580C] border-[#EA580C]/40'`, `bgClass: 'bg-[#EA580C]/10 hover:bg-[#EA580C]/20'`.
+6. **SubProcess:** Índigo / Azul Real (`#6366F1`) -> `colorClass: 'text-[#6366F1] border-[#6366F1]/40'`, `bgClass: 'bg-[#6366F1]/10 hover:bg-[#6366F1]/20'`.
+7. **Quality Checkpoint:** Rosa Fucsia (`#D946EF`) -> `colorClass: 'text-[#D946EF] border-[#D946EF]/40'`, `bgClass: 'bg-[#D946EF]/10 hover:bg-[#D946EF]/20'`.
+8. **Temporizador / Plazo:** Amarillo Mostaza (`#EAB308`) -> `colorClass: 'text-[#EAB308] border-[#EAB308]/40'`, `bgClass: 'bg-[#EAB308]/10 hover:bg-[#EAB308]/20'`.
+9. **Exclusive Gateway (XOR):** Amarillo Ámbar (`#F59E0B`) -> `colorClass: 'text-[#F59E0B] border-[#F59E0B]/40'`, `bgClass: 'bg-[#F59E0B]/10 hover:bg-[#F59E0B]/20'`.
+10. **Parallel Gateway (AND):** Púrpura / Violeta (`#8B5CF6`) -> `colorClass: 'text-[#8B5CF6] border-[#8B5CF6]/40'`, `bgClass: 'bg-[#8B5CF6]/10 hover:bg-[#8B5CF6]/20'`.
+11. **Carril (Swimlane):** Azul Cielo / Cyan (`#38BDF8`) -> `colorClass: 'text-[#38BDF8] border-[#38BDF8]/40'`, `bgClass: 'bg-[#38BDF8]/10 hover:bg-[#38BDF8]/20'`.
+12. **Nota Adhesiva (Post-it):** Amarillo Clásico (`#EAB308`) -> `colorClass: 'text-[#EAB308] border-[#EAB308]/40'`, `bgClass: 'bg-[#FEF08A]/20 hover:bg-[#FEF08A]/40'`.
+
+Tanto en la vista expandida como en el mini-dock colapsado de la barra lateral, los íconos y sus bordes reflejarán fielmente cada color distintivo.
+
+#### Módulo 2: Sincronización en Menús Contextuales (`RadialNodeMenu.tsx` y `AiSuggestionCard.tsx`)
+- Actualizar `SECTOR_ITEMS` en `RadialNodeMenu.tsx` y `NODE_TYPE_META` en `AiSuggestionCard.tsx` para reflejar exactamente la misma paleta unificada.
+
+---
+
+### 28.3. Registro de Historia de Usuario (`PST-102`)
+
+- **ID:** `PST-102`
+- **Módulo / Componente:** Paleta de Modelado BPMN & Identidad Visual (Sidebar Palette)
+- **Título:** Sincronización integral de la nueva paleta de colores distintivos en la barra lateral de modelado y menús de inserción de nodos
+- **Historia de Usuario:** *Como modelador de procesos de ProcesStudio, quiero que la barra lateral de modelado (paleta de nodos a la izquierda) y los menús de inserción rápida reflejen los colores distintivos únicos asignados a cada tipo de nodo BPMN, para identificar visualmente cada elemento de inmediato antes de arrastrarlo o agregarlo al diagrama.*
+- **Criterios de Aceptación:**
+  1. Cada tarjeta e ícono en `SidebarPalette.tsx` adopta su color distintivo oficial: StartEvent (#10B981), EndEvent (#EF4444), UserTask (#0284C7), ServiceTask (#0D9488), ManualTask (#EA580C), SubProcess (#6366F1), QualityCheckpoint (#D946EF), Timer (#EAB308), ExclusiveGateway (#F59E0B), ParallelGateway (#8B5CF6), PoolLane (#38BDF8), StickyNote (#EAB308).
+  2. Los estados hover y mini-dock colapsado replican fielmente la misma codificación cromática.
+  3. Los menús radiales y tarjetas de sugerencias IA sincronizan los mismos tonos cromáticos.
+  4. Compilación TypeScript estricta con 0 advertencias y 0 errores (`npm run build`).
+  5. Registro actualizado en `HISTORIAS_DE_USUARIO_PROCESSTUDIO.xlsx` e incremento de versión a `2.4.9` (`V 02.04.09`).
+  6. Commit y Auto-Push automático a GitHub (`main`).
+- **Estado:** Implementado / Producción

@@ -61,32 +61,32 @@ const PALETTE_GROUPS: { groupName: string; items: PaletteItem[] }[] = [
         title: 'User Task',
         subtitle: 'Intervención de operador',
         icon: User,
-        colorClass: 'text-[#3B82F6] border-[#3B82F6]/40',
-        bgClass: 'bg-[#3B82F6]/10 hover:bg-[#3B82F6]/20'
+        colorClass: 'text-[#0284C7] border-[#0284C7]/40',
+        bgClass: 'bg-[#0284C7]/10 hover:bg-[#0284C7]/20'
       },
       {
         type: BPMN_NODE_TYPES.SERVICE_TASK,
         title: 'Service Task',
         subtitle: 'Servicio / Herramienta',
         icon: Cpu,
-        colorClass: 'text-[#3B82F6] border-[#3B82F6]/40',
-        bgClass: 'bg-[#3B82F6]/10 hover:bg-[#3B82F6]/20'
+        colorClass: 'text-[#0D9488] border-[#0D9488]/40',
+        bgClass: 'bg-[#0D9488]/10 hover:bg-[#0D9488]/20'
       },
       {
         type: BPMN_NODE_TYPES.MANUAL_TASK,
         title: 'Manual Task',
         subtitle: 'Acción física / Inspección',
         icon: Wrench,
-        colorClass: 'text-[#F59E0B] border-[#F59E0B]/40',
-        bgClass: 'bg-[#F59E0B]/10 hover:bg-[#F59E0B]/20'
+        colorClass: 'text-[#EA580C] border-[#EA580C]/40',
+        bgClass: 'bg-[#EA580C]/10 hover:bg-[#EA580C]/20'
       },
       {
         type: BPMN_NODE_TYPES.SUB_PROCESS,
         title: 'SubProcess',
         subtitle: 'Subproceso anidado',
         icon: Layers,
-        colorClass: 'text-[#3B82F6] border-[#3B82F6]/40',
-        bgClass: 'bg-[#3B82F6]/10 hover:bg-[#3B82F6]/20'
+        colorClass: 'text-[#6366F1] border-[#6366F1]/40',
+        bgClass: 'bg-[#6366F1]/10 hover:bg-[#6366F1]/20'
       }
     ]
   },
@@ -98,16 +98,16 @@ const PALETTE_GROUPS: { groupName: string; items: PaletteItem[] }[] = [
         title: 'Quality Checkpoint',
         subtitle: 'Punto de inspección y control',
         icon: ShieldCheck,
-        colorClass: 'text-[#10B981] border-[#10B981]/40',
-        bgClass: 'bg-[#10B981]/10 hover:bg-[#10B981]/20'
+        colorClass: 'text-[#D946EF] border-[#D946EF]/40',
+        bgClass: 'bg-[#D946EF]/10 hover:bg-[#D946EF]/20'
       },
       {
         type: BPMN_NODE_TYPES.TIMER_BOUNDARY_EVENT,
         title: 'Temporizador / Plazo',
         subtitle: 'Control de plazo y vencimiento',
         icon: Clock,
-        colorClass: 'text-[#F59E0B] border-[#F59E0B]/40',
-        bgClass: 'bg-[#F59E0B]/10 hover:bg-[#F59E0B]/20'
+        colorClass: 'text-[#EAB308] border-[#EAB308]/40',
+        bgClass: 'bg-[#EAB308]/10 hover:bg-[#EAB308]/20'
       }
     ]
   },
@@ -127,8 +127,8 @@ const PALETTE_GROUPS: { groupName: string; items: PaletteItem[] }[] = [
         title: 'Parallel Gateway (AND)',
         subtitle: 'Bifurcación concurrente',
         icon: Plus,
-        colorClass: 'text-[#F59E0B] border-[#F59E0B]/40',
-        bgClass: 'bg-[#F59E0B]/10 hover:bg-[#F59E0B]/20'
+        colorClass: 'text-[#8B5CF6] border-[#8B5CF6]/40',
+        bgClass: 'bg-[#8B5CF6]/10 hover:bg-[#8B5CF6]/20'
       }
     ]
   },
@@ -290,7 +290,7 @@ export const SidebarPalette: React.FC = () => {
                     : `${item.title} - Deshabilitado en este modo`
                 }
               >
-                <Icon className="w-4 h-4" />
+                <Icon className="w-4 h-4 text-current" />
               </div>
             );
           })}
@@ -318,34 +318,22 @@ export const SidebarPalette: React.FC = () => {
           </span>
           <button
             onClick={() => setIsCollapsed(true)}
-            className="p-1 rounded hover:bg-theme-surface text-theme-text-muted hover:text-theme-text transition-colors"
-            title="Contraer Paleta"
+            className="p-1 rounded-md hover:bg-theme-surface text-theme-text-muted hover:text-theme-text transition-colors"
+            title="Colapsar barra lateral"
           >
             <PanelLeftClose className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>
 
-      {/* Instruction Banner according to Permission */}
-      {isReadOnly ? (
-        <div className="px-3 py-2 bg-sky-500/10 border-b border-sky-500/20 text-[11px] text-sky-400 flex items-center">
-          <ShieldCheck className="w-3.5 h-3.5 mr-1.5 shrink-0" />
-          <span className="font-semibold">Modo Solo Lectura: Edición deshabilitada.</span>
-        </div>
-      ) : isCommentsOnly ? (
-        <div className="px-3 py-2 bg-amber-500/10 border-b border-amber-500/20 text-[11px] text-amber-400 flex items-center">
-          <StickyNote className="w-3.5 h-3.5 mr-1.5 shrink-0" />
-          <span className="font-semibold">Modo Comentarios: Solo puedes agregar Notas Adhesivas.</span>
-        </div>
-      ) : (
-        <div className="px-3 py-2 bg-theme-surface-subtle border-b border-theme-border text-[11px] text-theme-text-muted flex items-center">
-          <HelpCircle className="w-3.5 h-3.5 text-theme-text-muted mr-1.5 shrink-0" />
-          <span className="line-clamp-2">Arrastrá elementos al lienzo o hacé clic para agregar.</span>
-        </div>
-      )}
+      {/* Subtitle instructions */}
+      <div className="px-3 py-2 bg-theme-surface border-b border-theme-border flex items-center space-x-1.5 text-[11px] text-theme-text-muted">
+        <HelpCircle className="w-3.5 h-3.5 shrink-0 text-theme-accent" />
+        <span className="truncate">Haz clic o arrastra para agregar.</span>
+      </div>
 
-      {/* Groups */}
-      <div className="p-3 space-y-4 flex-1 overflow-y-auto">
+      {/* Items List */}
+      <div className="flex-1 overflow-y-auto p-3 space-y-4">
         {PALETTE_GROUPS.map((group) => (
           <div key={group.groupName}>
             <h5 className="text-[10px] font-bold font-mono uppercase text-theme-text-muted tracking-wider mb-2">
@@ -370,7 +358,7 @@ export const SidebarPalette: React.FC = () => {
                     }`}
                   >
                     <div className="p-1.5 rounded-md bg-theme-surface mr-2.5 shrink-0 shadow-sm border border-theme-border/50">
-                      <Icon className="w-4 h-4" />
+                      <Icon className="w-4 h-4 text-current" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="text-xs font-semibold text-theme-text truncate">
