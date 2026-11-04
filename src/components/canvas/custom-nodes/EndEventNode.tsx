@@ -27,6 +27,7 @@ export const EndEventNode = memo(({ data, selected }: NodeProps<any>) => {
   return (
     <div
       style={customContainerStyle}
+      title="Doble clic para volver al proceso anterior (si está dentro de un subproceso)"
       className={`group relative flex flex-col items-center justify-center w-24 h-24 rounded-full bg-theme-surface/95 backdrop-blur-sm border-[3px] transition-colors transition-shadow duration-150 shadow-md ${
         selected
           ? '!border-rose-400 !ring-2 !ring-rose-400 shadow-2xl scale-[1.03]'

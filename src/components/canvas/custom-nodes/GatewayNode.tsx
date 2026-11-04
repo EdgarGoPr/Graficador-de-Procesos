@@ -3,7 +3,7 @@ import { Handle, Position, NodeProps } from '@xyflow/react';
 import { BpmnNodeData, BPMN_NODE_TYPES } from '../../../types/process';
 import { hexToRgba } from '../../../types/theme';
 import { getNodeTextContrast } from '../../../utils/nodeContrast';
-import { X, Plus, GitBranch } from 'lucide-react';
+import { GitBranch, X, Plus } from 'lucide-react';
 
 export const GatewayNode = memo(({ data, selected }: NodeProps<any>) => {
   const nodeData = data as BpmnNodeData;
@@ -25,36 +25,54 @@ export const GatewayNode = memo(({ data, selected }: NodeProps<any>) => {
 
   const titleFontSize = nodeData.customFontSize ? `${nodeData.customFontSize}px` : undefined;
 
+  const gwColor = isExclusive
+    ? {
+        border: 'border-amber-500/50',
+        bg: 'bg-amber-500/10',
+        selectedBorder: '!border-amber-400 !ring-2 !ring-amber-400',
+        hoverBorder: 'hover:border-amber-400/80',
+        handleBg: '!bg-amber-400',
+        textColor: 'text-amber-400',
+      }
+    : {
+        border: 'border-purple-500/50',
+        bg: 'bg-purple-500/10',
+        selectedBorder: '!border-purple-400 !ring-2 !ring-purple-400',
+        hoverBorder: 'hover:border-purple-400/80',
+        handleBg: '!bg-purple-400',
+        textColor: 'text-purple-400',
+      };
+
   return (
     <div className="relative group flex flex-col items-center">
       <div
         style={customContainerStyle}
-        className={`relative w-16 h-16 rotate-45 rounded-lg bg-theme-surface/95 backdrop-blur-sm border-2 transition-colors transition-shadow duration-150 shadow-md flex items-center justify-center border-amber-500/50 bg-amber-500/10 ${
+        className={`relative w-16 h-16 rotate-45 rounded-lg bg-theme-surface/95 backdrop-blur-sm border-2 transition-colors transition-shadow duration-150 shadow-md flex items-center justify-center ${gwColor.border} ${gwColor.bg} ${
           selected
-            ? '!ring-2 !ring-amber-400 !border-amber-400 shadow-2xl scale-110'
-            : 'hover:border-amber-400/80 hover:shadow-lg'
+            ? `${gwColor.selectedBorder} shadow-2xl scale-110`
+            : `${gwColor.hoverBorder} hover:shadow-lg`
         }`}
       >
         {/* Handles on the diamond tips (Left & Right only) */}
         <Handle
           type="target"
           position={Position.Left}
-          className="!w-3.5 !h-3.5 !bg-amber-400 !border-2 !border-slate-900 !rounded-full shadow-md -rotate-45 hover:scale-125 transition-transform z-40"
+          className={`!w-3.5 !h-3.5 ${gwColor.handleBg} !border-2 !border-slate-900 !rounded-full shadow-md -rotate-45 hover:scale-125 transition-transform z-40`}
           style={{ top: '50%', left: '-7px' }}
         />
         <Handle
           type="source"
           position={Position.Right}
-          className="!w-3.5 !h-3.5 !bg-amber-400 !border-2 !border-slate-900 !rounded-full shadow-md -rotate-45 hover:scale-125 transition-transform z-40"
+          className={`!w-3.5 !h-3.5 ${gwColor.handleBg} !border-2 !border-slate-900 !rounded-full shadow-md -rotate-45 hover:scale-125 transition-transform z-40`}
           style={{ top: '50%', right: '-7px' }}
         />
 
         {/* Center Icon */}
         <div className="-rotate-45 flex flex-col items-center justify-center">
           {isExclusive ? (
-            <X className="w-5 h-5 text-amber-400 stroke-[2.5]" />
+            <X className={`w-5 h-5 ${gwColor.textColor} stroke-[2.5]`} />
           ) : (
-            <Plus className="w-5 h-5 text-amber-400 stroke-[2.5]" />
+            <Plus className={`w-5 h-5 ${gwColor.textColor} stroke-[2.5]`} />
           )}
         </div>
       </div>
@@ -66,8 +84,8 @@ export const GatewayNode = memo(({ data, selected }: NodeProps<any>) => {
       >
         {!isTitleOnly && (
           <div className="flex items-center justify-center space-x-1 truncate">
-            <GitBranch className="w-2.5 h-2.5 text-amber-400 shrink-0" />
-            <span className="text-[9px] font-mono font-bold text-amber-400 truncate">
+            <GitBranch className={`w-2.5 h-2.5 ${gwColor.textColor} shrink-0`} />
+            <span className={`text-[9px] font-mono font-bold ${gwColor.textColor} truncate`}>
               {nodeData.standardId || (isExclusive ? 'GTW' : 'PAR')}
             </span>
           </div>
@@ -82,5 +100,3 @@ export const GatewayNode = memo(({ data, selected }: NodeProps<any>) => {
     </div>
   );
 });
-
-GatewayNode.displayName = 'GatewayNode';

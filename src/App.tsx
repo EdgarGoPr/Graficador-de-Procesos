@@ -32,6 +32,7 @@ import { AdminConsoleModal } from './components/admin/AdminConsoleModal';
 import { IdleLockOverlay } from './components/auth/IdleLockOverlay';
 import { IdleWarningToast } from './components/auth/IdleWarningToast';
 import { PermissionService } from './services/permissionService';
+import { PresenceService } from './services/presenceService';
 import { hasUserModuleAccess } from './types/auth';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
 import { VersionBadge } from './components/common/VersionBadge';
@@ -104,6 +105,23 @@ export const App: React.FC = () => {
       }
     }
   }, [currentUser, activeView, currentProject, setActiveView, showNotification]);
+
+  // Latido de Presencia de Usuarios y Control Dinámico de Candados (PST-100)
+  useEffect(() => {
+    if (!currentUser) {
+      PresenceService.stopPresenceHeartbeat();
+      return;
+    }
+
+    const activeProjectFileName = activeView === 'CANVAS' ? (currentProject?.fileName || null) : null;
+    const activeProjectTitle = activeView === 'CANVAS' ? (currentProject?.documentControl.documentTitle || null) : null;
+
+    PresenceService.startPresenceHeartbeat(currentUser, activeProjectFileName, activeProjectTitle);
+
+    return () => {
+      // no-op
+    };
+  }, [currentUser, activeView, currentProject?.fileName, currentProject?.documentControl.documentTitle]);
 
   if (isLoading) {
     return (

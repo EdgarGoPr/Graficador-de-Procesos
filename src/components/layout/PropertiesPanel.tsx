@@ -81,7 +81,7 @@ export const PropertiesPanel: React.FC = () => {
     setNodeRelatedCard
   } = useCanvasStore();
 
-  const { currentProject } = useProjectStore();
+  const { currentProject, setProjectData } = useProjectStore();
   const { setActiveRightTab, openSubProcessDetail, showNotification, setManageLanesModalOpen } = useUiStore();
   const { currentCanvasPermission } = useAuthStore();
   const isReadOnly = currentCanvasPermission === 'READ_ONLY';
@@ -93,6 +93,17 @@ export const PropertiesPanel: React.FC = () => {
   const [newOutputText, setNewOutputText] = useState('');
   const [newRiskDesc, setNewRiskDesc] = useState('');
   const [newMitigation, setNewMitigation] = useState('');
+
+  // Process Catalogs Inline Add States (PST-100)
+  const [isAddingTool, setIsAddingTool] = useState(false);
+  const [newToolInput, setNewToolInput] = useState('');
+  const [isAddingResp, setIsAddingResp] = useState(false);
+  const [newRespInput, setNewRespInput] = useState('');
+  const [isAddingFramework, setIsAddingFramework] = useState(false);
+  const [newFrameworkInput, setNewFrameworkInput] = useState('');
+  const [isAddingLink, setIsAddingLink] = useState(false);
+  const [newLinkNameInput, setNewLinkNameInput] = useState('');
+  const [newLinkUrlInput, setNewLinkUrlInput] = useState('');
 
   // Inline Swimlane Customization State
   const [isInlineLaneEditing, setIsInlineLaneEditing] = useState(false);
@@ -536,6 +547,83 @@ export const PropertiesPanel: React.FC = () => {
 
   const handleUpdate = (updates: Partial<BpmnNodeData>) => {
     updateNodeData(node.id, updates);
+  };
+
+  const handleSaveNewTool = () => {
+    if (!currentProject || !newToolInput.trim()) return;
+    const name = newToolInput.trim();
+    const existing = currentProject.catalogs?.tools || [];
+    const updatedTools = Array.from(new Set([...existing, name]));
+    const updatedProject = {
+      ...currentProject,
+      catalogs: {
+        ...currentProject.catalogs,
+        tools: updatedTools,
+      },
+    };
+    setProjectData(updatedProject);
+    handleUpdate({ itSystem: name });
+    setNewToolInput('');
+    setIsAddingTool(false);
+  };
+
+  const handleSaveNewResp = () => {
+    if (!currentProject || !newRespInput.trim()) return;
+    const name = newRespInput.trim();
+    const existing = currentProject.catalogs?.responsibles || [];
+    const updatedResp = Array.from(new Set([...existing, name]));
+    const updatedProject = {
+      ...currentProject,
+      catalogs: {
+        ...currentProject.catalogs,
+        responsibles: updatedResp,
+      },
+    };
+    setProjectData(updatedProject);
+    handleUpdate({ responsible: name });
+    setNewRespInput('');
+    setIsAddingResp(false);
+  };
+
+  const handleSaveNewFramework = () => {
+    if (!currentProject || !newFrameworkInput.trim()) return;
+    const name = newFrameworkInput.trim();
+    const existing = currentProject.catalogs?.frameworks || [];
+    const updatedFrameworks = Array.from(new Set([...existing, name]));
+    const updatedProject = {
+      ...currentProject,
+      catalogs: {
+        ...currentProject.catalogs,
+        frameworks: updatedFrameworks,
+      },
+    };
+    setProjectData(updatedProject);
+    handleUpdate({ legalFramework: name });
+    setNewFrameworkInput('');
+    setIsAddingFramework(false);
+  };
+
+  const handleSaveNewLink = () => {
+    if (!currentProject || !newLinkNameInput.trim() || !newLinkUrlInput.trim()) return;
+    const name = newLinkNameInput.trim();
+    let url = newLinkUrlInput.trim();
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      url = `https://${url}`;
+    }
+    const existing = currentProject.catalogs?.links || [];
+    const updatedLinks = [...existing.filter(l => l.name !== name), { name, url }];
+    const updatedProject = {
+      ...currentProject,
+      catalogs: {
+        ...currentProject.catalogs,
+        links: updatedLinks,
+      },
+    };
+    setProjectData(updatedProject);
+    handleUpdate({ link: url });
+    setNewLinkNameInput('');
+    setNewLinkUrlInput('');
+    setIsAddingLink(false);
   };
 
   const handleSlaChange = (value: number, unit: TimeUnitType, isPeremptory: boolean, enabled: boolean = true) => {
@@ -1091,10 +1179,10 @@ export const PropertiesPanel: React.FC = () => {
                     <span>Ampliar y Editar Detalle</span>
                   </button>
 
-                  {(data.subProcessSteps?.length || 0) > 0 && (
+                  {!isReadOnly && !isComments && (
                     <button
                       onClick={() => {
-                        if (window.confirm(`¿Desea descomprimir "${data.title}" y desplegar sus ${data.subProcessSteps?.length} etapas individuales en el lienzo?`)) {
+                        if (window.confirm(`¿Desea descomprimir "${data.title}" y desplegar sus etapas individuales en el lienzo?`)) {
                           const result = decompressSubProcess(node.id);
                           if (result.success) {
                             showNotification('Subproceso descomprimido en el lienzo', 'success');
@@ -1103,10 +1191,10 @@ export const PropertiesPanel: React.FC = () => {
                           }
                         }
                       }}
-                      className="w-full py-1.5 bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-amber-400 rounded-lg font-semibold text-xs flex items-center justify-center space-x-1.5 transition-all"
+                      className="w-full py-2 bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 rounded-lg font-bold text-xs flex items-center justify-center space-x-1.5 transition-all shadow-xs cursor-pointer"
                     >
                       <FolderOpen className="w-3.5 h-3.5" />
-                      <span>Descomprimir en el Lienzo</span>
+                      <span>Descomprimir Subproceso en el Lienzo</span>
                     </button>
                   )}
                 </div>
@@ -1631,28 +1719,115 @@ export const PropertiesPanel: React.FC = () => {
           )}
         </div>
 
-        {/* Herramienta, Responsable & Marco */}
+        {/* Herramienta, Responsable & Marco (PST-100: Catálogos independientes por proceso con selector y botón +) */}
         <div className="space-y-2">
           <div className="grid grid-cols-2 gap-2">
+            {/* Herramienta */}
             <div>
-              <label className="text-[10px] font-bold uppercase tracking-wider text-theme-text-muted font-mono flex items-center space-x-1">
-                <Wrench className="w-3 h-3 text-theme-accent mr-1" />
-                <span>Herramienta</span>
-              </label>
-              <input
-                type="text"
-                list="abm-systems-datalist"
-                placeholder="Herramienta utilizada (ABM)"
+              <div className="flex items-center justify-between">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-theme-text-muted font-mono flex items-center space-x-1">
+                  <Wrench className="w-3 h-3 text-theme-accent mr-1" />
+                  <span>Herramienta</span>
+                </label>
+                {!isReadOnly && !isComments && (
+                  <button
+                    type="button"
+                    onClick={() => setIsAddingTool(!isAddingTool)}
+                    title="Añadir nueva herramienta al proceso"
+                    className="p-0.5 rounded text-theme-accent hover:bg-theme-accent/20 transition-colors"
+                  >
+                    <Plus className="w-3 h-3" />
+                  </button>
+                )}
+              </div>
+              {isAddingTool && (
+                <div className="flex items-center space-x-1 mt-1 mb-1 bg-theme-surface p-1 rounded-lg border border-theme-accent/40 animate-fadeIn">
+                  <input
+                    type="text"
+                    placeholder="Nueva herramienta..."
+                    value={newToolInput}
+                    onChange={(e) => setNewToolInput(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === 'Enter') handleSaveNewTool(); }}
+                    className="w-full bg-transparent px-1.5 py-0.5 text-xs text-theme-text outline-none"
+                    autoFocus
+                  />
+                  <button
+                    type="button"
+                    onClick={handleSaveNewTool}
+                    className="px-2 py-0.5 bg-theme-accent text-white text-[10px] font-bold rounded"
+                  >
+                    +
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setIsAddingTool(false); setNewToolInput(''); }}
+                    className="px-1 text-theme-text-muted hover:text-theme-text text-[10px]"
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
+              <select
+                disabled={isReadOnly || isComments}
                 value={data.itSystem || ''}
                 onChange={(e) => handleUpdate({ itSystem: e.target.value })}
                 className="w-full bg-theme-surface-subtle border border-theme-border rounded px-2 py-1 text-theme-text text-xs focus:border-theme-accent outline-none mt-0.5"
-              />
+              >
+                <option value="">- Sin herramienta -</option>
+                {data.itSystem && !(currentProject.catalogs?.tools || []).includes(data.itSystem) && (
+                  <option value={data.itSystem}>{data.itSystem}</option>
+                )}
+                {(currentProject.catalogs?.tools || []).map((t) => (
+                  <option key={t} value={t}>{t}</option>
+                ))}
+              </select>
             </div>
+
+            {/* Responsable */}
             <div>
-              <label className="text-[10px] font-bold uppercase tracking-wider text-theme-text-muted font-mono flex items-center space-x-1">
-                <User className="w-3 h-3 text-[#3B82F6] mr-1" />
-                <span>Responsable</span>
-              </label>
+              <div className="flex items-center justify-between">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-theme-text-muted font-mono flex items-center space-x-1">
+                  <User className="w-3 h-3 text-[#3B82F6] mr-1" />
+                  <span>Responsable</span>
+                </label>
+                {!isReadOnly && !isComments && !(node.type === 'StickyNote' && data.relatedNodeId) && (
+                  <button
+                    type="button"
+                    onClick={() => setIsAddingResp(!isAddingResp)}
+                    title="Añadir nuevo responsable al proceso"
+                    className="p-0.5 rounded text-[#3B82F6] hover:bg-blue-500/20 transition-colors"
+                  >
+                    <Plus className="w-3 h-3" />
+                  </button>
+                )}
+              </div>
+              {isAddingResp && (
+                <div className="flex items-center space-x-1 mt-1 mb-1 bg-theme-surface p-1 rounded-lg border border-blue-500/40 animate-fadeIn">
+                  <input
+                    type="text"
+                    placeholder="Nuevo responsable..."
+                    value={newRespInput}
+                    onChange={(e) => setNewRespInput(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === 'Enter') handleSaveNewResp(); }}
+                    className="w-full bg-transparent px-1.5 py-0.5 text-xs text-theme-text outline-none"
+                    autoFocus
+                  />
+                  <button
+                    type="button"
+                    onClick={handleSaveNewResp}
+                    className="px-2 py-0.5 bg-blue-500 text-white text-[10px] font-bold rounded"
+                  >
+                    +
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setIsAddingResp(false); setNewRespInput(''); }}
+                    className="px-1 text-theme-text-muted hover:text-theme-text text-[10px]"
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
               {(() => {
                 if (node.type === 'StickyNote' && data.relatedNodeId) {
                   const relNode = activeGraph.nodes.find((n) => n.id === data.relatedNodeId);
@@ -1670,40 +1845,163 @@ export const PropertiesPanel: React.FC = () => {
                   }
                 }
                 return (
-                  <input
-                    type="text"
-                    list="abm-roles-datalist"
-                    placeholder="Responsable de la tarea (ABM)"
+                  <select
+                    disabled={isReadOnly || isComments}
                     value={data.responsible || ''}
                     onChange={(e) => handleUpdate({ responsible: e.target.value })}
                     className="w-full bg-theme-surface-subtle border border-theme-border rounded px-2 py-1 text-theme-text text-xs focus:border-theme-accent outline-none mt-0.5"
-                  />
+                  >
+                    <option value="">- Sin responsable -</option>
+                    {data.responsible && !(currentProject.catalogs?.responsibles || []).includes(data.responsible) && (
+                      <option value={data.responsible}>{data.responsible}</option>
+                    )}
+                    {(currentProject.catalogs?.responsibles || []).map((r) => (
+                      <option key={r} value={r}>{r}</option>
+                    ))}
+                  </select>
                 );
               })()}
             </div>
           </div>
+
+          {/* Marco */}
           <div>
-            <label className="text-[10px] font-bold uppercase tracking-wider text-theme-text-muted font-mono flex items-center space-x-1">
-              <Scale className="w-3 h-3 text-[#F59E0B] mr-1" />
-              <span>Marco</span>
-            </label>
-            <input
-              type="text"
-              list="abm-normatives-datalist"
-              placeholder="Norma, instructivo o procedimiento (ABM)"
+            <div className="flex items-center justify-between">
+              <label className="text-[10px] font-bold uppercase tracking-wider text-theme-text-muted font-mono flex items-center space-x-1">
+                <Scale className="w-3 h-3 text-[#F59E0B] mr-1" />
+                <span>Marco</span>
+              </label>
+              {!isReadOnly && !isComments && (
+                <button
+                  type="button"
+                  onClick={() => setIsAddingFramework(!isAddingFramework)}
+                  title="Añadir nuevo marco normativo al proceso"
+                  className="p-0.5 rounded text-[#F59E0B] hover:bg-amber-500/20 transition-colors"
+                >
+                  <Plus className="w-3 h-3" />
+                </button>
+              )}
+            </div>
+            {isAddingFramework && (
+              <div className="flex items-center space-x-1 mt-1 mb-1 bg-theme-surface p-1 rounded-lg border border-amber-500/40 animate-fadeIn">
+                <input
+                  type="text"
+                  placeholder="Norma o marco..."
+                  value={newFrameworkInput}
+                  onChange={(e) => setNewFrameworkInput(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') handleSaveNewFramework(); }}
+                  className="w-full bg-transparent px-1.5 py-0.5 text-xs text-theme-text outline-none"
+                  autoFocus
+                />
+                <button
+                  type="button"
+                  onClick={handleSaveNewFramework}
+                  className="px-2 py-0.5 bg-amber-500 text-slate-900 text-[10px] font-bold rounded"
+                >
+                  +
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setIsAddingFramework(false); setNewFrameworkInput(''); }}
+                  className="px-1 text-theme-text-muted hover:text-theme-text text-[10px]"
+                >
+                  ✕
+                </button>
+              </div>
+            )}
+            <select
+              disabled={isReadOnly || isComments}
               value={data.legalFramework || ''}
               onChange={(e) => handleUpdate({ legalFramework: e.target.value })}
               className="w-full bg-theme-surface-subtle border border-theme-border rounded px-2 py-1 text-theme-text text-xs focus:border-theme-accent outline-none mt-0.5"
-            />
+            >
+              <option value="">- Sin marco normativo -</option>
+              {data.legalFramework && !(currentProject.catalogs?.frameworks || []).includes(data.legalFramework) && (
+                <option value={data.legalFramework}>{data.legalFramework}</option>
+              )}
+              {(currentProject.catalogs?.frameworks || []).map((f) => (
+                <option key={f} value={f}>{f}</option>
+              ))}
+            </select>
           </div>
+
+          {/* Link / Enlace Web con selector y botón + */}
           <div>
-            <label className="text-[10px] font-bold uppercase tracking-wider text-theme-text-muted font-mono flex items-center space-x-1">
-              <Link2 className="w-3 h-3 text-sky-400 mr-1" />
-              <span>Link / Enlace Web</span>
-            </label>
+            <div className="flex items-center justify-between">
+              <label className="text-[10px] font-bold uppercase tracking-wider text-theme-text-muted font-mono flex items-center space-x-1">
+                <Link2 className="w-3 h-3 text-sky-400 mr-1" />
+                <span>Link / Enlace Web</span>
+              </label>
+              {!isReadOnly && !isComments && (
+                <button
+                  type="button"
+                  onClick={() => setIsAddingLink(!isAddingLink)}
+                  title="Añadir nuevo link guardado con nombre y URL"
+                  className="p-0.5 rounded text-sky-400 hover:bg-sky-400/20 transition-colors"
+                >
+                  <Plus className="w-3 h-3" />
+                </button>
+              )}
+            </div>
+
+            {isAddingLink && (
+              <div className="p-2 mt-1 mb-1.5 bg-theme-surface rounded-xl border border-sky-500/40 space-y-1.5 animate-fadeIn">
+                <input
+                  type="text"
+                  placeholder="Nombre del enlace (ej: Portal Trámites)..."
+                  value={newLinkNameInput}
+                  onChange={(e) => setNewLinkNameInput(e.target.value)}
+                  className="w-full bg-theme-surface-subtle border border-theme-border rounded px-2 py-1 text-xs text-theme-text outline-none focus:border-sky-400"
+                  autoFocus
+                />
+                <input
+                  type="text"
+                  placeholder="URL (ej: https://...)..."
+                  value={newLinkUrlInput}
+                  onChange={(e) => setNewLinkUrlInput(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') handleSaveNewLink(); }}
+                  className="w-full bg-theme-surface-subtle border border-theme-border rounded px-2 py-1 text-xs text-theme-text outline-none focus:border-sky-400"
+                />
+                <div className="flex justify-end space-x-1.5 pt-0.5">
+                  <button
+                    type="button"
+                    onClick={() => { setIsAddingLink(false); setNewLinkNameInput(''); setNewLinkUrlInput(''); }}
+                    className="px-2 py-0.5 text-theme-text-muted hover:text-theme-text text-[11px]"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSaveNewLink}
+                    className="px-2.5 py-0.5 bg-sky-500 hover:bg-sky-600 text-white font-bold text-[11px] rounded"
+                  >
+                    Guardar Link
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Selector de links guardados del proceso */}
+            <select
+              disabled={isReadOnly || isComments}
+              value={(currentProject.catalogs?.links || []).find(l => l.url === data.link)?.url || ''}
+              onChange={(e) => {
+                if (e.target.value) {
+                  handleUpdate({ link: e.target.value });
+                }
+              }}
+              className="w-full bg-theme-surface-subtle border border-theme-border rounded px-2 py-1 text-theme-text text-xs focus:border-theme-accent outline-none mt-0.5 mb-1"
+            >
+              <option value="">- Seleccionar enlace del proceso ({currentProject.catalogs?.links?.length || 0}) -</option>
+              {(currentProject.catalogs?.links || []).map((l) => (
+                <option key={l.name} value={l.url}>{l.name}</option>
+              ))}
+            </select>
+
             <div className="flex items-center space-x-1 mt-0.5">
               <input
                 type="text"
+                disabled={isReadOnly || isComments}
                 placeholder="https://ejemplo.com/recurso"
                 value={data.link || ''}
                 onChange={(e) => handleUpdate({ link: e.target.value })}

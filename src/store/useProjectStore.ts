@@ -146,29 +146,7 @@ export const useProjectStore = create<ProjectStoreState>((set, get) => ({
           lanes: []
         }
       ],
-      nodes: [
-        {
-          id: 'node_start',
-          type: 'StartEvent',
-          position: { x: 320, y: 50 },
-          data: {
-            standardId: 'INI-01',
-            title: 'Inicio del Proceso',
-            description: '',
-            nodeType: 'StartEvent',
-            laneId: '',
-            laneName: '',
-            roleName: '',
-            responsible: '',
-            itSystem: '',
-            legalFramework: '',
-            inputs: [],
-            outputs: [],
-            operationalRisks: [],
-            tags: ['Inicio']
-          }
-        }
-      ],
+      nodes: [],
       edges: []
     };
 

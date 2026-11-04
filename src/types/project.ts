@@ -61,6 +61,18 @@ export interface ProjectDocumentControl {
   manualMetadata?: ProcessManualMetadata;
 }
 
+export interface ProcessCatalogItemLink {
+  name: string;
+  url: string;
+}
+
+export interface ProcessCatalogs {
+  tools?: string[];
+  responsibles?: string[];
+  frameworks?: string[];
+  links?: ProcessCatalogItemLink[];
+}
+
 export interface ProcessProjectFile {
   schemaVersion: '1.0.0';
   documentControl: ProjectDocumentControl;
@@ -69,6 +81,7 @@ export interface ProcessProjectFile {
   edges: Edge<SequenceFlowData>[];
   printFrames?: PrintFrame[];
   documentationVault?: ProcessDocumentationVault;
+  catalogs?: ProcessCatalogs;
   fileName?: string; // e.g. "2026-09-01_proc-tribunal-faltas-v1.json"
 }
 

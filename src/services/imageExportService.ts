@@ -211,8 +211,8 @@ export function generateProcessSvg(project: ProcessProjectFile): string {
         const diamondSize = 64;
         const diamondTop = y + 4;
         const diamondCenter = diamondTop + diamondSize / 2;
-        const strokeColor = nodeData.customBorderColor || '#F59E0B';
         const isParallel = node.type?.includes('Parallel');
+        const strokeColor = nodeData.customBorderColor || (isParallel ? '#8B5CF6' : '#F59E0B');
 
         const pillW = Math.max(110, Math.min(w, 140));
         const pillH = Math.max(38, h - diamondSize - 10);
@@ -226,15 +226,15 @@ export function generateProcessSvg(project: ProcessProjectFile): string {
     ${
       isParallel
         ? `<!-- Plus icon -->
-    <line x1="${cx}" y1="${diamondCenter - 10}" x2="${cx}" y2="${diamondCenter + 10}" stroke="#F59E0B" stroke-width="3" stroke-linecap="round" />
-    <line x1="${cx - 10}" y1="${diamondCenter}" x2="${cx + 10}" y2="${diamondCenter}" stroke="#F59E0B" stroke-width="3" stroke-linecap="round" />`
+    <line x1="${cx}" y1="${diamondCenter - 10}" x2="${cx}" y2="${diamondCenter + 10}" stroke="#8B5CF6" stroke-width="3" stroke-linecap="round" />
+    <line x1="${cx - 10}" y1="${diamondCenter}" x2="${cx + 10}" y2="${diamondCenter}" stroke="#8B5CF6" stroke-width="3" stroke-linecap="round" />`
         : `<!-- X icon -->
     <line x1="${cx - 8}" y1="${diamondCenter - 8}" x2="${cx + 8}" y2="${diamondCenter + 8}" stroke="#F59E0B" stroke-width="3" stroke-linecap="round" />
     <line x1="${cx + 8}" y1="${diamondCenter - 8}" x2="${cx - 8}" y2="${diamondCenter + 8}" stroke="#F59E0B" stroke-width="3" stroke-linecap="round" />`
     }
     <!-- Label Pill under Diamond -->
     <rect x="${pillX}" y="${pillY}" width="${pillW}" height="${pillH}" rx="6" fill="#1E293B" stroke="#334155" stroke-width="1" />
-    <text x="${cx}" y="${pillY + 13}" text-anchor="middle" fill="#F59E0B" font-size="9" font-weight="bold" font-family="monospace">${escapeXml(idCode || (isParallel ? 'PAR' : 'GTW'))}</text>
+    <text x="${cx}" y="${pillY + 13}" text-anchor="middle" fill="${isParallel ? '#8B5CF6' : '#F59E0B'}" font-size="9" font-weight="bold" font-family="monospace">${escapeXml(idCode || (isParallel ? 'PAR' : 'GTW'))}</text>
     ${titleLines[0] ? `<text x="${cx}" y="${pillY + 24}" text-anchor="middle" fill="#F8FAFC" font-size="9.5" font-weight="500">${escapeXml(titleLines[0])}</text>` : ''}
     ${titleLines[1] ? `<text x="${cx}" y="${pillY + 34}" text-anchor="middle" fill="#F8FAFC" font-size="9.5" font-weight="500">${escapeXml(titleLines[1])}</text>` : ''}
   </g>\n`;
@@ -250,15 +250,20 @@ export function generateProcessSvg(project: ProcessProjectFile): string {
           headerBg = '#6366F1';
           headerTextColor = '#A5B4FC';
           badgeLabel = 'Subproceso';
-        } else if (nodeData.nodeType === 'SERVICE_TASK') {
-          strokeColor = '#06B6D4';
-          headerBg = '#06B6D4';
-          headerTextColor = '#67E8F9';
+        } else if (node.type === 'QualityCheckpointEvent' || nodeData.nodeType === 'QUALITY_CHECKPOINT') {
+          strokeColor = '#D946EF';
+          headerBg = '#D946EF';
+          headerTextColor = '#F0ABFC';
+          badgeLabel = 'Control Calidad';
+        } else if (node.type === 'ServiceTask' || nodeData.nodeType === 'SERVICE_TASK') {
+          strokeColor = '#0D9488';
+          headerBg = '#0D9488';
+          headerTextColor = '#2DD4BF';
           badgeLabel = 'Service Task';
-        } else if (nodeData.nodeType === 'MANUAL_TASK') {
-          strokeColor = '#F59E0B';
-          headerBg = '#F59E0B';
-          headerTextColor = '#FCD34D';
+        } else if (node.type === 'ManualTask' || nodeData.nodeType === 'MANUAL_TASK') {
+          strokeColor = '#EA580C';
+          headerBg = '#EA580C';
+          headerTextColor = '#FB923C';
           badgeLabel = 'Manual Task';
         }
 

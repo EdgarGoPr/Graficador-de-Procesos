@@ -880,13 +880,21 @@ function generateExcel() {
       fechaImplementacion: '2026-10-30',
       estado: 'Implementado / Producción'
     },
-    {    },
     {
       id: 'PST-099',
       modulo: 'Matriz de Permisos RBAC & Dashboard de Proyectos',
       titulo: 'Sincronización asíncrona de permisos de usuario desde Neon PostgreSQL para soporte multidispositivo (Mobile / Desktop)',
       historiaUsuario: 'Como usuario del sistema, quiero que al iniciar sesión desde cualquier dispositivo (celular, tablet o computadora) mis permisos asignados a proyectos se consulten directamente desde la base de datos en la nube (Neon) en lugar de depender del localStorage local de la PC de desarrollo, para ver y acceder inmediatamente a mis procesos asignados sin discrepancias.',
       criteriosAceptacion: '1. PermissionService.getAssignedProjectFileNames(user) consulta asíncronamente los permisos en Neon PostgreSQL.\n2. PermissionService almacena en caché en memoria los permisos de Neon para que métodos sincrónicos como getUserPermissionForProject resuelvan con los datos de la nube.\n3. ProjectDashboard consulta asíncronamente los proyectos asignados al usuario en su ciclo de vida y actualiza su estado.\n4. Los usuarios regulares visualizan sus procesos asignados en cualquier dispositivo nuevo o sin localStorage previo.\n5. Compilación TypeScript limpia con 0 advertencias y 0 errores.',
+      fechaImplementacion: '2026-11-04',
+      estado: 'Implementado / Producción'
+    },
+    {
+      id: 'PST-100',
+      modulo: 'Experiencia de Modelado, Catálogos Extensibles, Navegación de Subprocesos y Auditoría de Presencia en Tiempo Real',
+      titulo: 'Optimización de lienzo vacío inicial, catálogos ampliables con +, navegación ágil de subprocesos, paleta distintiva BPMN y auditoría de presencia con bloqueo dinámico',
+      historiaUsuario: 'Como modelador y administrador de ProcesStudio, quiero iniciar nuevos procesos y subprocesos con un lienzo 100% limpio sin nodos iniciales precreados, disponer de selectores independientes y ampliables con [+] en Herramienta, Responsable, Marco y Links, navegar y comprimir/descomprimir subprocesos de manera intuitiva y sin botones invasivos en la tarjeta, contar con colores distintivos por tipo de nodo BPMN, y disponer de una auditoría visual de presencia de usuarios (verde activo con bloqueo de lienzo, amarillo inactivo liberando el lienzo y rojo desconectado) en la consola de administración.',
+      criteriosAceptacion: '1. Eliminación del nodo INI por defecto: nuevos procesos y subprocesos inician con lienzo completamente vacío (nodes: [], edges: []).\n2. Selectores independientes y ampliables con botón [+] para Herramienta, Responsable y Marco normativo por proceso en PropertiesPanel con almacenamiento en project.catalogs.\n3. Selector ampliable para Link con nombre descriptivo y URL, permitiendo agregar vínculos con botón [+].\n4. Eliminación de pestaña y configuración de Gemini AI en el modal de Bóveda Documental.\n5. Generador inteligente de diagramas admite texto libre o extracción de documentos adjuntos (PDF, DOCX, TXT) sin plantilla prearmada obligatoria.\n6. Viñeta/tooltip informativo con título y nivel al pasar el cursor sobre procesos en SubProcessBreadcrumbs.\n7. Acceso directo al proyecto haciendo clic en el título de la tarjeta en el Dashboard de Proyectos.\n8. Traslado exclusivo del botón Descomprimir a las propiedades de la tarjeta Subproceso, eliminando botones Detalle, Ingresar y Descomprimir del cuerpo de la tarjeta.\n9. Barra flotante con opción [+] "Comprimir en subproceso" al seleccionar múltiples tarjetas en el lienzo.\n10. Doble clic en nodos FIN (EndEvent) retorna inmediatamente al proceso contenedor padre.\n11. Paleta de colores predeterminados distintiva por tipo de nodo BPMN (ServiceTask teal, ManualTask orange, ExclusiveGateway amber, ParallelGateway purple, QualityCheckpoint fuchsia) con fidelidad en exportaciones SVG/PNG/PDF.\n12. Auditoría de presencia de usuarios en tiempo real en Consola de Administración (verde <5 min en actividad con bloqueo dinámico de lienzo, amarillo >=5 min inactivo con desbloqueo de lienzo, rojo desconectado).',
       fechaImplementacion: '2026-11-04',
       estado: 'Implementado / Producción'
     }

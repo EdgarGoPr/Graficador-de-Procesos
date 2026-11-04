@@ -17,8 +17,10 @@ import {
   SYSTEM_MODULE_LABELS,
   SystemModuleKey,
   UserAccessRequest,
-  UserRole
+  UserRole,
+  UserPresenceInfo
 } from '../../types/auth';
+import { PresenceService } from '../../services/presenceService';
 import {
   Shield,
   Users,
@@ -94,25 +96,38 @@ export const AdminConsoleModal: React.FC = () => {
     userToEdit: null
   });
 
+  const [presenceMap, setPresenceMap] = useState<Map<string, UserPresenceInfo>>(new Map());
+
   useEffect(() => {
     if (isAdminConsoleOpen && currentUser?.role === 'ADMIN') {
       loadAllData();
+      const interval = setInterval(async () => {
+        try {
+          const pres = await PresenceService.getAllUsersPresence();
+          setPresenceMap(pres);
+        } catch {
+          // ignore
+        }
+      }, 12000);
+      return () => clearInterval(interval);
     }
   }, [isAdminConsoleOpen, currentUser]);
 
   const loadAllData = async () => {
     setIsLoading(true);
     try {
-      const [uList, rList, pList, lList] = await Promise.all([
+      const [uList, rList, pList, lList, pres] = await Promise.all([
         AuthService.listUsers(),
         AuthService.listAccessRequests(),
         PermissionService.listAllPermissions(),
-        AuditLoggerService.queryLogs({ limit: 200 })
+        AuditLoggerService.queryLogs({ limit: 200 }),
+        PresenceService.getAllUsersPresence()
       ]);
       setUsers(uList);
       setRequests(rList);
       setPermissions(pList);
       setAuditLogs(lList);
+      setPresenceMap(pres);
 
       if (uList.length > 0 && !selectedUserForPerms) {
         setSelectedUserForPerms(uList[0].id);
@@ -457,12 +472,17 @@ export const AdminConsoleModal: React.FC = () => {
                       <th className="p-3">Área</th>
                       <th className="p-3">Rol</th>
                       <th className="p-3">Estado</th>
+                      <th className="p-3 text-center">Actividad</th>
                       <th className="p-3">Reseteo</th>
                       <th className="p-3 text-right">Acciones</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-theme-border">
-                    {users.map(u => (
+                    {users.map(u => {
+                      const pres = presenceMap.get(u.id);
+                      const presState = pres?.state || 'DISCONNECTED';
+
+                      return (
                       <tr key={u.id} className="hover:bg-theme-bg/30 transition-colors">
                         <td className="p-3">
                           <p className="font-semibold text-theme-text">{u.fullName}</p>
@@ -490,6 +510,48 @@ export const AdminConsoleModal: React.FC = () => {
                           >
                             {u.status}
                           </span>
+                        </td>
+                        <td className="p-3">
+                          {presState === 'ACTIVE' && (
+                            <div
+                              className="flex flex-col items-center justify-center gap-0.5"
+                              title={pres?.activeProjectTitle ? `En actividad en: ${pres.activeProjectTitle} (Lienzo bloqueado)` : 'En actividad (< 5 min) - Lienzo bloqueado'}
+                            >
+                              <div className="flex items-center gap-1.5">
+                                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-sm shadow-emerald-500/50 animate-pulse inline-block" />
+                                <span className="text-[11px] font-bold text-emerald-400">En actividad</span>
+                              </div>
+                              <span className="text-[10px] text-emerald-300/80">Lienzo bloqueado</span>
+                              {pres?.activeProjectTitle && (
+                                <span className="text-[9px] text-theme-text-muted truncate max-w-[120px] font-mono">
+                                  {pres.activeProjectTitle}
+                                </span>
+                              )}
+                            </div>
+                          )}
+                          {presState === 'INACTIVE' && (
+                            <div
+                              className="flex flex-col items-center justify-center gap-0.5"
+                              title="Inactivo: > 5 min sin movimientos (Lienzo desbloqueado)"
+                            >
+                              <div className="flex items-center gap-1.5">
+                                <span className="w-2.5 h-2.5 rounded-full bg-amber-400 shadow-sm shadow-amber-400/50 inline-block" />
+                                <span className="text-[11px] font-semibold text-amber-300">Inactivo</span>
+                              </div>
+                              <span className="text-[10px] text-amber-300/80">Lienzo libre</span>
+                            </div>
+                          )}
+                          {presState === 'DISCONNECTED' && (
+                            <div
+                              className="flex flex-col items-center justify-center gap-0.5"
+                              title="Desconectado del sistema"
+                            >
+                              <div className="flex items-center gap-1.5">
+                                <span className="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block" />
+                                <span className="text-[11px] text-rose-400/80">Desconectado</span>
+                              </div>
+                            </div>
+                          )}
                         </td>
                         <td className="p-3">
                           {u.resetRequestStatus === 'REQUESTED' ? (
@@ -556,7 +618,8 @@ export const AdminConsoleModal: React.FC = () => {
                           )}
                         </td>
                       </tr>
-                    ))}
+                    );
+                    })}
                   </tbody>
                 </table>
               </div>

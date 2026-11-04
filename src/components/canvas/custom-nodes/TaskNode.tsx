@@ -24,8 +24,8 @@ export const TaskNode = memo(({ data, selected }: NodeProps<any>) => {
   const typeConfig = isUserTask
     ? { icon: User, label: 'User Task', color: 'border-sky-500/40', badge: 'bg-sky-500/10 text-sky-400 border border-sky-500/25', headerBg: 'from-sky-500/10' }
     : isServiceTask
-    ? { icon: Cpu, label: 'Service Task', color: 'border-cyan-500/40', badge: 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/25', headerBg: 'from-cyan-500/10' }
-    : { icon: Wrench, label: 'Manual Task', color: 'border-amber-500/40', badge: 'bg-amber-500/10 text-amber-400 border border-amber-500/25', headerBg: 'from-amber-500/10' };
+    ? { icon: Cpu, label: 'Service Task', color: 'border-teal-500/40', badge: 'bg-teal-500/10 text-teal-400 border border-teal-500/25', headerBg: 'from-teal-500/10' }
+    : { icon: Wrench, label: 'Manual Task', color: 'border-orange-500/40', badge: 'bg-orange-500/10 text-orange-400 border border-orange-500/25', headerBg: 'from-orange-500/10' };
 
   const Icon = typeConfig.icon;
   const hasRisks = nodeData.operationalRisks && nodeData.operationalRisks.length > 0;

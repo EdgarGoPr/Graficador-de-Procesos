@@ -26,8 +26,7 @@ import type { ProcessProjectFile } from '../types/project';
 import {
   getCurrentProcessInfo,
   getNextSubProcessCode,
-  formatHierarchicalStandardId,
-  getAllProjectProcesses
+  formatHierarchicalStandardId
 } from '../services/processHierarchyService';
 
 export interface SubProcessPathItem {
@@ -76,87 +75,8 @@ export function getGraphForPath(
         data: se.data,
       }));
     } else {
-      // Empty or newly created subprocess: generate initial standard flow
-      const allProc = getAllProjectProcesses(project);
-      const matched = allProc.find((p) => p.id === subNode.id);
-      const procCode = subNode.data?.processCode || matched?.code || `P${(i + 2) < 10 ? '0' + (i + 2) : i + 2}`;
-      const lvlCode = `N${(i + 1) < 10 ? '0' + (i + 1) : i + 1}`;
-
-      const startId = `start_${subNode.id}_${Date.now()}`;
-      const taskId = `task_${subNode.id}_${Date.now()}`;
-      const endId = `end_${subNode.id}_${Date.now()}`;
-      currentNodes = [
-        {
-          id: startId,
-          type: 'StartEvent',
-          position: { x: 100, y: 160 },
-          data: {
-            standardId: `${procCode}-${lvlCode}-INI-01`,
-            title: `Inicio de ${step.title}`,
-            description: 'Disparador formal de ingreso a este subproceso',
-            nodeType: 'StartEvent',
-            laneId: subNode.data.laneId || 'lane_1',
-            itSystem: subNode.data.itSystem || 'Gestión',
-            legalFramework: subNode.data.legalFramework || '',
-            inputs: [],
-            outputs: [],
-            operationalRisks: [],
-            tags: ['Subproceso'],
-          },
-        },
-        {
-          id: taskId,
-          type: 'UserTask',
-          position: { x: 280, y: 130 },
-          data: {
-            standardId: `${procCode}-${lvlCode}-TSK-01`,
-            title: 'Ejecución de Etapa Principal',
-            description: 'Procedimiento operativo interno',
-            nodeType: 'UserTask',
-            laneId: subNode.data.laneId || 'lane_1',
-            itSystem: subNode.data.itSystem || 'Gestión',
-            legalFramework: subNode.data.legalFramework || '',
-            inputs: [],
-            outputs: [],
-            operationalRisks: [],
-            tags: ['Subproceso'],
-          },
-        },
-        {
-          id: endId,
-          type: 'EndEvent',
-          position: { x: 560, y: 160 },
-          data: {
-            standardId: `${procCode}-${lvlCode}-FIN-01`,
-            title: `Fin de ${step.title}`,
-            description: 'Culminación de la etapa',
-            nodeType: 'EndEvent',
-            laneId: subNode.data.laneId || 'lane_1',
-            itSystem: subNode.data.itSystem || 'Gestión',
-            legalFramework: subNode.data.legalFramework || '',
-            inputs: [],
-            outputs: [],
-            operationalRisks: [],
-            tags: ['Subproceso'],
-          },
-        },
-      ];
-      currentEdges = [
-        {
-          id: `flow_${startId}_${taskId}`,
-          source: startId,
-          target: taskId,
-          type: 'sequenceFlow',
-          data: { id: `flow_${startId}_${taskId}`, source: startId, target: taskId },
-        },
-        {
-          id: `flow_${taskId}_${endId}`,
-          source: taskId,
-          target: endId,
-          type: 'sequenceFlow',
-          data: { id: `flow_${taskId}_${endId}`, source: taskId, target: endId },
-        },
-      ];
+      currentNodes = [];
+      currentEdges = [];
     }
   }
 

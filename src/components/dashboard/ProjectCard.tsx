@@ -120,7 +120,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
         </div>
 
         <div className="flex items-start justify-between gap-1 mb-2">
-          <h3 className="text-base font-bold text-theme-text group-hover:text-theme-accent transition-colors line-clamp-2 leading-snug flex-1">
+          <h3 onClick={() => onOpen(latest.fileName)} title={`Abrir proyecto ${group.documentTitle}`} className="text-base font-bold text-theme-text hover:text-theme-accent hover:underline transition-colors line-clamp-2 leading-snug flex-1 cursor-pointer">
             {group.documentTitle}
           </h3>
           {canManageParticipants && onEditMetadata && (

@@ -9,22 +9,16 @@ import {
   Square,
   Trash2,
   Plus,
-  Key,
-  CheckCircle2,
-  AlertCircle,
   Upload,
   Clock,
   Volume2,
   BookOpen,
   Info,
-  ShieldCheck,
   RefreshCw
 } from 'lucide-react';
 import { webAudioRecorder, AudioRecordingResult } from '../../services/webAudioRecorder';
 import {
-  AiRecommendationService,
-  getGeminiApiKey,
-  setGeminiApiKey
+  AiRecommendationService
 } from '../../services/aiRecommendationService';
 import { DocumentExtractorService } from '../../services/documentExtractorService';
 
@@ -37,7 +31,7 @@ export const ProcessDocumentationModal: React.FC = () => {
     updateDocumentationGlobalNotes
   } = useProjectStore();
 
-  const [activeTab, setActiveTab] = useState<'TEXTS' | 'AUDIOS' | 'SETTINGS'>('TEXTS');
+  const [activeTab, setActiveTab] = useState<'TEXTS' | 'AUDIOS'>('TEXTS');
 
   // Text Form State
   const [textTitle, setTextTitle] = useState('');
@@ -53,18 +47,13 @@ export const ProcessDocumentationModal: React.FC = () => {
   const [isTranscribing, setIsTranscribing] = useState(false);
 
   // Settings State
-  const [apiKeyInput, setApiKeyInput] = useState('');
-  const [isTestingKey, setIsTestingKey] = useState(false);
-  const [testResult, setTestResult] = useState<{ ok: boolean; message: string } | null>(null);
   const [isExtractingDocument, setIsExtractingDocument] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (isDocumentationModalOpen) {
-      setApiKeyInput(getGeminiApiKey());
       setGlobalNotes(currentProject?.documentationVault?.globalNotes || '');
-      setTestResult(null);
     }
   }, [isDocumentationModalOpen, currentProject]);
 
@@ -234,52 +223,6 @@ export const ProcessDocumentationModal: React.FC = () => {
     setRecordingSeconds(0);
   };
 
-  // --- Manejo de Configuración ---
-  const handleSaveApiKey = () => {
-    setGeminiApiKey(apiKeyInput.trim());
-    showNotification('Clave de API guardada localmente en tu navegador', 'success');
-    setTestResult(null);
-  };
-
-  const handleTestApiKey = async () => {
-    const keyToTest = apiKeyInput.trim();
-    if (!keyToTest) {
-      setTestResult({ ok: false, message: 'Ingresa una clave para probar.' });
-      return;
-    }
-
-    setIsTestingKey(true);
-    setTestResult(null);
-
-    try {
-      const res = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${keyToTest}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: 'Responde estrictamente con la palabra OK' }] }]
-          })
-        }
-      );
-
-      if (res.ok) {
-        setTestResult({ ok: true, message: '¡Conexión exitosa con Gemini 3.5 Flash!' });
-        setGeminiApiKey(keyToTest);
-      } else {
-        const errJson = await res.json().catch(() => null);
-        setTestResult({
-          ok: false,
-          message: errJson?.error?.message || `Error HTTP ${res.status}`
-        });
-      }
-    } catch (e: any) {
-      setTestResult({ ok: false, message: e.message || 'Error de red al conectar con Google API' });
-    } finally {
-      setIsTestingKey(false);
-    }
-  };
-
   const formatTimer = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -338,22 +281,6 @@ export const ProcessDocumentationModal: React.FC = () => {
           >
             <Mic className="w-4 h-4" />
             Notas de Audio & Voz ({audioItems.length})
-          </button>
-          <button
-            onClick={() => setActiveTab('SETTINGS')}
-            className={`pb-2.5 text-xs font-semibold flex items-center gap-2 border-b-2 transition-all ${
-              activeTab === 'SETTINGS'
-                ? 'border-violet-500 text-violet-400'
-                : 'border-transparent text-theme-text-muted hover:text-theme-text'
-            }`}
-          >
-            <Key className="w-4 h-4" />
-            Configuración Gemini AI
-            {getGeminiApiKey() ? (
-              <span className="w-2 h-2 rounded-full bg-emerald-400 inline-block" title="Clave configurada" />
-            ) : (
-              <span className="w-2 h-2 rounded-full bg-amber-400 inline-block" title="Clave requerida" />
-            )}
           </button>
         </div>
 
@@ -677,86 +604,6 @@ export const ProcessDocumentationModal: React.FC = () => {
                         </div>
                       </div>
                     ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* TAB 3: CONFIGURACIÓN GEMINI AI */}
-          {activeTab === 'SETTINGS' && (
-            <div className="space-y-6 max-w-2xl mx-auto">
-              {/* Explicación de Jerarquía */}
-              <div className="p-4 rounded-xl bg-gradient-to-r from-violet-500/10 to-indigo-500/10 border border-violet-500/25 space-y-2">
-                <div className="flex items-center gap-2 text-violet-400 font-bold text-xs uppercase tracking-wider">
-                  <ShieldCheck className="w-4 h-4" />
-                  Jerarquía Estricta de Verdad (Anti-Alucinaciones)
-                </div>
-                <p className="text-xs text-theme-text-muted leading-relaxed">
-                  Al solicitar una sugerencia en el menú radial, la IA consulta primero la documentación y audios cargados en esta bóveda (<strong>Nivel 1</strong>). Si no hay certidumbre suficiente o los datos divergen de la realidad del proceso, la IA arrojará transparentemente el mensaje <strong>&quot;No hay sugerencias&quot;</strong> antes que inventar un paso inexistente.
-                </p>
-              </div>
-
-              {/* Formulario de Clave */}
-              <div className="p-5 rounded-xl bg-theme-surface-subtle border border-theme-border space-y-4">
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-theme-text uppercase tracking-wider flex items-center justify-between">
-                    <span>Google Gemini API Key</span>
-                    {(import.meta as any).env?.VITE_GEMINI_API_KEY && (
-                      <span className="text-[10px] text-emerald-400 font-semibold lowercase">
-                        (detectada en .env)
-                      </span>
-                    )}
-                  </label>
-                  <p className="text-xs text-theme-text-muted">
-                    Se almacena de forma segura en el navegador local (`localStorage`) o se lee desde `VITE_GEMINI_API_KEY`.
-                  </p>
-                </div>
-
-                <div className="flex gap-2">
-                  <input
-                    type="password"
-                    value={apiKeyInput}
-                    onChange={(e) => setApiKeyInput(e.target.value)}
-                    placeholder="AIzaSy..."
-                    className="flex-1 text-xs px-3 py-2.5 rounded-lg bg-theme-surface border border-theme-border text-theme-text focus:outline-none focus:border-violet-500 font-mono"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleSaveApiKey}
-                    className="px-4 py-2.5 rounded-lg bg-theme-surface border border-theme-border hover:bg-theme-surface-hover text-theme-text text-xs font-semibold transition-colors"
-                  >
-                    Guardar
-                  </button>
-                  <button
-                    type="button"
-                    disabled={isTestingKey || !apiKeyInput}
-                    onClick={handleTestApiKey}
-                    className="px-4 py-2.5 rounded-lg bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white text-xs font-semibold transition-all flex items-center gap-1.5 disabled:opacity-50"
-                  >
-                    {isTestingKey ? (
-                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                    ) : (
-                      <CheckCircle2 className="w-3.5 h-3.5" />
-                    )}
-                    Probar Conexión
-                  </button>
-                </div>
-
-                {testResult && (
-                  <div
-                    className={`p-3 rounded-lg text-xs flex items-center gap-2 ${
-                      testResult.ok
-                        ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400'
-                        : 'bg-rose-500/10 border border-rose-500/30 text-rose-400'
-                    }`}
-                  >
-                    {testResult.ok ? (
-                      <CheckCircle2 className="w-4 h-4 shrink-0" />
-                    ) : (
-                      <AlertCircle className="w-4 h-4 shrink-0" />
-                    )}
-                    <span>{testResult.message}</span>
                   </div>
                 )}
               </div>

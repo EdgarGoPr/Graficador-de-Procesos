@@ -3,7 +3,7 @@ import { useCanvasStore } from '../../store/useCanvasStore';
 import { useProjectStore } from '../../store/useProjectStore';
 import { useUiStore } from '../../store/useUiStore';
 import { PRESET_THEMES } from '../../types/theme';
-import { getAllProjectProcesses, getCurrentProcessInfo } from '../../services/processHierarchyService';
+import { getAllProjectProcesses } from '../../services/processHierarchyService';
 import { Home, ChevronRight, Layers, ArrowLeft } from 'lucide-react';
 
 export const SubProcessBreadcrumbs: React.FC = () => {
@@ -14,6 +14,7 @@ export const SubProcessBreadcrumbs: React.FC = () => {
     navigateToSubProcessPath
   } = useCanvasStore();
   const { theme, currentThemeId, customThemeColors } = useUiStore();
+  const [hoveredProc, setHoveredProc] = React.useState<{ title: string; sigla: string; level: number } | null>(null);
 
   if (!currentProject) {
     return null;
@@ -26,14 +27,14 @@ export const SubProcessBreadcrumbs: React.FC = () => {
 
   // Get all processes in the project (P01N00, P02N01, P03N01...)
   const allProcesses = getAllProjectProcesses(currentProject);
-  const currentProcess = getCurrentProcessInfo(currentProject, subProcessPath);
   const isAtRoot = !subProcessPath || subProcessPath.length === 0;
 
   return (
-    <div
-      className="absolute top-3 left-4 z-30 flex items-center bg-theme-surface/95 border border-theme-border/80 backdrop-blur-md px-3.5 py-1.5 rounded-xl shadow-xl space-x-1.5 text-xs select-none animate-in fade-in slide-in-from-top-2 duration-200 max-w-[calc(100vw-360px)] overflow-x-auto no-scrollbar"
-      title="Navegación entre Procesos y Subprocesos Anidados"
-    >
+    <div className="absolute top-3 left-4 z-30 flex flex-col items-start gap-1 pointer-events-none">
+      <div
+        className="pointer-events-auto flex items-center bg-theme-surface/95 border border-theme-border/80 backdrop-blur-md px-3.5 py-1.5 rounded-xl shadow-xl space-x-1.5 text-xs select-none animate-in fade-in slide-in-from-top-2 duration-200 max-w-[calc(100vw-360px)] overflow-x-auto no-scrollbar"
+        title="Navegación entre Procesos y Subprocesos Anidados"
+      >
       {/* Botón Volver a la izquierda de P01N00 (PST-058) */}
       <button
         type="button"
@@ -98,6 +99,8 @@ export const SubProcessBreadcrumbs: React.FC = () => {
             {isCurrent ? (
               // Selected / Active Process: Expanded with Title and Level in High Contrast
               <span
+                onMouseEnter={() => setHoveredProc({ title: proc.title, sigla: proc.sigla, level: proc.level })}
+                onMouseLeave={() => setHoveredProc(null)}
                 className={`font-bold flex items-center space-x-1.5 px-3 py-1 rounded-lg border-2 shrink-0 shadow-md ${
                   isDark
                     ? 'bg-indigo-500/25 border-indigo-400 ring-2 ring-indigo-400/30'
@@ -129,14 +132,16 @@ export const SubProcessBreadcrumbs: React.FC = () => {
               // Ancestor Process in Lineage: Highlighted with high-contrast text and fading opacity as it generalizes
               <button
                 type="button"
+                onMouseEnter={() => setHoveredProc({ title: proc.title, sigla: proc.sigla, level: proc.level })}
+                onMouseLeave={() => setHoveredProc(null)}
                 onClick={() => navigateToSubProcessPath(proc.path)}
                 style={{
                   backgroundColor: `rgba(99, 102, 241, ${bgOpacity})`,
                   borderColor: isDark ? `rgba(129, 140, 248, ${borderOpacity})` : `rgba(79, 70, 229, ${borderOpacity})`,
                   color: isDark ? `rgba(224, 231, 255, ${textOpacity})` : `rgba(49, 46, 129, ${textOpacity})`,
                 }}
-                className="px-2.5 py-1 rounded-md border-2 transition-all flex items-center space-x-1 shrink-0 font-mono text-[11px] font-black hover:brightness-110 shadow-xs"
-                title={`Proceso contenedor (Nivel ${proc.level}) de ${currentProcess.sigla}. Clic para subir a este proceso.`}
+                className="px-2.5 py-1 rounded-md border-2 transition-all flex items-center space-x-1 shrink-0 font-mono text-[11px] font-black hover:brightness-110 shadow-xs cursor-pointer"
+                title={proc.title}
               >
                 {proc.level === 0 && <Home className={`w-3 h-3 mr-0.5 ${isDark ? 'text-indigo-200' : 'text-indigo-800'}`} />}
                 {proc.level > 0 && <Layers className={`w-3 h-3 mr-0.5 ${isDark ? 'text-indigo-200' : 'text-indigo-800'}`} />}
@@ -146,13 +151,15 @@ export const SubProcessBreadcrumbs: React.FC = () => {
               // Unselected / Inactive Process: Concise neutral acronym with high contrast
               <button
                 type="button"
+                onMouseEnter={() => setHoveredProc({ title: proc.title, sigla: proc.sigla, level: proc.level })}
+                onMouseLeave={() => setHoveredProc(null)}
                 onClick={() => navigateToSubProcessPath(proc.path)}
-                className={`px-2 py-1 rounded-md border transition-all flex items-center space-x-1 shrink-0 font-mono text-[11px] font-bold ${
+                className={`px-2 py-1 rounded-md border transition-all flex items-center space-x-1 shrink-0 font-mono text-[11px] font-bold cursor-pointer ${
                   isDark
                     ? 'text-slate-300 hover:text-indigo-300 hover:bg-white/10 border-transparent hover:border-slate-600'
                     : 'text-slate-700 hover:text-indigo-700 hover:bg-slate-200/70 border-transparent hover:border-slate-300'
                 }`}
-                title={`Ir a ${proc.title} (Nivel ${proc.level})`}
+                title={proc.title}
               >
                 {proc.level === 0 && <Home className="w-3 h-3 mr-0.5 opacity-80" />}
                 {proc.level > 0 && <Layers className="w-3 h-3 mr-0.5 opacity-80" />}
@@ -162,6 +169,18 @@ export const SubProcessBreadcrumbs: React.FC = () => {
           </React.Fragment>
         );
       })}
+      </div>
+
+      {/* Viñeta flotante de título en hover */}
+      {hoveredProc && (
+        <div className="pointer-events-none px-3 py-1.5 rounded-lg bg-slate-900/95 border border-indigo-500/50 shadow-2xl backdrop-blur-md text-white text-xs font-semibold animate-in fade-in slide-in-from-top-1 duration-150 flex items-center space-x-2">
+          <span className="px-1.5 py-0.5 rounded bg-indigo-500/30 text-indigo-300 font-mono text-[10px] font-bold">
+            {hoveredProc.sigla}
+          </span>
+          <span className="font-bold text-slate-100">{hoveredProc.title}</span>
+          <span className="text-[10px] text-slate-400 font-mono">Nivel {hoveredProc.level}</span>
+        </div>
+      )}
     </div>
   );
 };

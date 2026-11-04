@@ -1594,3 +1594,169 @@ const assignedFileNames = React.useMemo(() => {
   4. Los usuarios regulares visualizan sus procesos asignados en cualquier dispositivo nuevo o sin `localStorage` previo.
   5. Compilación TypeScript limpia con 0 advertencias y 0 errores.
 - **Estado:** `Implementado / Producción`
+
+
+---
+
+## 26. Hoja de Ruta Técnica - Suite de Mejoras Operativas, Catálogos Extensibles, Navegación de Subprocesos y Auditoría de Presencia en Tiempo Real (`PST-100`)
+
+### 26.1. Diagnóstico y Alcance Técnico
+
+Se requiere implementar una batería integral de 12 mejoras funcionales y refinamientos operativos en ProcesStudio para optimizar la experiencia de modelado, la gobernanza de usuarios, el control de concurrencia y la interacción con subprocesos:
+
+1. **Eliminar nodo "INI" por defecto en nuevos procesos y subprocesos:**
+   - Actualmente, al crear un nuevo proyecto (`createNewProject`) o al navegar a un subproceso virgen (`getGraphForPath`), el sistema genera automáticamente un nodo `StartEvent` ("INI-01").
+   - **Requerimiento:** Al iniciar un nuevo proceso o subproceso de cualquier tipo, el lienzo debe iniciar **completamente vacío** (0 nodos y 0 conectores), permitiendo que el usuario modele desde cero sin nodos preinsertados.
+
+2. **Selectores ampliables con botón `+` para Herramientas, Responsable y Marco:**
+   - En el panel de propiedades lateral ([`PropertiesPanel.tsx`](file:///c:/Users/gonzalezdeprada_e/.gemini/antigravity-ide/scratch/Graficador-de-Procesos/src/components/layout/PropertiesPanel.tsx)), los campos Herramienta (`itSystem`), Responsable (`responsible`) y Marco (`legalFramework`) deben funcionar como selectores desplegables dinámicos.
+   - Cada proceso tendrá opciones **independientes y aisladas** almacenadas en su propia estructura de datos (`currentProject.catalogs`).
+   - Inicialmente, para cada proceso nuevo, no habrá opciones precargadas (listas vacías). El usuario podrá agregar nuevas opciones mediante un botón `+` contiguo que abre un ingreso rápido y selecciona inmediatamente el nuevo valor.
+
+3. **Selector para Link (con Nombre y URL):**
+   - El campo Link en el panel de propiedades debe incorporar un selector desplegable que liste los enlaces guardados para ese proceso por su **Nombre amigable** (ej. *"Manual de Calidad"*, *"Portal Web"*).
+   - Al seleccionar un link del selector, el campo URL se completa automáticamente.
+   - Se debe disponer de un botón `+` para dar de alta nuevos enlaces definidos por `{ name, url }`, quedando disponibles para todo el proceso.
+
+4. **Eliminar "Configuración Gemini AI" de la Bóveda Documental:**
+   - En el modal de Bóveda Documental ([`ProcessDocumentationModal.tsx`](file:///c:/Users/gonzalezdeprada_e/.gemini/antigravity-ide/scratch/Graficador-de-Procesos/src/components/documentation/ProcessDocumentationModal.tsx)), se debe remover la pestaña *"Configuración Gemini AI"* (que incluye la entrada de API Key y el panel de jerarquía estricta).
+   - La API Key de Gemini continuará resolviéndose de manera transparente a nivel de variables de entorno (`VITE_GEMINI_API_KEY`) sin exponer esta configuración en la bóveda de documentos del usuario.
+
+5. **Generador Inteligente de Diagramas BPMN (`TextToDiagramModal.tsx`):**
+   - Eliminar completamente la pestaña y sección *"Biblioteca de plantillas pre-armadas"*.
+   - El generador debe admitir dos fuentes de generación:
+     - a) **Texto escrito:** Entrada manual de descripción del proceso mediante texto estructurado o párrafos (iniciando en blanco).
+     - b) **Documentos cargados por el usuario:** Carga de archivos documentales (`.pdf`, `.docx`, `.txt`, `.md`) interpretados por el motor de IA para sintetizar las etapas y construir el diagrama BPMN.
+
+6. **Tooltip con Título en la Barra de Navegación de Procesos (`SubProcessBreadcrumbs.tsx`):**
+   - En la barra de migas de pan / navegación de procesos, al pasar el cursor (hover) por encima de cualquier proceso o subproceso, debe desplegarse una viñeta/tooltip emergente visible que muestre el **título completo del proceso**.
+
+7. **Acceso a Proyecto mediante Clic en el Título (`ProjectCard.tsx`):**
+   - En el catálogo de proyectos del Dashboard principal, permitir que el usuario ingrese a un proyecto haciendo clic directamente sobre el **título del proyecto** en la tarjeta, con cursor interactivo y estilo hover acentuado.
+
+8. **Botón Descomprimir en Propiedades y Remoción de Botones en Tarjeta de Subproceso:**
+   - En la tarjeta del lienzo ([`SubProcessNode.tsx`](file:///c:/Users/gonzalezdeprada_e/.gemini/antigravity-ide/scratch/Graficador-de-Procesos/src/components/canvas/custom-nodes/SubProcessNode.tsx)): Eliminar los botones *"Descomprimir"*, *"Detalle"* e *"Ingresar"*, manteniendo la tarjeta limpia. El ingreso al subproceso se realizará por doble clic o mediante el icono estándar BPMN `[+]`.
+   - En el panel de propiedades ([`PropertiesPanel.tsx`](file:///c:/Users/gonzalezdeprada_e/.gemini/antigravity-ide/scratch/Graficador-de-Procesos/src/components/layout/PropertiesPanel.tsx)): Al seleccionar un nodo de tipo Subproceso, se habilitará el botón exclusivo *"Descomprimir Subproceso"*.
+
+9. **Comprimir en Subproceso con Botón `+` en Selección Múltiple:**
+   - Al seleccionar varias tarjetas en el lienzo (`selectedNodeIds.length > 1`), se debe desplegar una acción rápida con un botón `+` y la opción *"Comprimir en subproceso"*, abriendo el modal de compresión jerárquica ([`CompressSubProcessModal.tsx`](file:///c:/Users/gonzalezdeprada_e/.gemini/antigravity-ide/scratch/Graficador-de-Procesos/src/components/modals/CompressSubProcessModal.tsx)).
+
+10. **Doble Clic en Nodo de Fin (`EndEvent`) para Volver al Proceso Anterior:**
+    - Al hacer doble clic sobre un nodo de fin (`EndEvent`), si el usuario se encuentra dentro de un subproceso (`subProcessPath.length > 0`), el sistema ejecutará automáticamente la acción de retorno ([`leaveSubProcess()`](file:///c:/Users/gonzalezdeprada_e/.gemini/antigravity-ide/scratch/Graficador-de-Procesos/src/store/useCanvasStore.ts)), regresando al proceso anterior y haciendo foco en la tarjeta del subproceso.
+
+11. **Paleta de Colores Predeterminados Distintivos por Tipo de Nodo:**
+    - Cada tipo de nodo BPMN debe contar con un color predeterminado único y distintivo, evitando similitudes cromáticas que puedan generar confusión:
+      - `StartEvent`: Verde Esmeralda (`#10B981`)
+      - `EndEvent`: Rojo Carmesí (`#EF4444`)
+      - `UserTask`: Azul Cielo (`#0284C7`)
+      - `ServiceTask`: Verde Azulado / Teal (`#0D9488` / `#14B8A6`)
+      - `ManualTask`: Naranja Intenso (`#EA580C` / `#F97316`)
+      - `SubProcess`: Índigo / Azul Real (`#6366F1`)
+      - `ExclusiveGateway`: Amarillo Ámbar / Oro (`#F59E0B`)
+      - `ParallelGateway`: Púrpura / Violeta (`#8B5CF6`)
+      - `QualityCheckpointEvent`: Rosa Fucsia (`#D946EF`)
+      - `TimerBoundaryEvent`: Amarillo Mostaza (`#EAB308`)
+      - `StickyNote`: Amarillo Post-It (`#FEF08A`)
+    - Sincronizar estos colores en el renderizado del lienzo y en los módulos de exportación vectorial, PNG de 300 DPI y PDF de láminas.
+
+12. **Auditoría de Presencia de Usuarios y Control de Concurrencia Dinámica:**
+    - En **Consola de Administración -> Usuarios y Claves**:
+      - 🟢 **Círculo Verde ("En actividad"):** El usuario está logueado y registró interacción hace menos de 5 minutos (`Date.now() - lastActionAt < 5 min`).
+        - *Impacto en concurrencia:* El lienzo en el que está trabajando queda **bloqueado para otros usuarios**.
+      - 🟡 **Círculo Amarillo ("Inactivo"):** El usuario está logueado pero no ha realizado ningún movimiento o acción en los últimos 5 minutos (`Date.now() - lastActionAt >= 5 min`).
+        - *Impacto en concurrencia:* El lienzo **se desbloquea**, permitiendo que otro usuario adquiera el candado de edición si desea trabajar en él.
+      - 🔴 **Círculo Rojo ("Desconectado"):** El usuario no tiene sesión iniciada o cerró el sistema.
+    - Sincronización continua de presencia y latidos de inactividad entre el cliente web, `ConcurrencyLockService` y Neon PostgreSQL.
+
+---
+
+### 26.2. Plan de Intervención Arquitectónica
+
+#### Módulo 1: Limpieza de Nodos Iniciales (Ítem 1)
+- **`src/store/useProjectStore.ts` (`createNewProject`):** Modificar la inicialización del objeto `ProcessProjectFile` asignando `nodes: []` y `edges: []`.
+- **`src/store/useCanvasStore.ts` (`getGraphForPath`):** En el bloque de fallback para subprocesos recién creados o vacíos, retornar `{ nodes: [], edges: [] }` en lugar de generar un StartEvent, Task y EndEvent ficticios.
+
+#### Módulo 2: Catálogos Extensibles por Proceso y Selector de Enlaces (Ítems 2 y 3)
+- **`src/types/project.ts`:**
+  - Agregar la interfaz `ProcessCatalogs`:
+    ```typescript
+    export interface ProcessCatalogItemLink {
+      name: string;
+      url: string;
+    }
+    export interface ProcessCatalogs {
+      tools?: string[];
+      responsibles?: string[];
+      frameworks?: string[];
+      links?: ProcessCatalogItemLink[];
+    }
+    ```
+  - Extender `ProcessProjectFile` con el campo opcional `catalogs?: ProcessCatalogs;`.
+- **`src/components/layout/PropertiesPanel.tsx`:**
+  - Implementar selectores desplegables para Herramienta, Responsable y Marco que consuman `project.catalogs`.
+  - Diseñar botón `+` en cada campo que despliegue un modal o popover ligero de ingreso rápido, guarde la opción en el catálogo del proyecto activo y la seleccione de inmediato.
+  - Implementar selector de Link que liste los nombres de los enlaces registrados (`project.catalogs.links`); al seleccionar uno, se rellena automáticamente el campo URL. Botón `+` para registrar un nuevo enlace `{ name, url }`.
+
+#### Módulo 3: Refinamiento de Bóveda Documental y Generador Inteligente (Ítems 4 y 5)
+- **`src/components/documentation/ProcessDocumentationModal.tsx`:**
+  - Remover la pestaña `Configuración Gemini AI` de la navegación de pestañas y del cuerpo condicional.
+  - Mantener exclusivamente las pestañas "Documentación Escrita" y "Notas de Audio & Voz".
+- **`src/components/modals/TextToDiagramModal.tsx`:**
+  - Eliminar la pestaña *"Biblioteca de Plantillas Pre-Armadas"* y la constante `BUILTIN_TEMPLATES`.
+  - Inicializar el estado de texto en blanco.
+  - Añadir soporte de carga de archivos (PDF, DOCX, TXT, MD) con extracción de texto mediante `FileReader` e integración al prompt del generador de diagramas.
+
+#### Módulo 4: Mejoras de Navegación y Usabilidad (Ítems 6, 7, 8, 9 y 10)
+- **`src/components/canvas/SubProcessBreadcrumbs.tsx` (Ítem 6):**
+  - Implementar tooltip / viñeta enriquecida con el título completo del proceso al posar el cursor sobre cualquier elemento de la ruta jerárquica.
+- **`src/components/dashboard/ProjectCard.tsx` (Ítem 7):**
+  - Hacer clicable el título del proyecto (`group.documentTitle`), enlazándolo al manejador `onOpen(latest.fileName)`.
+- **`src/components/canvas/custom-nodes/SubProcessNode.tsx` & `PropertiesPanel.tsx` (Ítem 8):**
+  - En `SubProcessNode.tsx`: Eliminar los botones de pie de tarjeta "Descomprimir", "Detalle" e "Ingresar". Mantener navegación por doble clic y botón estándar BPMN `[+]`.
+  - En `PropertiesPanel.tsx`: Añadir el botón "Descomprimir Subproceso" en la sección de propiedades cuando un nodo `SubProcess` se encuentre seleccionado.
+- **`src/components/canvas/ProcessCanvas.tsx` / Barra de Herramientas (Ítem 9):**
+  - Al detectar selección múltiple (`selectedNodeIds.length > 1`), renderizar una barra contextual flotante con el botón `+` y la opción *"Comprimir en subproceso"* que abra `CompressSubProcessModal`.
+- **`src/components/canvas/ProcessCanvas.tsx` (Ítem 10):**
+  - En `handleNodeDoubleClick`: Si `node.type === 'EndEvent'` y `subProcessPath.length > 0`, disparar `leaveSubProcess()`.
+
+#### Módulo 5: Estandarización Cromática de Nodos BPMN (Ítem 11)
+- Actualizar los estilos base en `TaskNode.tsx` (`ServiceTask` a Teal, `ManualTask` a Orange), `GatewayNode.tsx` (`ParallelGateway` a Purple), `QualityCheckpointNode.tsx` (Fuchsia), y replicar dicha paleta en `imageExportService.ts` y `pdfDiagramExportService.ts`.
+
+#### Módulo 6: Auditoría de Presencia en Tiempo Real y Bloqueo por Actividad (Ítem 12)
+- **`src/types/auth.ts`:**
+  - Agregar tipos de presencia: `UserPresenceState ('ACTIVE' | 'INACTIVE' | 'DISCONNECTED')` y `UserPresenceInfo`.
+- **`src/services/concurrencyLockService.ts`:**
+  - Vincular la vigencia del candado a la actividad activa del usuario (< 5 minutos).
+  - Si el usuario pasa a estado inactivo (>= 5 minutos sin interacción), liberar o desasociar el candado para permitir que otro usuario edite.
+- **`src/services/authService.ts` / DDL Neon:**
+  - Actualizar `last_action_at` en base de datos o mediante latido de presencia cada 60 segundos.
+- **`src/components/admin/AdminConsoleModal.tsx` ("Usuarios y Claves"):**
+  - Añadir columna de presencia con indicador visual:
+    - 🟢 Círculo Verde: "En actividad" (última acción < 5 min; lienzo bloqueado).
+    - 🟡 Círculo Amarillo: "Inactivo" (sin movimientos hace 5 min; lienzo desbloqueado).
+    - 🔴 Círculo Rojo: "Desconectado" (sin sesión activa).
+
+---
+
+### 26.3. Registro de Historia de Usuario (`PST-100`)
+
+- **ID:** `PST-100`
+- **Módulo / Componente:** Suite Integral de Mejoras Operativas, Catálogos Extensibles, Navegación de Subprocesos y Auditoría de Presencia en Tiempo Real
+- **Título:** Optimización integral de experiencia de modelado, catálogos por proceso, descompresión/compresión de subprocesos y auditoría cromática de presencia y candados
+- **Historia de Usuario:** *Como usuario y administrador de ProcesStudio, quiero disponer de un lienzo limpio sin nodos por defecto al iniciar procesos, selectores dinámicos ampliables con `+` para herramientas, responsables, marcos y links independientes por proceso, una navegación más intuitiva en subprocesos con doble clic en eventos de fin y compresión rápida en selección múltiple, una paleta cromática distintiva por tipo de nodo, y una auditoría en tiempo real del estado de actividad de los usuarios en la consola de administración con liberación automática de candados a los 5 minutos de inactividad, para garantizar una experiencia de modelado profesional, ágil, consistente y colaborativamente segura.*
+- **Criterios de Aceptación:**
+  1. Nuevos proyectos y subprocesos inician con 0 nodos y 0 conectores (eliminado nodo "INI-01" automático).
+  2. Selectores independientes en cada proceso para Herramienta, Responsable y Marco con botón `+` para agregar nuevas opciones de forma inmediata.
+  3. Selector de Link con Nombre y URL que completa el campo al ser seleccionado, con botón `+` para registrar nuevos enlaces.
+  4. Pestaña "Configurar Gemini AI" removida de la Bóveda Documental.
+  5. Generador inteligente sin plantillas pre-armadas, con soporte para texto libre y carga de documentos interpretados por la IA.
+  6. Viñeta/tooltip con título completo visible al pasar el cursor sobre cualquier proceso en la barra de navegación.
+  7. Clic en el título de la tarjeta de proyecto en el Dashboard abre el proyecto directamente.
+  8. Botón "Descomprimir" reubicado exclusivamente en el panel de Propiedades del subproceso; botones "Descomprimir", "Detalle" e "Ingresar" removidos de la tarjeta en el lienzo.
+  9. Selección múltiple de tarjetas muestra botón `+` y la opción "Comprimir en subproceso", abriendo el modal de compresión.
+  10. Doble clic en nodo de fin dentro de un subproceso retorna al proceso contenedor y enfoca la tarjeta del subproceso.
+  11. Cada tipo de nodo posee un color predeterminado único y distintivo en lienzo y exportaciones (SVG, PNG, PDF).
+  12. Consola de Administración muestra indicadores de presencia: Verde (< 5 min activa, lienzo bloqueado), Amarillo (>= 5 min inactivo, lienzo desbloqueado), y Rojo (desconectado).
+  13. Compilación TypeScript estricta con 0 errores (`npm run build`).
+  14. Registro actualizado en `HISTORIAS_DE_USUARIO_PROCESSTUDIO.xlsx` y push automático a GitHub (`main`).
+- **Estado:** Implementado / Producción

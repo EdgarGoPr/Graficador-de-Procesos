@@ -147,6 +147,17 @@ export interface AppUser {
   updatedAt: string;
 }
 
+export type UserPresenceState = 'ACTIVE' | 'INACTIVE' | 'DISCONNECTED';
+
+export interface UserPresenceInfo {
+  userId: string;
+  state: UserPresenceState; // ACTIVE = verde (<5min activo, lienzo bloqueado), INACTIVE = amarillo (>=5min inactivo, lienzo liberado), DISCONNECTED = rojo
+  lastActionAt: string;
+  lastHeartbeatAt: string;
+  activeProjectFileName?: string | null;
+  activeProjectTitle?: string | null;
+}
+
 /**
  * Evalúa si un usuario tiene permiso para visualizar/acceder a un módulo del sistema (PST-090).
  * Los Administradores tienen acceso total siempre. Si un usuario existente no tiene allowedModules definido,

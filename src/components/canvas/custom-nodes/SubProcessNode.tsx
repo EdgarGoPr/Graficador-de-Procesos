@@ -3,17 +3,12 @@ import { Handle, Position, NodeProps, NodeResizer } from '@xyflow/react';
 import { BpmnNodeData } from '../../../types/process';
 import { hexToRgba } from '../../../types/theme';
 import { getNodeTextContrast } from '../../../utils/nodeContrast';
-import { useUiStore } from '../../../store/useUiStore';
 import { useCanvasStore } from '../../../store/useCanvasStore';
-import { useAuthStore } from '../../../store/useAuthStore';
-import { Layers, Maximize2, ListOrdered, FolderOpen, Plus, FolderInput, ExternalLink } from 'lucide-react';
+import { Layers, ListOrdered, Plus, ExternalLink } from 'lucide-react';
 
 export const SubProcessNode = memo(({ id, data, selected }: NodeProps<any>) => {
   const nodeData = data as BpmnNodeData;
-  const { openSubProcessDetail, showNotification } = useUiStore();
-  const { decompressSubProcess, enterSubProcess } = useCanvasStore();
-  const { currentCanvasPermission } = useAuthStore();
-  const canEdit = currentCanvasPermission !== 'READ_ONLY' && currentCanvasPermission !== 'COMMENTS';
+  const { enterSubProcess } = useCanvasStore();
 
   const handleOpenLink = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -27,23 +22,6 @@ export const SubProcessNode = memo(({ id, data, selected }: NodeProps<any>) => {
   const handleEnterSubProcess = (e: React.MouseEvent) => {
     e.stopPropagation();
     enterSubProcess(id);
-  };
-
-  const handleExpand = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    openSubProcessDetail(id);
-  };
-
-  const handleDecompress = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (window.confirm(`¿Desea descomprimir "${nodeData.title}" y desplegar sus etapas individuales en el lienzo?`)) {
-      const result = decompressSubProcess(id);
-      if (result.success) {
-        showNotification('Subproceso descomprimido en el lienzo', 'success');
-      } else {
-        showNotification(result.error || 'Error al descomprimir', 'error');
-      }
-    }
   };
 
   const stepsCount = nodeData.subProcessSteps?.length || 0;
@@ -143,48 +121,14 @@ export const SubProcessNode = memo(({ id, data, selected }: NodeProps<any>) => {
             )}
           </div>
 
-          {/* Steps indicator and Action Buttons */}
+          {/* Steps indicator */}
           <div
             style={{ borderColor: contrast.borderColor }}
             className="flex items-center justify-between pt-1.5 border-t text-[10px] overflow-hidden"
           >
             <div style={{ color: contrast.mutedColor }} className="flex items-center truncate">
               <ListOrdered className="w-3 h-3 mr-1 text-indigo-400 shrink-0" />
-              <span className="truncate">{stepsCount > 0 ? `${stepsCount} etapas` : 'Detalle'}</span>
-            </div>
-
-            <div className="flex items-center space-x-1 shrink-0">
-              {canEdit && stepsCount > 0 && (
-                <button
-                  type="button"
-                  onClick={handleDecompress}
-                  className="flex items-center space-x-0.5 px-1.5 py-0.5 rounded bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/25 text-[9px] font-medium transition-all"
-                  title="Descomprimir y desplegar actividades en el lienzo actual"
-                >
-                  <FolderOpen className="w-2.5 h-2.5" />
-                  <span>Descomprimir</span>
-                </button>
-              )}
-
-              <button
-                type="button"
-                onClick={handleExpand}
-                className="flex items-center space-x-0.5 px-1.5 py-0.5 rounded bg-theme-surface-subtle hover:bg-theme-surface text-theme-text-muted hover:text-theme-text border border-theme-border text-[9px] font-medium transition-all"
-                title="Ver resumen y propiedades del subproceso"
-              >
-                <Maximize2 className="w-2.5 h-2.5" />
-                <span>Detalle</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={handleEnterSubProcess}
-                className="flex items-center space-x-0.5 px-2 py-0.5 rounded bg-indigo-500/20 hover:bg-indigo-600 text-indigo-300 hover:text-white border border-indigo-500/40 text-[9px] font-semibold transition-all shadow-sm"
-                title="Ingresar y editar el diagrama interno de este subproceso (Doble clic)"
-              >
-                <FolderInput className="w-2.5 h-2.5" />
-                <span>Ingresar</span>
-              </button>
+              <span className="truncate">{stepsCount > 0 ? `${stepsCount} etapas` : 'Subproceso'}</span>
             </div>
           </div>
         </div>

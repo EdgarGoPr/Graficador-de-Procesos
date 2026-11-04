@@ -11,6 +11,7 @@ import {
   Node
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
+import { Plus } from 'lucide-react';
 
 import { useProjectStore } from '../../store/useProjectStore';
 import { useCanvasStore } from '../../store/useCanvasStore';
@@ -78,6 +79,8 @@ const ProcessCanvasInternal: React.FC = () => {
     selectedNodeId,
     selectedEdgeId,
     enterSubProcess,
+    leaveSubProcess,
+    setCompressModalOpen,
     getActiveGraph,
     isCanvasLocked,
     subProcessPath
@@ -161,9 +164,13 @@ const ProcessCanvasInternal: React.FC = () => {
     (_event: React.MouseEvent, node: any) => {
       if (node.type === 'SubProcess') {
         enterSubProcess(node.id);
+      } else if (node.type === 'EndEvent') {
+        if (subProcessPath && subProcessPath.length > 0) {
+          leaveSubProcess();
+        }
       }
     },
-    [enterSubProcess]
+    [enterSubProcess, leaveSubProcess, subProcessPath]
   );
 
   const onEdgeClick = useCallback(
@@ -577,6 +584,24 @@ const ProcessCanvasInternal: React.FC = () => {
       {!concurrencyConflictNotice && isComments && (
         <div className="absolute bottom-5 left-1/2 -translate-x-1/2 z-30 bg-amber-600/90 text-white text-[11px] font-semibold px-3 py-1 rounded-full shadow-lg border border-amber-400/40 backdrop-blur-md flex items-center space-x-1.5 pointer-events-none">
           <span>💬 Modo Comentarios (Solo Inserción de Notas Adhesivas)</span>
+        </div>
+      )}
+
+      {/* Floating Action for Multiple Selection: Comprimir en Subproceso (PST-100) */}
+      {selectedNodeIds.length > 1 && !isReadOnly && !isComments && (
+        <div className="absolute top-16 left-1/2 -translate-x-1/2 z-40 bg-slate-900/95 border border-indigo-500/50 shadow-2xl backdrop-blur-md px-3.5 py-2 rounded-xl flex items-center space-x-3 text-xs font-semibold animate-in fade-in slide-in-from-top-2 duration-200">
+          <span className="text-indigo-300 font-mono text-[11px]">
+            {selectedNodeIds.length} elementos seleccionados
+          </span>
+          <div className="w-[1px] h-4 bg-indigo-500/30" />
+          <button
+            type="button"
+            onClick={() => setCompressModalOpen(true)}
+            className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-md transition-all cursor-pointer"
+          >
+            <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+            <span>Comprimir en subproceso</span>
+          </button>
         </div>
       )}
 
