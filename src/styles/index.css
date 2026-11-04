@@ -224,3 +224,24 @@
 }
 
 
+
+/* Barra de Scroll Horizontal Personalizada para Breadcrumbs de Subprocesos (PST-103) */
+.breadcrumbs-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(99, 102, 241, 0.5) transparent;
+}
+.breadcrumbs-scrollbar::-webkit-scrollbar {
+  height: 4px;
+}
+.breadcrumbs-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 9999px;
+}
+.breadcrumbs-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(99, 102, 241, 0.45);
+  border-radius: 9999px;
+  transition: background-color 0.2s ease;
+}
+.breadcrumbs-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(99, 102, 241, 0.85);
+}

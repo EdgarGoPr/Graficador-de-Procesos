@@ -915,6 +915,15 @@ function generateExcel() {
       criteriosAceptacion: '1. Cada tarjeta e ícono en SidebarPalette.tsx adopta su color distintivo oficial: StartEvent (#10B981), EndEvent (#EF4444), UserTask (#0284C7), ServiceTask (#0D9488), ManualTask (#EA580C), SubProcess (#6366F1), QualityCheckpoint (#D946EF), Timer (#EAB308), ExclusiveGateway (#F59E0B), ParallelGateway (#8B5CF6), PoolLane (#38BDF8), StickyNote (#EAB308).\n2. Los estados hover y mini-dock colapsado replican fielmente la misma codificación cromática.\n3. Los menús radiales (RadialNodeMenu) y tarjetas de sugerencias IA (AiSuggestionCard) sincronizan los mismos tonos cromáticos.\n4. Compilación TypeScript estricta con 0 advertencias y 0 errores (npm run build).\n5. Registro actualizado en HISTORIAS_DE_USUARIO_PROCESSTUDIO.xlsx e incremento de versión a 2.4.9 (V 02.04.09).\n6. Commit y Auto-Push automático a GitHub (main).',
       fechaImplementacion: '2026-11-04',
       estado: 'Implementado / Producción'
+    },
+    {
+      id: 'PST-103',
+      modulo: 'Navegación de Subprocesos & UX del Lienzo (Breadcrumbs Navigation)',
+      titulo: 'Ancho acotado y desplazamiento horizontal con scrollbar y rueda del ratón en la barra de navegación de procesos',
+      historiaUsuario: 'Como modelador de procesos de ProcesStudio, quiero que la barra superior de navegación de procesos tenga un ancho acotado (~560px), una barra de desplazamiento horizontal visible en su parte inferior y soporte para desplazarse a la izquierda y a la derecha con la rueda del ratón al posicionar el cursor sobre ella, para no obstruir el lienzo y explorar cómodamente la jerarquía de procesos sin importar la cantidad de subprocesos creados.',
+      criteriosAceptacion: '1. El contenedor de SubProcessBreadcrumbs.tsx posee un ancho acotado (max-w-[560px]).\n2. La barra de scroll horizontal es visible debajo del contenido y posee diseño delgado y refinado (.breadcrumbs-scrollbar).\n3. Al colocar el cursor sobre la barra y accionar la rueda del ratón, el scroll vertical se transforma en desplazamiento horizontal fluido (scrollLeft).\n4. Se aísla el evento de rueda para no interferir con el zoom ni el pan del lienzo React Flow mientras se navega la barra.\n5. Compilación TypeScript estricta con 0 errores (npm run build).\n6. Actualización en HISTORIAS_DE_USUARIO_PROCESSTUDIO.xlsx e incremento de versión a 2.5.0 (V 02.05.00).\n7. Commit y Auto-Push automático a GitHub (main).',
+      fechaImplementacion: '2026-11-04',
+      estado: 'Implementado / Producción'
     }
   );
   console.log('📊 Generando archivo Excel de Historias de Usuario...');

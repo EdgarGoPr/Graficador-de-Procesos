@@ -1881,3 +1881,68 @@ Tanto en la vista expandida como en el mini-dock colapsado de la barra lateral, 
   5. Registro actualizado en `HISTORIAS_DE_USUARIO_PROCESSTUDIO.xlsx` e incremento de versión a `2.4.9` (`V 02.04.09`).
   6. Commit y Auto-Push automático a GitHub (`main`).
 - **Estado:** Implementado / Producción
+
+
+---
+
+## 29. Hoja de Ruta Técnica: Ancho Acotado y Desplazamiento Horizontal con Scrollbar y Rueda del Ratón en la Barra de Navegación de Procesos (`PST-103`)
+
+### 29.1. Diagnóstico del Problema y Requerimiento
+Actualmente, la barra superior de navegación de procesos (`SubProcessBreadcrumbs.tsx`):
+1. **Longitud excesiva:** Utiliza `max-w-[calc(100vw-360px)]`, lo que provoca que en diagramas con varios subprocesos anidados la barra se expanda ocupando casi todo el ancho de la pantalla, invadiendo el área de modelado.
+2. **Scrollbar oculta (`no-scrollbar`):** El desbordamiento horizontal ocultaba la barra de desplazamiento, impidiendo que el usuario perciba cuánto contenido hay hacia la derecha o izquierda.
+3. **Falta de soporte para desplazamiento con rueda del ratón (`wheel`):** Al apoyar el cursor sobre la barra y girar la rueda del ratón, el evento no se transformaba en desplazamiento horizontal, lo que forzaba a arrastrar o impedía navegar fluidamente entre procesos.
+
+El usuario solicita:
+- Limitar el ancho de la barra de navegación aproximadamente a la dimensión de la captura provista (~560px a 580px).
+- Incorporar una barra de desplazamiento horizontal visible estilizada por debajo.
+- Habilitar que al apoyar el mouse sobre la barra y accionar la ruedita, el contenido se desplace suavemente hacia la derecha y hacia la izquierda.
+
+---
+
+### 29.2. Plan de Intervención Arquitectónica
+
+#### Módulo 1: Control de Ancho y Contenedor en `src/components/canvas/SubProcessBreadcrumbs.tsx`
+- Ajustar el ancho máximo de la barra a `max-w-[560px]` (o `w-max max-w-[560px]`).
+- Sustituir la clase `no-scrollbar` por una clase dedicada `breadcrumbs-scrollbar`.
+- Incorporar margen inferior y espaciado cómodo (`pb-1.5 pt-1 px-3`) para que la barra de desplazamiento quede perfectamente integrada en la base del contenedor visual.
+
+#### Módulo 2: Controlador de Evento Rueda (`WheelEvent`)
+- En `SubProcessBreadcrumbs.tsx`:
+  - Asociar un `ref` al contenedor desplazable (`scrollContainerRef`).
+  - Registrar un escuchador `wheel` con `{ passive: false }`:
+    ```typescript
+    const onWheel = (e: WheelEvent) => {
+      if (el.scrollWidth > el.clientWidth) {
+        e.preventDefault();
+        e.stopPropagation();
+        el.scrollLeft += e.deltaY || e.deltaX;
+      }
+    };
+    ```
+  - Evitar la propagación del evento para que la rueda no active el zoom o desplazamiento del lienzo React Flow mientras el cursor esté sobre la barra.
+
+#### Módulo 3: Estilización de la Barra de Desplazamiento en `src/styles/index.css`
+- Definir la clase `.breadcrumbs-scrollbar`:
+  - Altura: 4px.
+  - Pista (`track`): `rgba(255, 255, 255, 0.05)` o `transparent`.
+  - Deslizador (`thumb`): Índigo translúcido (`rgba(99, 102, 241, 0.5)` / `hover: rgba(99, 102, 241, 0.85)`), completamente redondeado.
+  - Compatibilidad cruzada (Firefox `scrollbar-width: thin; scrollbar-color: ...` y WebKit `::-webkit-scrollbar`).
+
+---
+
+### 29.3. Registro de Historia de Usuario (`PST-103`)
+
+- **ID:** `PST-103`
+- **Módulo / Componente:** Navegación de Subprocesos & UX del Lienzo (Breadcrumbs Navigation)
+- **Título:** Ancho acotado y desplazamiento horizontal con scrollbar y rueda del ratón en la barra de navegación de procesos
+- **Historia de Usuario:** *Como modelador de procesos de ProcesStudio, quiero que la barra superior de navegación de procesos tenga un ancho acotado (~560px), una barra de desplazamiento horizontal visible en su parte inferior y soporte para desplazarse a la izquierda y a la derecha con la rueda del ratón al posicionar el cursor sobre ella, para no obstruir el lienzo y explorar cómodamente la jerarquía de procesos sin importar la cantidad de subprocesos creados.*
+- **Criterios de Aceptación:**
+  1. El contenedor de `SubProcessBreadcrumbs.tsx` posee un ancho acotado (`max-w-[560px]`).
+  2. La barra de scroll horizontal es visible debajo del contenido y posee diseño delgado y refinado (`.breadcrumbs-scrollbar`).
+  3. Al colocar el cursor sobre la barra y accionar la rueda del ratón, el scroll vertical se transforma en desplazamiento horizontal fluido (`scrollLeft`).
+  4. Se aísla el evento de rueda para no interferir con el zoom ni el pan del lienzo React Flow mientras se navega la barra.
+  5. Compilación TypeScript estricta con 0 errores (`npm run build`).
+  6. Actualización en `HISTORIAS_DE_USUARIO_PROCESSTUDIO.xlsx` e incremento de versión a `2.5.0` (`V 02.05.00`).
+  7. Commit y Auto-Push automático a GitHub (`main`).
+- **Estado:** Implementado / Producción
