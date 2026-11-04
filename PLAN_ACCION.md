@@ -1551,3 +1551,46 @@ Actualmente, `StorageService` implementa una estrategia híbrida con fallback lo
   5. Removidos todos los métodos y claves huérfanas de almacenamiento local de proyectos en `storageService.ts`.
   6. Compilación TypeScript limpia con 0 advertencias y 0 errores.
 - **Estado:** `Implementado / Producción`
+
+
+---
+
+## 25. Hoja de Ruta Técnica - Sincronización Asíncrona de Permisos de Usuario desde Neon PostgreSQL para Soporte Multidispositivo (`PST-099`)
+
+### 25.1. Diagnóstico y Causa Raíz
+Actualmente, el filtrado de proyectos en el panel principal ([`ProjectDashboard.tsx`](file:///c:/Users/gonzalezdeprada_e/.gemini/antigravity-ide/scratch/Graficador-de-Procesos/src/components/dashboard/ProjectDashboard.tsx)) utiliza la función sincrónica:
+```typescript
+const assignedFileNames = React.useMemo(() => {
+  return PermissionService.getAssignedProjectFileNamesSync(currentUser);
+}, [currentUser]);
+```
+- [`getAssignedProjectFileNamesSync`](file:///c:/Users/gonzalezdeprada_e/.gemini/antigravity-ide/scratch/Graficador-de-Procesos/src/services/permissionService.ts) y [`getUserPermissionForProject`](file:///c:/Users/gonzalezdeprada_e/.gemini/antigravity-ide/scratch/Graficador-de-Procesos/src/services/permissionService.ts) leen exclusivamente el almacenamiento local del dispositivo (`localStorage.getItem('procesos_permissions_fallback')`).
+- En la PC de escritorio donde el administrador configuró los permisos, estos quedaron grabados en el `localStorage` de ese navegador.
+- En un celular, tablet o ventana de incógnito, el `localStorage` está vacío. Al no consultar a Neon de manera asíncrona, el dispositivo asume que el usuario no tiene proyectos asignados (`assignedFileNames = []`), filtrando la lista completa y mostrando 0 proyectos.
+
+### 25.2. Plan de Intervención Arquitectónica
+1. **Actualización de `PermissionService` (`src/services/permissionService.ts`):**
+   - Incorporar una caché en memoria `permissionsCache: Map<string, ProjectUserPermission[]>` para almacenar las asignaciones recuperadas de Neon.
+   - Implementar el método asíncrono `getAssignedProjectFileNames(user: AppUser | null): Promise<string[] | 'ALL'>` que consulte la tabla `project_user_permissions` en Neon y alimente la caché.
+   - Actualizar `listUserPermissions(userId: string)` para que pueble la caché en memoria tras consultar Neon.
+   - Adaptar `getUserPermissionForProject` y `getAssignedProjectFileNamesSync` para que verifiquen primero la caché en memoria cargada desde la nube antes de cualquier fallback.
+2. **Actualización de `ProjectDashboard` (`src/components/dashboard/ProjectDashboard.tsx`):**
+   - Transformar `assignedFileNames` en un estado reactivo (`useState<string[] | 'ALL'>`) inicializado con la caché sincrónica.
+   - Agregar un `useEffect` que, ante cambios en `currentUser`, invoque `PermissionService.getAssignedProjectFileNames(currentUser)` y actualice `assignedFileNames`.
+   - Garantizar que los proyectos asignados se hagan visibles automáticamente en cuanto se reciban los datos de Neon, sin requerir recargar la página.
+3. **Verificación de Integridad:**
+   - Ejecutar `npm run build` para asegurar 0 errores de TypeScript (`noUnusedLocals: true`, `noUnusedParameters: true`).
+   - Validar que al iniciar sesión como "Usuario de Prueba" en un contexto con `localStorage` vacío (simulando el celular o ventana de incógnito), se listen correctamente los 3 proyectos asignados en Neon.
+
+### 25.3. Registro de Historia de Usuario (`PST-099`)
+- **ID:** `PST-099`
+- **Módulo / Componente:** Matriz de Permisos RBAC & Dashboard de Proyectos (`PermissionService` y `ProjectDashboard`)
+- **Título:** Sincronización asíncrona de permisos de usuario desde Neon PostgreSQL para soporte multidispositivo (Mobile / Desktop)
+- **Historia de Usuario:** *Como usuario del sistema, quiero que al iniciar sesión desde cualquier dispositivo (celular, tablet o computadora) mis permisos asignados a proyectos se consulten directamente desde la base de datos en la nube (Neon) en lugar de depender del localStorage local de la PC de desarrollo, para ver y acceder inmediatamente a mis procesos asignados sin discrepancias.*
+- **Criterios de Aceptación:**
+  1. `PermissionService.getAssignedProjectFileNames(user)` consulta asíncronamente los permisos en Neon PostgreSQL.
+  2. `PermissionService` almacena en caché en memoria los permisos de Neon para que métodos sincrónicos como `getUserPermissionForProject` resuelvan con los datos de la nube.
+  3. `ProjectDashboard` consulta asíncronamente los proyectos asignados al usuario en su ciclo de vida y actualiza su estado.
+  4. Los usuarios regulares visualizan sus procesos asignados en cualquier dispositivo nuevo o sin `localStorage` previo.
+  5. Compilación TypeScript limpia con 0 advertencias y 0 errores.
+- **Estado:** `Implementado / Producción`

@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useProjectStore } from '../../store/useProjectStore';
 import { useUiStore } from '../../store/useUiStore';
 import { groupProjectsByProcess } from '../../services/processVersionManager';
@@ -36,9 +36,36 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ onOpenNewMod
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Filter projects by user assignments if the active session is a regular USER
-  const assignedFileNames = React.useMemo(() => {
+  // Filter projects by user assignments loaded asynchronously from Neon Cloud
+  const [assignedFileNames, setAssignedFileNames] = useState<string[] | 'ALL'>(() => {
     return PermissionService.getAssignedProjectFileNamesSync(currentUser);
+  });
+
+  useEffect(() => {
+    let isMounted = true;
+    if (!currentUser) {
+      setAssignedFileNames([]);
+      return;
+    }
+    if (currentUser.role === 'ADMIN') {
+      setAssignedFileNames('ALL');
+      return;
+    }
+
+    // Fetch assignments from Neon directly
+    PermissionService.getAssignedProjectFileNames(currentUser)
+      .then((fileNames) => {
+        if (isMounted) {
+          setAssignedFileNames(fileNames);
+        }
+      })
+      .catch((err) => {
+        console.warn('Error fetching cloud project permissions:', err);
+      });
+
+    return () => {
+      isMounted = false;
+    };
   }, [currentUser]);
 
   const visibleProjects = React.useMemo(() => {

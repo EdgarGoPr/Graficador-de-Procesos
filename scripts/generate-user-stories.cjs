@@ -880,12 +880,13 @@ function generateExcel() {
       fechaImplementacion: '2026-10-30',
       estado: 'Implementado / Producción'
     },
+    {    },
     {
-      id: 'PST-098',
-      modulo: 'Persistencia de Proyectos & Base de Datos Cloud',
-      titulo: 'Transición a persistencia exclusiva en la nube (Neon PostgreSQL) y remoción de consulta y fallback local en localStorage',
-      historiaUsuario: 'Como usuario y administrador del sistema, quiero que la aplicación consulte, cargue, guarde y elimine proyectos de manera 100% exclusiva en la base de datos PostgreSQL en la nube (Neon), eliminando los fallbacks y cachés locales de proyectos en localStorage, para garantizar consistencia centralizada y evitar discrepancias entre navegadores o dispositivos.',
-      criteriosAceptacion: '1. StorageService.listProjectSummaries() consulta únicamente a PostgreSQL (Neon) y no recurre a localStorage.\n2. StorageService.loadProject() obtiene los proyectos exclusivamente desde PostgreSQL (Neon).\n3. StorageService.saveProject() y deleteProject() operan exclusivamente sobre la base de datos en la nube.\n4. StorageService.initializeStorage() no genera ni inyecta proyectos muestra en el localStorage del navegador.\n5. Removidos todos los métodos y claves huérfanas de almacenamiento local de proyectos en storageService.ts.\n6. Compilación TypeScript limpia con 0 advertencias y 0 errores.',
+      id: 'PST-099',
+      modulo: 'Matriz de Permisos RBAC & Dashboard de Proyectos',
+      titulo: 'Sincronización asíncrona de permisos de usuario desde Neon PostgreSQL para soporte multidispositivo (Mobile / Desktop)',
+      historiaUsuario: 'Como usuario del sistema, quiero que al iniciar sesión desde cualquier dispositivo (celular, tablet o computadora) mis permisos asignados a proyectos se consulten directamente desde la base de datos en la nube (Neon) en lugar de depender del localStorage local de la PC de desarrollo, para ver y acceder inmediatamente a mis procesos asignados sin discrepancias.',
+      criteriosAceptacion: '1. PermissionService.getAssignedProjectFileNames(user) consulta asíncronamente los permisos en Neon PostgreSQL.\n2. PermissionService almacena en caché en memoria los permisos de Neon para que métodos sincrónicos como getUserPermissionForProject resuelvan con los datos de la nube.\n3. ProjectDashboard consulta asíncronamente los proyectos asignados al usuario en su ciclo de vida y actualiza su estado.\n4. Los usuarios regulares visualizan sus procesos asignados en cualquier dispositivo nuevo o sin localStorage previo.\n5. Compilación TypeScript limpia con 0 advertencias y 0 errores.',
       fechaImplementacion: '2026-11-04',
       estado: 'Implementado / Producción'
     }

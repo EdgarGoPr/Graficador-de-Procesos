@@ -5,6 +5,8 @@ import { AuditLoggerService } from './auditLoggerService';
 const LOCAL_STORAGE_PERMISSIONS_FALLBACK = 'procesos_permissions_fallback';
 
 export class PermissionService {
+  private static permissionsCache: Map<string, ProjectUserPermission[]> = new Map();
+
   /**
    * Obtiene el nivel de permiso efectivo de un usuario sobre un lienzo específico
    * - ADMINISTRADOR: Siempre tiene permiso 'EDITOR'
@@ -48,7 +50,7 @@ export class PermissionService {
           WHERE user_id = ${userId};
         `) as any[];
 
-        return rows.map(r => ({
+        const mapped: ProjectUserPermission[] = rows.map(r => ({
           id: r.id,
           userId: r.user_id,
           projectFileName: r.project_file_name,
@@ -56,10 +58,14 @@ export class PermissionService {
           assignedBy: r.assigned_by,
           assignedAt: typeof r.assigned_at === 'string' ? r.assigned_at : new Date(r.assigned_at).toISOString()
         }));
+        this.permissionsCache.set(userId, mapped);
+        return mapped;
       } catch (err) {
         console.warn('Error al consultar permisos en Neon, usando fallback local:', err);
       }
     }
+    const cached = this.permissionsCache.get(userId);
+    if (cached) return cached;
     const local = this.getLocalPermissions();
     return local.filter(p => p.userId === userId);
   }
@@ -169,7 +175,25 @@ export class PermissionService {
       }
     }
 
-    // Mantener siempre actualizado el fallback local síncrono
+    // Actualizar caché en memoria y fallback local
+    const userCache = this.permissionsCache.get(targetUserId) || [];
+    const cacheIdx = userCache.findIndex(p => p.projectFileName === projectFileName);
+    if (cacheIdx !== -1) {
+      userCache[cacheIdx].permissionLevel = permissionLevel;
+      userCache[cacheIdx].assignedBy = operatorUser.id;
+      userCache[cacheIdx].assignedAt = new Date().toISOString();
+    } else {
+      userCache.push({
+        id: crypto.randomUUID(),
+        userId: targetUserId,
+        projectFileName,
+        permissionLevel,
+        assignedBy: operatorUser.id,
+        assignedAt: new Date().toISOString()
+      });
+    }
+    this.permissionsCache.set(targetUserId, userCache);
+
     const local = this.getLocalPermissions();
     const existingIdx = local.findIndex(
       p => p.userId === targetUserId && p.projectFileName === projectFileName
@@ -226,7 +250,12 @@ export class PermissionService {
       }
     }
 
-    // Mantener actualizado el fallback local
+    // Actualizar caché en memoria y fallback local
+    const userCache = this.permissionsCache.get(targetUserId);
+    if (userCache) {
+      this.permissionsCache.set(targetUserId, userCache.filter(p => p.projectFileName !== projectFileName));
+    }
+
     const local = this.getLocalPermissions();
     const filtered = local.filter(
       p => !(p.userId === targetUserId && p.projectFileName === projectFileName)
@@ -338,6 +367,16 @@ export class PermissionService {
    * Obtiene sincrónicamente el nivel de permiso de un usuario sobre un lienzo específico
    * (Útil para componentes de renderizado síncrono como ProjectCard y ProcessCanvas)
    */
+  /**
+   * Obtiene asíncronamente desde Neon la lista de nombres de archivo de lienzos asignados al usuario
+   */
+  public static async getAssignedProjectFileNames(user: AppUser | null): Promise<string[] | 'ALL'> {
+    if (!user) return [];
+    if (user.role === 'ADMIN') return 'ALL';
+    const permissions = await this.listUserPermissions(user.id);
+    return permissions.map(p => p.projectFileName);
+  }
+
   public static getUserPermissionForProject(
     user: AppUser | null,
     projectFileName: string,
@@ -352,17 +391,27 @@ export class PermissionService {
       if (user.fullName && projectInfo.authorName && projectInfo.authorName.trim().toLowerCase() === user.fullName.trim().toLowerCase()) return 'EDITOR';
     }
 
+    const cached = this.permissionsCache.get(user.id);
+    if (cached) {
+      const found = cached.find(p => p.projectFileName === projectFileName);
+      if (found) return found.permissionLevel;
+    }
+
     const local = this.getLocalPermissions();
     const found = local.find(p => p.userId === user.id && p.projectFileName === projectFileName);
     return found ? found.permissionLevel : null;
   }
 
   /**
-   * Obtiene sincrónicamente la lista de nombres de archivo de lienzos asignados al usuario
+   * Obtiene sincrónicamente la lista de nombres de archivo de lienzos asignados al usuario (apoyado en caché de Neon)
    */
   public static getAssignedProjectFileNamesSync(user: AppUser | null): string[] | 'ALL' {
     if (!user) return [];
     if (user.role === 'ADMIN') return 'ALL';
+    const cached = this.permissionsCache.get(user.id);
+    if (cached) {
+      return cached.map(p => p.projectFileName);
+    }
     const local = this.getLocalPermissions();
     return local.filter(p => p.userId === user.id).map(p => p.projectFileName);
   }
