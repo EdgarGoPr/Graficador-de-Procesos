@@ -25,16 +25,27 @@ const LEGACY_SENSITIVE_KEYS = [
   'procesos_permissions_fallback',
   'procesos_audit_logs_fallback',
   'procesos_active_locks_fallback',
-  'procesos_local_presence_cache'
+  'procesos_local_presence_cache',
+  // Clave personal de Gemini: ahora la IA usa solo la clave del servidor.
+  'procesos_gemini_api_key',
+  // Índice de proyectos guardados en el navegador por versiones anteriores.
+  'procesos_studio_project_index'
 ];
 
+/** Copias completas de proyectos que guardaban versiones anteriores (fuera del control de permisos). */
+const LEGACY_PROJECT_PREFIX = 'procesos_studio_proj_';
+
 export function purgeLegacySensitiveStorage(): void {
-  for (const key of LEGACY_SENSITIVE_KEYS) {
-    try {
-      localStorage.removeItem(key);
-    } catch {
-      // almacenamiento no disponible
+  try {
+    for (const key of LEGACY_SENSITIVE_KEYS) localStorage.removeItem(key);
+    const projectKeys: string[] = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith(LEGACY_PROJECT_PREFIX)) projectKeys.push(key);
     }
+    for (const key of projectKeys) localStorage.removeItem(key);
+  } catch {
+    // almacenamiento no disponible
   }
 }
 

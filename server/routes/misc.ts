@@ -8,7 +8,8 @@ const LOCK_DURATION_MS = 5 * 60 * 1000;
 const IDLE_THRESHOLD_MS = 5 * 60 * 1000;
 const DISCONNECT_MS = 8 * 60 * 1000;
 const CATALOG_KEY = 'GLOBAL_CATALOGS_V2';
-const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent';
+export const AI_RETRY_DELAY_MS = 1500;
+const GEMINI_URL ='https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent';
 
 /** Eventos que el navegador puede reportar. El resto los registra solo el servidor. */
 const CLIENT_AUDIT_EVENTS = [
@@ -290,14 +291,26 @@ export function registerMiscRoutes(router: Router): void {
     if (ctx.req.body?.generationConfig && typeof ctx.req.body.generationConfig === 'object') {
       body.generationConfig = ctx.req.body.generationConfig;
     }
-    const res = await ctx.fetchFn(GEMINI_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': ctx.config.geminiApiKey },
-      body: JSON.stringify(body)
-    });
-    const data = await res.json().catch(() => null);
+    const callOnce = async () => {
+      const res = await ctx.fetchFn(GEMINI_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': ctx.config.geminiApiKey! },
+        body: JSON.stringify(body)
+      });
+      return { res, data: (await res.json().catch(() => null)) as any };
+    };
+
+    let { res, data } = await callOnce();
+    // Gemini saturado o con límite de uso momentáneo: un reintento tras una breve pausa.
+    if (res.status === 429 || res.status === 503) {
+      await new Promise((resolve) => setTimeout(resolve, AI_RETRY_DELAY_MS));
+      ({ res, data } = await callOnce());
+    }
+    if (res.status === 429 || res.status === 503) {
+      throw new HttpError(503, 'El servicio de IA está saturado en este momento. Reintentá en unos minutos.');
+    }
     if (!res.ok) {
-      const msg = (data as any)?.error?.message || `Error HTTP ${res.status}`;
+      const msg = data?.error?.message || `Error HTTP ${res.status}`;
       throw new HttpError(502, `Servicio de IA: ${msg}`);
     }
     return data;

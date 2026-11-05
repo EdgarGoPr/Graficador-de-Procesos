@@ -5,70 +5,29 @@ import {
 } from '../types/ai';
 import { BpmnNodeType, BPMN_NODE_TYPES } from '../types/process';
 
-import { api } from './apiClient';
-
-const GEMINI_LOCALSTORAGE_KEY = 'procesos_gemini_api_key';
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent';
+import { api, ApiError } from './apiClient';
 
 let aiProxyAvailable = false;
 
-/** El servidor informa (en /auth/me) si tiene una clave de Gemini propia configurada. */
+/** El servidor informa (en /auth/me) si tiene configurada la clave de Gemini de la organización. */
 export function setAiProxyAvailable(value: boolean): void {
   aiProxyAvailable = value;
 }
 
-/**
- * Clave personal cargada por el usuario en la Bóveda Documental (opcional).
- * La clave de la organización vive solo en el servidor y nunca llega al navegador.
- */
-export function getGeminiApiKey(): string {
-  try {
-    const localKey = localStorage.getItem(GEMINI_LOCALSTORAGE_KEY);
-    return localKey && localKey.trim().length > 0 ? localKey.trim() : '';
-  } catch {
-    return '';
-  }
-}
-
-/** Hay IA disponible si el usuario cargó su clave o si el servidor tiene una configurada. */
+/** La IA está disponible si el servidor tiene la clave configurada. La clave nunca llega al navegador. */
 export function hasGeminiAccess(): boolean {
-  return !!getGeminiApiKey() || aiProxyAvailable;
+  return aiProxyAvailable;
 }
 
 /**
- * Llama a Gemini: con la clave personal (directo a Google) o a través del proxy del servidor.
+ * Llama a Gemini a través del servidor (/api/ai/generate).
  * Devuelve el JSON de respuesta de Gemini. Lanza Error con un mensaje legible si falla.
  */
 export async function callGemini(payload: Record<string, unknown>, signal?: AbortSignal): Promise<any> {
-  const personalKey = getGeminiApiKey();
-  if (personalKey) {
-    const response = await fetch(GEMINI_API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': personalKey },
-      body: JSON.stringify(payload),
-      signal
-    });
-    const data = await response.json().catch(() => null);
-    if (!response.ok) {
-      throw new Error(data?.error?.message || `Error HTTP ${response.status}`);
-    }
-    return data;
-  }
   if (!aiProxyAvailable) {
-    throw new Error('Se requiere una API Key de Gemini. Configúrala en la Bóveda Documental.');
+    throw new Error('El servicio de IA no está configurado. Pedile al Administrador que cargue la clave de Gemini en el servidor.');
   }
   return api('POST', '/ai/generate', { body: payload, signal });
-}
-
-/**
- * Guarda o actualiza la API Key en localStorage
- */
-export function setGeminiApiKey(key: string): void {
-  if (!key || key.trim() === '') {
-    localStorage.removeItem(GEMINI_LOCALSTORAGE_KEY);
-  } else {
-    localStorage.setItem(GEMINI_LOCALSTORAGE_KEY, key.trim());
-  }
 }
 
 /**
@@ -84,7 +43,7 @@ export class AiRecommendationService {
   ): Promise<string> {
     if (!hasGeminiAccess()) {
       throw new Error(
-        'Se requiere una API Key de Gemini para transcribir audios. Configúrala en la Bóveda Documental.'
+        'El servicio de IA no está configurado: pedile al Administrador que cargue la clave de Gemini en el servidor.'
       );
     }
 
@@ -138,7 +97,7 @@ export class AiRecommendationService {
         hasSuggestion: false,
         fallbackReason: 'NO_API_KEY',
         fallbackMessage:
-          'No hay sugerencias: Debes configurar tu clave de Gemini API en la Bóveda Documental.'
+          'No hay sugerencias: el servicio de IA no está configurado en el servidor. Contactá al Administrador.'
       };
     }
 
@@ -206,18 +165,21 @@ Determina el próximo nodo a conectar aplicando la jerarquía estricta. Si no ha
       };
 
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 12000); // 12s timeout
+      // 25 s: el servidor puede reintentar una vez si Gemini está saturado.
+      const timeoutId = setTimeout(() => controller.abort(), 25000);
 
       let data: any;
       try {
         data = await callGemini(payload, controller.signal);
       } catch (callErr) {
         console.warn('Fallo en llamada a Gemini API:', callErr);
+        // Los errores del servidor ya vienen con un mensaje claro (p. ej. servicio saturado).
+        const serverMessage = callErr instanceof ApiError && callErr.status > 0 ? callErr.message : null;
         return {
           hasSuggestion: false,
           fallbackReason: 'API_ERROR',
           fallbackMessage:
-            'No hay sugerencias disponibles en este momento. Verifica tu conexión o cuota de API de Gemini.'
+            serverMessage || 'No hay sugerencias disponibles en este momento. Verificá tu conexión e intentá de nuevo.'
         };
       } finally {
         clearTimeout(timeoutId);
