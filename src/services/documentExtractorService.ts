@@ -2,7 +2,7 @@ import * as pdfjsLib from 'pdfjs-dist';
 // @ts-ignore
 import pdfWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import mammoth from 'mammoth';
-import { callGemini, hasGeminiAccess } from './aiRecommendationService';
+import { callGemini, extractGeminiText, hasGeminiAccess } from './aiRecommendationService';
 
 // Configuración del worker de PDF.js para Vite
 if (typeof window !== 'undefined' && pdfjsLib.GlobalWorkerOptions) {
@@ -187,9 +187,7 @@ export class DocumentExtractorService {
         }
       ]
     });
-    const candidate = json.candidates?.[0];
-    const textPart = candidate?.content?.parts?.find((p: any) => typeof p.text === 'string');
-    return textPart?.text || '';
+    return extractGeminiText(json).text;
   }
 
   /**
