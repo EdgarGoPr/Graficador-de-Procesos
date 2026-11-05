@@ -506,6 +506,17 @@ export function registerProjectRoutes(router: Router): void {
       [fileName, ...rowValues(project), projectRow.projectId, projectRow.ownerUserId]
     );
     if (restored.length === 0) throw notFound('El proyecto no está en la papelera.');
+    // Recupera los permisos que la versión tenía antes de la Fase 2 (tabla anterior, por archivo).
+    await ctx.db.query(
+      `INSERT INTO project_members (project_id, user_id, permission_level, assigned_by, assigned_at)
+       SELECT $2::uuid, perm.user_id, perm.permission_level, perm.assigned_by, perm.assigned_at
+         FROM project_user_permissions perm
+         JOIN app_users u ON u.id = perm.user_id
+        WHERE perm.project_file_name = $1
+          AND perm.permission_level IN ('READ_ONLY', 'COMMENTS', 'EDITOR')
+       ON CONFLICT (project_id, user_id) DO NOTHING`,
+      [fileName, projectRow.projectId]
+    );
     await writeAudit(ctx, actorOf(user), 'PROJECT_RESTORED_FROM_TRASH', fileName, {
       title: project.documentControl.documentTitle,
       code: projectRow.documentCode,

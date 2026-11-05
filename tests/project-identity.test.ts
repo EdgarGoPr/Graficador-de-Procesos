@@ -198,10 +198,21 @@ describe('Papelera con identidad de proyecto', () => {
     expect(await projectIdOf(app, V2_A)).toBe(pid);
   });
 
-  it('restaurar un proyecto heredado de la papelera le crea su identidad', async () => {
-    const app = await createTestApp();
+  it('restaurar un proyecto heredado de la papelera le crea su identidad y recupera sus permisos', async () => {
+    // Permiso de Bob sobre el proyecto que estaba en la papelera antes de la Fase 2.
+    const app = await createTestApp({
+      extraSeed: async (pg) => {
+        await pg.query(
+          `INSERT INTO project_user_permissions (user_id, project_file_name, permission_level) VALUES ($1, $2, 'COMMENTS')`,
+          [IDS.bob, TRASHED]
+        );
+      }
+    });
     const res = await app.call('POST', `/trash/${TRASHED}/restore`, { cookie: await app.cookieFor(IDS.alice), body: {} });
     expect(res.status).toBe(200);
     expect(await projectIdOf(app, TRASHED)).toBeTruthy();
+    const bob = await app.call('GET', `/projects/${TRASHED}`, { cookie: await app.cookieFor(IDS.bob) });
+    expect(bob.status).toBe(200);
+    expect(bob.json.access.permission).toBe('COMMENTS');
   });
 });

@@ -12,6 +12,7 @@ Rama: `fase-2-integridad`.
 - **Importar un JSON** con un código ya usado: se le asigna un código libre y se avisa.
 - **Permisos por proyecto:** valen para todas las versiones del proyecto.
 - **Participantes:** el propietario aparece fijo, sin opción de quitarse ni de bajar su nivel. Un proyecto sin propietario no puede quedar sin editor. Ambas reglas las valida el servidor.
+- **Papelera:** al restaurar una versión borrada antes de la Fase 2, también se recuperan los permisos que tenía.
 - **Fecha de última modificación:** se restaura la fecha real. Las migraciones de la Fase 1 la habían reemplazado sin querer, a través de un trigger de la base que se retira.
 
 **Migración `006_project_identity.sql`**
