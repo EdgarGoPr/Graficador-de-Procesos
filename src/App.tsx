@@ -40,7 +40,7 @@ import { CheckCircle2, Info, AlertCircle, AlertTriangle, X } from 'lucide-react'
 
 export const App: React.FC = () => {
   const { initialize, isLoading, currentProject } = useProjectStore();
-  const { initializeAuth, currentUser } = useAuthStore();
+  const { initializeAuth, currentUser, isLoading: isAuthLoading } = useAuthStore();
   const {
     activeView,
     setActiveView,
@@ -63,9 +63,18 @@ export const App: React.FC = () => {
   const [isNewProjectModalOpen, setIsNewProjectModalOpen] = useState(false);
 
   useEffect(() => {
-    initialize();
     initializeAuth();
-  }, [initialize, initializeAuth]);
+  }, [initializeAuth]);
+
+  // Los datos se piden al servidor recién cuando hay una sesión válida.
+  const sessionUserId = currentUser?.id || null;
+  useEffect(() => {
+    if (sessionUserId) {
+      initialize();
+    } else {
+      useProjectStore.setState({ currentProject: null, projectList: [] });
+    }
+  }, [sessionUserId, initialize]);
 
   // Guard de visualización estricta de lienzos y módulos habilitados para usuarios regulares
   useEffect(() => {
@@ -123,7 +132,7 @@ export const App: React.FC = () => {
     };
   }, [currentUser, activeView, currentProject?.fileName, currentProject?.documentControl.documentTitle]);
 
-  if (isLoading) {
+  if (isLoading || isAuthLoading) {
     return (
       <div className="h-screen w-screen bg-theme-bg flex flex-col items-center justify-center text-theme-text">
         <div className="w-10 h-10 border-4 border-theme-accent border-t-transparent rounded-full animate-spin mb-4" />

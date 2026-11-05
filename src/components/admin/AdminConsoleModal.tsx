@@ -596,7 +596,7 @@ export const AdminConsoleModal: React.FC = () => {
                               >
                                 {u.status === 'ACTIVE' ? 'Desactivar' : 'Activar'}
                               </button>
-                              {u.email.toLowerCase() !== 'egdeprada@gmail.com' && (
+                              {u.id !== currentUser.id && (
                                 <button
                                   onClick={async () => {
                                     if (window.confirm(`¿Confirmas eliminar definitivamente la cuenta de ${u.fullName} (${u.email}) y revocar sus accesos?`)) {

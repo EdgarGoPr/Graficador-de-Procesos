@@ -2,7 +2,7 @@ import * as pdfjsLib from 'pdfjs-dist';
 // @ts-ignore
 import pdfWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import mammoth from 'mammoth';
-import { getGeminiApiKey } from './aiRecommendationService';
+import { callGemini, hasGeminiAccess } from './aiRecommendationService';
 
 // Configuración del worker de PDF.js para Vite
 if (typeof window !== 'undefined' && pdfjsLib.GlobalWorkerOptions) {
@@ -123,10 +123,9 @@ export class DocumentExtractorService {
 
     // Si el texto extraído es nulo o mínimo, puede ser un PDF escaneado (imágenes)
     // Intentamos Gemini 3.5 Flash Multimodal OCR si hay API Key disponible
-    const apiKey = getGeminiApiKey();
-    if (apiKey) {
+    if (hasGeminiAccess()) {
       try {
-        const geminiOcrText = await this.extractPdfWithGeminiOcr(arrayBuffer, apiKey);
+        const geminiOcrText = await this.extractPdfWithGeminiOcr(arrayBuffer);
         if (geminiOcrText && geminiOcrText.trim().length > 30) {
           const ocrWords = geminiOcrText.split(/\s+/).filter(Boolean).length;
           return {
@@ -163,45 +162,31 @@ export class DocumentExtractorService {
   /**
    * Fallback: Extrae y transcribe un PDF escaneado utilizando Gemini 3.5 Flash Multimodal
    */
-  private static async extractPdfWithGeminiOcr(
-    arrayBuffer: ArrayBuffer,
-    apiKey: string
-  ): Promise<string> {
+  private static async extractPdfWithGeminiOcr(arrayBuffer: ArrayBuffer): Promise<string> {
     const base64 = this.arrayBufferToBase64(arrayBuffer);
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${apiKey}`;
 
     const prompt =
       'Eres un transcriptor documental para ProcesStudio BPMN. ' +
       'Extrae y transcribe todo el contenido textual, tablas, pasos y normativas de este documento PDF. ' +
       'Mantén la estructura en texto claro y legible, sin omitir reglas de negocio ni directivas operativas.';
 
-    const response = await fetch(apiUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [
-          {
-            parts: [
-              {
-                inlineData: {
-                  mimeType: 'application/pdf',
-                  data: base64
-                }
-              },
-              {
-                text: prompt
+    const json = await callGemini({
+      contents: [
+        {
+          parts: [
+            {
+              inlineData: {
+                mimeType: 'application/pdf',
+                data: base64
               }
-            ]
-          }
-        ]
-      })
+            },
+            {
+              text: prompt
+            }
+          ]
+        }
+      ]
     });
-
-    if (!response.ok) {
-      throw new Error(`Gemini OCR retornó status ${response.status}`);
-    }
-
-    const json = await response.json();
     const candidate = json.candidates?.[0];
     const textPart = candidate?.content?.parts?.find((p: any) => typeof p.text === 'string');
     return textPart?.text || '';

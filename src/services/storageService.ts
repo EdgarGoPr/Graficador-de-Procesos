@@ -1,6 +1,8 @@
 import { ProcessProjectFile, ProjectSummary } from '../types/project';
-import { NeonClient } from './neonClient';
-import { PostgresStorageService } from './postgresStorageService';
+import { api } from './apiClient';
+import { PermissionService } from './permissionService';
+
+const enc = encodeURIComponent;
 
 /**
  * Portable POSIX-safe File Name Sanitizer
@@ -8,11 +10,11 @@ import { PostgresStorageService } from './postgresStorageService';
  */
 export function sanitizeFilename(title: string, version: string, dateStr?: string): string {
   const date = dateStr ? dateStr.substring(0, 10) : new Date().toISOString().substring(0, 10);
-  
+
   // Normalize, remove accents, keep only lowercase alphanumeric and dashes
   const cleanTitle = title
     .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[̀-ͯ]/g, '')
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
@@ -26,100 +28,78 @@ export function sanitizeFilename(title: string, version: string, dateStr?: strin
   return `${date}_proc-${cleanTitle || 'proceso'}-v${cleanVersion || '1.0'}.json`;
 }
 
+export interface SaveProjectOptions {
+  /** Archivo de origen cuando se guarda una nueva versión: el servidor exige permiso de editor sobre él. */
+  sourceFileName?: string;
+}
+
 /**
- * Cloud Storage Service (Neon Cloud PostgreSQL exclusively)
+ * Almacenamiento de proyectos a través del backend (/api/projects).
+ * El servidor valida sesión y permiso por proyecto en cada operación.
  */
 export class StorageService {
-  public static isNeonConfigured(): boolean {
-    return NeonClient.isConfigured();
-  }
-
-  /**
-   * Cloud-exclusive storage initialization
-   */
   public static async initializeStorage(): Promise<void> {
-    // Cloud-exclusive storage: no local mock injection needed
+    // Sin inicialización local: todo vive en el servidor.
   }
 
-  /**
-   * Lists project summaries exclusively from PostgreSQL (Neon Cloud Database)
-   */
   public static async listProjectSummaries(): Promise<ProjectSummary[]> {
-    if (this.isNeonConfigured()) {
-      try {
-        return await PostgresStorageService.listProjectSummaries();
-      } catch (err) {
-        console.error('Error fetching project summaries from Neon:', err);
-        return [];
-      }
+    try {
+      const res = await api<{ projects: ProjectSummary[] }>('GET', '/projects');
+      const projects = res.projects || [];
+      for (const p of projects) PermissionService.rememberProjectPermission(p.fileName, p.myPermission);
+      return projects;
+    } catch (err) {
+      console.error('Error al obtener el listado de proyectos:', err);
+      return [];
     }
-    console.warn('Neon database connection is not configured.');
-    return [];
   }
 
-  /**
-   * Load project exclusively from PostgreSQL (Neon Cloud Database)
-   */
   public static async loadProject(fileName: string): Promise<ProcessProjectFile | null> {
-    if (this.isNeonConfigured()) {
-      try {
-        return await PostgresStorageService.loadProject(fileName);
-      } catch (err) {
-        console.error(`Error loading project ${fileName} from Neon:`, err);
-        return null;
-      }
+    try {
+      const res = await api<{ project: ProcessProjectFile }>('GET', `/projects/${enc(fileName)}`);
+      return res.project || null;
+    } catch (err) {
+      console.error(`Error al cargar el proyecto ${fileName}:`, err);
+      return null;
     }
-    return null;
   }
 
-  /**
-   * Save / Overwrite a project exclusively to PostgreSQL (Neon Cloud Database)
-   */
-  public static async saveProject(project: ProcessProjectFile): Promise<string> {
+  /** Guarda o crea un proyecto. Lanza error si el servidor lo rechaza. */
+  public static async saveProject(project: ProcessProjectFile, options: SaveProjectOptions = {}): Promise<string> {
     const updatedProject: ProcessProjectFile = {
       ...project,
       documentControl: {
         ...project.documentControl,
-        updatedAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
       }
     };
 
-    const fileName = project.fileName || sanitizeFilename(
-      updatedProject.documentControl.documentTitle,
-      updatedProject.documentControl.version,
-      updatedProject.documentControl.createdAt
-    );
-
+    const fileName =
+      project.fileName ||
+      sanitizeFilename(
+        updatedProject.documentControl.documentTitle,
+        updatedProject.documentControl.version,
+        updatedProject.documentControl.createdAt
+      );
     updatedProject.fileName = fileName;
 
-    if (this.isNeonConfigured()) {
-      await PostgresStorageService.saveProject(updatedProject);
-    } else {
-      console.warn('Neon is not configured. Project was not persisted to cloud.');
-    }
-
+    await api('PUT', `/projects/${enc(fileName)}`, {
+      body: { project: updatedProject, sourceFileName: options.sourceFileName }
+    });
     return fileName;
   }
 
-  /**
-   * Delete a project file exclusively from PostgreSQL (Neon Cloud Database)
-   */
+  /** Envía el proyecto a la papelera del servidor (solo propietario o Administrador). */
   public static async deleteProject(fileName: string): Promise<boolean> {
-    if (this.isNeonConfigured()) {
-      try {
-        await PostgresStorageService.deleteProject(fileName);
-        return true;
-      } catch (err) {
-        console.error(`Error deleting ${fileName} from Neon:`, err);
-        return false;
-      }
+    try {
+      await api('DELETE', `/projects/${enc(fileName)}`, { body: {} });
+      return true;
+    } catch (err) {
+      console.error(`Error al eliminar ${fileName}:`, err);
+      throw err;
     }
-    return false;
   }
 
-  /**
-   * Duplicate an existing project in PostgreSQL
-   */
   public static async duplicateProject(sourceFileName: string): Promise<string | null> {
     const original = await this.loadProject(sourceFileName);
     if (!original) return null;
@@ -134,9 +114,9 @@ export class StorageService {
         documentTitle: copyTitle,
         documentCode: `${original.documentControl.documentCode}-CPY`,
         createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
       },
-      fileName: newFileName,
+      fileName: newFileName
     };
 
     await this.saveProject(duplicated);

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { useProjectStore } from '../../store/useProjectStore';
 import { useUiStore } from '../../store/useUiStore';
 import { groupProjectsByProcess } from '../../services/processVersionManager';
@@ -36,51 +36,8 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ onOpenNewMod
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Filter projects by user assignments loaded asynchronously from Neon Cloud
-  const [assignedFileNames, setAssignedFileNames] = useState<string[] | 'ALL'>(() => {
-    return PermissionService.getAssignedProjectFileNamesSync(currentUser);
-  });
-
-  useEffect(() => {
-    let isMounted = true;
-    if (!currentUser) {
-      setAssignedFileNames([]);
-      return;
-    }
-    if (currentUser.role === 'ADMIN') {
-      setAssignedFileNames('ALL');
-      return;
-    }
-
-    // Fetch assignments from Neon directly
-    PermissionService.getAssignedProjectFileNames(currentUser)
-      .then((fileNames) => {
-        if (isMounted) {
-          setAssignedFileNames(fileNames);
-        }
-      })
-      .catch((err) => {
-        console.warn('Error fetching cloud project permissions:', err);
-      });
-
-    return () => {
-      isMounted = false;
-    };
-  }, [currentUser]);
-
-  const visibleProjects = React.useMemo(() => {
-    if (!currentUser) return [];
-    if (currentUser.role === 'ADMIN' || assignedFileNames === 'ALL') {
-      return projectList;
-    }
-    return projectList.filter((p) => {
-      if (assignedFileNames.includes(p.fileName)) return true;
-      if (p.createdByUserId && p.createdByUserId === currentUser.id) return true;
-      if (p.createdByEmail && currentUser.email && p.createdByEmail.toLowerCase() === currentUser.email.toLowerCase()) return true;
-      if (p.authorName && currentUser.fullName && p.authorName.trim().toLowerCase() === currentUser.fullName.trim().toLowerCase()) return true;
-      return false;
-    });
-  }, [projectList, currentUser, assignedFileNames]);
+  // El servidor ya devuelve solo los proyectos propios o asignados al usuario.
+  const visibleProjects = currentUser ? projectList : [];
 
   const processGroups = groupProjectsByProcess(visibleProjects);
 
@@ -143,9 +100,10 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ onOpenNewMod
   };
 
   const handleDelete = async (fileName: string) => {
-    const perm = PermissionService.getUserPermissionForProject(currentUser, fileName);
-    if (currentUser?.role !== 'ADMIN' && perm !== 'EDITOR') {
-      showNotification('Permiso insuficiente. Solo el Administrador o editores pueden eliminar proyectos.', 'warning');
+    const summary = projectList.find((p) => p.fileName === fileName);
+    const isOwner = !!summary?.ownerUserId && summary.ownerUserId === currentUser?.id;
+    if (currentUser?.role !== 'ADMIN' && !isOwner) {
+      showNotification('Permiso insuficiente. Solo el Administrador o el propietario del proyecto pueden eliminarlo.', 'warning');
       return;
     }
 

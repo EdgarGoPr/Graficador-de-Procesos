@@ -219,9 +219,17 @@ export const MasterCatalogsModal: React.FC = () => {
     setIsFormOpen(true);
   };
 
-  // Save handler
+  // Save handler (si el servidor rechaza el cambio, el servicio ya mostró el motivo)
   const handleSaveForm = async (e: React.FormEvent) => {
     e.preventDefault();
+    try {
+      await saveCurrentForm();
+    } catch {
+      // aviso mostrado por MasterCatalogsService
+    }
+  };
+
+  const saveCurrentForm = async () => {
     if (activeTab === 'ORG_UNITS') {
       if (!uoName.trim()) return;
       await MasterCatalogsService.saveOrgUnit({
@@ -386,8 +394,12 @@ export const MasterCatalogsModal: React.FC = () => {
   };
 
   const handlePurgeProject = async (fileName: string) => {
-    await MasterCatalogsService.removeProjectFromTrash(fileName);
-    showNotification('Proyecto eliminado definitivamente de la papelera', 'info');
+    const res = await MasterCatalogsService.removeProjectFromTrash(fileName);
+    if (res.ok) {
+      showNotification('Proyecto eliminado definitivamente de la papelera', 'info');
+    } else {
+      showNotification(res.error || 'No se pudo purgar el proyecto.', 'error');
+    }
   };
 
   return (

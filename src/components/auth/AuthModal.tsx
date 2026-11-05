@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuthStore } from '../../store/useAuthStore';
 import { AuthService } from '../../services/authService';
 import { GoogleAuthService } from '../../services/googleAuthService';
@@ -52,6 +52,23 @@ export const AuthModal: React.FC<{ isGatekeeper?: boolean }> = ({ isGatekeeper =
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Avisos del store (sesión vencida, error al volver de Google) y datos de Google para la solicitud de acceso.
+  const authNotice = useAuthStore((s) => s.authNotice);
+  const pendingAccessProfile = useAuthStore((s) => s.pendingAccessProfile);
+  useEffect(() => {
+    if (authNotice) {
+      setErrorMessage(authNotice);
+      useAuthStore.setState({ authNotice: null });
+    }
+  }, [authNotice]);
+  useEffect(() => {
+    if (pendingAccessProfile) {
+      setEmail(pendingAccessProfile.email);
+      setFullName(pendingAccessProfile.fullName);
+      useAuthStore.setState({ pendingAccessProfile: null });
+    }
+  }, [pendingAccessProfile]);
+
   if (!isAuthModalOpen && !isGatekeeper) return null;
 
   const resetMessages = () => {
@@ -83,9 +100,11 @@ export const AuthModal: React.FC<{ isGatekeeper?: boolean }> = ({ isGatekeeper =
         return;
       }
 
-      if (result.requiresTotp && result.tempUserId) {
+      if (result.requiresTotp) {
+        // Si ingresó con un código de 6 dígitos, se conserva para el cambio de contraseña posterior.
+        setResetCode(password);
         setAuthModalMode('VERIFY_TOTP');
-        useAuthStore.setState({ tempTotpUserId: result.tempUserId });
+        useAuthStore.setState({ tempTotpUserId: 'pending' });
         setIsSubmitting(false);
         return;
       }
@@ -202,9 +221,13 @@ export const AuthModal: React.FC<{ isGatekeeper?: boolean }> = ({ isGatekeeper =
 
     setIsSubmitting(true);
     try {
-      const result = await AuthService.verifyAdminTotp(tempTotpUserId, totpCode);
+      const result = await AuthService.verifyAdminTotp(totpCode);
       if (!result.ok) {
         setErrorMessage(result.error || 'Código TOTP incorrecto.');
+      } else if (result.mustChangePassword) {
+        useAuthStore.setState({ tempTotpUserId: null });
+        setAuthModalMode('FORCE_PASSWORD');
+        setSuccessMessage('Has ingresado con un código temporal de recuperación. Por seguridad, debes definir tu nueva contraseña a continuación.');
       } else if (result.user) {
         setCurrentUser(result.user);
         closeAuthModal();

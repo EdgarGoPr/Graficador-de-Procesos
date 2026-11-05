@@ -8,9 +8,26 @@ import {
   generateRevisionFilename
 } from '../services/processVersionManager';
 import { useAuthStore } from './useAuthStore';
-import { PermissionService } from '../services/permissionService';
+import { useUiStore } from './useUiStore';
 import { MasterCatalogsService } from '../services/masterCatalogsService';
-import { AuditLoggerService } from '../services/auditLoggerService';
+import { apiErrorMessage } from '../services/apiClient';
+
+function notifyError(err: unknown, fallback: string): void {
+  useUiStore.getState().showNotification(apiErrorMessage(err, fallback), 'error');
+}
+
+/** Guardado automático: si el servidor lo rechaza se avisa y los cambios quedan como pendientes. */
+async function persistSilently(project: ProcessProjectFile): Promise<boolean> {
+  // En modo solo lectura no hay nada que guardar (el servidor lo rechazaría igual).
+  if (useAuthStore.getState().currentCanvasPermission === 'READ_ONLY') return false;
+  try {
+    await StorageService.saveProject(project);
+    return true;
+  } catch (err) {
+    notifyError(err, 'No se pudieron guardar los cambios.');
+    return false;
+  }
+}
 
 interface SaveRevisionOptions {
   bumpType?: 'patch' | 'minor' | 'major';
@@ -150,23 +167,9 @@ export const useProjectStore = create<ProjectStoreState>((set, get) => ({
       edges: []
     };
 
+    // El servidor registra al usuario en sesión como propietario del proyecto nuevo.
     const fileName = await StorageService.saveProject(newProject);
     newProject.fileName = fileName;
-
-    // Si hay un usuario activo, auto-asignarle permiso de EDITOR sobre su proyecto
-    if (currentUser?.id) {
-      try {
-        await PermissionService.assignPermission(
-          currentUser,
-          currentUser.id,
-          fileName,
-          'EDITOR',
-          newProject.documentControl
-        );
-      } catch (err) {
-        console.warn('Auto-asignación de permiso para creador:', err);
-      }
-    }
 
     set({
       currentProject: newProject,
@@ -185,7 +188,14 @@ export const useProjectStore = create<ProjectStoreState>((set, get) => ({
     if (!currentProject) return false;
 
     set({ isSaving: true });
-    const savedFileName = await StorageService.saveProject(currentProject);
+    let savedFileName: string;
+    try {
+      savedFileName = await StorageService.saveProject(currentProject);
+    } catch (err) {
+      set({ isSaving: false });
+      notifyError(err, 'No se pudo guardar el proyecto.');
+      return false;
+    }
     set({
       currentProject: { ...currentProject, fileName: savedFileName },
       lastSavedAt: new Date().toISOString(),
@@ -233,7 +243,15 @@ export const useProjectStore = create<ProjectStoreState>((set, get) => ({
       fileName: newFileName
     };
 
-    await StorageService.saveProject(updatedProject);
+    try {
+      // Nueva versión: el servidor exige permiso de editor sobre el archivo de origen
+      // y traslada los participantes a la nueva versión.
+      await StorageService.saveProject(updatedProject, { sourceFileName: currentProject.fileName });
+    } catch (err) {
+      set({ isSaving: false });
+      notifyError(err, 'No se pudo guardar la nueva versión.');
+      return null;
+    }
 
     set({
       currentProject: updatedProject,
@@ -247,52 +265,41 @@ export const useProjectStore = create<ProjectStoreState>((set, get) => ({
   },
 
   duplicateProject: async (fileName: string) => {
-    const newName = await StorageService.duplicateProject(fileName);
-    if (newName) {
-      await get().refreshProjectList();
+    try {
+      const newName = await StorageService.duplicateProject(fileName);
+      if (newName) {
+        await get().refreshProjectList();
+      }
+      return newName;
+    } catch (err) {
+      notifyError(err, 'No se pudo duplicar el proyecto.');
+      return null;
     }
-    return newName;
   },
 
   deleteProject: async (fileName: string) => {
-    const currentUser = useAuthStore.getState().currentUser;
+    // El servidor mueve el proyecto a la papelera (solo propietario o Administrador).
     try {
-      const existing = await StorageService.loadProject(fileName);
-      if (existing) {
-        await MasterCatalogsService.moveProjectToTrash(existing, currentUser?.email || 'sistema@processtudio.com');
-      }
-    } catch {}
-
-    const success = await StorageService.deleteProject(fileName);
-    if (success) {
-      const { currentProject } = get();
-      if (currentProject?.fileName === fileName) {
-        set({ currentProject: null });
-      }
-      await get().refreshProjectList();
+      await StorageService.deleteProject(fileName);
+    } catch (err) {
+      notifyError(err, 'No se pudo eliminar el proyecto.');
+      return false;
     }
-    return success;
+    const { currentProject } = get();
+    if (currentProject?.fileName === fileName) {
+      set({ currentProject: null });
+    }
+    await get().refreshProjectList();
+    await MasterCatalogsService.refreshTrash();
+    return true;
   },
 
   restoreProjectFromTrash: async (fileName: string) => {
-    const entry = await MasterCatalogsService.removeProjectFromTrash(fileName);
-    if (!entry || !entry.projectData) return false;
-
-    const restoredFileName = await StorageService.saveProject({
-      ...entry.projectData,
-      fileName: entry.fileName
-    });
-
-    const currentUser = useAuthStore.getState().currentUser;
-    if (currentUser) {
-      AuditLoggerService.log(
-        'PROJECT_RESTORED_FROM_TRASH',
-        currentUser,
-        restoredFileName,
-        { title: entry.documentTitle, code: entry.documentCode }
-      );
+    const res = await MasterCatalogsService.restoreProjectFromTrash(fileName);
+    if (!res.ok) {
+      notifyError(new Error(res.error), 'No se pudo restaurar el proyecto.');
+      return false;
     }
-
     await get().refreshProjectList();
     return true;
   },
@@ -316,8 +323,9 @@ export const useProjectStore = create<ProjectStoreState>((set, get) => ({
     autoSaveTimeout = setTimeout(async () => {
       const current = get().currentProject;
       if (current && current.fileName) {
-        await StorageService.saveProject(current);
-        set({ lastSavedAt: new Date().toISOString(), hasUnsavedChanges: false });
+        if (await persistSilently(current)) {
+          set({ lastSavedAt: new Date().toISOString(), hasUnsavedChanges: false });
+        }
       }
     }, 800);
   },
@@ -498,8 +506,9 @@ export const useProjectStore = create<ProjectStoreState>((set, get) => ({
     if (autoSaveTimeout) clearTimeout(autoSaveTimeout);
     autoSaveTimeout = setTimeout(async () => {
       if (updatedProject.fileName) {
-        await StorageService.saveProject(updatedProject);
-        set({ lastSavedAt: new Date().toISOString(), hasUnsavedChanges: false });
+        if (await persistSilently(updatedProject)) {
+          set({ lastSavedAt: new Date().toISOString(), hasUnsavedChanges: false });
+        }
       }
     }, 800);
 
@@ -544,8 +553,9 @@ export const useProjectStore = create<ProjectStoreState>((set, get) => ({
     if (autoSaveTimeout) clearTimeout(autoSaveTimeout);
     autoSaveTimeout = setTimeout(async () => {
       if (updatedProject.fileName) {
-        await StorageService.saveProject(updatedProject);
-        set({ lastSavedAt: new Date().toISOString(), hasUnsavedChanges: false });
+        if (await persistSilently(updatedProject)) {
+          set({ lastSavedAt: new Date().toISOString(), hasUnsavedChanges: false });
+        }
       }
     }, 800);
 
