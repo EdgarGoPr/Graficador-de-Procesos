@@ -1,5 +1,12 @@
 # CHANGELOG – ProcesStudio
 
+## 3.0.1 – 2026-11-05 · limpieza del navegador e IA
+- Al iniciar, la app borra las copias de proyectos que guardaban versiones anteriores en el navegador (`procesos_studio_proj_*` y `procesos_studio_project_index`). Antes se verificó que los 4 proyectos están en la base.
+- La IA usa solo la clave del servidor (`GEMINI_API_KEY`). Se eliminó la clave personal en el navegador y se borra `procesos_gemini_api_key`.
+- Si Gemini está saturado (429/503), el servidor reintenta una vez; si sigue saturado, muestra *"El servicio de IA está saturado en este momento. Reintentá en unos minutos."*
+- La función `/api` puede durar hasta 30 s. La CSP limita `connect-src` a `'self'`.
+- Tests: 60.
+
 ## 3.0.0 (cierre de Fase 1) – 2026-11-05 · `PST-107`
 
 Pendientes de seguridad de la Fase 1 resueltos desde el código:
