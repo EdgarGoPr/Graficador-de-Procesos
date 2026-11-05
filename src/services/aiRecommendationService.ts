@@ -31,6 +31,32 @@ export async function callGemini(payload: Record<string, unknown>, signal?: Abor
 }
 
 /**
+ * Límite de salida. Los modelos que razonan antes de responder consumen parte de este límite,
+ * por eso debe ser holgado: con 1024 la respuesta llegaba cortada.
+ */
+export const GEMINI_MAX_OUTPUT_TOKENS = 8192;
+
+/** Une el texto de todas las partes de la respuesta (sin las partes de razonamiento interno). */
+export function extractGeminiText(data: any): { text: string; truncated: boolean } {
+  const candidate = data?.candidates?.[0];
+  const parts: any[] = Array.isArray(candidate?.content?.parts) ? candidate.content.parts : [];
+  const text = parts
+    .filter((p) => typeof p?.text === 'string' && !p.thought)
+    .map((p) => p.text)
+    .join('');
+  return { text, truncated: candidate?.finishReason === 'MAX_TOKENS' };
+}
+
+/** Toma el objeto JSON de la respuesta aunque venga envuelto en ``` o con texto alrededor. */
+export function parseJsonObject<T>(raw: string): T {
+  const cleaned = raw.replace(/```(?:json)?/gi, '').trim();
+  const start = cleaned.indexOf('{');
+  const end = cleaned.lastIndexOf('}');
+  const candidate = start >= 0 && end > start ? cleaned.slice(start, end + 1) : cleaned;
+  return JSON.parse(candidate) as T;
+}
+
+/**
  * Servicio de Inteligencia Artificial para ProcesStudio
  */
 export class AiRecommendationService {
@@ -65,7 +91,7 @@ export class AiRecommendationService {
       ],
       generationConfig: {
         temperature: 0.1,
-        maxOutputTokens: 2048
+        maxOutputTokens: GEMINI_MAX_OUTPUT_TOKENS
       }
     };
 
@@ -77,7 +103,7 @@ export class AiRecommendationService {
       throw new Error(`Fallo en transcripción de audio: ${msg}`);
     }
 
-    const candidateText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+    const candidateText = extractGeminiText(data).text;
     if (!candidateText) {
       throw new Error('La IA no devolvió ninguna transcripción para el audio aportado.');
     }
@@ -160,7 +186,7 @@ Determina el próximo nodo a conectar aplicando la jerarquía estricta. Si no ha
         generationConfig: {
           temperature: 0.2, // Baja temperatura para precisión analítica
           responseMimeType: 'application/json',
-          maxOutputTokens: 1024
+          maxOutputTokens: GEMINI_MAX_OUTPUT_TOKENS
         }
       };
 
@@ -185,7 +211,7 @@ Determina el próximo nodo a conectar aplicando la jerarquía estricta. Si no ha
         clearTimeout(timeoutId);
       }
 
-      const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+      const { text: rawText, truncated } = extractGeminiText(data);
 
       if (!rawText) {
         return {
@@ -195,14 +221,19 @@ Determina el próximo nodo a conectar aplicando la jerarquía estricta. Si no ha
         };
       }
 
-      // Limpiar delimitadores markdown si el modelo los incluyó
-      const cleanedJson = rawText
-        .replace(/^```json\s*/i, '')
-        .replace(/^```\s*/i, '')
-        .replace(/```$/i, '')
-        .trim();
-
-      const parsed = JSON.parse(cleanedJson) as AiNodeRecommendation;
+      let parsed: AiNodeRecommendation;
+      try {
+        parsed = parseJsonObject<AiNodeRecommendation>(rawText);
+      } catch (parseErr) {
+        console.warn('Respuesta de IA no interpretable:', { truncated, length: rawText.length }, parseErr);
+        return {
+          hasSuggestion: false,
+          fallbackReason: 'API_ERROR',
+          fallbackMessage: truncated
+            ? 'No hay sugerencias: la respuesta de la IA llegó incompleta. Intentá de nuevo.'
+            : 'No hay sugerencias: la IA devolvió una respuesta con formato inválido. Intentá de nuevo.'
+        };
+      }
 
       // Normalizar tipo de nodo
       if (parsed.hasSuggestion && parsed.nodeType) {

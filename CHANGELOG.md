@@ -1,5 +1,9 @@
 # CHANGELOG – ProcesStudio
 
+## 3.0.2 – 2026-11-05 · respuesta de IA cortada
+- La sugerencia de IA fallaba con `Unterminated string in JSON`. El límite de 1024 tokens se agotaba porque el modelo razona antes de responder, y el JSON llegaba cortado. El problema era anterior a la Fase 1.
+- El límite de salida pasa a 8192 tokens. Se unen todas las partes de texto de la respuesta, el JSON se extrae de forma tolerante y, si igual llega incompleto, se muestra un mensaje claro.
+
 ## 3.0.1 – 2026-11-05 · limpieza del navegador e IA
 - Al iniciar, la app borra las copias de proyectos que guardaban versiones anteriores en el navegador (`procesos_studio_proj_*` y `procesos_studio_project_index`). Antes se verificó que los 4 proyectos están en la base.
 - La IA usa solo la clave del servidor (`GEMINI_API_KEY`). Se eliminó la clave personal en el navegador y se borra `procesos_gemini_api_key`.
