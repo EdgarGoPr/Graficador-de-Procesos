@@ -22,12 +22,14 @@ export interface TokenClaims {
   sub: string;
   typ: TokenType;
   next?: 'session' | 'pwchange';
+  /** Versión de sesión del usuario: si cambia (p. ej. al cambiar la contraseña), el token deja de valer. */
+  sv?: number;
 }
 
 const ISSUER = 'processtudio';
 
 export async function signToken(secret: Uint8Array, claims: TokenClaims): Promise<string> {
-  const payload: Record<string, unknown> = { typ: claims.typ };
+  const payload: Record<string, unknown> = { typ: claims.typ, sv: claims.sv ?? 0 };
   if (claims.next) payload.next = claims.next;
   return new SignJWT(payload)
     .setProtectedHeader({ alg: 'HS256' })
@@ -45,18 +47,26 @@ export async function verifyToken(secret: Uint8Array, token: string | undefined)
     const typ = payload.typ;
     if (typeof payload.sub !== 'string' || (typ !== 'session' && typ !== 'pwchange' && typ !== '2fa')) return null;
     const next = payload.next === 'pwchange' ? 'pwchange' : payload.next === 'session' ? 'session' : undefined;
-    return { sub: payload.sub, typ, next };
+    const sv = typeof payload.sv === 'number' ? payload.sv : 0;
+    return { sub: payload.sub, typ, next, sv };
   } catch {
     return null;
   }
 }
 
-export async function sessionCookie(secret: Uint8Array, userId: string, typ: 'session' | 'pwchange'): Promise<string> {
-  return serializeCookie(SESSION_COOKIE, await signToken(secret, { sub: userId, typ }), TTL_SECONDS[typ]);
+export interface SessionSubject {
+  id: string;
+  session_version?: number | null;
 }
 
-export async function twoFaCookie(secret: Uint8Array, userId: string, next: 'session' | 'pwchange'): Promise<string> {
-  return serializeCookie(TWO_FA_COOKIE, await signToken(secret, { sub: userId, typ: '2fa', next }), TTL_SECONDS['2fa']);
+export async function sessionCookie(secret: Uint8Array, user: SessionSubject, typ: 'session' | 'pwchange'): Promise<string> {
+  const token = await signToken(secret, { sub: user.id, typ, sv: Number(user.session_version) || 0 });
+  return serializeCookie(SESSION_COOKIE, token, TTL_SECONDS[typ]);
+}
+
+export async function twoFaCookie(secret: Uint8Array, user: SessionSubject, next: 'session' | 'pwchange'): Promise<string> {
+  const token = await signToken(secret, { sub: user.id, typ: '2fa', next, sv: Number(user.session_version) || 0 });
+  return serializeCookie(TWO_FA_COOKIE, token, TTL_SECONDS['2fa']);
 }
 
 export const clearSessionCookie = () => clearCookie(SESSION_COOKIE);

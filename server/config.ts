@@ -1,3 +1,5 @@
+import { createHash } from 'node:crypto';
+
 /**
  * Configuración del backend. Solo lee variables de entorno del servidor (sin prefijo VITE_),
  * de modo que ningún secreto llegue al bundle del navegador.
@@ -13,9 +15,16 @@ export interface ServerConfig {
   bootstrapAdminEmail: string | null;
   allowedOrigins: string[];
   geminiApiKey: string | null;
+  /** Clave (32 bytes) para cifrar los secretos TOTP en la base. Opcional. */
+  totpEncryptionKey: Uint8Array | null;
 }
 
 export class ConfigError extends Error {}
+
+/** Deriva 32 bytes de cualquier texto (se recomienda 32+ caracteres aleatorios). */
+function deriveKey(text: string): Uint8Array {
+  return new Uint8Array(createHash('sha256').update(text, 'utf8').digest());
+}
 
 export function loadConfig(env: Record<string, string | undefined> = process.env): ServerConfig {
   const databaseUrl = (env.DATABASE_URL || '').trim();
@@ -39,6 +48,12 @@ export function loadConfig(env: Record<string, string | undefined> = process.env
     googleClientId: (env.GOOGLE_CLIENT_ID || env.VITE_GOOGLE_CLIENT_ID || DEFAULT_GOOGLE_CLIENT_ID).trim(),
     bootstrapAdminEmail: (env.BOOTSTRAP_ADMIN_EMAIL || '').trim().toLowerCase() || null,
     allowedOrigins,
-    geminiApiKey: (env.GEMINI_API_KEY || '').trim() || null
+    geminiApiKey: (env.GEMINI_API_KEY || '').trim() || null,
+    totpEncryptionKey: (() => {
+      const raw = (env.TOTP_ENCRYPTION_KEY || '').trim();
+      if (!raw) return null;
+      if (raw.length < 32) throw new ConfigError('TOTP_ENCRYPTION_KEY debe tener al menos 32 caracteres.');
+      return deriveKey(raw);
+    })()
   };
 }

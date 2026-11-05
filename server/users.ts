@@ -41,6 +41,7 @@ export interface DbUser {
   allowed_modules: unknown;
   failed_login_attempts: number | null;
   locked_until: unknown;
+  session_version: number | null;
   created_at: unknown;
   updated_at: unknown;
 }
@@ -114,7 +115,7 @@ export function toDirectoryUser(row: DbUser) {
 
 const USER_COLUMNS = `id, email, password_hash, full_name, organization_unit, role, status, google_id, avatar_url,
   reset_request_status, reset_requested_at, reset_code_hash, reset_code_expires_at, must_change_password,
-  totp_secret, is_totp_enabled, allowed_modules, failed_login_attempts, locked_until, created_at, updated_at`;
+  totp_secret, is_totp_enabled, allowed_modules, failed_login_attempts, locked_until, session_version, created_at, updated_at`;
 
 export async function findUserByEmail(db: Db, email: string): Promise<DbUser | null> {
   const rows = await db.query<DbUser>(`SELECT ${USER_COLUMNS} FROM app_users WHERE lower(email) = lower($1) LIMIT 1`, [email]);

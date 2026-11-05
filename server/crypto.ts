@@ -1,4 +1,13 @@
-import { createHash, createHmac, pbkdf2 as pbkdf2Cb, randomBytes, randomInt, timingSafeEqual } from 'node:crypto';
+import {
+  createCipheriv,
+  createDecipheriv,
+  createHash,
+  createHmac,
+  pbkdf2 as pbkdf2Cb,
+  randomBytes,
+  randomInt,
+  timingSafeEqual
+} from 'node:crypto';
 import { promisify } from 'node:util';
 
 const pbkdf2 = promisify(pbkdf2Cb);
@@ -81,6 +90,31 @@ export function verifyTotp(secret: string, token: string, now = Date.now()): boo
   if (!/^\d{6}$/.test(clean)) return false;
   const counter = Math.floor(now / 1000 / 30);
   return [counter, counter - 1].some((c) => safeEqualHex(totpAt(secret, c), clean));
+}
+
+// ---------------------------------------------------------------------------
+// Cifrado en reposo del secreto TOTP (AES-256-GCM)
+// ---------------------------------------------------------------------------
+
+const ENC_PREFIX = 'enc:v1:';
+
+export function isEncryptedSecret(stored: string | null | undefined): boolean {
+  return !!stored && stored.startsWith(ENC_PREFIX);
+}
+
+export function encryptSecret(key: Uint8Array, plaintext: string): string {
+  const iv = randomBytes(12);
+  const cipher = createCipheriv('aes-256-gcm', key, iv);
+  const ct = Buffer.concat([cipher.update(plaintext, 'utf8'), cipher.final()]);
+  const tag = cipher.getAuthTag();
+  return `${ENC_PREFIX}${iv.toString('base64')}:${tag.toString('base64')}:${ct.toString('base64')}`;
+}
+
+export function decryptSecret(key: Uint8Array, stored: string): string {
+  const [ivB64, tagB64, ctB64] = stored.slice(ENC_PREFIX.length).split(':');
+  const decipher = createDecipheriv('aes-256-gcm', key, Buffer.from(ivB64, 'base64'));
+  decipher.setAuthTag(Buffer.from(tagB64, 'base64'));
+  return Buffer.concat([decipher.update(Buffer.from(ctB64, 'base64')), decipher.final()]).toString('utf8');
 }
 
 export function otpAuthUri(issuer: string, account: string, secret: string): string {

@@ -1,10 +1,14 @@
 import { actorOf, writeAudit } from '../audit.js';
 import { requireAdmin, requireUser } from '../authz.js';
 import type { Ctx } from '../context.js';
+import { LIMITS, assertIpAllowed, consumePublicForm, recordIpAttempt } from '../rateLimit.js';
 import {
+  decryptSecret,
+  encryptSecret,
   generate6DigitCode,
   generateTotpSecret,
   hashPassword,
+  isEncryptedSecret,
   otpAuthUri,
   safeEqualHex,
   sha256Hex,
@@ -40,7 +44,9 @@ function assertNotLocked(ctx: Ctx, user: DbUser): void {
   }
 }
 
-async function registerFailure(ctx: Ctx, user: DbUser): Promise<void> {
+async function registerFailure(ctx: Ctx, user: DbUser | null): Promise<void> {
+  await recordIpAttempt(ctx, LIMITS.authFailures);
+  if (!user) return;
   await ctx.db.query(
     `UPDATE app_users SET
        failed_login_attempts = CASE WHEN COALESCE(failed_login_attempts, 0) + 1 >= $2 THEN 0 ELSE COALESCE(failed_login_attempts, 0) + 1 END,
@@ -53,6 +59,24 @@ async function registerFailure(ctx: Ctx, user: DbUser): Promise<void> {
 async function clearFailures(ctx: Ctx, user: DbUser): Promise<void> {
   if ((user.failed_login_attempts || 0) === 0 && !user.locked_until) return;
   await ctx.db.query(`UPDATE app_users SET failed_login_attempts = 0, locked_until = NULL WHERE id::text = $1`, [user.id]);
+}
+
+/** Secreto TOTP en claro: descifra si está cifrado; si hay clave y estaba en texto plano, lo cifra. */
+async function readTotpSecret(ctx: Ctx, user: DbUser): Promise<string | null> {
+  const stored = user.totp_secret;
+  if (!stored) return null;
+  if (isEncryptedSecret(stored)) {
+    if (!ctx.config.totpEncryptionKey) {
+      console.error('Hay secretos TOTP cifrados pero falta TOTP_ENCRYPTION_KEY.');
+      throw new HttpError(500, 'El servidor no puede validar el doble factor. Contactá al Administrador.');
+    }
+    return decryptSecret(ctx.config.totpEncryptionKey, stored);
+  }
+  return stored;
+}
+
+function storableTotpSecret(ctx: Ctx, plain: string): string {
+  return ctx.config.totpEncryptionKey ? encryptSecret(ctx.config.totpEncryptionKey, plain) : plain;
 }
 
 function hasValidResetCode(ctx: Ctx, user: DbUser, code: string): boolean {
@@ -93,14 +117,14 @@ async function sessionPayload(ctx: Ctx, user: DbUser) {
 /** Completa el primer factor: exige TOTP a administradores con 2FA, o abre la sesión. */
 async function finishFirstFactor(ctx: Ctx, user: DbUser, next: 'session' | 'pwchange', method: string) {
   if (user.role === 'ADMIN' && user.is_totp_enabled && user.totp_secret) {
-    ctx.outCookies.push(await twoFaCookie(ctx.config.sessionSecret, user.id, next));
+    ctx.outCookies.push(await twoFaCookie(ctx.config.sessionSecret, user, next));
     return { ok: true, requiresTotp: true };
   }
   if (next === 'pwchange') {
-    ctx.outCookies.push(await sessionCookie(ctx.config.sessionSecret, user.id, 'pwchange'));
+    ctx.outCookies.push(await sessionCookie(ctx.config.sessionSecret, user, 'pwchange'));
     return { ok: true, mustChangePassword: true };
   }
-  ctx.outCookies.push(await sessionCookie(ctx.config.sessionSecret, user.id, 'session'));
+  ctx.outCookies.push(await sessionCookie(ctx.config.sessionSecret, user, 'session'));
   await writeAudit(ctx, actorOf(user), method === 'GOOGLE' ? 'AUTH_LOGIN_GOOGLE' : 'AUTH_LOGIN_SUCCESS', null, { method });
   return sessionPayload(ctx, user);
 }
@@ -113,9 +137,11 @@ export function registerAuthRoutes(router: Router): void {
   router.add('POST', '/auth/login', async (ctx) => {
     const email = requireString(ctx.req.body?.email, 'email', 255).toLowerCase();
     const secret = requireString(ctx.req.body?.password, 'contraseña', 200);
+    await assertIpAllowed(ctx, LIMITS.authFailures);
 
     const user = await findUserByEmail(ctx.db, email);
     if (!user) {
+      await registerFailure(ctx, null);
       await writeAudit(ctx, { email, role: 'USER' }, 'AUTH_LOGIN_FAILED', null, { reason: 'Usuario no encontrado' });
       throw unauthorized('Credenciales inválidas o correo no registrado.');
     }
@@ -147,14 +173,21 @@ export function registerAuthRoutes(router: Router): void {
 
   router.add('POST', '/auth/google', async (ctx) => {
     const accessToken = requireString(ctx.req.body?.accessToken, 'accessToken', 4096);
+    await assertIpAllowed(ctx, LIMITS.authFailures);
 
     const infoRes = await ctx.fetchFn(
       `https://oauth2.googleapis.com/tokeninfo?access_token=${encodeURIComponent(accessToken)}`
     );
-    if (!infoRes.ok) throw unauthorized('No se pudo validar la sesión de Google.');
+    if (!infoRes.ok) {
+      await registerFailure(ctx, null);
+      throw unauthorized('No se pudo validar la sesión de Google.');
+    }
     const info = (await infoRes.json()) as Record<string, any>;
     const clientId = ctx.config.googleClientId;
-    if (info.aud !== clientId && info.azp !== clientId) throw unauthorized('El token de Google no corresponde a esta aplicación.');
+    if (info.aud !== clientId && info.azp !== clientId) {
+      await registerFailure(ctx, null);
+      throw unauthorized('El token de Google no corresponde a esta aplicación.');
+    }
     if (!(info.email_verified === true || info.email_verified === 'true') || typeof info.email !== 'string') {
       throw unauthorized('Google no confirmó el correo de la cuenta.');
     }
@@ -224,31 +257,39 @@ export function registerAuthRoutes(router: Router): void {
   router.add('POST', '/auth/totp/verify', async (ctx) => {
     const claims = await verifyToken(ctx.config.sessionSecret, ctx.cookies[TWO_FA_COOKIE]);
     if (!claims || claims.typ !== '2fa') throw unauthorized('El desafío de doble factor expiró. Volvé a iniciar sesión.');
+    await assertIpAllowed(ctx, LIMITS.authFailures);
     const user = await findUserById(ctx.db, claims.sub);
     if (!user || user.status !== 'ACTIVE' || !user.totp_secret) throw unauthorized();
+    if ((claims.sv ?? 0) !== (Number(user.session_version) || 0)) throw unauthorized('El desafío de doble factor expiró. Volvé a iniciar sesión.');
     assertNotLocked(ctx, user);
 
     const code = requireString(ctx.req.body?.code, 'código', 10);
-    if (!verifyTotp(user.totp_secret, code, ctx.now())) {
+    const totpSecret = await readTotpSecret(ctx, user);
+    if (!totpSecret || !verifyTotp(totpSecret, code, ctx.now())) {
       await registerFailure(ctx, user);
       await writeAudit(ctx, actorOf(user), 'AUTH_LOGIN_FAILED', null, { reason: 'Código TOTP 2FA incorrecto' });
       throw unauthorized('Código 2FA incorrecto o expirado. Reintentá con el nuevo código de tu app.');
     }
     await clearFailures(ctx, user);
+    if (ctx.config.totpEncryptionKey && !isEncryptedSecret(user.totp_secret)) {
+      // Migración progresiva: el secreto heredado en texto plano queda cifrado.
+      await ctx.db.query(`UPDATE app_users SET totp_secret = $2 WHERE id::text = $1`, [user.id, storableTotpSecret(ctx, totpSecret)]);
+    }
     ctx.outCookies.push(clearTwoFaCookie());
     await writeAudit(ctx, actorOf(user), 'AUTH_2FA_VERIFIED', null, { method: 'TOTP_2FA' });
 
     if (claims.next === 'pwchange') {
-      ctx.outCookies.push(await sessionCookie(ctx.config.sessionSecret, user.id, 'pwchange'));
+      ctx.outCookies.push(await sessionCookie(ctx.config.sessionSecret, user, 'pwchange'));
       return { ok: true, mustChangePassword: true };
     }
-    ctx.outCookies.push(await sessionCookie(ctx.config.sessionSecret, user.id, 'session'));
+    ctx.outCookies.push(await sessionCookie(ctx.config.sessionSecret, user, 'session'));
     await writeAudit(ctx, actorOf(user), 'AUTH_LOGIN_SUCCESS', null, { method: 'EMAIL_2FA_ADMIN' });
     return sessionPayload(ctx, user);
   });
 
   router.add('POST', '/auth/change-password', async (ctx) => {
     const user = await requireUser(ctx, ['pwchange', 'session']);
+    await assertIpAllowed(ctx, LIMITS.authFailures);
     assertNotLocked(ctx, user);
     const code = requireString(ctx.req.body?.code, 'código', 10);
     const newPassword = requireString(ctx.req.body?.newPassword, 'nueva contraseña', 200);
@@ -267,12 +308,13 @@ export function registerAuthRoutes(router: Router): void {
     await ctx.db.query(
       `UPDATE app_users SET password_hash = $2, reset_code_hash = NULL, reset_code_expires_at = NULL,
          reset_request_status = 'NONE', must_change_password = FALSE, failed_login_attempts = 0, locked_until = NULL,
-         updated_at = NOW()
+         session_version = session_version + 1, updated_at = NOW()
        WHERE id::text = $1`,
       [user.id, hash]
     );
+    // Las sesiones abiertas antes del cambio dejan de valer; solo vale la que se emite ahora.
     const updated = (await findUserById(ctx.db, user.id))!;
-    ctx.outCookies.push(await sessionCookie(ctx.config.sessionSecret, user.id, 'session'));
+    ctx.outCookies.push(await sessionCookie(ctx.config.sessionSecret, updated, 'session'));
     await writeAudit(ctx, actorOf(updated), 'AUTH_PASSWORD_CHANGED', null, { method: '6_DIGIT_RESET' });
     return sessionPayload(ctx, updated);
   });
@@ -280,6 +322,7 @@ export function registerAuthRoutes(router: Router): void {
   router.add('POST', '/auth/reauth', async (ctx) => {
     const user = await requireUser(ctx);
     if (user.password_hash) {
+      await assertIpAllowed(ctx, LIMITS.authFailures);
       assertNotLocked(ctx, user);
       const password = requireString(ctx.req.body?.password, 'contraseña', 200);
       if (!(await verifyPassword(password, user.password_hash))) {
@@ -289,7 +332,7 @@ export function registerAuthRoutes(router: Router): void {
       await clearFailures(ctx, user);
     }
     // Renueva la sesión al desbloquear la pantalla.
-    ctx.outCookies.push(await sessionCookie(ctx.config.sessionSecret, user.id, 'session'));
+    ctx.outCookies.push(await sessionCookie(ctx.config.sessionSecret, user, 'session'));
     return { ok: true };
   });
 
@@ -318,6 +361,7 @@ export function registerAuthRoutes(router: Router): void {
 
   router.add('POST', '/auth/reset-request', async (ctx) => {
     const email = requireString(ctx.req.body?.email, 'email', 255).toLowerCase();
+    await consumePublicForm(ctx);
     const user = await findUserByEmail(ctx.db, email);
     if (user) {
       await ctx.db.query(
@@ -339,6 +383,7 @@ export function registerAuthRoutes(router: Router): void {
     const fullName = requireString(ctx.req.body?.fullName, 'nombre', 150);
     const organizationUnit = requireString(ctx.req.body?.organizationUnit, 'unidad organizativa', 160);
     const justification = requireString(ctx.req.body?.justification, 'justificación', 2000);
+    await consumePublicForm(ctx);
 
     const existing = await findUserByEmail(ctx.db, email);
     if (!existing) {
@@ -377,7 +422,7 @@ export function registerAuthRoutes(router: Router): void {
     }
     await ctx.db.query(
       `UPDATE app_users SET totp_secret = $2, is_totp_enabled = TRUE, updated_at = NOW() WHERE id::text = $1`,
-      [admin.id, secret]
+      [admin.id, storableTotpSecret(ctx, secret)]
     );
     await writeAudit(ctx, actorOf(admin), 'AUTH_2FA_ENABLED');
     return { ok: true };

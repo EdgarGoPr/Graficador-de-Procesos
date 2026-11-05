@@ -13,6 +13,8 @@ export async function requireUser(ctx: Ctx, allowed: Array<'session' | 'pwchange
   if (!claims || claims.typ === '2fa' || !allowed.includes(claims.typ)) throw unauthorized();
   const user = await findUserById(ctx.db, claims.sub);
   if (!user || user.status !== 'ACTIVE') throw unauthorized();
+  // La contraseña cambió (o el Administrador emitió un código de reseteo) después de emitir esta cookie.
+  if ((claims.sv ?? 0) !== (Number(user.session_version) || 0)) throw unauthorized();
   return user;
 }
 

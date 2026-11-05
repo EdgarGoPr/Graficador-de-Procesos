@@ -27,6 +27,7 @@ import {
   toPublicUser
 } from '../users.js';
 import { newResetCode } from './auth.js';
+import { sessionCookie } from '../session.js';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -141,11 +142,17 @@ export function registerAdminRoutes(router: Router): void {
     await ctx.db.query(
       `UPDATE app_users SET full_name = $2, organization_unit = $3, role = $4, status = $5,
          password_hash = COALESCE($6, password_hash), must_change_password = $7,
-         allowed_modules = COALESCE($8::jsonb, allowed_modules), updated_at = NOW()
+         allowed_modules = COALESCE($8::jsonb, allowed_modules),
+         session_version = session_version + CASE WHEN $6::text IS NULL THEN 0 ELSE 1 END,
+         updated_at = NOW()
        WHERE id::text = $1`,
       [id, fullName, organizationUnit, role, status, newHash, mustChange, modules ? JSON.stringify(modules) : null]
     );
     const updated = (await findUserById(ctx.db, id))!;
+    if (newHash && id === admin.id) {
+      // El administrador cambió su propia contraseña: conserva esta sesión, se cierran las demás.
+      ctx.outCookies.push(await sessionCookie(ctx.config.sessionSecret, updated, 'session'));
+    }
     await writeAudit(ctx, actorOf(admin), 'USER_UPDATED_BY_ADMIN', target.email, {
       targetUserId: id,
       role,
@@ -199,7 +206,8 @@ export function registerAdminRoutes(router: Router): void {
     const expiresAt = new Date(ctx.now() + DAY_MS).toISOString();
     await ctx.db.query(
       `UPDATE app_users SET reset_code_hash = $2, reset_code_expires_at = $3, reset_request_status = 'CODE_ISSUED',
-         must_change_password = TRUE, failed_login_attempts = 0, locked_until = NULL, updated_at = NOW()
+         must_change_password = TRUE, failed_login_attempts = 0, locked_until = NULL,
+         session_version = session_version + 1, updated_at = NOW()
        WHERE id::text = $1`,
       [id, hash, expiresAt]
     );
