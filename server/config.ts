@@ -27,9 +27,22 @@ function deriveKey(text: string): Uint8Array {
 }
 
 export function loadConfig(env: Record<string, string | undefined> = process.env): ServerConfig {
-  const databaseUrl = (env.DATABASE_URL || '').trim();
+  // APP_DATABASE_URL es la variable propia del backend. La integración Vercel-Neon carga DATABASE_URL
+  // con el rol dueño; se acepta solo como respaldo y nunca si es neondb_owner.
+  const databaseUrl = (env.APP_DATABASE_URL || env.DATABASE_URL || '').trim();
   if (!databaseUrl) {
-    throw new ConfigError('Falta la variable de entorno DATABASE_URL.');
+    throw new ConfigError('Falta la variable de entorno APP_DATABASE_URL.');
+  }
+  let dbUser = '';
+  try {
+    dbUser = decodeURIComponent(new URL(databaseUrl).username);
+  } catch {
+    throw new ConfigError('APP_DATABASE_URL no es una cadena de conexión válida.');
+  }
+  if (dbUser === 'neondb_owner') {
+    throw new ConfigError(
+      'El backend no puede conectarse con neondb_owner: definí APP_DATABASE_URL con el rol processtudio_app.'
+    );
   }
 
   const secret = (env.SESSION_SECRET || '').trim();

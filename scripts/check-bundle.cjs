@@ -27,7 +27,11 @@ const FORBIDDEN = [
 
 // Valores de variables secretas presentes en el entorno del build (Vercel las inyecta)
 // o en los archivos .env locales.
-const SECRET_ENV = ['DATABASE_URL', 'SESSION_SECRET', 'GEMINI_API_KEY', 'VITE_NEON_DATABASE_URL', 'VITE_GEMINI_API_KEY'];
+const SECRET_ENV = [
+  'APP_DATABASE_URL', 'DATABASE_URL', 'DATABASE_URL_UNPOOLED', 'POSTGRES_URL', 'POSTGRES_URL_NON_POOLING',
+  'POSTGRES_PRISMA_URL', 'POSTGRES_PASSWORD', 'PGPASSWORD', 'SESSION_SECRET', 'TOTP_ENCRYPTION_KEY',
+  'GEMINI_API_KEY', 'VITE_NEON_DATABASE_URL', 'VITE_GEMINI_API_KEY'
+];
 const fileEnv = {};
 for (const envFile of ['.env', '.env.local', '.env.production', '.env.production.local']) {
   const p = path.resolve(envFile);

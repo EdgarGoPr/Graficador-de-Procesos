@@ -2096,3 +2096,4 @@ Navegador (React)  ──fetch same-origin + cookie httpOnly──►  /api/* (V
 4. **Content-Security-Policy:** se publica primero en modo `Report-Only` para no romper funciones; se pasa a obligatoria tras revisar la consola del navegador en el Preview.
 5. **Migración `005_sessions_rate_limit.sql`** (idempotente; otorga permisos al rol de aplicación si existe).
 6. **Prueba de las migraciones contra los scripts reales** (`scripts/neon_schema.sql` + `scripts/auth_schema.sql`, con CHECKs, FKs, RLS y búsqueda full-text), además del esquema reconstruido.
+7. **Variable propia `APP_DATABASE_URL`** (agregado 2026-11-05): la integración Vercel‑Neon ocupa `DATABASE_URL` con `neondb_owner`. El backend lee `APP_DATABASE_URL` y rechaza cualquier conexión con `neondb_owner`.

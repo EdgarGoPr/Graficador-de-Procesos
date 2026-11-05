@@ -8,9 +8,10 @@ Pendientes de seguridad de la Fase 1 resueltos desde el código:
 - **Secreto TOTP cifrado** (AES-256-GCM) si se define `TOTP_ENCRYPTION_KEY`. Los secretos existentes se cifran solos en el siguiente ingreso con 2FA. Sin la clave, un secreto cifrado no se puede validar: el servidor falla cerrado.
 - **Encabezados:** `Content-Security-Policy-Report-Only` y `Permissions-Policy`. La CSP no bloquea todavía: ver "Cómo probar".
 - **Migración nueva:** `005_sessions_rate_limit.sql`.
+- **Variable de conexión:** el backend usa `APP_DATABASE_URL`, porque la integración Vercel‑Neon ya carga `DATABASE_URL` con `neondb_owner`. Si la cadena que recibe usa `neondb_owner`, el backend no arranca.
 - **Importante:** el backend lee `session_version`, así que la migración 005 tiene que estar aplicada **antes** de desplegar esta versión.
 - **Credenciales:** la contraseña de `neondb_owner` sirve solo para correr las migraciones. No se carga en Vercel ni en `.env`.
-- **Tests:** 52 en total. Ahora las migraciones también se prueban contra los scripts reales del repo (`scripts/neon_schema.sql` + `scripts/auth_schema.sql`), con CHECKs, FKs, RLS, trigger y búsqueda full-text.
+- **Tests:** 55 en total. Ahora las migraciones también se prueban contra los scripts reales del repo (`scripts/neon_schema.sql` + `scripts/auth_schema.sql`), con CHECKs, FKs, RLS, trigger y búsqueda full-text.
 
 
 ## 3.0.0 – Fase 1: Seguridad (2026-11-05) · `PST-104`, `PST-105`, `PST-106`
@@ -79,7 +80,7 @@ Remediación de los hallazgos críticos de la auditoría de V 02.05.00. Rama: `f
 
    | Variable | Valor |
    | :--- | :--- |
-   | `DATABASE_URL` | Cadena de conexión con `processtudio_app` (no con `neondb_owner`) |
+   | `APP_DATABASE_URL` | Cadena de conexión con `processtudio_app`. No usar `DATABASE_URL`: la integración de Neon la ocupa con el rol dueño |
    | `SESSION_SECRET` | 32+ caracteres aleatorios: `node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"` |
    | `GOOGLE_CLIENT_ID` | El Client ID de OAuth (el mismo que `VITE_GOOGLE_CLIENT_ID`) |
    | `BOOTSTRAP_ADMIN_EMAIL` | Correo del administrador principal |
