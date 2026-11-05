@@ -1,5 +1,9 @@
 # CHANGELOG – ProcesStudio
 
+## 3.0.3 – 2026-11-05 · cierre de la Fase 1
+- La Content-Security-Policy pasa a modo obligatorio. La prueba de uso general en producción no mostró avisos `[Report Only]`.
+- Despliegue completo: migraciones 001–005 aplicadas, variables de servidor cargadas en Vercel, contraseña de `neondb_owner` rotada y clave de Gemini regenerada.
+
 ## 3.0.2 – 2026-11-05 · respuesta de IA cortada
 - La sugerencia de IA fallaba con `Unterminated string in JSON`. El límite de 1024 tokens se agotaba porque el modelo razona antes de responder, y el JSON llegaba cortado. El problema era anterior a la Fase 1.
 - El límite de salida pasa a 8192 tokens. Se unen todas las partes de texto de la respuesta, el JSON se extrae de forma tolerante y, si igual llega incompleto, se muestra un mensaje claro.
@@ -115,5 +119,4 @@ Remediación de los hallazgos críticos de la auditoría de V 02.05.00. Rama: `f
 ### Pendiente / conocido
 - **Fase 2:** los permisos y las versiones siguen identificados por nombre de archivo y agrupados por código documental.
 - El proxy de IA acepta peticiones de hasta ~4,5 MB (límite de Vercel). Para PDFs escaneados muy grandes conviene usar la clave personal de la Bóveda.
-- La Content-Security-Policy está en modo de prueba (`Report-Only`) hasta validarla en el Preview.
 - `scripts/setup-neon-db.cjs` ahora lee `NEON_OWNER_DATABASE_URL`. Para cambios de esquema conviene usar `db/migrations/`.
