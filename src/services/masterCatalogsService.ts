@@ -7,10 +7,10 @@ import {
   RiskControlCatalogItem,
   SystemDocumentCatalogItem
 } from '../types/catalogs';
-import { ProcessProjectFile } from '../types/project';
-import { NeonClient } from './neonClient';
+import { api, apiErrorMessage } from './apiClient';
 import { AuditLoggerService } from './auditLoggerService';
 import { useAuthStore } from '../store/useAuthStore';
+import { useUiStore } from '../store/useUiStore';
 
 const LOCAL_STORAGE_CATALOGS_KEY = 'procesos_master_catalogs_v2';
 
@@ -338,54 +338,43 @@ export class MasterCatalogsService {
   }
 
   /**
-   * Inicializa la tabla de catálogos maestros en Neon PostgreSQL y sincroniza caché local
+   * Sincroniza la caché local con los catálogos del servidor y la papelera visible para el usuario.
    */
   public static async initialize(): Promise<MasterCatalogsStateData> {
     const localData = this.getCatalogsSync();
+    if (!useAuthStore.getState().currentUser) return localData;
+    this.isInitialized = true;
 
-    const sql = NeonClient.getSql();
-    if (sql && !this.isInitialized) {
-      this.isInitialized = true;
-      try {
-        await sql`
-          CREATE TABLE IF NOT EXISTS app_master_catalogs (
-            catalog_key VARCHAR(60) PRIMARY KEY,
-            payload JSONB NOT NULL,
-            updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-          );
-        `;
-
-        const rows = (await sql`
-          SELECT payload FROM app_master_catalogs WHERE catalog_key = 'GLOBAL_CATALOGS_V2';
-        `) as any[];
-
-        if (rows && rows.length > 0 && rows[0].payload) {
-          const remoteData = rows[0].payload as MasterCatalogsStateData;
-          const merged: MasterCatalogsStateData = {
-            orgUnits: remoteData.orgUnits || localData.orgUnits,
-            roles: remoteData.roles || localData.roles,
-            normatives: remoteData.normatives || localData.normatives,
-            systemsDocs: remoteData.systemsDocs || localData.systemsDocs,
-            risksControls: remoteData.risksControls || localData.risksControls,
-            deletedProjects: remoteData.deletedProjects || localData.deletedProjects || []
-          };
-          localStorage.setItem(LOCAL_STORAGE_CATALOGS_KEY, JSON.stringify(merged));
-          this.notifyListeners();
-          return merged;
-        } else {
-          // Subir semilla inicial a Neon
-          await sql`
-            INSERT INTO app_master_catalogs (catalog_key, payload, updated_at)
-            VALUES ('GLOBAL_CATALOGS_V2', ${JSON.stringify(localData)}::jsonb, NOW())
-            ON CONFLICT (catalog_key) DO NOTHING;
-          `;
-        }
-      } catch (err) {
-        console.warn('Info: Catálogos operando con caché local sincronizada:', err);
+    try {
+      const res = await api<{ payload: Partial<MasterCatalogsStateData> | null; deletedProjects: DeletedProjectEntry[] }>(
+        'GET',
+        '/catalogs'
+      );
+      const remote = res.payload;
+      if (!remote && useAuthStore.getState().currentUser?.role === 'ADMIN') {
+        // Primera vez: el administrador publica la semilla inicial.
+        const { deletedProjects: _omit, ...seed } = localData;
+        await api('PUT', '/catalogs', { body: { payload: seed } }).catch(() => undefined);
       }
+      const merged: MasterCatalogsStateData = {
+        orgUnits: remote?.orgUnits || localData.orgUnits,
+        roles: remote?.roles || localData.roles,
+        normatives: remote?.normatives || localData.normatives,
+        systemsDocs: remote?.systemsDocs || localData.systemsDocs,
+        risksControls: remote?.risksControls || localData.risksControls,
+        deletedProjects: res.deletedProjects || []
+      };
+      localStorage.setItem(LOCAL_STORAGE_CATALOGS_KEY, JSON.stringify(merged));
+      this.notifyListeners();
+      return merged;
+    } catch (err) {
+      console.warn('Info: Catálogos operando con caché local:', err);
+      return localData;
     }
+  }
 
-    return localData;
+  public static get initialized(): boolean {
+    return this.isInitialized;
   }
 
   /**
@@ -412,25 +401,36 @@ export class MasterCatalogsService {
   }
 
   /**
-   * Guarda el estado de catálogos en localStorage y en Neon PostgreSQL
+   * Guarda los catálogos en el servidor (solo Administrador) y luego actualiza la caché local.
+   * Si el servidor lo rechaza, la caché no se modifica y se informa el motivo.
    */
   public static async saveCatalogs(data: MasterCatalogsStateData): Promise<void> {
+    const { deletedProjects: _omit, ...payload } = data;
+    try {
+      await api('PUT', '/catalogs', { body: { payload } });
+    } catch (err) {
+      const msg = apiErrorMessage(err, 'No se pudieron guardar los catálogos.');
+      useUiStore.getState().showNotification(msg, 'error');
+      throw err;
+    }
     localStorage.setItem(LOCAL_STORAGE_CATALOGS_KEY, JSON.stringify(data));
     this.notifyListeners();
+  }
 
-    const sql = NeonClient.getSql();
-    if (sql) {
-      try {
-        await sql`
-          INSERT INTO app_master_catalogs (catalog_key, payload, updated_at)
-          VALUES ('GLOBAL_CATALOGS_V2', ${JSON.stringify(data)}::jsonb, NOW())
-          ON CONFLICT (catalog_key) DO UPDATE SET
-            payload = EXCLUDED.payload,
-            updated_at = NOW();
-        `;
-      } catch (err) {
-        console.warn('Error al sincronizar catálogos en Neon:', err);
-      }
+  private static setDeletedProjectsCache(entries: DeletedProjectEntry[]): void {
+    const data = this.getCatalogsSync();
+    data.deletedProjects = entries;
+    localStorage.setItem(LOCAL_STORAGE_CATALOGS_KEY, JSON.stringify(data));
+    this.notifyListeners();
+  }
+
+  /** Vuelve a leer la papelera desde el servidor. */
+  public static async refreshTrash(): Promise<void> {
+    try {
+      const res = await api<{ entries: DeletedProjectEntry[] }>('GET', '/trash');
+      this.setDeletedProjectsCache(res.entries || []);
+    } catch (err) {
+      console.warn('No se pudo actualizar la papelera:', err);
     }
   }
 
@@ -659,29 +659,27 @@ export class MasterCatalogsService {
   // ============================================================================
   // 6. PAPELERA DE RECICLAJE DE PROYECTOS (SOFT-DELETE & RESTORE)
   // ============================================================================
-  public static async moveProjectToTrash(project: ProcessProjectFile, deletedByEmail: string): Promise<void> {
-    if (!project.fileName) return;
-    const data = this.getCatalogsSync();
-    const entry: DeletedProjectEntry = {
-      fileName: project.fileName,
-      documentTitle: project.documentControl.documentTitle,
-      documentCode: project.documentControl.documentCode,
-      version: project.documentControl.version,
-      organizationUnit: project.documentControl.organizationUnit,
-      authorName: project.documentControl.authorName,
-      deletedAt: nowIso(),
-      deletedByEmail: deletedByEmail || 'sistema@processtudio.com',
-      projectData: project
-    };
-    data.deletedProjects = [entry, ...data.deletedProjects.filter((p) => p.fileName !== project.fileName)].slice(0, 50);
-    await this.saveCatalogs(data);
+  // El envío a la papelera lo hace el servidor al eliminar el proyecto (DELETE /api/projects).
+
+  /** Restaura un proyecto de la papelera (propietario o Administrador). */
+  public static async restoreProjectFromTrash(fileName: string): Promise<{ ok: boolean; error?: string }> {
+    try {
+      await api('POST', `/trash/${encodeURIComponent(fileName)}/restore`, { body: {} });
+      await this.refreshTrash();
+      return { ok: true };
+    } catch (err) {
+      return { ok: false, error: apiErrorMessage(err, 'No se pudo restaurar el proyecto.') };
+    }
   }
 
-  public static async removeProjectFromTrash(fileName: string): Promise<DeletedProjectEntry | null> {
-    const data = this.getCatalogsSync();
-    const target = data.deletedProjects.find((p) => p.fileName === fileName) || null;
-    data.deletedProjects = data.deletedProjects.filter((p) => p.fileName !== fileName);
-    await this.saveCatalogs(data);
-    return target;
+  /** Elimina definitivamente un proyecto de la papelera (propietario o Administrador). */
+  public static async removeProjectFromTrash(fileName: string): Promise<{ ok: boolean; error?: string }> {
+    try {
+      await api('DELETE', `/trash/${encodeURIComponent(fileName)}`, { body: {} });
+      await this.refreshTrash();
+      return { ok: true };
+    } catch (err) {
+      return { ok: false, error: apiErrorMessage(err, 'No se pudo purgar el proyecto.') };
+    }
   }
 }

@@ -93,6 +93,9 @@ export interface ProjectSummary {
   authorName: string;
   createdByEmail?: string;
   createdByUserId?: string;
+  /** Propietario registrado en el servidor y permiso efectivo del usuario actual. */
+  ownerUserId?: string | null;
+  myPermission?: 'READ_ONLY' | 'COMMENTS' | 'EDITOR' | null;
   organizationUnit: string;
   updatedAt: string;
   nodeCount: number;

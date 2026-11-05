@@ -102,7 +102,9 @@ export interface DeletedProjectEntry {
   authorName: string;
   deletedAt: string;
   deletedByEmail: string;
-  projectData: ProcessProjectFile;
+  ownerUserId?: string | null;
+  /** El contenido del proyecto borrado queda solo en el servidor. */
+  projectData?: ProcessProjectFile;
 }
 
 export interface MasterCatalogsStateData {

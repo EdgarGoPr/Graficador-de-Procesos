@@ -1,34 +1,26 @@
 /**
- * Servicio Oficial de Integración con Google OAuth 2.0
- * Gestiona la redirección directa a accounts.google.com y la captura del access_token en el retorno
+ * Integración con Google OAuth 2.0.
+ * El navegador obtiene un access_token de Google; el servidor lo valida contra Google
+ * (audiencia, correo verificado) antes de abrir la sesión.
  */
 
-export interface GoogleUserProfile {
-  email: string;
-  fullName: string;
-  googleId: string;
-  avatarUrl?: string;
-}
-
 const DEFAULT_CLIENT_ID = '724069436598-8pqlisa1k2cv3u8ik2t252pdmtm79n1u.apps.googleusercontent.com';
+const STATE_KEY = 'oauth_state';
 
 export class GoogleAuthService {
-  /**
-   * Obtiene el Client ID configurado en variables de entorno o fallback oficial
-   */
+  /** El Client ID de OAuth es público por diseño. */
   public static getClientId(): string {
     return (import.meta as any).env?.VITE_GOOGLE_CLIENT_ID || DEFAULT_CLIENT_ID;
   }
 
-  /**
-   * Redirige al usuario a la pantalla oficial de autenticación de Google (accounts.google.com)
-   */
   public static redirectToGoogle(): void {
     const clientId = this.getClientId();
     const redirectUri = window.location.origin.replace(/\/$/, '');
     const scope = encodeURIComponent('email profile openid');
-    const state = 'google_oauth_' + Math.random().toString(36).substring(2);
-    sessionStorage.setItem('oauth_state', state);
+    const random = new Uint8Array(16);
+    window.crypto.getRandomValues(random);
+    const state = 'g_' + Array.from(random, (b) => b.toString(16).padStart(2, '0')).join('');
+    sessionStorage.setItem(STATE_KEY, state);
 
     const googleAuthUrl =
       `https://accounts.google.com/o/oauth2/v2/auth?` +
@@ -36,62 +28,34 @@ export class GoogleAuthService {
       `redirect_uri=${encodeURIComponent(redirectUri)}&` +
       `response_type=token&` +
       `scope=${scope}&` +
-      `state=${state}&` +
+      `state=${encodeURIComponent(state)}&` +
       `prompt=select_account`;
 
-    // Redirección oficial de navegador hacia Google
     window.location.href = googleAuthUrl;
   }
 
   /**
-   * Inspecciona el fragmento hash de la URL tras volver de Google para capturar el access_token
+   * Al volver de Google, toma el access_token del fragmento de la URL y verifica el parámetro
+   * state (protege contra inicios de sesión forzados desde otro sitio). Devuelve el token o null.
    */
-  public static async handleOAuthRedirectCallback(): Promise<GoogleUserProfile | null> {
+  public static consumeOAuthRedirect(): { accessToken: string } | { error: string } | null {
     if (typeof window === 'undefined') return null;
+    const hash = window.location.hash.startsWith('#') ? window.location.hash.substring(1) : window.location.hash;
+    if (!hash || (!hash.includes('access_token=') && !hash.includes('error='))) return null;
 
-    const hash = window.location.hash.startsWith('#')
-      ? window.location.hash.substring(1)
-      : window.location.hash;
+    const params = new URLSearchParams(hash);
+    // Limpiar el fragmento de la barra de direcciones.
+    window.history.replaceState(null, '', window.location.pathname + window.location.search);
 
-    if (!hash || !hash.includes('access_token=')) {
-      return null;
+    const expectedState = sessionStorage.getItem(STATE_KEY);
+    sessionStorage.removeItem(STATE_KEY);
+
+    if (params.get('error')) return { error: 'Google canceló o rechazó el inicio de sesión.' };
+    const accessToken = params.get('access_token');
+    if (!accessToken) return null;
+    if (!expectedState || params.get('state') !== expectedState) {
+      return { error: 'La respuesta de Google no corresponde a un inicio de sesión iniciado desde esta pestaña. Volvé a intentarlo.' };
     }
-
-    try {
-      const params = new URLSearchParams(hash);
-      const accessToken = params.get('access_token');
-
-      if (!accessToken) return null;
-
-      // Limpiar el hash de la barra de direcciones por seguridad y estética
-      window.history.replaceState(null, '', window.location.pathname + window.location.search);
-
-      // Consultar endpoint oficial de Google UserInfo
-      const response = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-        headers: {
-          Authorization: `Bearer ${accessToken}`
-        }
-      });
-
-      if (!response.ok) {
-        console.error('Fallo al consultar UserInfo en Google:', await response.text());
-        return null;
-      }
-
-      const userInfo = await response.json();
-      if (!userInfo.email) {
-        return null;
-      }
-
-      return {
-        email: userInfo.email,
-        fullName: userInfo.name || userInfo.email.split('@')[0],
-        googleId: userInfo.sub,
-        avatarUrl: userInfo.picture
-      };
-    } catch (err) {
-      console.error('Error al procesar callback de Google OAuth:', err);
-      return null;
-    }
+    return { accessToken };
   }
 }

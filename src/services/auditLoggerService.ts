@@ -1,97 +1,45 @@
 import { AuditActionType, AuditLogEntry, UserRole } from '../types/auth';
-import { NeonClient } from './neonClient';
+import { api } from './apiClient';
 import * as XLSX from 'xlsx';
 
-const LOCAL_STORAGE_AUDIT_FALLBACK = 'procesos_audit_logs_fallback';
+/**
+ * Eventos que el navegador puede reportar. Los de autenticación, usuarios, permisos,
+ * candados y papelera los registra exclusivamente el servidor, que además completa
+ * usuario, rol, IP y hora (el cliente no puede falsificarlos).
+ */
+const CLIENT_REPORTABLE: ReadonlySet<AuditActionType> = new Set<AuditActionType>([
+  'CANVAS_OPENED',
+  'CANVAS_COMMENT_ADDED',
+  'CANVAS_COMMENT_UPDATED',
+  'CANVAS_PROJECT_SAVED',
+  'CANVAS_EXPORT_GENERATED',
+  'PROJECT_METADATA_UPDATED',
+  'PROJECT_STATUS_CHANGED',
+  'CATALOG_ITEM_CREATED',
+  'CATALOG_ITEM_UPDATED',
+  'CATALOG_ITEM_DELETED'
+]);
 
 export class AuditLoggerService {
   /**
-   * Registra un evento en la tabla de auditoría (Neon y fallback local)
+   * Reporta un evento al servidor. El parámetro user se conserva por compatibilidad,
+   * pero la identidad la toma el servidor de la sesión.
    */
   public static async log(
     actionType: AuditActionType,
-    user: { id?: string | null; email: string; role: UserRole },
+    _user: { id?: string | null; email: string; role: UserRole },
     targetResource?: string | null,
     details: Record<string, any> = {}
   ): Promise<void> {
-    const entry: AuditLogEntry = {
-      id: crypto.randomUUID(),
-      timestamp: new Date().toISOString(),
-      userId: user.id || null,
-      userEmail: user.email,
-      userRole: user.role,
-      actionType,
-      targetResource: targetResource || null,
-      details,
-      ipClient: 'web-client'
-    };
-
-    // 1. Intentar persistir en Neon PostgreSQL
-    const sql = NeonClient.getSql();
-    if (sql) {
-      try {
-        await sql`
-          INSERT INTO audit_logs (
-            id,
-            timestamp,
-            user_id,
-            user_email,
-            user_role,
-            action_type,
-            target_resource,
-            details,
-            ip_client
-          ) VALUES (
-            ${entry.id},
-            ${entry.timestamp},
-            ${entry.userId},
-            ${entry.userEmail},
-            ${entry.userRole},
-            ${entry.actionType},
-            ${entry.targetResource},
-            ${JSON.stringify(entry.details)},
-            ${entry.ipClient}
-          );
-        `;
-      } catch (err) {
-        console.warn('No se pudo guardar log en Neon, guardando en buffer local:', err);
-        this.saveToFallback(entry);
-      }
-    } else {
-      this.saveToFallback(entry);
-    }
-  }
-
-  /**
-   * Guarda un log en el buffer local de navegador si no hay base de datos conectada
-   */
-  private static saveToFallback(entry: AuditLogEntry): void {
+    if (!CLIENT_REPORTABLE.has(actionType)) return;
     try {
-      const current = this.getFallbackLogs();
-      current.unshift(entry);
-      // Limitar a los últimos 500 logs en memoria
-      const capped = current.slice(0, 500);
-      localStorage.setItem(LOCAL_STORAGE_AUDIT_FALLBACK, JSON.stringify(capped));
-    } catch (e) {
-      console.error('Error al guardar log en buffer local:', e);
+      await api('POST', '/audit/events', { body: { actionType, targetResource: targetResource || null, details } });
+    } catch (err) {
+      console.warn('No se pudo registrar el evento de auditoría:', err);
     }
   }
 
-  /**
-   * Recupera logs del buffer local
-   */
-  public static getFallbackLogs(): AuditLogEntry[] {
-    try {
-      const data = localStorage.getItem(LOCAL_STORAGE_AUDIT_FALLBACK);
-      return data ? JSON.parse(data) : [];
-    } catch {
-      return [];
-    }
-  }
-
-  /**
-   * Obtiene logs filtrados de Neon o del buffer local (exclusivo para Administrador)
-   */
+  /** Solo ADMIN. */
   public static async queryLogs(filters?: {
     userEmail?: string;
     actionType?: string;
@@ -100,66 +48,20 @@ export class AuditLoggerService {
     endDate?: string;
     limit?: number;
   }): Promise<AuditLogEntry[]> {
-    const sql = NeonClient.getSql();
-    const limit = filters?.limit || 300;
-
-    if (sql) {
-      try {
-        const rows = (await sql`
-          SELECT 
-            id,
-            timestamp,
-            user_id,
-            user_email,
-            user_role,
-            action_type,
-            target_resource,
-            details,
-            ip_client
-          FROM audit_logs
-          WHERE (${filters?.userEmail ? sql`user_email ILIKE ${'%' + filters.userEmail + '%'}` : sql`true`})
-            AND (${filters?.actionType && filters.actionType !== 'ALL' ? sql`action_type = ${filters.actionType}` : sql`true`})
-            AND (${filters?.targetResource ? sql`target_resource ILIKE ${'%' + filters.targetResource + '%'}` : sql`true`})
-            AND (${filters?.startDate ? sql`timestamp >= ${filters.startDate}` : sql`true`})
-            AND (${filters?.endDate ? sql`timestamp <= ${filters.endDate + 'T23:59:59.999Z'}` : sql`true`})
-          ORDER BY timestamp DESC
-          LIMIT ${limit};
-        `) as any[];
-
-        return rows.map((r: any) => ({
-          id: r.id,
-          timestamp: typeof r.timestamp === 'string' ? r.timestamp : new Date(r.timestamp).toISOString(),
-          userId: r.user_id,
-          userEmail: r.user_email,
-          userRole: r.user_role,
-          actionType: r.action_type,
-          targetResource: r.target_resource,
-          details: typeof r.details === 'string' ? JSON.parse(r.details) : r.details || {},
-          ipClient: r.ip_client
-        }));
-      } catch (err) {
-        console.error('Error al consultar logs en Neon, cargando fallback local:', err);
-      }
+    const params = new URLSearchParams();
+    if (filters?.userEmail) params.set('userEmail', filters.userEmail);
+    if (filters?.actionType && filters.actionType !== 'ALL') params.set('actionType', filters.actionType);
+    if (filters?.targetResource) params.set('targetResource', filters.targetResource);
+    if (filters?.startDate) params.set('startDate', filters.startDate);
+    if (filters?.endDate) params.set('endDate', filters.endDate);
+    params.set('limit', String(filters?.limit || 300));
+    try {
+      const res = await api<{ logs: AuditLogEntry[] }>('GET', `/audit?${params.toString()}`);
+      return res.logs || [];
+    } catch (err) {
+      console.error('Error al consultar logs de auditoría:', err);
+      return [];
     }
-
-    // Fallback local en memoria/localStorage
-    let logs = this.getFallbackLogs();
-    if (filters?.userEmail) {
-      logs = logs.filter(l => l.userEmail.toLowerCase().includes(filters.userEmail!.toLowerCase()));
-    }
-    if (filters?.actionType && filters.actionType !== 'ALL') {
-      logs = logs.filter(l => l.actionType === filters.actionType);
-    }
-    if (filters?.targetResource) {
-      logs = logs.filter(l => l.targetResource && l.targetResource.toLowerCase().includes(filters.targetResource!.toLowerCase()));
-    }
-    if (filters?.startDate) {
-      logs = logs.filter(l => l.timestamp >= filters.startDate!);
-    }
-    if (filters?.endDate) {
-      logs = logs.filter(l => l.timestamp <= filters.endDate! + 'T23:59:59.999Z');
-    }
-    return logs.slice(0, limit);
   }
 
   /**

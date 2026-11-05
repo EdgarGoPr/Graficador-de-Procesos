@@ -924,6 +924,42 @@ function generateExcel() {
       criteriosAceptacion: '1. El contenedor de SubProcessBreadcrumbs.tsx posee un ancho acotado (max-w-[560px]).\n2. La barra de scroll horizontal es visible debajo del contenido y posee diseño delgado y refinado (.breadcrumbs-scrollbar).\n3. Al colocar el cursor sobre la barra y accionar la rueda del ratón, el scroll vertical se transforma en desplazamiento horizontal fluido (scrollLeft).\n4. Se aísla el evento de rueda para no interferir con el zoom ni el pan del lienzo React Flow mientras se navega la barra.\n5. Compilación TypeScript estricta con 0 errores (npm run build).\n6. Actualización en HISTORIAS_DE_USUARIO_PROCESSTUDIO.xlsx e incremento de versión a 2.5.0 (V 02.05.00).\n7. Commit y Auto-Push automático a GitHub (main).',
       fechaImplementacion: '2026-11-04',
       estado: 'Implementado / Producción'
+    },
+    {
+      id: 'PST-104',
+      modulo: 'Seguridad & Backend Serverless (API /api)',
+      titulo: 'Backend serverless con sesión firmada en cookie httpOnly y autorización por proyecto en el servidor',
+      historiaUsuario: 'Como responsable de seguridad de ProcesStudio, quiero que todas las operaciones sobre la base de datos pasen por un backend que valide la sesión, el rol y el permiso por proyecto, con una sesión firmada en cookie httpOnly, para que ningún usuario pueda leer ni modificar datos sin autorización aunque llame a la API a mano.',
+      criteriosAceptacion: '1. El navegador no ejecuta SQL ni conoce la cadena de conexión: todo el acceso pasa por la función /api (Vercel).\n2. Sesión firmada (HS256) en cookie HttpOnly, Secure y SameSite=Strict; se relee el usuario en cada petición y un usuario desactivado pierde la sesión.\n3. Permisos por proyecto validados en el servidor: Solo lectura, Comentarios (solo notas adhesivas) y Editor; ADMIN accede a todo.\n4. Login con Google validado en el servidor (audiencia y correo verificado) y parámetro state verificado; se conserva el flujo de código de 6 dígitos.\n5. 2FA obligatorio para administradores también al ingresar con código; bloqueo de 15 minutos tras 5 intentos fallidos.\n6. Protección CSRF (Origin, Sec-Fetch-Site y JSON obligatorio).\n7. Tests automatizados (vitest + Postgres en memoria) que prueban accesos no permitidos.',
+      fechaImplementacion: '2026-11-05',
+      estado: 'Implementado / Producción'
+    },
+    {
+      id: 'PST-105',
+      modulo: 'Seguridad de Base de Datos & Auditoría',
+      titulo: 'Rol de aplicación con permisos mínimos, auditoría append-only y papelera en el servidor',
+      historiaUsuario: 'Como administrador de la base de datos, quiero que el backend use un rol con permisos mínimos y que los logs de auditoría solo admitan inserciones, para limitar el impacto de una filtración y garantizar la trazabilidad inmutable exigida por ISO 9001.',
+      criteriosAceptacion: '1. Migraciones SQL versionadas en db/migrations (001 a 004), idempotentes y sin credenciales.\n2. Rol processtudio_app sin DDL; sobre audit_logs solo SELECT e INSERT.\n3. Triggers que rechazan UPDATE, DELETE y TRUNCATE sobre audit_logs para cualquier rol.\n4. Propietario explícito de cada proyecto (owner_user_id) y conservación de accesos otorgados por coincidencia de nombre.\n5. Papelera de proyectos en tabla propia, visible solo para el propietario y los administradores.\n6. Códigos de reseteo almacenados como hash.',
+      fechaImplementacion: '2026-11-05',
+      estado: 'Implementado / Producción'
+    },
+    {
+      id: 'PST-106',
+      modulo: 'Seguridad del Cliente & Build',
+      titulo: 'Eliminación de secretos en el navegador y verificación automática del bundle',
+      historiaUsuario: 'Como responsable de seguridad, quiero que el navegador no guarde hashes, códigos ni secretos y que el build falle si el bundle contiene credenciales o SQL, para evitar filtraciones como la detectada en la auditoría V 02.05.00.',
+      criteriosAceptacion: '1. Se eliminan de localStorage procesos_users_fallback y el resto de claves con datos sensibles, y se suprimen los fallbacks locales de usuarios, permisos, auditoría y candados.\n2. El usuario en memoria del navegador no contiene hash de contraseña, código de reseteo ni secreto TOTP.\n3. La clave de Gemini de la organización se usa solo en el servidor (/api/ai/generate).\n4. scripts/check-bundle.cjs falla el build si dist/ contiene "postgres", "neon.tech", credenciales, SQL o valores de variables secretas.\n5. Versión 3.0.0 (V 03.00.00) y CHANGELOG con instrucciones de despliegue.',
+      fechaImplementacion: '2026-11-05',
+      estado: 'Implementado / Producción'
+    },
+    {
+      id: 'PST-107',
+      modulo: 'Seguridad de Sesión & Autenticación',
+      titulo: 'Revocación de sesiones, límite de intentos por IP, 2FA cifrado y política de contenido',
+      historiaUsuario: 'Como responsable de seguridad, quiero que un cambio de contraseña cierre las demás sesiones, que se limiten los intentos desde una misma conexión, que los secretos de doble factor se guarden cifrados y que el navegador aplique una política de contenido, para cerrar los riesgos que quedaron pendientes en la Fase 1.',
+      criteriosAceptacion: '1. Migración 005: app_users.session_version y tabla auth_rate_limits.\n2. Cambiar la contraseña (usuario o Administrador) o emitir un código de reseteo invalida las sesiones abiertas.\n3. 30 fallos de autenticación por IP cada 15 minutos y 10 envíos por hora en formularios públicos.\n4. Secreto TOTP cifrado con AES-256-GCM cuando se define TOTP_ENCRYPTION_KEY, con migración progresiva de los existentes.\n5. Encabezados Content-Security-Policy-Report-Only y Permissions-Policy.\n6. Migraciones probadas contra los scripts de esquema reales del repositorio; 52 tests automatizados.',
+      fechaImplementacion: '2026-11-05',
+      estado: 'Implementado / Producción'
     }
   );
   console.log('📊 Generando archivo Excel de Historias de Usuario...');

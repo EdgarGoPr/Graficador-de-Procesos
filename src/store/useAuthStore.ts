@@ -6,6 +6,7 @@ import { PermissionService } from '../services/permissionService';
 import { ConcurrencyLockService } from '../services/concurrencyLockService';
 import { IdleTimeoutService } from '../services/idleTimeoutService';
 import { PresenceService } from '../services/presenceService';
+import { setSessionExpiredHandler } from '../services/apiClient';
 
 export type AuthModalMode = 'LOGIN' | 'REQUEST_ACCESS' | 'REQUEST_RESET' | 'FORCE_PASSWORD' | 'VERIFY_TOTP';
 
@@ -23,6 +24,10 @@ interface AuthStoreState {
   activeCanvasLock: CanvasActiveLock | null;
   currentCanvasPermission: CanvasPermission | null;
   concurrencyConflictNotice: string | null;
+  /** Mensaje a mostrar en la pantalla de ingreso (ej. error al volver de Google o sesión vencida). */
+  authNotice: string | null;
+  /** Datos de Google para precargar la solicitud de habilitación de un correo no registrado. */
+  pendingAccessProfile: { email: string; fullName: string } | null;
 
   // Actions
   initializeAuth: () => Promise<void>;
@@ -60,21 +65,53 @@ export const useAuthStore = create<AuthStoreState>((set, get) => ({
   activeCanvasLock: null,
   currentCanvasPermission: null,
   concurrencyConflictNotice: null,
+  authNotice: null,
+  pendingAccessProfile: null,
 
   initializeAuth: async () => {
     set({ isLoading: true });
     try {
       await AuthService.initialize();
 
-      // Verificar si el navegador acaba de retornar desde accounts.google.com con access_token
-      const googleProfile = await GoogleAuthService.handleOAuthRedirectCallback();
-      if (googleProfile) {
-        const result = await AuthService.loginWithGoogle(googleProfile);
-        if (result.ok && result.user) {
+      // Si el servidor informa que la sesión venció, volver a la pantalla de ingreso.
+      setSessionExpiredHandler(() => {
+        if (!get().currentUser) return;
+        ConcurrencyLockService.stopHeartbeat();
+        PresenceService.stopPresenceHeartbeat();
+        set({
+          currentUser: null,
+          isAdminConsoleOpen: false,
+          activeCanvasLock: null,
+          currentCanvasPermission: null,
+          concurrencyConflictNotice: null,
+          isLockedByInactivity: false,
+          inactivityWarningSeconds: null,
+          authModalMode: 'LOGIN',
+          authNotice: 'Tu sesión expiró. Volvé a iniciar sesión.'
+        });
+      });
+
+      // ¿El navegador vuelve de accounts.google.com con un access_token?
+      const googleReturn = GoogleAuthService.consumeOAuthRedirect();
+      if (googleReturn && 'error' in googleReturn) {
+        set({ authNotice: googleReturn.error });
+      } else if (googleReturn) {
+        const result = await AuthService.loginWithGoogle(googleReturn.accessToken);
+        if (result.ok && result.requiresTotp) {
+          set({ isAuthModalOpen: true, authModalMode: 'VERIFY_TOTP', tempTotpUserId: 'pending' });
+        } else if (result.ok && result.user) {
           set({ currentUser: result.user, isAuthModalOpen: false });
+        } else if (result.notRegistered) {
+          set({
+            authNotice: result.error || null,
+            authModalMode: 'REQUEST_ACCESS',
+            pendingAccessProfile: result.profile || null
+          });
+        } else {
+          set({ authNotice: result.error || 'No se pudo iniciar sesión con Google.' });
         }
       } else {
-        const existing = AuthService.getCurrentUser();
+        const existing = await AuthService.fetchSession();
         if (existing) {
           set({ currentUser: existing });
         }
@@ -101,8 +138,7 @@ export const useAuthStore = create<AuthStoreState>((set, get) => ({
   },
 
   setCurrentUser: (user) => {
-    AuthService.setCurrentUser(user);
-    set({ currentUser: user });
+    set({ currentUser: user, authNotice: null, pendingAccessProfile: null });
   },
 
   openAuthModal: (mode = 'LOGIN') => {
@@ -155,6 +191,7 @@ export const useAuthStore = create<AuthStoreState>((set, get) => ({
     const user = get().currentUser;
     // Obtener permiso asignado al usuario
     const permission = await PermissionService.getEffectivePermission(user, projectFileName, projectInfo);
+    PresenceService.setLockEligibility(permission === 'EDITOR');
 
     if (!permission) {
       return {
@@ -213,12 +250,9 @@ export const useAuthStore = create<AuthStoreState>((set, get) => ({
     const user = get().currentUser;
     if (!user) return false;
 
-    // Verificar si es la contraseña correcta o confirmación
-    if (user.passwordHash) {
-      const { verifyPassword } = await import('../utils/cryptoUtils');
-      const valid = await verifyPassword(password, user.passwordHash);
-      if (!valid) return false;
-    }
+    // La contraseña se verifica en el servidor (el navegador ya no conoce ningún hash).
+    const valid = await AuthService.reauthenticate(password);
+    if (!valid) return false;
 
     IdleTimeoutService.resetTimers();
     set({ isLockedByInactivity: false, inactivityWarningSeconds: null });

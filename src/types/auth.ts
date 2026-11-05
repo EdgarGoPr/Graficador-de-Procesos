@@ -125,23 +125,25 @@ export const MODULE_PRESET_PROFILES: {
   }
 ];
 
+/**
+ * Usuario tal como lo entrega el servidor. Nunca contiene hashes de contraseña,
+ * códigos de reseteo ni secretos TOTP: esos datos solo existen en el backend.
+ */
 export interface AppUser {
   id: string;
   email: string;
-  passwordHash?: string | null;
   fullName: string;
   organizationUnit: string;
   role: UserRole;
   status: UserStatus;
   allowedModules?: SystemModuleKey[];
-  googleId?: string | null;
   avatarUrl?: string | null;
+  hasGoogleLink?: boolean;
+  hasPassword?: boolean;
   resetRequestStatus: ResetRequestStatus;
   resetRequestedAt?: string | null;
-  resetCode?: string | null;
   resetCodeExpiresAt?: string | null;
   mustChangePassword: boolean;
-  totpSecret?: string | null;
   isTotpEnabled: boolean;
   createdAt: string;
   updatedAt: string;
@@ -233,7 +235,10 @@ export type AuditActionType =
   | 'CATALOG_ITEM_CREATED'
   | 'CATALOG_ITEM_UPDATED'
   | 'CATALOG_ITEM_DELETED'
-  | 'PROJECT_RESTORED_FROM_TRASH';
+  | 'PROJECT_RESTORED_FROM_TRASH'
+  | 'PROJECT_MOVED_TO_TRASH'
+  | 'PROJECT_PURGED'
+  | 'AUTH_2FA_ENABLED';
 
 export interface AuditLogEntry {
   id: string;
