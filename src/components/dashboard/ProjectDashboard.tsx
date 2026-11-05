@@ -93,10 +93,8 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ onOpenNewMod
       return;
     }
 
-    const newName = await duplicateProject(fileName);
-    if (newName) {
-      showNotification(`Proyecto duplicado como ${newName}`, 'success');
-    }
+    // El aviso con el código asignado lo muestra el store.
+    await duplicateProject(fileName);
   };
 
   const handleDelete = async (fileName: string) => {

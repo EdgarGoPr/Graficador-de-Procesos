@@ -1,5 +1,35 @@
 # CHANGELOG – ProcesStudio
 
+## 3.1.0 – Fase 2: Integridad de datos (2026-11-05) · `PST-108`, `PST-109`, `PST-110`
+
+Rama: `fase-2-integridad`.
+
+**Qué cambió**
+- **Identificador estable de proyecto (`project_id`):** las versiones se agrupan por proyecto y ya no por código documental. Editar el código de un proyecto ya no oculta a otro.
+- **Código documental único entre proyectos distintos**, garantizado por la base y validado en "Editar Ficha" con un mensaje claro: *"El código PRC-3517 ya pertenece al proyecto «…»"*. Si se cambia el código, se actualiza en todas las versiones del proyecto sin alterar sus fechas.
+- **Códigos nuevos:** los asigna el servidor de forma correlativa y sin repetir (`PRC-0001`, …), en lugar del número al azar que generaba el navegador.
+- **"Duplicar"** crea un proyecto nuevo e independiente: identidad y código propios, versión 1.0 e historial reiniciado con la nota "Creado como copia de …". No arrastra participantes.
+- **Importar un JSON** con un código ya usado: se le asigna un código libre y se avisa.
+- **Permisos por proyecto:** valen para todas las versiones del proyecto.
+- **Participantes:** el propietario aparece fijo, sin opción de quitarse ni de bajar su nivel. Un proyecto sin propietario no puede quedar sin editor. Ambas reglas las valida el servidor.
+- **Fecha de última modificación:** se restaura la fecha real. Las migraciones de la Fase 1 la habían reemplazado sin querer, a través de un trigger de la base que se retira.
+
+**Migración `006_project_identity.sql`**
+- Crea `projects` y `project_members`, y agrega `project_id` a versiones y papelera.
+- Agrupa las versiones existentes por código exacto y propietario. Una copia "-CPY" queda como proyecto aparte.
+- Pasa los permisos de versión a proyecto con el nivel más alto. La tabla de permisos anterior queda intacta.
+- **No borra nada.** Compara los conteos de versiones, papelera y permisos al inicio y al final; si algo cambia, se cancela entera.
+
+**Tests:** 74 (14 nuevos).
+
+**Despliegue:**
+1. Rama de prueba en Neon y `APP_DATABASE_URL` de Preview apuntando a ella.
+2. Correr la 006 en esa rama y probar en el Preview.
+3. Correr la 006 en `main` de Neon.
+4. Merge a `main`.
+
+La migración 006 tiene que correr **antes** del despliegue, porque el servidor ya usa las tablas nuevas.
+
 ## 3.0.3 – 2026-11-05 · cierre de la Fase 1
 - La Content-Security-Policy pasa a modo obligatorio. La prueba de uso general en producción no mostró avisos `[Report Only]`.
 - Despliegue completo: migraciones 001–005 aplicadas, variables de servidor cargadas en Vercel, contraseña de `neondb_owner` rotada y clave de Gemini regenerada.

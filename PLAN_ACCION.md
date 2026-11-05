@@ -2105,7 +2105,7 @@ Navegador (React)  ──fetch same-origin + cookie httpOnly──►  /api/* (V
 
 ## 32. Hoja de Ruta Técnica – FASE 2: Integridad de datos (alta) (`PST-108` a `PST-110`)
 
-> **Estado:** 📝 Propuesta – pendiente de aprobación. No se escribe código hasta el OK explícito.
+> **Estado:** ✅ Aprobado (2026-11-05, con todas las recomendaciones; el usuario pidió garantía de que no se borre ningún proyecto, incorporada como verificación automática en la migración 006) e implementado. Pendiente: prueba en Preview con rama de Neon y despliegue.
 > **Rama:** `fase-2-integridad`. **Prueba:** Preview de Vercel apuntando a una rama de prueba de Neon (no a producción).
 
 ### 32.1. Diagnóstico

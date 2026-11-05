@@ -75,6 +75,8 @@ export interface ProcessCatalogs {
 
 export interface ProcessProjectFile {
   schemaVersion: '1.0.0';
+  /** Identificador estable del proyecto (lo asigna el servidor; compartido por todas sus versiones). */
+  projectId?: string;
   documentControl: ProjectDocumentControl;
   pools: PoolDefinition[];
   nodes: Node<BpmnNodeData>[];
@@ -93,6 +95,8 @@ export interface ProjectSummary {
   authorName: string;
   createdByEmail?: string;
   createdByUserId?: string;
+  /** Identificador estable del proyecto: todas sus versiones comparten este valor. */
+  projectId?: string;
   /** Propietario registrado en el servidor y permiso efectivo del usuario actual. */
   ownerUserId?: string | null;
   myPermission?: 'READ_ONLY' | 'COMMENTS' | 'EDITOR' | null;

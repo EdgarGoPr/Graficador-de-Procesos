@@ -135,7 +135,7 @@ export const useProjectStore = create<ProjectStoreState>((set, get) => ({
       schemaVersion: '1.0.0',
       documentControl: {
         documentTitle: title,
-        documentCode: `PRC-${Math.floor(1000 + Math.random() * 9000)}`,
+        documentCode: '', // lo asigna el servidor (correlativo y sin repetir)
         version: '1.0',
         authorName: effectiveAuthor,
         organizationUnit: effectiveOrgUnit,
@@ -167,9 +167,12 @@ export const useProjectStore = create<ProjectStoreState>((set, get) => ({
       edges: []
     };
 
-    // El servidor registra al usuario en sesión como propietario del proyecto nuevo.
-    const fileName = await StorageService.saveProject(newProject);
+    // El servidor registra al usuario en sesión como propietario y asigna identidad y código.
+    const saved = await StorageService.saveProjectDetailed(newProject);
+    const fileName = saved.fileName;
     newProject.fileName = fileName;
+    newProject.projectId = saved.projectId;
+    if (saved.documentCode) newProject.documentControl.documentCode = saved.documentCode;
 
     set({
       currentProject: newProject,
@@ -266,11 +269,13 @@ export const useProjectStore = create<ProjectStoreState>((set, get) => ({
 
   duplicateProject: async (fileName: string) => {
     try {
-      const newName = await StorageService.duplicateProject(fileName);
-      if (newName) {
-        await get().refreshProjectList();
-      }
-      return newName;
+      const res = await StorageService.duplicateProject(fileName);
+      if (!res) return null;
+      await get().refreshProjectList();
+      useUiStore
+        .getState()
+        .showNotification(`Copia creada como proyecto independiente con el código ${res.documentCode}.`, 'success');
+      return res.fileName;
     } catch (err) {
       notifyError(err, 'No se pudo duplicar el proyecto.');
       return null;
@@ -309,6 +314,7 @@ export const useProjectStore = create<ProjectStoreState>((set, get) => ({
     const result = await StorageService.importProjectFromJsonFile(file);
     if (result.success && result.fileName) {
       await get().refreshProjectList();
+      if (result.notice) useUiStore.getState().showNotification(result.notice, 'info');
     }
     set({ isLoading: false });
     return result;

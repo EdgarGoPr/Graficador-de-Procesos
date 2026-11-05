@@ -960,6 +960,33 @@ function generateExcel() {
       criteriosAceptacion: '1. Migración 005: app_users.session_version y tabla auth_rate_limits.\n2. Cambiar la contraseña (usuario o Administrador) o emitir un código de reseteo invalida las sesiones abiertas.\n3. 30 fallos de autenticación por IP cada 15 minutos y 10 envíos por hora en formularios públicos.\n4. Secreto TOTP cifrado con AES-256-GCM cuando se define TOTP_ENCRYPTION_KEY, con migración progresiva de los existentes.\n5. Encabezados Content-Security-Policy-Report-Only y Permissions-Policy.\n6. Migraciones probadas contra los scripts de esquema reales del repositorio; 52 tests automatizados.',
       fechaImplementacion: '2026-11-05',
       estado: 'Implementado / Producción'
+    },
+    {
+      id: 'PST-108',
+      modulo: 'Integridad de Datos & Versionado',
+      titulo: 'Identificador estable de proyecto y versiones agrupadas por project_id',
+      historiaUsuario: 'Como analista de procesos, quiero que cada proyecto tenga un identificador estable y que sus versiones se agrupen por él y no por el código documental, para que editar la ficha de un proyecto nunca oculte ni mezcle las versiones de otro.',
+      criteriosAceptacion: '1. Tabla projects con project_id; cada versión (process_projects) referencia su proyecto.\n2. El tablero agrupa versiones por projectId y el aviso de versión más nueva compara dentro del mismo proyecto.\n3. Migración 006 que asigna project_id a los datos existentes sin borrar versiones, papelera ni permisos, con verificación de conteos y cancelación automática ante cualquier diferencia.\n4. Restauración de la fecha real de última modificación y retiro del trigger que la reemplazaba.',
+      fechaImplementacion: '2026-11-05',
+      estado: 'Implementado / Producción'
+    },
+    {
+      id: 'PST-109',
+      modulo: 'Integridad de Datos & Control Documental',
+      titulo: 'Código documental único y "Duplicar" como proyecto independiente',
+      historiaUsuario: 'Como responsable de control documental, quiero que el código de cada proceso sea único y que duplicar un proyecto cree uno nuevo con código propio, para evitar confusiones entre procesos distintos y mantener la trazabilidad ISO 9001.',
+      criteriosAceptacion: '1. Índice único sobre el código documental en la base (sin distinguir mayúsculas).\n2. "Editar Ficha" valida el código y muestra a qué proyecto pertenece si ya está en uso; el servidor responde 409 aunque se llame a la API a mano.\n3. Cambiar el código lo actualiza en todas las versiones del proyecto.\n4. Los códigos nuevos los asigna el servidor de forma correlativa.\n5. "Duplicar" crea un proyecto con identidad y código propios, versión 1.0 e historial reiniciado.\n6. Importar un JSON con un código ya usado asigna uno libre y lo informa.',
+      fechaImplementacion: '2026-11-05',
+      estado: 'Implementado / Producción'
+    },
+    {
+      id: 'PST-110',
+      modulo: 'Gobernanza & Colaboración por Proyecto',
+      titulo: 'Permisos por proyecto, propietario fijo y protección del último editor',
+      historiaUsuario: 'Como propietario de un proceso, quiero que los permisos valgan para todas las versiones del proyecto y que nadie pueda quitarme ni dejar el proyecto sin editor, para no perder el control de mis procesos.',
+      criteriosAceptacion: '1. Tabla project_members: el permiso pertenece al proyecto y vale para todas sus versiones; se conserva el nivel más alto al migrar.\n2. El propietario aparece fijo en Participantes, sin opción de quitarse ni de bajar su nivel (tampoco un Administrador).\n3. Un proyecto sin propietario no puede quedar sin al menos un editor.\n4. Reglas validadas en el servidor y cubiertas por tests automatizados.',
+      fechaImplementacion: '2026-11-05',
+      estado: 'Implementado / Producción'
     }
   );
   console.log('📊 Generando archivo Excel de Historias de Usuario...');
