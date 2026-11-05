@@ -951,6 +951,15 @@ function generateExcel() {
       criteriosAceptacion: '1. Se eliminan de localStorage procesos_users_fallback y el resto de claves con datos sensibles, y se suprimen los fallbacks locales de usuarios, permisos, auditoría y candados.\n2. El usuario en memoria del navegador no contiene hash de contraseña, código de reseteo ni secreto TOTP.\n3. La clave de Gemini de la organización se usa solo en el servidor (/api/ai/generate).\n4. scripts/check-bundle.cjs falla el build si dist/ contiene "postgres", "neon.tech", credenciales, SQL o valores de variables secretas.\n5. Versión 3.0.0 (V 03.00.00) y CHANGELOG con instrucciones de despliegue.',
       fechaImplementacion: '2026-11-05',
       estado: 'Implementado / Producción'
+    },
+    {
+      id: 'PST-107',
+      modulo: 'Seguridad de Sesión & Autenticación',
+      titulo: 'Revocación de sesiones, límite de intentos por IP, 2FA cifrado y política de contenido',
+      historiaUsuario: 'Como responsable de seguridad, quiero que un cambio de contraseña cierre las demás sesiones, que se limiten los intentos desde una misma conexión, que los secretos de doble factor se guarden cifrados y que el navegador aplique una política de contenido, para cerrar los riesgos que quedaron pendientes en la Fase 1.',
+      criteriosAceptacion: '1. Migración 005: app_users.session_version y tabla auth_rate_limits.\n2. Cambiar la contraseña (usuario o Administrador) o emitir un código de reseteo invalida las sesiones abiertas.\n3. 30 fallos de autenticación por IP cada 15 minutos y 10 envíos por hora en formularios públicos.\n4. Secreto TOTP cifrado con AES-256-GCM cuando se define TOTP_ENCRYPTION_KEY, con migración progresiva de los existentes.\n5. Encabezados Content-Security-Policy-Report-Only y Permissions-Policy.\n6. Migraciones probadas contra los scripts de esquema reales del repositorio; 52 tests automatizados.',
+      fechaImplementacion: '2026-11-05',
+      estado: 'Implementado / Producción'
     }
   );
   console.log('📊 Generando archivo Excel de Historias de Usuario...');

@@ -2082,3 +2082,17 @@ Navegador (React)  ──fetch same-origin + cookie httpOnly──►  /api/* (V
 - `PST-104` – Backend serverless con sesión firmada en cookie httpOnly.
 - `PST-105` – Rol de base de datos con permisos mínimos y auditoría append-only.
 - `PST-106` – Eliminación de secretos en el navegador y verificación del bundle.
+
+---
+
+## 31. Hoja de Ruta Técnica – Fase 1 (cierre): pendientes de seguridad resueltos desde el código (`PST-107`)
+
+> **Estado:** ✅ Aprobado por el usuario el 2026-11-05 ("Hacé todo lo que puedas hacer vos desde tu parte de las tareas pendientes"). Rama `fase-1-seguridad`.
+> Las tareas de despliegue (ejecutar migraciones, cargar variables en Vercel, rotar la contraseña de `neondb_owner`) siguen a cargo del usuario.
+
+1. **Revocar sesiones al cambiar la contraseña:** columna `app_users.session_version`; la cookie lleva la versión y deja de valer cuando la contraseña cambia (por el propio usuario o por el Administrador) o se genera un código de reseteo.
+2. **Límite de intentos por IP:** tabla `auth_rate_limits`. Login, 2FA y cambio de contraseña: 30 fallos por IP cada 15 min. Formularios públicos (solicitud de acceso y de reseteo): 10 por IP por hora.
+3. **Secreto TOTP cifrado en reposo:** AES-256-GCM con la variable opcional `TOTP_ENCRYPTION_KEY`. Los secretos existentes se cifran solos en el siguiente ingreso exitoso. La columna se amplía a 255 caracteres.
+4. **Content-Security-Policy:** se publica primero en modo `Report-Only` para no romper funciones; se pasa a obligatoria tras revisar la consola del navegador en el Preview.
+5. **Migración `005_sessions_rate_limit.sql`** (idempotente; otorga permisos al rol de aplicación si existe).
+6. **Prueba de las migraciones contra los scripts reales** (`scripts/neon_schema.sql` + `scripts/auth_schema.sql`, con CHECKs, FKs, RLS y búsqueda full-text), además del esquema reconstruido.

@@ -1,5 +1,18 @@
 # CHANGELOG – ProcesStudio
 
+## 3.0.0 (cierre de Fase 1) – 2026-11-05 · `PST-107`
+
+Pendientes de seguridad de la Fase 1 resueltos desde el código:
+- **Revocación de sesiones:** columna `app_users.session_version`. Cambiar la contraseña (el propio usuario o el Administrador) o emitir un código de reseteo invalida las sesiones abiertas. Si el Administrador cambia su propia contraseña, conserva la sesión actual.
+- **Límite por IP** (tabla `auth_rate_limits`): 30 fallos de login, 2FA o cambio de contraseña cada 15 min; 10 envíos por hora en los formularios públicos (solicitud de acceso y de reseteo). Se suma al bloqueo por cuenta.
+- **Secreto TOTP cifrado** (AES-256-GCM) si se define `TOTP_ENCRYPTION_KEY`. Los secretos existentes se cifran solos en el siguiente ingreso con 2FA. Sin la clave, un secreto cifrado no se puede validar: el servidor falla cerrado.
+- **Encabezados:** `Content-Security-Policy-Report-Only` y `Permissions-Policy`. La CSP no bloquea todavía: ver "Cómo probar".
+- **Migración nueva:** `005_sessions_rate_limit.sql`.
+- **Importante:** el backend lee `session_version`, así que la migración 005 tiene que estar aplicada **antes** de desplegar esta versión.
+- **Credenciales:** la contraseña de `neondb_owner` sirve solo para correr las migraciones. No se carga en Vercel ni en `.env`.
+- **Tests:** 52 en total. Ahora las migraciones también se prueban contra los scripts reales del repo (`scripts/neon_schema.sql` + `scripts/auth_schema.sql`), con CHECKs, FKs, RLS, trigger y búsqueda full-text.
+
+
 ## 3.0.0 – Fase 1: Seguridad (2026-11-05) · `PST-104`, `PST-105`, `PST-106`
 
 Remediación de los hallazgos críticos de la auditoría de V 02.05.00. Rama: `fase-1-seguridad`.
@@ -57,7 +70,7 @@ Remediación de los hallazgos críticos de la auditoría de V 02.05.00. Rama: `f
 
 ### Despliegue (en este orden)
 
-1. **Correr las migraciones** con el rol dueño (consola SQL de Neon o `psql`), en orden: `001` → `002` → `003` → `004`. Son idempotentes.
+1. **Correr las migraciones** con el rol dueño (consola SQL de Neon o `psql`), en orden: `001` → `002` → `003` → `004` → `005`. Son idempotentes.
 2. **Dar contraseña al rol de aplicación** (no está en ningún archivo):
    ```sql
    ALTER ROLE processtudio_app WITH LOGIN PASSWORD '<contraseña larga y aleatoria>';
@@ -71,6 +84,7 @@ Remediación de los hallazgos críticos de la auditoría de V 02.05.00. Rama: `f
    | `GOOGLE_CLIENT_ID` | El Client ID de OAuth (el mismo que `VITE_GOOGLE_CLIENT_ID`) |
    | `BOOTSTRAP_ADMIN_EMAIL` | Correo del administrador principal |
    | `GEMINI_API_KEY` | Opcional: clave de Gemini de la organización |
+   | `TOTP_ENCRYPTION_KEY` | Recomendado: 32+ caracteres aleatorios para cifrar los secretos 2FA (no cambiarla después) |
    | `ALLOWED_ORIGIN` | Opcional: dominios adicionales, separados por coma |
 
    **Borrar** `VITE_NEON_DATABASE_URL` y `VITE_GEMINI_API_KEY` de Vercel. Se puede mantener `VITE_GOOGLE_CLIENT_ID`, porque es público.
@@ -83,13 +97,11 @@ Remediación de los hallazgos críticos de la auditoría de V 02.05.00. Rama: `f
 - En DevTools → Application → Cookies, `ps_session` debe aparecer marcada como HttpOnly y Secure.
 - En DevTools → Network no debe haber peticiones a `neon.tech`: todo va a `/api/...`.
 - Con un USER sin permisos, `fetch('/api/projects/<archivo de otro>')` desde la consola debe responder 404, y `fetch('/api/audit')` debe responder 403.
+- En la consola del navegador no deberían aparecer avisos `[Report Only] Refused to …`. Si aparecen, pasámelos: una vez limpia, la CSP pasa a obligatoria cambiando el encabezado a `Content-Security-Policy`.
 - Recorrer como siempre: proyectos, lienzo, generador desde texto, Manual PDF, SIPOC, RACI, flujograma, auditor, simulador, comparador, bóveda, exportaciones, consola de administración y logs.
 
 ### Pendiente / conocido
 - **Fase 2:** los permisos y las versiones siguen identificados por nombre de archivo y agrupados por código documental.
-- Cambiar la contraseña no cierra las otras sesiones abiertas del mismo usuario. Se cierran al vencer (8 h) o si se desactiva al usuario.
-- El límite de intentos es por cuenta, no por IP.
-- El secreto TOTP se guarda sin cifrar en la base. Es accesible solo desde el servidor.
 - El proxy de IA acepta peticiones de hasta ~4,5 MB (límite de Vercel). Para PDFs escaneados muy grandes conviene usar la clave personal de la Bóveda.
-- No se agregó todavía una Content-Security-Policy.
+- La Content-Security-Policy está en modo de prueba (`Report-Only`) hasta validarla en el Preview.
 - `scripts/setup-neon-db.cjs` ahora lee `NEON_OWNER_DATABASE_URL`. Para cambios de esquema conviene usar `db/migrations/`.
