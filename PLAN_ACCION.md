@@ -2100,3 +2100,100 @@ Navegador (React)  ──fetch same-origin + cookie httpOnly──►  /api/* (V
 8. **Limpieza final del navegador e IA** (aprobado 2026-11-05, tras confirmar que los 4 proyectos locales están en la base): se borran `procesos_studio_proj_*`, `procesos_studio_project_index` y `procesos_gemini_api_key`; se elimina la clave de Gemini en el navegador (solo proxy del servidor); el proxy reintenta una vez si Gemini está saturado (429/503) e informa un mensaje claro; `connect-src` de la CSP pasa a `'self'`.
 9. **Respuesta de IA cortada** (reportado en producción 2026-11-05): `maxOutputTokens: 1024` no alcanza con modelos que razonan antes de responder (el razonamiento consume ese límite) y el JSON llega truncado. Se amplía el límite, se unen todas las partes de texto de la respuesta, se extrae el JSON de forma tolerante y se informa un mensaje claro si igual llega incompleto.
 10. **CSP obligatoria** (2026-11-05): tras la prueba de uso general en producción sin avisos `[Report Only]`, el encabezado pasa de `Content-Security-Policy-Report-Only` a `Content-Security-Policy`. Con esto se cierra la Fase 1.
+
+---
+
+## 32. Hoja de Ruta Técnica – FASE 2: Integridad de datos (alta) (`PST-108` a `PST-110`)
+
+> **Estado:** 📝 Propuesta – pendiente de aprobación. No se escribe código hasta el OK explícito.
+> **Rama:** `fase-2-integridad`. **Prueba:** Preview de Vercel apuntando a una rama de prueba de Neon (no a producción).
+
+### 32.1. Diagnóstico
+
+| Hallazgo | Dónde |
+| :--- | :--- |
+| Las versiones se agrupan en el navegador por **código documental** (`normalizeProcessKey`). Si se edita la ficha de un proyecto y se le pone el código de otro, ambos se mezclan y uno queda oculto como "versión anterior". | `processVersionManager.ts` (`groupProjectsByProcess`, `detectNewerVersionAvailable`) |
+| `normalizeProcessKey` quita el sufijo `-CPY`, así que una copia se agrupa con el original. | `processVersionManager.ts` |
+| "Duplicar" conserva versión e historial y genera `PRC-XXXX-CPY`. | `storageService.duplicateProject` |
+| No existe un identificador de proyecto: cada fila de `process_projects` es una **versión** (`file_name`). | Esquema |
+| El código no es único: ni en la base ni en "Editar Ficha". Un proyecto nuevo recibe `PRC-` + 4 dígitos al azar, que pueden repetirse. | `EditProjectModal.tsx`, `useProjectStore.createNewProject` |
+| Los permisos se guardan **por versión** (`project_file_name`). Al cambiar de versión se copian, pero conceptualmente pertenecen al proyecto. | `project_user_permissions` |
+| El propietario puede quitarse a sí mismo y un proyecto puede quedar sin editor. | `ProjectParticipantsModal.tsx`, rutas de participantes |
+
+### 32.2. Modelo propuesto
+
+```
+projects (nueva)                         process_projects (cada fila = una versión)
+  project_id  UUID  PK  ◄──────────────    project_id UUID NOT NULL  (FK)
+  document_code  UNIQUE                     file_name  (sigue identificando la versión)
+  owner_user_id                             document_code (copia del código del proyecto)
+  created_at
+project_user_permissions: pasa a referir a project_id (permiso por proyecto, vale para todas sus versiones)
+```
+
+- **Código único** a nivel proyecto, garantizado por `UNIQUE` en la base y validado en el servidor con un mensaje claro: *"El código PRC-3517 ya pertenece al proyecto «Gestión de Actas»."*
+- **Cambiar el código** en "Editar Ficha" lo cambia en el proyecto y en todas sus versiones.
+- **Versiones:** una nueva versión hereda el `project_id` de su origen.
+- **Duplicar:** crea un proyecto nuevo con `project_id` y código propios (el próximo libre, ej. `PRC-0042`), versión `1.0` e historial reiniciado ("Creado como copia de PRC-3517 v1.3"). Sin participantes: el propietario es quien duplica.
+- **Importar un JSON** con un código ya usado: se asigna un código libre y se avisa.
+- **Código nuevo:** lo asigna el servidor (correlativo y sin colisiones) en lugar del número al azar del navegador.
+- **Participantes:**
+  - El propietario aparece fijo en la lista, sin opción de quitarse ni de bajar su nivel.
+  - Si un proyecto no tiene propietario, no se puede quitar o bajar al último EDITOR.
+  - El servidor lo valida aunque se llame a la API a mano.
+
+### 32.3. Migración `006_project_identity.sql`
+
+1. Crea `projects` y agrega `process_projects.project_id`.
+2. **Agrupa las versiones existentes** por código documental exacto (sin quitar `-CPY`) **y** propietario. Si el código está vacío o es genérico, agrupa por título normalizado.
+3. Crea un `project_id` por grupo y lo asigna a todas sus versiones. No se borra ni se modifica ninguna versión.
+4. Pasa los permisos de versión a proyecto, conservando el nivel más alto si un usuario tenía distintos niveles en distintas versiones.
+5. Aplica `UNIQUE(document_code)` en `projects` **solo si no hay códigos repetidos**. Ver 32.4.
+6. Idempotente y con prueba previa sobre los scripts de esquema reales, igual que en la Fase 1.
+
+### 32.4. Paso previo: diagnóstico de códigos repetidos (solo lectura)
+
+Antes de escribir la migración, el usuario corre en Neon una consulta **de solo lectura** que lista los códigos usados por más de un proyecto (mismo código, distinto propietario o título). Según el resultado:
+- **Sin repetidos:** la migración aplica la restricción directamente.
+- **Con repetidos:** se decide caso por caso qué código conserva cada uno. La migración incluye esos cambios explícitos; no hay renombrado automático a ciegas.
+
+### 32.5. Archivos a tocar
+
+- **Servidor:**
+  - `server/routes/projects.ts`: alta, guardado, ficha, duplicar, participantes y listado con `projectId`.
+  - Nuevo `server/projects.ts`: resolución de `project_id` y generación de código.
+  - `server/authz.ts`: permiso por proyecto.
+- **Cliente:**
+  - `processVersionManager.ts`: agrupar por `projectId`.
+  - `storageService.ts`: duplicar e importar.
+  - `useProjectStore.ts`: alta sin código al azar.
+  - `EditProjectModal.tsx`: validación y mensaje de código.
+  - `ProjectParticipantsModal.tsx`: propietario fijo.
+  - `NewerVersionBanner.tsx` y tipos.
+- **Tests:**
+  - código duplicado → 409;
+  - editar el código no oculta otro proyecto;
+  - duplicar crea un proyecto independiente;
+  - el propietario no puede quitarse;
+  - no se puede dejar un proyecto sin editor;
+  - la migración conserva todas las versiones y permisos.
+
+### 32.6. Riesgos
+
+- **Agrupación heredada:** si hoy dos proyectos distintos comparten código y propietario, la agrupación inicial los une. Por eso el diagnóstico previo (32.4) se revisa antes.
+- **Compatibilidad:** la API cambia de forma compatible (se agregan campos), pero el navegador y el servidor deben desplegarse juntos. Un usuario con la pestaña abierta durante el despliegue debe recargar.
+- **Permisos:** al pasar a nivel proyecto, alguien con acceso a una sola versión pasa a ver todas las versiones de ese proyecto. Es el comportamiento esperado, pero cambia lo que hoy ocurre.
+
+### 32.7. Despliegue
+
+1. Diagnóstico de códigos repetidos (32.4), en producción y de solo lectura.
+2. Crear una rama de Neon desde `main` y apuntar `APP_DATABASE_URL` de **Preview** a esa rama.
+3. Correr la migración 006 en la rama y probar en el Preview.
+4. Correr la 006 en `main` → merge a `main` (despliegue a producción).
+
+### 32.8. Historias de usuario previstas
+
+- `PST-108` – Identificador estable de proyecto y versiones agrupadas por `project_id`.
+- `PST-109` – Código documental único con validación en "Editar Ficha" y "Duplicar" como proyecto independiente.
+- `PST-110` – Protección del propietario y del último editor en Participantes.
+> **Resultado del diagnóstico 32.4 (2026-11-05, producción):** sin códigos repetidos. La migración 006 aplica `UNIQUE(document_code)` sin renombrar códigos.

@@ -83,7 +83,7 @@ describe('Proyectos: un USER sin permiso no puede leer ni modificar', () => {
       body: { permissionLevel: 'EDITOR' }
     });
     expect(res.status).toBe(404);
-    const perms = await app.db.query(`SELECT 1 FROM project_user_permissions WHERE user_id = $1`, [IDS.dave]);
+    const perms = await app.db.query(`SELECT 1 FROM project_members WHERE user_id = $1`, [IDS.dave]);
     expect(perms).toHaveLength(0);
   });
 

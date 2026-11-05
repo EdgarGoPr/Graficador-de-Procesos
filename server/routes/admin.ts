@@ -224,6 +224,10 @@ export function registerAdminRoutes(router: Router): void {
     if (isProtectedAdmin(ctx, target)) throw forbidden('La cuenta de Administrador principal está protegida contra eliminación.');
 
     await ctx.db.query(`DELETE FROM project_user_permissions WHERE user_id::text = $1`, [id]);
+    await ctx.db.query(`DELETE FROM project_members WHERE user_id::text = $1`, [id]);
+    await ctx.db.query(`UPDATE project_members SET assigned_by = NULL WHERE assigned_by::text = $1`, [id]);
+    // Sus proyectos se conservan; quedan sin propietario y los gestiona el Administrador.
+    await ctx.db.query(`UPDATE projects SET owner_user_id = NULL WHERE owner_user_id::text = $1`, [id]);
     await ctx.db.query(`DELETE FROM canvas_active_locks WHERE user_id::text = $1`, [id]);
     await ctx.db.query(`DELETE FROM user_presence WHERE user_id::text = $1`, [id]);
     await ctx.db.query(`UPDATE user_access_requests SET reviewed_by = NULL WHERE reviewed_by::text = $1`, [id]);

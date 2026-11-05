@@ -90,19 +90,18 @@ function hasValidResetCode(ctx: Ctx, user: DbUser, code: string): boolean {
 // Datos de sesión que recibe el cliente
 // ---------------------------------------------------------------------------
 
+/** Permiso del usuario por archivo de versión (el permiso es del proyecto y vale para todas sus versiones). */
 export async function userPermissions(ctx: Ctx, user: DbUser) {
-  const assigned = await ctx.db.query<{ project_file_name: string; permission_level: string }>(
-    `SELECT project_file_name, permission_level FROM project_user_permissions WHERE user_id::text = $1`,
+  const rows = await ctx.db.query<{ file_name: string; permission_level: string }>(
+    `SELECT pp.file_name,
+            CASE WHEN pr.owner_user_id::text = $1 THEN 'EDITOR' ELSE m.permission_level END AS permission_level
+       FROM process_projects pp
+       JOIN projects pr ON pr.project_id = pp.project_id
+       LEFT JOIN project_members m ON m.project_id = pp.project_id AND m.user_id::text = $1
+      WHERE pr.owner_user_id::text = $1 OR m.user_id IS NOT NULL`,
     [user.id]
   );
-  const owned = await ctx.db.query<{ file_name: string }>(
-    `SELECT file_name FROM process_projects WHERE owner_user_id::text = $1`,
-    [user.id]
-  );
-  const map = new Map<string, string>();
-  for (const a of assigned) map.set(a.project_file_name, a.permission_level);
-  for (const o of owned) map.set(o.file_name, 'EDITOR');
-  return Array.from(map.entries()).map(([projectFileName, permissionLevel]) => ({ projectFileName, permissionLevel }));
+  return rows.map((r) => ({ projectFileName: r.file_name, permissionLevel: r.permission_level }));
 }
 
 async function sessionPayload(ctx: Ctx, user: DbUser) {

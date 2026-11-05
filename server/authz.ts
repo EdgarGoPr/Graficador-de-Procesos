@@ -26,27 +26,30 @@ export async function requireAdmin(ctx: Ctx): Promise<DbUser> {
 
 export interface ProjectAccess {
   exists: boolean;
+  /** Proyecto al que pertenece la versión (los permisos valen para todas sus versiones). */
+  projectId: string | null;
   ownerUserId: string | null;
   isOwner: boolean;
   permission: CanvasPermission | null;
 }
 
+/** Permiso del usuario sobre el proyecto al que pertenece la versión (archivo) indicada. */
 export async function getProjectAccess(ctx: Ctx, user: DbUser, fileName: string): Promise<ProjectAccess> {
-  const rows = await ctx.db.query<{ owner_user_id: string | null; permission_level: CanvasPermission | null }>(
-    `SELECT p.owner_user_id::text AS owner_user_id, perm.permission_level
-       FROM process_projects p
-       LEFT JOIN project_user_permissions perm
-         ON perm.project_file_name = p.file_name AND perm.user_id::text = $2
-      WHERE p.file_name = $1
+  const rows = await ctx.db.query<{ project_id: string; owner_user_id: string | null; permission_level: CanvasPermission | null }>(
+    `SELECT pp.project_id::text AS project_id, pr.owner_user_id::text AS owner_user_id, m.permission_level
+       FROM process_projects pp
+       JOIN projects pr ON pr.project_id = pp.project_id
+       LEFT JOIN project_members m ON m.project_id = pp.project_id AND m.user_id::text = $2
+      WHERE pp.file_name = $1
       LIMIT 1`,
     [fileName, user.id]
   );
-  if (rows.length === 0) return { exists: false, ownerUserId: null, isOwner: false, permission: null };
+  if (rows.length === 0) return { exists: false, projectId: null, ownerUserId: null, isOwner: false, permission: null };
   const ownerUserId = rows[0].owner_user_id;
   const isOwner = !!ownerUserId && ownerUserId === user.id;
   let permission: CanvasPermission | null = rows[0].permission_level || null;
   if (user.role === 'ADMIN' || isOwner) permission = 'EDITOR';
-  return { exists: true, ownerUserId, isOwner, permission };
+  return { exists: true, projectId: rows[0].project_id, ownerUserId, isOwner, permission };
 }
 
 /**
