@@ -2,12 +2,16 @@
     "name": "proces-studio",
     "productName": "ProcesStudio",
     "private": true,
-    "version": "2.5.0",
+    "version": "3.0.0",
     "description": "BPMN 2.0 (ISO 19510) and ISO 9001:2015 Quality Process Studio (Web)",
     "type": "module",
     "scripts": {
         "dev": "vite",
-        "build": "tsc && vite build && node scripts/generate-user-stories.cjs",
+        "dev:local": "node scripts/dev-local.mjs",
+        "build": "npm run build:ci && node scripts/generate-user-stories.cjs",
+        "build:ci": "tsc && tsc -p tsconfig.server.json && vite build && node scripts/check-bundle.cjs",
+        "check:bundle": "node scripts/check-bundle.cjs",
+        "test": "vitest run",
         "preview": "vite preview"
     },
     "dependencies": {

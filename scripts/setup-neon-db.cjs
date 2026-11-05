@@ -1,10 +1,10 @@
 const { neon } = require('@neondatabase/serverless');
 
-const connectionString = process.env.VITE_NEON_DATABASE_URL;
+const connectionString = process.env.NEON_OWNER_DATABASE_URL;
 
 if (!connectionString) {
   console.error(
-    '❌ Falta la variable de entorno VITE_NEON_DATABASE_URL.\n' +
+    '❌ Falta la variable de entorno NEON_OWNER_DATABASE_URL.\n' +
     '   Definila en tu archivo .env (ver .env.example) y ejecutá:\n' +
     '   node --env-file=.env scripts/setup-neon-db.cjs'
   );
