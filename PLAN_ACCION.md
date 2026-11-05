@@ -1946,3 +1946,139 @@ El usuario solicita:
   6. Actualización en `HISTORIAS_DE_USUARIO_PROCESSTUDIO.xlsx` e incremento de versión a `2.5.0` (`V 02.05.00`).
   7. Commit y Auto-Push automático a GitHub (`main`).
 - **Estado:** Implementado / Producción
+
+---
+
+## 30. Hoja de Ruta Técnica – Remediación de Auditoría V 02.05.00 · FASE 1: Seguridad (crítica) (`PST-104` a `PST-106`)
+
+> **Estado:** ✅ Aprobado (2026-11-05, con todas las recomendaciones: proxy de IA en el servidor, eliminación solo por propietario/ADMIN, rama `fase-1-seguridad`, versión 3.0.0) e implementado. Migraciones pendientes de ejecución por el usuario. Detalle de despliegue en `CHANGELOG.md`.
+> **Rama:** `fase-1-seguridad` (auto-push a esa rama; el merge a `main` lo decide el usuario).
+> **Restricción:** ninguna migración, borrado ni script se ejecuta contra producción. Las migraciones se entregan como archivos SQL.
+
+### 30.1. Diagnóstico (relevado en el código)
+
+| Hallazgo | Dónde |
+| :--- | :--- |
+| El cliente crea el driver con `VITE_NEON_DATABASE_URL` → la cadena de `neondb_owner` queda en el bundle. | `src/services/neonClient.ts` |
+| ~114 sentencias SQL ejecutadas desde el navegador, incluidas `CREATE TABLE` en tiempo de ejecución. | `authService`, `permissionService`, `postgresStorageService`, `auditLoggerService`, `concurrencyLockService`, `presenceService`, `masterCatalogsService` |
+| Roles y permisos validados solo en el cliente (`adminUser.role !== 'ADMIN'` sobre un objeto que arma el propio navegador). | `authService.ts`, `permissionService.ts` |
+| La "sesión" es el objeto usuario completo en `localStorage` (`procesos_auth_user`) **incluyendo `passwordHash`, `totpSecret` y `resetCode`**, más un token falso `session_<id>_<ts>`. | `authService.setCurrentUser` |
+| `procesos_users_fallback` guarda hashes, códigos de reseteo y secretos TOTP; también existen `procesos_access_requests_fallback`, `procesos_permissions_fallback`, `procesos_audit_logs_fallback`, `procesos_active_locks_fallback`. | `authService`, `permissionService`, `auditLoggerService`, `concurrencyLockService` |
+| Contraseña inicial fija `Admin123*` y autopromoción a ADMIN por correo hecha en el cliente. | `authService.initialize / loginWithGoogle` |
+| `verifyPassword` acepta texto plano si el hash no tiene formato `salt:hash`. | `src/utils/cryptoUtils.ts` |
+| Login con Google: el `access_token` se usa solo en el cliente; el `state` OAuth se guarda pero nunca se valida. | `googleAuthService.ts` |
+| El 2FA se puede saltar: `verifyAdminTotp(userId)` recibe el id desde el cliente y el ingreso con código de 6 dígitos no pide TOTP. | `authService.ts` |
+| La propiedad del proyecto se deduce de `graph_data` (`createdByUserId`) o por coincidencia de **nombre** del autor (falsificable). | `permissionService.ts` |
+| `VITE_GEMINI_API_KEY` también termina en el bundle (otra credencial). | `aiRecommendationService.ts` |
+
+### 30.2. Arquitectura propuesta
+
+```
+Navegador (React)  ──fetch same-origin + cookie httpOnly──►  /api/* (Vercel Functions, Node)
+   src/services/apiClient.ts                                     │ valida sesión, rol y permiso por proyecto
+   (sin SQL, sin driver Neon)                                    ▼
+                                                     Neon (rol processtudio_app, permisos mínimos)
+```
+
+- **Una sola función catch-all** `api/[...path].ts` con router interno: el plan Hobby de Vercel limita a 12 funciones y así no se choca con ese tope.
+- Código de servidor en `server/` (el cliente no lo importa):
+  - `server/db.ts` – driver `@neondatabase/serverless` con `DATABASE_URL` (rol de aplicación).
+  - `server/session.ts` – cookie firmada (HS256 con `jose`), `HttpOnly; Secure; SameSite=Strict; Path=/`, 8 h de vida. En cada request se relee el usuario (estado y rol), así desactivar a alguien corta su sesión al instante.
+  - `server/authz.ts` – `requireSession`, `requireAdmin`, `requireProjectPermission('READ_ONLY'|'COMMENTS'|'EDITOR')`.
+  - `server/crypto.ts` – PBKDF2-SHA256 con 100.000 iteraciones y el **mismo formato `salt:hash`** actual (los hashes existentes siguen sirviendo), TOTP RFC 6238 y generación de códigos.
+  - `server/routes/*.ts` – auth, projects, permissions, users, access-requests, audit, catalogs, locks, presence.
+- **CSRF:** `SameSite=Strict` + verificación de `Origin` en métodos no-GET + `Content-Type: application/json` obligatorio.
+- **Fuerza bruta:** contador de intentos fallidos por usuario (contraseña, código de 6 dígitos y TOTP): 5 fallos → bloqueo de 15 min.
+- **Cliente:** los servicios conservan sus firmas públicas pero llaman a `apiClient` en lugar de ejecutar SQL, para no tocar los componentes. Se eliminan `neonClient.ts`, el hashing/TOTP del cliente y `@neondatabase/serverless` del bundle (queda solo en `server/`).
+
+### 30.3. Flujos de autenticación (se mantienen Google y el código de 6 dígitos)
+
+| Endpoint | Comportamiento |
+| :--- | :--- |
+| `POST /api/auth/login` | Email + contraseña **o** código de 6 dígitos. Con código → sesión restringida `mustChangePassword` (solo habilita `change-password`). ADMIN con 2FA → cookie `ps_2fa` de 5 min, sin sesión todavía. |
+| `POST /api/auth/google` | Recibe el `access_token` y el servidor lo valida contra Google (`tokeninfo`: `aud` = `GOOGLE_CLIENT_ID`, `email_verified`). Se valida también el `state`. |
+| `POST /api/auth/totp/verify` | Usa la cookie `ps_2fa`, **no** un `userId` enviado por el cliente. |
+| `POST /api/auth/change-password` | Requiere sesión restringida + código vigente. |
+| `POST /api/auth/reauth` | Desbloqueo por inactividad (hoy se compara el hash en el navegador). |
+| `GET /api/auth/me`, `POST /api/auth/logout` | Usuario saneado (sin hash, TOTP ni códigos) / borra la cookie y libera presencia y candados. |
+| `POST /api/auth/reset-request`, `POST /api/access-requests` | Públicos, con respuesta neutra y límite de intentos. |
+| `POST /api/auth/totp/setup`, `/totp/enable` | El secreto se genera y guarda en el servidor. |
+
+- El admin inicial deja de estar en el código: variable `BOOTSTRAP_ADMIN_EMAIL`; si ese correo entra con Google y no existe, se crea como ADMIN. Se elimina `Admin123*`.
+- Se elimina la aceptación de contraseñas en texto plano.
+
+### 30.4. Matriz de autorización del servidor
+
+| Recurso | ADMIN | USER |
+| :--- | :--- | :--- |
+| Listar proyectos | Todos | Solo propios o asignados |
+| Leer / exportar proyecto | Sí | `READ_ONLY` o superior |
+| Guardar proyecto | Sí | `EDITOR`; con `COMMENTS` el servidor solo acepta cambios en nodos `StickyNote` (compara el resto del grafo con lo guardado) |
+| Crear proyecto | Sí | Sí (queda como propietario) |
+| Eliminar proyecto | Sí | Solo el propietario |
+| Gestionar participantes | Sí | Solo el propietario |
+| Usuarios, solicitudes, códigos de reseteo | Sí | No |
+| Leer logs de auditoría | Sí | No |
+| Registrar evento de auditoría | Lo hace el servidor. El cliente solo puede reportar una lista cerrada de eventos (p. ej. `CANVAS_EXPORT_GENERATED`) y el servidor completa usuario, rol, IP y hora | Ídem |
+| Catálogos maestros | Leer y editar | Leer |
+| Candados / presencia | Solo los propios | Solo los propios |
+
+### 30.5. Migraciones SQL (archivos en `db/migrations/`, las corre el usuario)
+
+1. **`001_schema_consolidation.sql`** – crea `user_presence` y `app_master_catalogs` si no existen (hoy los crea el navegador); agrega `app_users.failed_login_attempts`, `app_users.locked_until` y `app_users.reset_code_hash` (los códigos pasan a guardarse hasheados; los vigentes se migran con `pgcrypto`); agrega `process_projects.owner_user_id UUID` y lo completa desde `graph_data->documentControl` (`createdByUserId` / `createdByEmail`).
+2. **`002_preserve_name_based_access.sql`** – a quienes hoy son editores solo porque su nombre coincide con el autor se les da un permiso `EDITOR` explícito, para que nadie pierda acceso al quitar esa regla.
+3. **`003_app_role.sql`** – crea `processtudio_app` (LOGIN, sin superuser, CREATEDB ni CREATEROLE). `SELECT/INSERT/UPDATE/DELETE` solo en las tablas operativas; en `audit_logs` solo `SELECT, INSERT`; `REVOKE CREATE ON SCHEMA public`. La contraseña no va en el archivo: se pasa como variable de `psql` o se define en la consola de Neon.
+4. **`004_audit_append_only.sql`** – triggers `BEFORE UPDATE OR DELETE` y `BEFORE TRUNCATE` sobre `audit_logs` que rechazan la operación (aplican incluso al dueño de la tabla).
+
+### 30.6. Limpieza de `localStorage`
+
+- Al iniciar la app se borran: `procesos_users_fallback`, `procesos_access_requests_fallback`, `procesos_auth_user`, `procesos_auth_token`, `procesos_permissions_fallback`, `procesos_audit_logs_fallback`, `procesos_active_locks_fallback`, `procesos_local_presence_cache`.
+- Se eliminan los "fallbacks" locales de usuarios, permisos, auditoría y candados. Si la API no responde, la app muestra el error en lugar de usar datos locales.
+- Se mantienen (no sensibles): tema, configuración de presentación y caché de catálogos.
+
+### 30.7. Verificación del build
+
+- `scripts/check-bundle.cjs` corre al final de `npm run build` y **falla** si `dist/` contiene `postgres`, `neon.tech`, `neondb_owner`, `npg_`, `@neondatabase`, `INSERT INTO`, patrones `SELECT … FROM`, o el valor de cualquier variable de servidor presente en el entorno.
+- Hay textos de UI/tutorial que mencionan "Neon PostgreSQL"; se reemplazan por "base de datos en la nube" para que el chequeo pueda ser estricto.
+
+### 30.8. Tests
+
+- `vitest` + `@electric-sql/pglite` (Postgres real en memoria): se aplican las migraciones y se invocan los handlers de la API directamente.
+- Casos: sin cookie → 401; cookie alterada → 401; USER sin permiso → 403 al leer, guardar y borrar, y el proyecto no aparece en su listado; `READ_ONLY` no guarda; `COMMENTS` no modifica nodos que no sean notas; USER → 403 en endpoints de admin y logs; un usuario desactivado pierde la sesión; `UPDATE/DELETE` sobre `audit_logs` falla; el 2FA no se puede saltar; bloqueo tras 5 intentos.
+
+### 30.9. Variables de entorno (Vercel, solo servidor)
+
+`DATABASE_URL` (rol `processtudio_app`), `SESSION_SECRET` (≥ 32 bytes aleatorios), `GOOGLE_CLIENT_ID`, `BOOTSTRAP_ADMIN_EMAIL`, `ALLOWED_ORIGIN`. Se **elimina** `VITE_NEON_DATABASE_URL`. `VITE_GOOGLE_CLIENT_ID` puede quedar (el Client ID es público).
+
+### 30.10. Orden de despliegue
+
+1. Correr las migraciones 001 → 004 (con `neondb_owner`, desde la consola de Neon o `psql`).
+2. Cargar las variables en Vercel y borrar `VITE_NEON_DATABASE_URL`.
+3. Desplegar la rama.
+4. **Rotar la contraseña de `neondb_owner`** en Neon: la actual ya es pública porque está en el bundle publicado.
+
+### 30.11. Riesgos
+
+- La contraseña de `neondb_owner` está comprometida: hay que rotarla sí o sí.
+- Más latencia por el salto extra al servidor; se agrupan llamadas (p. ej. `/auth/me` devuelve también los permisos del usuario).
+- Desarrollo local: hace falta `vercel dev` para servir `/api`.
+- Se pierde el modo sin conexión para usuarios, permisos y auditoría (decisión de seguridad).
+- Incremento de versión a `3.0.0` (cambio de arquitectura y de despliegue).
+
+### 30.12. Commits previstos
+
+1. `chore(db): migraciones de consolidación, rol de aplicación y auditoría append-only`
+2. `feat(api): núcleo de servidor (db, sesión firmada, crypto, router, autorización)`
+3. `feat(api): endpoints de autenticación (email, código, Google, 2FA)`
+4. `feat(api): endpoints de proyectos y participantes con permisos por proyecto`
+5. `feat(api): administración de usuarios, solicitudes, auditoría, catálogos, candados y presencia`
+6. `refactor(client): servicios contra la API y eliminación del acceso directo a Neon`
+7. `fix(security): purga de datos sensibles en localStorage`
+8. `test(api): autorización y sesión`
+9. `chore(build): verificación del bundle, CHANGELOG y plantilla de entorno`
+
+### 30.13. Historias de usuario previstas
+
+- `PST-104` – Backend serverless con sesión firmada en cookie httpOnly.
+- `PST-105` – Rol de base de datos con permisos mínimos y auditoría append-only.
+- `PST-106` – Eliminación de secretos en el navegador y verificación del bundle.
