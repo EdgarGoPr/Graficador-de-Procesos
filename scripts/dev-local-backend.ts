@@ -17,7 +17,8 @@ const MIGRATIONS = [
   '001_schema_consolidation.sql',
   '002_preserve_name_based_access.sql',
   '003_app_role.sql',
-  '004_audit_append_only.sql'
+  '004_audit_append_only.sql',
+  '005_sessions_rate_limit.sql'
 ];
 
 export const DEV_USERS = [
@@ -46,7 +47,8 @@ export async function createLocalBackend(): Promise<{ db: Db; config: ServerConf
     googleClientId: process.env.VITE_GOOGLE_CLIENT_ID || 'local',
     bootstrapAdminEmail: 'admin@local.test',
     allowedOrigins: [],
-    geminiApiKey: null
+    geminiApiKey: null,
+    totpEncryptionKey: null
   };
   return { db, config };
 }

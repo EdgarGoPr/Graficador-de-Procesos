@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { PGlite } from '@electric-sql/pglite';
 import { pgcrypto } from '@electric-sql/pglite/contrib/pgcrypto';
 import { uuid_ossp } from '@electric-sql/pglite/contrib/uuid_ossp';
+import { pg_trgm } from '@electric-sql/pglite/contrib/pg_trgm';
 import { handleApiRequest } from '../server/app.js';
 import type { ServerConfig } from '../server/config.js';
 import { hashPassword } from '../server/crypto.js';
@@ -16,7 +17,8 @@ export const MIGRATIONS = [
   '001_schema_consolidation.sql',
   '002_preserve_name_based_access.sql',
   '003_app_role.sql',
-  '004_audit_append_only.sql'
+  '004_audit_append_only.sql',
+  '005_sessions_rate_limit.sql'
 ];
 
 export const IDS = {
@@ -67,7 +69,8 @@ export const TEST_CONFIG: ServerConfig = {
   googleClientId: 'test-client.apps.googleusercontent.com',
   bootstrapAdminEmail: 'admin@test.gob',
   allowedOrigins: [],
-  geminiApiKey: null
+  geminiApiKey: null,
+  totpEncryptionKey: null
 };
 
 export const PASSWORDS = { admin: 'AdminPass123', alice: 'AlicePass123' };
@@ -85,6 +88,39 @@ interface CallOptions {
   cookie?: string;
   headers?: Record<string, string>;
   fetchFn?: typeof fetch;
+  ip?: string;
+}
+
+export interface TestAppOptions {
+  /**
+   * reconstructed: esquema reconstruido mínimo (por defecto).
+   * scripts: los scripts reales del repo (neon_schema.sql + auth_schema.sql), con CHECKs, FKs,
+   *          RLS, trigger y búsqueda full-text, más las tablas que creaba el navegador.
+   */
+  baseline?: 'reconstructed' | 'scripts';
+  config?: Partial<ServerConfig>;
+}
+
+async function loadBaseline(pg: PGlite, baseline: 'reconstructed' | 'scripts') {
+  if (baseline === 'reconstructed') {
+    await pg.exec(readFileSync(join(ROOT, 'tests/fixtures/baseline_schema.sql'), 'utf8'));
+    return;
+  }
+  await pg.exec(readFileSync(join(ROOT, 'scripts/neon_schema.sql'), 'utf8'));
+  // La semilla del final de auth_schema.sql usa un id que no es UUID: se omite.
+  const auth = readFileSync(join(ROOT, 'scripts/auth_schema.sql'), 'utf8').split('-- 6. Semilla')[0];
+  await pg.exec(auth);
+  // Tablas que el navegador creaba en tiempo de ejecución (mismo DDL que usaba el cliente).
+  await pg.exec(`
+    ALTER TABLE app_users ADD COLUMN IF NOT EXISTS allowed_modules JSONB NULL;
+    CREATE TABLE IF NOT EXISTS app_master_catalogs (
+      catalog_key VARCHAR(60) PRIMARY KEY, payload JSONB NOT NULL, updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW());
+    CREATE TABLE IF NOT EXISTS user_presence (
+      user_id UUID PRIMARY KEY REFERENCES app_users(id) ON DELETE CASCADE,
+      last_action_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), last_heartbeat_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      active_project_file_name VARCHAR(255) NULL, active_project_title VARCHAR(255) NULL,
+      is_logged_in BOOLEAN NOT NULL DEFAULT true);
+  `);
 }
 
 export function cookieHeaderFrom(res: ApiResponse, name = 'ps_session'): string {
@@ -93,11 +129,12 @@ export function cookieHeaderFrom(res: ApiResponse, name = 'ps_session'): string 
   return raw.split(';')[0];
 }
 
-export async function createTestApp(): Promise<TestApp> {
-  const pg = await PGlite.create({ extensions: { pgcrypto, uuid_ossp } });
+export async function createTestApp(options: TestAppOptions = {}): Promise<TestApp> {
+  const pg = await PGlite.create({ extensions: { pgcrypto, uuid_ossp, pg_trgm } });
   const db: Db = { query: async (text, params = []) => (await pg.query(text, params as any[])).rows as any[] };
+  const config: ServerConfig = { ...TEST_CONFIG, ...options.config };
 
-  await pg.exec(readFileSync(join(ROOT, 'tests/fixtures/baseline_schema.sql'), 'utf8'));
+  await loadBaseline(pg, options.baseline || 'reconstructed');
   await seed(pg);
   for (const m of MIGRATIONS) {
     await pg.exec(readFileSync(join(ROOT, 'db/migrations', m), 'utf8'));
@@ -117,14 +154,14 @@ export async function createTestApp(): Promise<TestApp> {
     const query: Record<string, string> = {};
     new URLSearchParams(qs || '').forEach((v, k) => (query[k] = v));
     const res = await handleApiRequest(
-      { method, path: p, query, headers, body: opts.body, ip: '127.0.0.1' },
-      { db, config: TEST_CONFIG, fetchFn: opts.fetchFn, now: () => now.value }
+      { method, path: p, query, headers, body: opts.body, ip: opts.ip || '127.0.0.1' },
+      { db, config, fetchFn: opts.fetchFn, now: () => now.value }
     );
     return { ...res, json: res.body as any };
   };
 
   const cookieFor = async (userId: string, typ: 'session' | 'pwchange' = 'session') =>
-    `ps_session=${await signToken(TEST_CONFIG.sessionSecret, { sub: userId, typ })}`;
+    `ps_session=${await signToken(config.sessionSecret, { sub: userId, typ })}`;
 
   return { pg, db, call, cookieFor, now };
 }

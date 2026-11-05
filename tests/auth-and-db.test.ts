@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { totpAt } from '../server/crypto.js';
-import { IDS, PASSWORDS, PROJECT_B, TRASHED, TestApp, cookieHeaderFrom, createTestApp } from './helpers.js';
+import { IDS, MIGRATIONS, PASSWORDS, PROJECT_B, TRASHED, TestApp, cookieHeaderFrom, createTestApp } from './helpers.js';
 
 let app: TestApp;
 
@@ -160,7 +160,7 @@ describe('Migraciones', () => {
   it('son idempotentes', async () => {
     const { readFileSync } = await import('node:fs');
     const { fileURLToPath } = await import('node:url');
-    for (const m of ['001_schema_consolidation.sql', '002_preserve_name_based_access.sql', '003_app_role.sql', '004_audit_append_only.sql']) {
+    for (const m of MIGRATIONS) {
       const path = fileURLToPath(new URL(`../db/migrations/${m}`, import.meta.url));
       await app.pg.exec(readFileSync(path, 'utf8'));
     }
