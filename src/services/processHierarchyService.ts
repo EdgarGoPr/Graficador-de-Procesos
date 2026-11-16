@@ -170,8 +170,10 @@ export function getNextSubProcessCode(project: ProcessProjectFile | null): {
 }
 
 /**
- * Builds the hierarchical standard ID for a new node:
- * e.g. "P01-N00-TSK-01" or "P02-N01-SRV-01"
+ * Builds the standard ID for a new node:
+ * - Proceso principal (P01 / N00): "TSK-01", "GTW-02"...
+ * - Dentro de un subproceso: "P02-N01-TSK-01"...
+ * Toma siempre el mayor número existente + 1 para no repetir IDs tras borrar nodos.
  */
 export function formatHierarchicalStandardId(
   processCode: string,
@@ -180,15 +182,23 @@ export function formatHierarchicalStandardId(
   activeNodes: Node<BpmnNodeData>[]
 ): string {
   const prefix = getNodeTypePrefix(nodeType);
+  const idPattern = new RegExp(`(?:^|-)${prefix}-(\\d+)$`);
 
-  // Count existing nodes in this active diagram that share the prefix
-  const matchingCount = activeNodes.filter((n) => {
-    const existingPrefix = getNodeTypePrefix(n.data?.nodeType || (n.type as any) || '');
-    return existingPrefix === prefix;
-  }).length;
+  let maxCorrelative = 0;
+  for (const node of activeNodes) {
+    const standardId = node.data?.standardId || '';
+    const match = idPattern.exec(standardId);
+    if (match) {
+      const num = parseInt(match[1], 10);
+      if (num > maxCorrelative) maxCorrelative = num;
+    }
+  }
 
-  const correlative = matchingCount + 1;
-  const formattedCount = correlative < 10 ? `0${correlative}` : `${correlative}`;
+  const correlative = maxCorrelative + 1;
+  const formattedCount = String(correlative).padStart(2, '0');
+  const isRoot = levelCode === 'N00' || processCode === 'P01';
 
-  return `${processCode}-${levelCode}-${prefix}-${formattedCount}`;
+  return isRoot
+    ? `${prefix}-${formattedCount}`
+    : `${processCode}-${levelCode}-${prefix}-${formattedCount}`;
 }

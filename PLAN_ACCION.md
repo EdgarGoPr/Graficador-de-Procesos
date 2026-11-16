@@ -2260,7 +2260,7 @@ Reflejar los colores personalizados de fondo y de cada texto visible en los diag
 
 ## 33. Hoja de Ruta Técnica – FASE 3: Lógica de modelado y métricas (media) (`PST-112` a `PST-116`)
 
-> **Estado:** 📝 Propuesta – pendiente de aprobación. No se escribe código hasta el OK explícito.
+> **Estado:** ✅ Aprobada e implementada (V 3.2.0 – 2026-11-16).
 > **Rama:** `fase-3-modelado`. **Sin migraciones de base**: según lo acordado, se publica directo en producción después de los tests y el build.
 
 ### 33.1. Diagnóstico

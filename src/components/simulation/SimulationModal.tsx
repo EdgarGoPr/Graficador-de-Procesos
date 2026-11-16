@@ -24,6 +24,8 @@ export const SimulationModal: React.FC<SimulationModalProps> = ({ isOpen, onClos
 
   const [caseCount, setCaseCount] = useState<number>(50);
   const [workHours, setWorkHours] = useState<number>(8);
+  const [peoplePerLane, setPeoplePerLane] = useState<number>(1);
+  const [periodDays, setPeriodDays] = useState<number>(20);
   const [isSimulating, setIsSimulating] = useState<boolean>(false);
   const [simulationProgress, setSimulationProgress] = useState<number>(0);
 
@@ -31,9 +33,11 @@ export const SimulationModal: React.FC<SimulationModalProps> = ({ isOpen, onClos
     if (!currentProject) return null;
     return runProcessSimulation(currentProject.nodes, currentProject.edges, currentProject.pools, {
       caseCount,
-      workHoursPerDay: workHours
+      workHoursPerDay: workHours,
+      peoplePerLane,
+      periodDays
     });
-  }, [currentProject, caseCount, workHours]);
+  }, [currentProject, caseCount, workHours, peoplePerLane, periodDays]);
 
   if (!isOpen || !currentProject || !simulationResult) return null;
 
@@ -182,6 +186,34 @@ export const SimulationModal: React.FC<SimulationModalProps> = ({ isOpen, onClos
                 <option value={12}>12 Horas / Día</option>
               </select>
             </div>
+
+            <div>
+              <label className="text-[10px] font-mono uppercase text-theme-text-muted font-bold block mb-1">
+                Personas / Carril
+              </label>
+              <input
+                type="number"
+                min={1}
+                max={100}
+                value={peoplePerLane}
+                onChange={(e) => setPeoplePerLane(Math.max(1, Number(e.target.value) || 1))}
+                className="w-20 px-2.5 py-1 rounded-lg bg-theme-surface-subtle border border-theme-border text-xs font-mono text-theme-text focus:outline-none focus:border-theme-accent"
+              />
+            </div>
+
+            <div>
+              <label className="text-[10px] font-mono uppercase text-theme-text-muted font-bold block mb-1">
+                Días del Período
+              </label>
+              <input
+                type="number"
+                min={1}
+                max={365}
+                value={periodDays}
+                onChange={(e) => setPeriodDays(Math.max(1, Number(e.target.value) || 1))}
+                className="w-20 px-2.5 py-1 rounded-lg bg-theme-surface-subtle border border-theme-border text-xs font-mono text-theme-text focus:outline-none focus:border-theme-accent"
+              />
+            </div>
           </div>
 
           <button
@@ -223,7 +255,7 @@ export const SimulationModal: React.FC<SimulationModalProps> = ({ isOpen, onClos
                 {simulationResult.completedCases} / {caseCount}
               </div>
               <div className="text-[10px] text-theme-text-muted font-mono mt-0.5">
-                (Tasa 92% efectividad)
+                (Tasa {simulationResult.effectivenessPercent}% efectividad)
               </div>
             </div>
 
@@ -240,7 +272,7 @@ export const SimulationModal: React.FC<SimulationModalProps> = ({ isOpen, onClos
             <div className="p-3.5 rounded-xl bg-theme-surface-subtle border border-theme-border text-center">
               <div className="text-[10px] font-mono uppercase text-theme-text-muted">Utilización Media</div>
               <div className="text-xl font-extrabold text-amber-400 mt-0.5 font-mono">
-                {Math.round(simulationResult.laneUtilization.reduce((acc, l) => acc + l.utilizationPercent, 0) / (simulationResult.laneUtilization.length || 1))}%
+                {simulationResult.avgLaneUtilizationPercent}%
               </div>
               <div className="text-[10px] text-theme-text-muted font-mono mt-0.5">
                 Capacidad instalada
@@ -305,7 +337,7 @@ export const SimulationModal: React.FC<SimulationModalProps> = ({ isOpen, onClos
                   <div className="flex items-center justify-between text-xs mb-1.5 font-mono">
                     <span className="font-bold text-theme-text">{lane.laneName}</span>
                     <span className={lane.utilizationPercent > 80 ? 'text-rose-400 font-bold' : 'text-theme-text-muted'}>
-                      {lane.utilizationPercent}% Carga
+                      {lane.utilizationPercent}% Carga ({lane.loadHours}h / {lane.capacityHours}h · {lane.people} pers.)
                     </span>
                   </div>
                   <div className="w-full bg-theme-surface rounded-full h-2 overflow-hidden border border-theme-border">
@@ -322,6 +354,21 @@ export const SimulationModal: React.FC<SimulationModalProps> = ({ isOpen, onClos
                   </div>
                 </div>
               ))}
+            </div>
+
+            <div className="p-3 rounded-xl bg-theme-surface-subtle/70 border border-theme-border text-[11px] text-theme-text-muted space-y-1">
+              <div className="font-mono font-bold text-theme-text uppercase text-[10px]">
+                Supuestos del modelo determinista
+              </div>
+              <p>
+                &bull; Reparto de flujo: las decisiones XOR dividen los {caseCount} casos en partes iguales entre sus salidas; las ramas paralelas (AND) reciben el 100 % de los casos.
+              </p>
+              <p>
+                &bull; Capacidad por carril: {peoplePerLane} persona(s) &times; {workHours} h/día &times; {periodDays} días hábiles = <strong>{peoplePerLane * workHours * periodDays} h</strong> disponibles en el período.
+              </p>
+              <p>
+                &bull; El tiempo esperado &quot;h / caso&quot; pondera cada actividad por su probabilidad de paso (proceso + espera según saturación) y la efectividad se limita si algún carril supera el 100 % de su capacidad.
+              </p>
             </div>
           </div>
         </div>

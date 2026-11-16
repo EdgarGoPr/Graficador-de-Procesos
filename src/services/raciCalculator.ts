@@ -1,15 +1,18 @@
 import { Node, Edge } from '@xyflow/react';
 import { BpmnNodeData, SequenceFlowData, PoolDefinition } from '../types/process';
-import { RaciMatrixData, RaciTaskRow, RaciRoleType } from '../types/raci';
+import { RaciAccountableWarning, RaciMatrixData, RaciTaskRow, RaciRoleType } from '../types/raci';
 import * as XLSX from 'xlsx';
+
+const EXCLUDED_RACI_TYPES = new Set(['PoolLane', 'StickyNote', 'StartEvent', 'EndEvent']);
 
 export function computeRaciMatrix(
   nodes: Node<BpmnNodeData>[],
   _edges: Edge<SequenceFlowData>[],
-  pools: PoolDefinition[]
+  pools: PoolDefinition[],
+  raciOverrides?: Record<string, Record<string, RaciRoleType>>
 ): RaciMatrixData {
   const lanes = pools[0]?.lanes || [];
-  
+
   // Distinct functional roles from lanes
   const roles = lanes.map((lane) => ({
     id: lane.id,
@@ -18,9 +21,9 @@ export function computeRaciMatrix(
     colorHex: lane.colorHex || '#3B82F6'
   }));
 
-  // Tasks and functional steps (exclude swimlanes, sticky notes, start/end)
+  // Solo actividades (tareas, subprocesos, controles de calidad y decisiones): se excluyen carriles, notas e inicio/fin.
   const taskNodes = nodes
-    .filter((n) => n.type !== 'PoolLane' && n.type !== 'StickyNote')
+    .filter((n) => !EXCLUDED_RACI_TYPES.has(n.type || n.data?.nodeType || ''))
     .sort((a, b) => (a.position?.x || 0) - (b.position?.x || 0));
 
   const statsByRole: Record<string, { R: number; A: number; C: number; I: number }> = {};
@@ -28,37 +31,66 @@ export function computeRaciMatrix(
     statsByRole[r.id] = { R: 0, A: 0, C: 0, I: 0 };
   });
 
+  const accountableWarnings: RaciAccountableWarning[] = [];
+
   const rows: RaciTaskRow[] = taskNodes.map((taskNode, idx) => {
     const data = taskNode.data;
     const taskLaneId = data?.laneId || roles[0]?.id || 'lane-default';
     const taskLane = lanes.find((l) => l.id === taskLaneId) || lanes[0];
+    const nodeOverrides = raciOverrides?.[taskNode.id];
 
     const assignments: Record<string, RaciRoleType> = {};
+    let accountableCount = 0;
 
-    roles.forEach((role, rIdx) => {
-      if (role.id === taskLane?.id) {
-        // Direct executor in this lane is Responsible (R)
-        assignments[role.id] = 'R';
-        if (statsByRole[role.id]) statsByRole[role.id].R++;
-      } else if (rIdx === 0 && taskLane?.id !== role.id) {
-        // First lane (typically Inspectoría / Mesa de entrada / Jefatura) is Accountable (A)
-        assignments[role.id] = 'A';
-        if (statsByRole[role.id]) statsByRole[role.id].A++;
+    roles.forEach((role) => {
+      let value: RaciRoleType;
+      if (nodeOverrides && Object.prototype.hasOwnProperty.call(nodeOverrides, role.id)) {
+        value = nodeOverrides[role.id];
+      } else if (role.id === taskLane?.id) {
+        // El carril responsable ejecuta y rinde cuentas por defecto (A/R)
+        value = 'A/R';
       } else if (data?.nodeType === 'ServiceTask' || data?.inputs?.length) {
-        // Service or complex dependency is Consulted (C)
-        assignments[role.id] = 'C';
-        if (statsByRole[role.id]) statsByRole[role.id].C++;
+        value = 'C';
       } else {
-        // Other stakeholders are Informed (I)
-        assignments[role.id] = 'I';
+        value = 'I';
+      }
+
+      assignments[role.id] = value;
+
+      if (value === 'A/R') {
+        accountableCount++;
+        if (statsByRole[role.id]) {
+          statsByRole[role.id].A++;
+          statsByRole[role.id].R++;
+        }
+      } else if (value === 'A') {
+        accountableCount++;
+        if (statsByRole[role.id]) statsByRole[role.id].A++;
+      } else if (value === 'R') {
+        if (statsByRole[role.id]) statsByRole[role.id].R++;
+      } else if (value === 'C') {
+        if (statsByRole[role.id]) statsByRole[role.id].C++;
+      } else if (value === 'I') {
         if (statsByRole[role.id]) statsByRole[role.id].I++;
       }
     });
 
+    const standardId = data?.standardId || `TSK-${idx + 1}`;
+    const title = data?.title || 'Actividad sin título';
+
+    if (roles.length > 0 && accountableCount !== 1) {
+      accountableWarnings.push({
+        taskId: taskNode.id,
+        standardId,
+        title,
+        accountableCount
+      });
+    }
+
     return {
       taskId: taskNode.id,
-      standardId: data?.standardId || `TSK-${idx + 1}`,
-      title: data?.title || 'Actividad sin título',
+      standardId,
+      title,
       laneId: taskLane?.id || '',
       laneName: taskLane?.name || 'Área General',
       roleName: data?.roleName || taskLane?.role || 'Responsable de Área',
@@ -70,7 +102,8 @@ export function computeRaciMatrix(
     roles,
     rows,
     totalTasks: rows.length,
-    statsByRole
+    statsByRole,
+    accountableWarnings
   };
 }
 
@@ -99,7 +132,7 @@ export function exportRaciMatrixToExcel(
 
   const worksheetData = [
     [`MATRIZ RACI DE RESPONSABILIDADES - ${projectTitle} (${projectCode})`],
-    ['R = Responsible (Ejecuta) | A = Accountable (Aprueba/Responde) | C = Consulted (Consulta técnica) | I = Informed (Informado)'],
+    ['A/R = Accountable & Responsible (Ejecuta y rinde cuentas) | R = Responsible (Ejecuta) | A = Accountable (Aprueba/Responde) | C = Consulted (Consulta técnica) | I = Informed (Informado)'],
     [],
     headers,
     ...rows

@@ -996,6 +996,51 @@ function generateExcel() {
       criteriosAceptacion: '1. La pestaña Estilo & Apariencia de PropertiesPanel ofrece selectores de color (paleta rápida, selector libre y Auto) para Código/ID, Etiqueta de tipo, Título, Descripción y Metadatos/Pie, además de un selector rápido general.\n2. Todos los tipos de nodo (TaskNode, SubProcessNode, StartEventNode, EndEventNode, GatewayNode, QualityCheckpointNode, TimerBoundaryNode, SwimlaneNode, StickyNoteNode) reflejan en tiempo real cada color configurado.\n3. El ámbito de aplicación (Solo este, Mismo tipo, Todos), Restablecer y Aplicar a todos propagan correctamente todos los colores de texto.\n4. Se corrige el contraste adaptativo en Código/ID de TaskNode y textos de SwimlaneNode.\n5. Las exportaciones SVG, PNG y PDF respetan los colores de texto configurados.',
       fechaImplementacion: '2026-11-16',
       estado: 'Implementado / Producción'
+    },
+    {
+      id: 'PST-112',
+      modulo: 'Generador Texto a BPMN',
+      titulo: 'Generador Texto a BPMN con detección de decisiones, ramas, responsables y plazos',
+      historiaUsuario: 'Como analista de procesos, quiero que el generador desde texto natural interprete decisiones ("verifica si...", "¿...?"), ramas ("Si cumple...", "En caso contrario...") y plazos ("en 3 días hábiles", "en 48 horas"), para obtener un diagrama BPMN válido sin riesgos ni entradas inventadas.',
+      criteriosAceptacion: '1. Nuevo módulo puro src/services/textToBpmn.ts.\n2. Las compuertas XOR generan al menos 2 salidas etiquetadas; las ramas negativas terminan en su propio Evento de Fin y las positivas continúan.\n3. Los plazos se extraen al SLA de la tarea y se limpian del título.\n4. Los carriles se resuelven por catálogo de roles, sujeto de la frase o palabras clave.\n5. El caso de aceptación da 0 errores críticos y 0 advertencias en runQualityAudit.',
+      fechaImplementacion: '2026-11-16',
+      estado: 'Implementado / Producción'
+    },
+    {
+      id: 'PST-113',
+      modulo: 'Identificadores & Jerarquía BPMN',
+      titulo: 'Identificadores correlativos unificados sin repetición ni saltos',
+      historiaUsuario: 'Como modelador de procesos, quiero que la paleta y el generador usen el mismo formato de IDs (TSK-01, GTW-01...) en el proceso principal y no repitan números tras borrar elementos, para mantener una codificación consistente en todo el diagrama.',
+      criteriosAceptacion: '1. formatHierarchicalStandardId genera PREFIJO-NN en el proceso principal (P01/N00) y Pxx-Nyy-PREFIJO-NN dentro de subprocesos.\n2. El siguiente número toma el mayor existente + 1 con padding de dos dígitos, evitando duplicados tras borrados y saltos como TSK-010.\n3. Cubierto con tests unitarios en tests-client/processHierarchy.test.ts.',
+      fechaImplementacion: '2026-11-16',
+      estado: 'Implementado / Producción'
+    },
+    {
+      id: 'PST-114',
+      modulo: 'Lienzo & Auto-Ordenamiento',
+      titulo: 'Layout automático sin superposiciones y ubicación inteligente al agregar nodos',
+      historiaUsuario: 'Como modelador, quiero que Auto-Ordenar y las acciones de agregar nodos desde la paleta o "agregar siguiente" ubiquen las tarjetas sin superposiciones y ajusten la altura de cada carril, para trabajar sobre diagramas prolijos desde el primer momento.',
+      criteriosAceptacion: '1. Nuevo módulo puro src/utils/layoutGeometry.ts con estimación de tamaño por tipo, detección de superposiciones, findFreePosition y autoLayoutProcessCanvas.\n2. Columnas ajustadas al nodo más ancho, apilado vertical por celda y carriles con alto dinámico.\n3. addNode y addConnectedNode usan placeNodeWithoutOverlap respetando los límites del carril.\n4. Tests automáticos verifican 0 superposiciones tras generar y tras Auto-Ordenar.',
+      fechaImplementacion: '2026-11-16',
+      estado: 'Implementado / Producción'
+    },
+    {
+      id: 'PST-115',
+      modulo: 'Calidad ISO 9001 (RACI, SIPOC y Auditor)',
+      titulo: 'RACI con A/R persistente, SIPOC sin carriles y regla WARN-QUAL-002 de tarea sin título',
+      historiaUsuario: 'Como responsable de calidad, quiero que la matriz RACI asigne "A/R" por defecto al carril ejecutor, guarde mis ediciones manuales, el SIPOC excluya carriles y eventos de inicio/fin, y el Auditor detecte tareas sin título, para contar con reportes ISO 9001 consistentes.',
+      criteriosAceptacion: '1. RACI excluye StartEvent/EndEvent, asigna "A/R" por defecto, avisa si alguna actividad tiene 0 o >1 "A" y persiste ediciones en project.raciOverrides.\n2. SIPOC excluye PoolLane, StickyNote, StartEvent y EndEvent.\n3. runQualityAudit incorpora la advertencia WARN-QUAL-002 para tareas sin título o con texto por defecto de la paleta.\n4. Cubierto por tests en tests-client/raciSipocAuditor.test.ts.',
+      fechaImplementacion: '2026-11-16',
+      estado: 'Implementado / Producción'
+    },
+    {
+      id: 'PST-116',
+      modulo: 'Simulación & Comparador de Versiones',
+      titulo: 'Simulador determinista por capacidad de carril y comparador por versión del mismo proyecto',
+      historiaUsuario: 'Como analista operativo, quiero simular procesos de forma determinista configurando personas por carril y días del período, y comparar por defecto contra la versión anterior del mismo proyecto, para tomar decisiones de capacidad y auditar cambios reales.',
+      criteriosAceptacion: '1. processSimulator.ts elimina Math.random(), propaga probabilidades por topología (XOR en partes iguales, AND al 100 %) y calcula carga vs. capacidad.\n2. SimulationModal agrega Personas / Carril (defecto 1) y Días del Período (defecto 20), calcula efectividad real y muestra los supuestos.\n3. VersionDiffModal lista primero las versiones del mismo projectId, preselecciona la versión anterior y avisa si hay una sola versión.\n4. Cubierto por tests en tests-client/processSimulator.test.ts.',
+      fechaImplementacion: '2026-11-16',
+      estado: 'Implementado / Producción'
     }
   );
   console.log('📊 Generando archivo Excel de Historias de Usuario...');
