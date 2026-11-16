@@ -2,7 +2,8 @@ import React, { memo } from 'react';
 import { Handle, Position, NodeProps, NodeResizer } from '@xyflow/react';
 import { BpmnNodeData, BPMN_NODE_TYPES } from '../../../types/process';
 import { hexToRgba } from '../../../types/theme';
-import { getNodeTextContrast } from '../../../utils/nodeContrast';
+import { resolveNodeTextColors } from '../../../utils/nodeContrast';
+import { useIsDarkTheme } from '../../../store/useUiStore';
 import { User, Cpu, Wrench, Clock, AlertTriangle, ShieldCheck, ExternalLink } from 'lucide-react';
 
 export const TaskNode = memo(({ data, selected }: NodeProps<any>) => {
@@ -34,17 +35,20 @@ export const TaskNode = memo(({ data, selected }: NodeProps<any>) => {
   const isVertical = nodeData.orientation === 'vertical';
 
   const opacity = nodeData.customBgOpacity ?? 95;
-  const contrast = getNodeTextContrast(nodeData.customBgColor, opacity);
+  const isDarkTheme = useIsDarkTheme();
+  const resolved = resolveNodeTextColors(nodeData, opacity, isDarkTheme);
+  const { contrast, headerContrast } = resolved;
+  const hasCustomMetaColor = Boolean(nodeData.customMetaTextColor || nodeData.customTextColor);
 
   const customContainerStyle: React.CSSProperties = {
     backgroundColor: nodeData.customBgColor ? hexToRgba(nodeData.customBgColor, opacity) : undefined,
     borderColor: nodeData.customBorderColor || undefined,
-    color: nodeData.customTextColor || contrast.bodyColor,
+    color: resolved.descriptionColor,
   };
 
   const customHeaderStyle: React.CSSProperties = {
     backgroundColor: nodeData.customHeaderBgColor || undefined,
-    color: nodeData.customHeaderTextColor || undefined,
+    color: resolved.headerIdColor || undefined,
   };
 
   const titleFontSize = nodeData.customFontSize ? `${nodeData.customFontSize}px` : undefined;
@@ -95,10 +99,16 @@ export const TaskNode = memo(({ data, selected }: NodeProps<any>) => {
           className={`flex items-center justify-between px-2.5 py-1.5 bg-gradient-to-r ${typeConfig.headerBg} to-transparent rounded-t-xl border-b border-theme-border overflow-hidden shrink-0`}
         >
           <div className="flex items-center space-x-1.5 min-w-0">
-            <div className="p-1 rounded-md bg-theme-surface-subtle text-theme-text-muted shrink-0">
+            <div
+              style={resolved.headerIdColor ? { color: resolved.headerIdColor } : undefined}
+              className="p-1 rounded-md bg-theme-surface-subtle text-theme-text-muted shrink-0"
+            >
               <Icon className="w-3 h-3" />
             </div>
-            <span className="text-[10px] font-mono font-bold tracking-wider text-theme-text truncate">
+            <span
+              style={{ color: resolved.headerIdColor || headerContrast.titleColor }}
+              className="text-[10px] font-mono font-bold tracking-wider truncate"
+            >
               {nodeData.standardId || (isServiceTask ? 'SRV-01' : isManualTask ? 'MNL-01' : 'TSK-01')}
             </span>
           </div>
@@ -113,7 +123,10 @@ export const TaskNode = memo(({ data, selected }: NodeProps<any>) => {
                 <ExternalLink className="w-2.5 h-2.5" />
               </button>
             )}
-            <span className={`text-[9px] font-medium px-2 py-0.5 rounded-full shrink-0 ${typeConfig.badge}`}>
+            <span
+              style={resolved.badgeColor ? { color: resolved.badgeColor, borderColor: resolved.badgeColor } : undefined}
+              className={`text-[9px] font-medium px-2 py-0.5 rounded-full shrink-0 ${typeConfig.badge}`}
+            >
               {typeConfig.label}
             </span>
           </div>
@@ -123,7 +136,7 @@ export const TaskNode = memo(({ data, selected }: NodeProps<any>) => {
         <div className="p-2.5 flex-1 flex flex-col justify-between overflow-hidden">
           <div className="overflow-hidden">
             <h4
-              style={{ fontSize: titleFontSize, color: nodeData.customTextColor || contrast.titleColor }}
+              style={{ fontSize: titleFontSize, color: resolved.titleColor }}
               className="text-xs font-semibold leading-snug line-clamp-2 mb-1 break-words overflow-hidden text-ellipsis"
             >
               {nodeData.title ? nodeData.title : <span style={{ opacity: 0.5 }} className="italic font-normal">Sin título</span>}
@@ -131,7 +144,7 @@ export const TaskNode = memo(({ data, selected }: NodeProps<any>) => {
 
             {!isTitleOnly && nodeData.description && (
               <p
-                style={{ fontSize: descFontSize, color: contrast.bodyColor }}
+                style={{ fontSize: descFontSize, color: resolved.descriptionColor }}
                 className="text-[11px] line-clamp-2 leading-relaxed mb-2 break-words overflow-hidden text-ellipsis"
               >
                 {nodeData.description}
@@ -147,19 +160,19 @@ export const TaskNode = memo(({ data, selected }: NodeProps<any>) => {
                 className="space-y-1 pt-1.5 border-t text-[10px] overflow-hidden"
               >
                 {nodeData.itSystem && (
-                  <div style={{ color: contrast.mutedColor }} className="flex items-center truncate">
+                  <div style={{ color: resolved.metaColor }} className="flex items-center truncate">
                     <Wrench className="w-3 h-3 text-sky-400 mr-1.5 shrink-0" />
                     <span className="truncate">{nodeData.itSystem}</span>
                   </div>
                 )}
                 {nodeData.responsible && (
-                  <div style={{ color: contrast.mutedColor }} className="flex items-center truncate">
+                  <div style={{ color: resolved.metaColor }} className="flex items-center truncate">
                     <User className="w-3 h-3 text-indigo-400 mr-1.5 shrink-0" />
                     <span className="truncate">{nodeData.responsible}</span>
                   </div>
                 )}
                 {nodeData.slaDuration && (nodeData.slaDuration.enabled ?? nodeData.slaDuration.value > 0) && (
-                  <div style={{ color: contrast.mutedColor }} className="flex items-center truncate">
+                  <div style={{ color: resolved.metaColor }} className="flex items-center truncate">
                     <Clock className="w-3 h-3 text-amber-400 mr-1.5 shrink-0" />
                     <span className="truncate font-mono">
                       {nodeData.slaDuration.value} {nodeData.slaDuration.unit === 'BUSINESS_DAYS' ? 'días hábiles' : nodeData.slaDuration.unit === 'CALENDAR_DAYS' ? 'días corridos' : 'horas'}
@@ -172,12 +185,18 @@ export const TaskNode = memo(({ data, selected }: NodeProps<any>) => {
               {(hasRisks || hasQuality) && (
                 <div className="flex items-center space-x-2 pt-1.5 mt-1.5 border-t border-theme-border">
                   {hasQuality && (
-                    <span className="flex items-center text-[9px] text-emerald-400 font-mono">
+                    <span
+                      style={hasCustomMetaColor ? { color: resolved.metaColor } : undefined}
+                      className="flex items-center text-[9px] text-emerald-400 font-mono"
+                    >
                       <ShieldCheck className="w-3 h-3 mr-0.5" /> QC
                     </span>
                   )}
                   {hasRisks && (
-                    <span className="flex items-center text-[9px] text-amber-400 font-mono">
+                    <span
+                      style={hasCustomMetaColor ? { color: resolved.metaColor } : undefined}
+                      className="flex items-center text-[9px] text-amber-400 font-mono"
+                    >
                       <AlertTriangle className="w-3 h-3 mr-0.5" /> RIESGO
                     </span>
                   )}

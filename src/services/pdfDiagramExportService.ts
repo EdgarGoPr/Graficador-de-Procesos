@@ -1,6 +1,7 @@
 import jsPDF from 'jspdf';
 import { ProcessProjectFile } from '../types/project';
 import { PrintFrame, PageFormat, PageOrientation, DEFAULT_PAGE_DIMENSIONS } from '../types/printFrame';
+import { resolveNodeTextColors } from '../utils/nodeContrast';
 
 /**
  * Calculates auto-layout print frames to encompass all elements in the process diagram
@@ -137,7 +138,6 @@ export function generateFrameSvg(
   const bgColor = isDark ? '#0F172A' : '#FFFFFF';
   const gridColor = isDark ? '#334155' : '#E2E8F0';
   const textColor = isDark ? '#F8FAFC' : '#0F172A';
-  const textMutedColor = isDark ? '#94A3B8' : '#64748B';
   const laneBg = isDark ? '#1E293B' : '#F8FAFC';
   const nodeBg = isDark ? '#1E293B' : '#FFFFFF';
 
@@ -167,12 +167,13 @@ export function generateFrameSvg(
       const h = (lane.style?.height as number) || (lane.measured?.height || 160);
       const laneData = lane.data as Record<string, any> | undefined;
       const borderColor = laneData?.customBorderColor || '#0284C7';
+      const laneTitleColor = laneData?.customTitleTextColor || laneData?.customTextColor || borderColor;
       const laneTitle = String(laneData?.title || laneData?.name || 'Carril').toUpperCase();
 
       svg += `  <g id="lane_${lane.id}">
-    <rect x="${lane.position.x}" y="${lane.position.y}" width="${w}" height="${h}" rx="10" fill="${laneBg}" stroke="${borderColor}" stroke-width="1.8" stroke-dasharray="6,4" />
-    <rect x="${lane.position.x}" y="${lane.position.y}" width="44" height="${h}" rx="10" fill="${borderColor}" fill-opacity="0.12" />
-    <text x="${lane.position.x + 22}" y="${lane.position.y + h / 2}" transform="rotate(-90 ${lane.position.x + 22} ${lane.position.y + h / 2})" text-anchor="middle" fill="${borderColor}" font-weight="700" font-size="11" letter-spacing="1.5">${laneTitle}</text>
+    <rect x="${lane.position.x}" y="${lane.position.y}" width="${w}" height="${h}" rx="10" fill="${laneData?.customBgColor || laneBg}" stroke="${borderColor}" stroke-width="1.8" stroke-dasharray="6,4" />
+    <rect x="${lane.position.x}" y="${lane.position.y}" width="44" height="${h}" rx="10" fill="${laneData?.customHeaderBgColor || borderColor}" fill-opacity="0.12" />
+    <text x="${lane.position.x + 22}" y="${lane.position.y + h / 2}" transform="rotate(-90 ${lane.position.x + 22} ${lane.position.y + h / 2})" text-anchor="middle" fill="${laneTitleColor}" font-weight="700" font-size="11" letter-spacing="1.5">${laneTitle}</text>
   </g>\n`;
     });
 
@@ -250,6 +251,8 @@ export function generateFrameSvg(
       const isEnd = node.type === 'EndEvent';
       const isGateway = node.type?.includes('Gateway');
       const isSubprocess = node.type === 'SubProcess';
+      const resolved = resolveNodeTextColors(nodeData, nodeData.customBgOpacity ?? 95, isDark);
+      const cardFill = nodeData.customBgColor || nodeBg;
 
       if (isStart) {
         const cx = x + w / 2;
@@ -259,12 +262,12 @@ export function generateFrameSvg(
         const titleLines = wrapText(rawTitle, 16, 2);
 
         svg += `  <g id="node_${node.id}" filter="url(#shadow_${frame.id})">
-    <circle cx="${cx}" cy="${cy}" r="${r}" fill="${nodeBg}" stroke="${strokeColor}" stroke-width="2.5" />
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="${cardFill}" stroke="${strokeColor}" stroke-width="2.5" />
     <circle cx="${cx}" cy="${cy - 12}" r="11" fill="#10B981" fill-opacity="0.18" />
     <polygon points="${cx - 3},${cy - 16} ${cx + 5},${cy - 12} ${cx - 3},${cy - 8}" fill="#10B981" />
-    <text x="${cx}" y="${cy + 6}" text-anchor="middle" fill="#10B981" font-size="9" font-weight="bold" font-family="monospace">${escapeXml(idCode || 'INI')}</text>
-    ${titleLines[0] ? `<text x="${cx}" y="${cy + 17}" text-anchor="middle" fill="${textColor}" font-size="8.5" font-weight="500">${escapeXml(titleLines[0])}</text>` : ''}
-    ${titleLines[1] ? `<text x="${cx}" y="${cy + 27}" text-anchor="middle" fill="${textColor}" font-size="8.5" font-weight="500">${escapeXml(titleLines[1])}</text>` : ''}
+    <text x="${cx}" y="${cy + 6}" text-anchor="middle" fill="${resolved.headerIdColor || '#10B981'}" font-size="9" font-weight="bold" font-family="monospace">${escapeXml(idCode || 'INI')}</text>
+    ${titleLines[0] ? `<text x="${cx}" y="${cy + 17}" text-anchor="middle" fill="${resolved.titleColor}" font-size="8.5" font-weight="500">${escapeXml(titleLines[0])}</text>` : ''}
+    ${titleLines[1] ? `<text x="${cx}" y="${cy + 27}" text-anchor="middle" fill="${resolved.titleColor}" font-size="8.5" font-weight="500">${escapeXml(titleLines[1])}</text>` : ''}
   </g>\n`;
       } else if (isEnd) {
         const cx = x + w / 2;
@@ -274,12 +277,12 @@ export function generateFrameSvg(
         const titleLines = wrapText(rawTitle, 16, 2);
 
         svg += `  <g id="node_${node.id}" filter="url(#shadow_${frame.id})">
-    <circle cx="${cx}" cy="${cy}" r="${r}" fill="${nodeBg}" stroke="${strokeColor}" stroke-width="3.5" />
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="${cardFill}" stroke="${strokeColor}" stroke-width="3.5" />
     <circle cx="${cx}" cy="${cy - 12}" r="11" fill="#EF4444" fill-opacity="0.18" />
     <rect x="${cx - 4.5}" y="${cy - 16.5}" width="9" height="9" rx="1.5" fill="#EF4444" />
-    <text x="${cx}" y="${cy + 6}" text-anchor="middle" fill="#EF4444" font-size="9" font-weight="bold" font-family="monospace">${escapeXml(idCode || 'FIN')}</text>
-    ${titleLines[0] ? `<text x="${cx}" y="${cy + 17}" text-anchor="middle" fill="${textColor}" font-size="8.5" font-weight="500">${escapeXml(titleLines[0])}</text>` : ''}
-    ${titleLines[1] ? `<text x="${cx}" y="${cy + 27}" text-anchor="middle" fill="${textColor}" font-size="8.5" font-weight="500">${escapeXml(titleLines[1])}</text>` : ''}
+    <text x="${cx}" y="${cy + 6}" text-anchor="middle" fill="${resolved.headerIdColor || '#EF4444'}" font-size="9" font-weight="bold" font-family="monospace">${escapeXml(idCode || 'FIN')}</text>
+    ${titleLines[0] ? `<text x="${cx}" y="${cy + 17}" text-anchor="middle" fill="${resolved.titleColor}" font-size="8.5" font-weight="500">${escapeXml(titleLines[0])}</text>` : ''}
+    ${titleLines[1] ? `<text x="${cx}" y="${cy + 27}" text-anchor="middle" fill="${resolved.titleColor}" font-size="8.5" font-weight="500">${escapeXml(titleLines[1])}</text>` : ''}
   </g>\n`;
       } else if (isGateway) {
         const cx = x + w / 2;
@@ -297,7 +300,7 @@ export function generateFrameSvg(
 
         svg += `  <g id="node_${node.id}" filter="url(#shadow_${frame.id})">
     <!-- Diamond -->
-    <polygon points="${cx},${diamondTop} ${cx + 32},${diamondCenter} ${cx},${diamondTop + diamondSize} ${cx - 32},${diamondCenter}" fill="${nodeBg}" stroke="${strokeColor}" stroke-width="2.5" />
+    <polygon points="${cx},${diamondTop} ${cx + 32},${diamondCenter} ${cx},${diamondTop + diamondSize} ${cx - 32},${diamondCenter}" fill="${cardFill}" stroke="${strokeColor}" stroke-width="2.5" />
     ${
       isParallel
         ? `<!-- Plus icon -->
@@ -308,10 +311,10 @@ export function generateFrameSvg(
     <line x1="${cx + 8}" y1="${diamondCenter - 8}" x2="${cx - 8}" y2="${diamondCenter + 8}" stroke="#F59E0B" stroke-width="3" stroke-linecap="round" />`
     }
     <!-- Label Pill under Diamond -->
-    <rect x="${pillX}" y="${pillY}" width="${pillW}" height="${pillH}" rx="6" fill="${nodeBg}" stroke="${gridColor}" stroke-width="1" />
-    <text x="${cx}" y="${pillY + 13}" text-anchor="middle" fill="${isParallel ? '#8B5CF6' : '#F59E0B'}" font-size="9" font-weight="bold" font-family="monospace">${escapeXml(idCode || (isParallel ? 'PAR' : 'GTW'))}</text>
-    ${titleLines[0] ? `<text x="${cx}" y="${pillY + 24}" text-anchor="middle" fill="${textColor}" font-size="9.5" font-weight="500">${escapeXml(titleLines[0])}</text>` : ''}
-    ${titleLines[1] ? `<text x="${cx}" y="${pillY + 34}" text-anchor="middle" fill="${textColor}" font-size="9.5" font-weight="500">${escapeXml(titleLines[1])}</text>` : ''}
+    <rect x="${pillX}" y="${pillY}" width="${pillW}" height="${pillH}" rx="6" fill="${nodeData.customHeaderBgColor || nodeBg}" stroke="${gridColor}" stroke-width="1" />
+    <text x="${cx}" y="${pillY + 13}" text-anchor="middle" fill="${resolved.headerIdColor || (isParallel ? '#8B5CF6' : '#F59E0B')}" font-size="9" font-weight="bold" font-family="monospace">${escapeXml(idCode || (isParallel ? 'PAR' : 'GTW'))}</text>
+    ${titleLines[0] ? `<text x="${cx}" y="${pillY + 24}" text-anchor="middle" fill="${resolved.titleColor}" font-size="9.5" font-weight="500">${escapeXml(titleLines[0])}</text>` : ''}
+    ${titleLines[1] ? `<text x="${cx}" y="${pillY + 34}" text-anchor="middle" fill="${resolved.titleColor}" font-size="9.5" font-weight="500">${escapeXml(titleLines[1])}</text>` : ''}
   </g>\n`;
       } else {
         // Task or SubProcess Card
@@ -345,37 +348,44 @@ export function generateFrameSvg(
         if (nodeData.customBorderColor) strokeColor = nodeData.customBorderColor;
         if (nodeData.customHeaderBgColor) headerBg = nodeData.customHeaderBgColor;
 
+        const effectiveIdColor = resolved.headerIdColor || headerTextColor;
+        const effectiveBadgeColor = resolved.badgeColor || headerTextColor;
+        const effectiveTitleColor = resolved.titleColor;
+        const effectiveDescColor = resolved.descriptionColor;
+        const effectiveSysColor = nodeData.customMetaTextColor || nodeData.customTextColor || '#0284C7';
+        const effectiveRoleColor = nodeData.customMetaTextColor || nodeData.customTextColor || '#6366F1';
+
         const badgeW = badgeLabel.length * 6 + 14;
         const titleLines = wrapText(rawTitle || 'Sin título', 26, 2);
         const descLines = wrapText(description, 32, 2);
 
         svg += `  <g id="node_${node.id}" filter="url(#shadow_${frame.id})">
     <!-- Card Frame -->
-    <rect x="${x}" y="${y}" width="${w}" height="${h}" rx="12" fill="${nodeBg}" stroke="${strokeColor}" stroke-width="1.8" />
+    <rect x="${x}" y="${y}" width="${w}" height="${h}" rx="12" fill="${cardFill}" stroke="${strokeColor}" stroke-width="1.8" />
     
     <!-- Header -->
     <path d="M ${x} ${y + 12} A 12 12 0 0 1 ${x + 12} ${y} L ${x + w - 12} ${y} A 12 12 0 0 1 ${x + w} ${y + 12} L ${x + w} ${y + 26} L ${x} ${y + 26} Z" fill="${headerBg}" fill-opacity="${isDark ? 0.18 : 0.12}" />
     <line x1="${x}" y1="${y + 26}" x2="${x + w}" y2="${y + 26}" stroke="${gridColor}" stroke-width="0.8" />
 
     <!-- Standard ID -->
-    <text x="${x + 10}" y="${y + 17}" fill="${headerTextColor}" font-size="9.5" font-weight="bold" font-family="monospace">${escapeXml(idCode)}</text>
+    <text x="${x + 10}" y="${y + 17}" fill="${effectiveIdColor}" font-size="9.5" font-weight="bold" font-family="monospace">${escapeXml(idCode)}</text>
 
     <!-- Badge -->
     <rect x="${x + w - badgeW - 8}" y="${y + 6}" width="${badgeW}" height="15" rx="7.5" fill="${headerBg}" fill-opacity="${isDark ? 0.25 : 0.15}" stroke="${strokeColor}" stroke-width="0.8" stroke-opacity="0.5" />
-    <text x="${x + w - badgeW / 2 - 8}" y="${y + 17}" text-anchor="middle" fill="${headerTextColor}" font-size="8.5" font-weight="600">${escapeXml(badgeLabel)}</text>
+    <text x="${x + w - badgeW / 2 - 8}" y="${y + 17}" text-anchor="middle" fill="${effectiveBadgeColor}" font-size="8.5" font-weight="600">${escapeXml(badgeLabel)}</text>
 
     <!-- Title -->
-    ${titleLines[0] ? `<text x="${x + 10}" y="${y + 42}" fill="${textColor}" font-size="11" font-weight="bold">${escapeXml(titleLines[0])}</text>` : ''}
-    ${titleLines[1] ? `<text x="${x + 10}" y="${y + 55}" fill="${textColor}" font-size="11" font-weight="bold">${escapeXml(titleLines[1])}</text>` : ''}
+    ${titleLines[0] ? `<text x="${x + 10}" y="${y + 42}" fill="${effectiveTitleColor}" font-size="11" font-weight="bold">${escapeXml(titleLines[0])}</text>` : ''}
+    ${titleLines[1] ? `<text x="${x + 10}" y="${y + 55}" fill="${effectiveTitleColor}" font-size="11" font-weight="bold">${escapeXml(titleLines[1])}</text>` : ''}
 
     <!-- Description -->
-    ${descLines[0] ? `<text x="${x + 10}" y="${y + 70}" fill="${textMutedColor}" font-size="9">${escapeXml(descLines[0])}</text>` : ''}
-    ${descLines[1] ? `<text x="${x + 10}" y="${y + 82}" fill="${textMutedColor}" font-size="9">${escapeXml(descLines[1])}</text>` : ''}
+    ${descLines[0] ? `<text x="${x + 10}" y="${y + 70}" fill="${effectiveDescColor}" font-size="9">${escapeXml(descLines[0])}</text>` : ''}
+    ${descLines[1] ? `<text x="${x + 10}" y="${y + 82}" fill="${effectiveDescColor}" font-size="9">${escapeXml(descLines[1])}</text>` : ''}
 
     <!-- Footer Divider & Meta -->
     <line x1="${x + 10}" y1="${y + h - 22}" x2="${x + w - 10}" y2="${y + h - 22}" stroke="${gridColor}" stroke-width="0.8" />
-    ${itSystem ? `<text x="${x + 10}" y="${y + h - 9}" fill="#0284C7" font-size="8.5">⚙️ ${escapeXml(itSystem)}</text>` : ''}
-    ${role ? `<text x="${x + w - 10}" y="${y + h - 9}" text-anchor="end" fill="#6366F1" font-size="8.5">👤 ${escapeXml(role)}</text>` : ''}
+    ${itSystem ? `<text x="${x + 10}" y="${y + h - 9}" fill="${effectiveSysColor}" font-size="8.5">⚙️ ${escapeXml(itSystem)}</text>` : ''}
+    ${role ? `<text x="${x + w - 10}" y="${y + h - 9}" text-anchor="end" fill="${effectiveRoleColor}" font-size="8.5">👤 ${escapeXml(role)}</text>` : ''}
 
     ${
       isSubprocess

@@ -219,3 +219,13 @@ export const useUiStore = create<UiStoreState>((set, get) => ({
   },
   clearNotification: () => set({ activeNotification: null })
 }));
+
+/**
+ * Selector optimizado para determinar si el tema activo en la UI es oscuro
+ */
+export const useIsDarkTheme = (): boolean =>
+  useUiStore((s) =>
+    s.currentThemeId === 'custom'
+      ? s.customThemeColors.isDark
+      : (PRESET_THEMES[s.currentThemeId]?.colors.isDark ?? s.theme === 'dark')
+  );

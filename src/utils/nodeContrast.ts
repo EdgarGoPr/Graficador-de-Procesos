@@ -116,3 +116,53 @@ export function getNodeTextContrast(
     borderColor: 'rgba(255, 255, 255, 0.12)'
   };
 }
+
+export interface ResolvedNodeTextColors {
+  contrast: NodeContrastPalette;
+  headerContrast: NodeContrastPalette;
+  headerIdColor?: string;
+  badgeColor?: string;
+  titleColor: string;
+  descriptionColor: string;
+  metaColor: string;
+}
+
+export interface NodeTextStyleInput {
+  customBgColor?: string;
+  customHeaderBgColor?: string;
+  customBgOpacity?: number;
+  customHeaderTextColor?: string;
+  customBadgeTextColor?: string;
+  customTitleTextColor?: string;
+  customDescriptionTextColor?: string;
+  customMetaTextColor?: string;
+  customTextColor?: string;
+}
+
+/**
+ * Resuelve los colores efectivos para cada texto visible de un nodo combinando
+ * overrides individuales, color maestro (customTextColor) y contraste adaptativo.
+ */
+export function resolveNodeTextColors(
+  data: NodeTextStyleInput,
+  opacity: number = 95,
+  isDarkTheme: boolean = true
+): ResolvedNodeTextColors {
+  const contrast = getNodeTextContrast(data.customBgColor, opacity, isDarkTheme);
+  const headerContrast = getNodeTextContrast(
+    data.customHeaderBgColor || data.customBgColor,
+    opacity,
+    isDarkTheme
+  );
+
+  const fallbackAll = data.customTextColor;
+  return {
+    contrast,
+    headerContrast,
+    headerIdColor: data.customHeaderTextColor || fallbackAll,
+    badgeColor: data.customBadgeTextColor || fallbackAll,
+    titleColor: data.customTitleTextColor || fallbackAll || contrast.titleColor,
+    descriptionColor: data.customDescriptionTextColor || fallbackAll || contrast.bodyColor,
+    metaColor: data.customMetaTextColor || fallbackAll || contrast.mutedColor,
+  };
+}

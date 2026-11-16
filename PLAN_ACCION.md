@@ -2197,3 +2197,59 @@ Antes de escribir la migración, el usuario corre en Neon una consulta **de solo
 - `PST-109` – Código documental único con validación en "Editar Ficha" y "Duplicar" como proyecto independiente.
 - `PST-110` – Protección del propietario y del último editor en Participantes.
 > **Resultado del diagnóstico 32.4 (2026-11-05, producción):** sin códigos repetidos. La migración 006 aplica `UNIQUE(document_code)` sin renombrar códigos.
+
+
+---
+
+## 33. Hoja de Ruta Técnica: Personalización Granular de Colores para Cada Texto Visible de la Tarjeta (`PST-111`)
+
+### 33.1. Diagnóstico del Problema y Requerimiento
+Al seleccionar cualquier nodo o tarjeta en el lienzo e ingresar a **Propiedades -> Estilo & Apariencia** (`src/components/layout/PropertiesPanel.tsx`):
+1. **Ausencia de controles de color de texto:** Solo existen selectores para fondo, opacidad, borde, color de encabezado, orientación, modo de visualización y tamaño de tipografía, pero **ningún control para cambiar el color de los textos**.
+2. **Propiedades incompletas y contraste forzado en los nodos:** Aunque `BpmnNodeData` posee `customHeaderTextColor` y `customTextColor`, varios nodos utilizaban clases estáticas (`text-theme-text`, `text-theme-text-muted`, `text-indigo-400`, `text-fuchsia-400`, etc.) que no respetan personalización individual e incluso producen bajo contraste sobre tarjetas/carriles con fondo oscuro (por ejemplo, el ID en `TaskNode` o los textos de `SwimlaneNode`).
+3. **Requerimiento del usuario:** Poder cambiar de manera independiente el color de **cada uno de los textos visibles** de la tarjeta desde **Propiedades -> Estilo & Apariencia**.
+
+---
+
+### 33.2. Plan de Intervención Arquitectónica
+
+#### Módulo 1: Extensión del Modelo de Datos (`src/types/process.ts`)
+Ampliar `BpmnNodeData` manteniendo retrocompatibilidad con `customHeaderTextColor` y `customTextColor`:
+- `customHeaderTextColor?: string` — Color del **Código / ID** de cabecera (`P01-N00-TSK-01`, `INI-01`, `FIN-01`, `GTW-01`, `QCP-01`, `CAR-01`, etc.).
+- `customBadgeTextColor?: string` — Color de la **Etiqueta / Badge de tipo** (`User Task`, `Service Task`, `Manual Task`, `Subproceso`, `CONTROL`, `CARRIL / COLUMNA`, `ESTRICTO`).
+- `customTitleTextColor?: string` — Color del **Título principal** de la tarjeta, evento, compuerta, carril o nota.
+- `customDescriptionTextColor?: string` — Color de la **Descripción / Detalle** (también Criterio de Aceptación en QualityCheckpoint, cuerpo en Nota Adhesiva y Rol Responsable en Carril).
+- `customMetaTextColor?: string` — Color de **Metadatos / Pie** (Herramienta, Responsable, Plazo/SLA, cantidad de etapas, registro de evidencia y herramienta en Carril).
+
+#### Módulo 2: UI en `src/components/layout/PropertiesPanel.tsx` -> *Estilo & Apariencia*
+Incorporar la subsección **Colores de Textos de la Tarjeta**, totalmente integrada con el ámbito de aplicación (`Solo este`, `Mismo tipo`, `Todos`) y con los botones **Restablecer** y **Aplicar a todos los nodos**:
+- Selector rápido **Todos los textos (General)** con paleta y color libre `<input type="color">` + botón *Auto*.
+- Selectores independientes (paleta rápida de alto contraste + selector libre `<input type="color">` + botón *Auto*) para cada texto visible aplicable al nodo seleccionado:
+  1. **Código / ID (Cabecera)** (`customHeaderTextColor`)
+  2. **Etiqueta / Tipo (Badge)** (`customBadgeTextColor`)
+  3. **Título Principal** (`customTitleTextColor`)
+  4. **Descripción / Detalle** (`customDescriptionTextColor`) *(o "Rol / Cargo" en Carriles, "Contenido" en Notas)*
+  5. **Pie / Metadatos (Herramienta, Responsable, Plazo)** (`customMetaTextColor`)
+
+#### Módulo 3: Renderizado en Todos los Nodos (`src/components/canvas/custom-nodes/`)
+Actualizar todos los componentes visuales de nodos (`TaskNode.tsx`, `SubProcessNode.tsx`, `StartEventNode.tsx`, `EndEventNode.tsx`, `GatewayNode.tsx`, `QualityCheckpointNode.tsx`, `TimerBoundaryNode.tsx`, `SwimlaneNode.tsx`, `StickyNoteNode.tsx`) para aplicar los 5 niveles de color con prioridad `colorEspecifico || customTextColor || contrasteAdaptativo`, y corregir las referencias rígidas `text-theme-text` en cabeceras/carriles para garantizar contraste legible cuando el fondo sea personalizado o oscuro.
+
+#### Módulo 4: Fidelidad en Exportaciones (`src/services/imageExportService.ts` y `src/services/pdfDiagramExportService.ts`)
+Reflejar los colores personalizados de fondo y de cada texto visible en los diagramas exportados a SVG, PNG y PDF.
+
+---
+
+### 33.3. Registro de Historia de Usuario (`PST-111`)
+
+- **ID:** `PST-111`
+- **Módulo / Componente:** Estilo & Apariencia de Nodos / Propiedades del Lienzo
+- **Título:** Personalización individual de color para cada texto visible de las tarjetas en Propiedades -> Estilo & Apariencia
+- **Historia de Usuario:** *Como modelador de procesos de ProcesStudio, quiero poder cambiar desde Propiedades -> Estilo & Apariencia el color de cada uno de los textos visibles de una tarjeta (código/ID, etiqueta de tipo, título, descripción y metadatos del pie), para asegurar una legibilidad óptima sobre cualquier fondo y resaltar visualmente la información clave en mis diagramas.*
+- **Criterios de Aceptación:**
+  1. La pestaña *Estilo & Apariencia* de `PropertiesPanel.tsx` ofrece selectores de color (paleta rápida, selector libre y restablecimiento automático) para Código/ID, Etiqueta de tipo, Título, Descripción y Metadatos/Pie, además de un selector rápido general.
+  2. Todos los tipos de nodo aplicables (`TaskNode`, `SubProcessNode`, `StartEventNode`, `EndEventNode`, `GatewayNode`, `QualityCheckpointNode`, `TimerBoundaryNode`, `SwimlaneNode`, `StickyNoteNode`) reflejan en tiempo real cada color configurado.
+  3. El ámbito de aplicación (*Solo este*, *Mismo tipo*, *Todos*), *Restablecer* y *Aplicar a todos los nodos* propagan correctamente los colores de texto.
+  4. Se corrige el contraste adaptativo en Código/ID de `TaskNode` y textos de `SwimlaneNode` cuando no hay color personalizado manual.
+  5. Las exportaciones (SVG, PNG, PDF) respetan los colores de texto configurados.
+  6. `npm run build` y `npm test` pasan sin errores; versión incrementada a `3.1.1` (`V 03.01.01`); push automático a la rama actual (`fase-2-integridad`).
+- **Estado:** Implementado / Producción

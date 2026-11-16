@@ -65,6 +65,70 @@ const EDGE_COLOR_SWATCHES = [
   { label: 'Blanco Nítido', color: '#FFFFFF' }
 ];
 
+const TEXT_COLOR_SWATCHES = [
+  { label: 'Blanco Puro', color: '#FFFFFF' },
+  { label: 'Gris Perla', color: '#CBD5E1' },
+  { label: 'Celeste Cian', color: '#38BDF8' },
+  { label: 'Esmeralda', color: '#34D399' },
+  { label: 'Ámbar Dorado', color: '#FBBF24' },
+  { label: 'Violeta', color: '#A78BFA' },
+  { label: 'Rosa Coral', color: '#F472B6' },
+  { label: 'Negro Grafito', color: '#0F172A' }
+];
+
+interface TextColorPickerRowProps {
+  label: string;
+  value?: string;
+  fallbackColor: string;
+  onChange: (color: string | undefined) => void;
+}
+
+const TextColorPickerRow: React.FC<TextColorPickerRowProps> = ({
+  label,
+  value,
+  fallbackColor,
+  onChange
+}) => (
+  <div className="space-y-1">
+    <div className="flex items-center justify-between">
+      <span className="text-[10px] text-theme-text-muted font-medium">{label}:</span>
+      {value && (
+        <button
+          type="button"
+          onClick={() => onChange(undefined)}
+          className="text-[9px] text-sky-400 hover:underline"
+          title="Volver al color automático"
+        >
+          Auto
+        </button>
+      )}
+    </div>
+    <div className="flex flex-wrap gap-1 items-center">
+      {TEXT_COLOR_SWATCHES.map((swatch) => (
+        <button
+          key={swatch.color}
+          type="button"
+          onClick={() => onChange(swatch.color)}
+          title={swatch.label}
+          className={`w-5 h-5 rounded border transition-transform ${
+            value?.toLowerCase() === swatch.color.toLowerCase()
+              ? 'scale-110 ring-2 ring-sky-400 border-white'
+              : 'border-theme-border/60 hover:scale-105'
+          }`}
+          style={{ backgroundColor: swatch.color }}
+        />
+      ))}
+      <input
+        type="color"
+        value={value || fallbackColor}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-5 h-5 rounded cursor-pointer border border-theme-border p-0 bg-transparent"
+        title={`Elegir color personalizado para ${label}`}
+      />
+    </div>
+  </div>
+);
+
 export const PropertiesPanel: React.FC = () => {
   const {
     selectedNodeId,
@@ -776,7 +840,16 @@ export const PropertiesPanel: React.FC = () => {
                   <Palette className="w-3.5 h-3.5 text-theme-accent mr-1.5" />
                   <span>Estilo y Temática de Tarjeta</span>
                 </span>
-                {(data.customBgColor || data.customBorderColor || data.customHeaderBgColor || data.customBgOpacity !== undefined) && (
+                {(data.customBgColor ||
+                  data.customBorderColor ||
+                  data.customHeaderBgColor ||
+                  data.customHeaderTextColor ||
+                  data.customBadgeTextColor ||
+                  data.customTitleTextColor ||
+                  data.customDescriptionTextColor ||
+                  data.customMetaTextColor ||
+                  data.customTextColor ||
+                  data.customBgOpacity !== undefined) && (
                   <button
                     onClick={() => {
                       applyCardStyleToScope(node.id, cardStyleScope, {
@@ -785,6 +858,10 @@ export const PropertiesPanel: React.FC = () => {
                         customBorderColor: undefined,
                         customHeaderBgColor: undefined,
                         customHeaderTextColor: undefined,
+                        customBadgeTextColor: undefined,
+                        customTitleTextColor: undefined,
+                        customDescriptionTextColor: undefined,
+                        customMetaTextColor: undefined,
                         customTextColor: undefined
                       });
                       showNotification('Estilo de tarjeta restablecido', 'info');
@@ -1048,6 +1125,146 @@ export const PropertiesPanel: React.FC = () => {
                 </div>
               </div>
 
+              {/* Colores de Cada Texto Visible de la Tarjeta (PST-111) */}
+              <div className="space-y-2.5 pt-2 border-t border-theme-border/50">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] text-theme-text font-bold uppercase tracking-wider font-mono">
+                    Colores de Textos:
+                  </span>
+                  {(data.customHeaderTextColor ||
+                    data.customBadgeTextColor ||
+                    data.customTitleTextColor ||
+                    data.customDescriptionTextColor ||
+                    data.customMetaTextColor ||
+                    data.customTextColor) && (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        applyCardStyleToScope(node.id, cardStyleScope, {
+                          customHeaderTextColor: undefined,
+                          customBadgeTextColor: undefined,
+                          customTitleTextColor: undefined,
+                          customDescriptionTextColor: undefined,
+                          customMetaTextColor: undefined,
+                          customTextColor: undefined
+                        })
+                      }
+                      className="text-[9px] text-theme-text-muted hover:text-theme-text"
+                      title="Restablecer colores de texto"
+                    >
+                      Auto (Todos)
+                    </button>
+                  )}
+                </div>
+
+                <div className="p-2 rounded-lg bg-theme-surface border border-theme-border/60 space-y-2.5">
+                  <TextColorPickerRow
+                    label="Color General (Todos los textos)"
+                    value={data.customTextColor}
+                    fallbackColor="#FFFFFF"
+                    onChange={(color) =>
+                      applyCardStyleToScope(node.id, cardStyleScope, {
+                        customTextColor: color,
+                        customHeaderTextColor: undefined,
+                        customBadgeTextColor: undefined,
+                        customTitleTextColor: undefined,
+                        customDescriptionTextColor: undefined,
+                        customMetaTextColor: undefined
+                      })
+                    }
+                  />
+
+                  <div className="pt-2 border-t border-theme-border/40 space-y-2">
+                    <TextColorPickerRow
+                      label="Código / ID (Cabecera)"
+                      value={data.customHeaderTextColor}
+                      fallbackColor="#38BDF8"
+                      onChange={(color) =>
+                        applyCardStyleToScope(node.id, cardStyleScope, { customHeaderTextColor: color })
+                      }
+                    />
+
+                    {(node.type === 'UserTask' ||
+                      node.type === 'ServiceTask' ||
+                      node.type === 'ManualTask' ||
+                      node.type === 'SubProcess' ||
+                      node.type === 'QualityCheckpointEvent' ||
+                      node.type === 'TimerBoundaryEvent' ||
+                      node.type === 'PoolLane') && (
+                      <TextColorPickerRow
+                        label={node.type === 'TimerBoundaryEvent' ? 'Etiqueta (ESTRICTO)' : 'Etiqueta de Tipo (Badge)'}
+                        value={data.customBadgeTextColor}
+                        fallbackColor="#38BDF8"
+                        onChange={(color) =>
+                          applyCardStyleToScope(node.id, cardStyleScope, { customBadgeTextColor: color })
+                        }
+                      />
+                    )}
+
+                    <TextColorPickerRow
+                      label="Título Principal"
+                      value={data.customTitleTextColor}
+                      fallbackColor="#FFFFFF"
+                      onChange={(color) =>
+                        applyCardStyleToScope(node.id, cardStyleScope, { customTitleTextColor: color })
+                      }
+                    />
+
+                    {(node.type === 'UserTask' ||
+                      node.type === 'ServiceTask' ||
+                      node.type === 'ManualTask' ||
+                      node.type === 'SubProcess' ||
+                      node.type === 'QualityCheckpointEvent' ||
+                      node.type === 'PoolLane' ||
+                      node.type === 'StickyNote') && (
+                      <TextColorPickerRow
+                        label={
+                          node.type === 'PoolLane'
+                            ? 'Rol / Cargo Responsable'
+                            : node.type === 'QualityCheckpointEvent'
+                            ? 'Criterio de Aceptación'
+                            : node.type === 'StickyNote'
+                            ? 'Contenido de la Nota'
+                            : 'Descripción / Detalle'
+                        }
+                        value={data.customDescriptionTextColor}
+                        fallbackColor="#CBD5E1"
+                        onChange={(color) =>
+                          applyCardStyleToScope(node.id, cardStyleScope, { customDescriptionTextColor: color })
+                        }
+                      />
+                    )}
+
+                    {(node.type === 'UserTask' ||
+                      node.type === 'ServiceTask' ||
+                      node.type === 'ManualTask' ||
+                      node.type === 'SubProcess' ||
+                      node.type === 'QualityCheckpointEvent' ||
+                      node.type === 'PoolLane' ||
+                      node.type === 'StickyNote') && (
+                      <TextColorPickerRow
+                        label={
+                          node.type === 'PoolLane'
+                            ? 'Herramienta Asociada'
+                            : node.type === 'StickyNote'
+                            ? 'Responsable (Pie)'
+                            : node.type === 'QualityCheckpointEvent'
+                            ? 'Registro / Evidencia'
+                            : node.type === 'SubProcess'
+                            ? 'Indicador de Etapas (Pie)'
+                            : 'Pie (Herramienta, Responsable, Plazo)'
+                        }
+                        value={data.customMetaTextColor}
+                        fallbackColor="#94A3B8"
+                        onChange={(color) =>
+                          applyCardStyleToScope(node.id, cardStyleScope, { customMetaTextColor: color })
+                        }
+                      />
+                    )}
+                  </div>
+                </div>
+              </div>
+
               {/* Modo de Visualización */}
               <div className="space-y-1.5 pt-2 border-t border-theme-border/50">
                 <span className="text-[10px] text-theme-text-muted block font-semibold">Modo de Visualización:</span>
@@ -1087,6 +1304,10 @@ export const PropertiesPanel: React.FC = () => {
                     customBorderColor: data.customBorderColor,
                     customHeaderBgColor: data.customHeaderBgColor,
                     customHeaderTextColor: data.customHeaderTextColor,
+                    customBadgeTextColor: data.customBadgeTextColor,
+                    customTitleTextColor: data.customTitleTextColor,
+                    customDescriptionTextColor: data.customDescriptionTextColor,
+                    customMetaTextColor: data.customMetaTextColor,
                     customTextColor: data.customTextColor,
                     orientation: data.orientation
                   });

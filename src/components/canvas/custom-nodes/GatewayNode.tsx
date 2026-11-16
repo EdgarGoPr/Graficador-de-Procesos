@@ -2,7 +2,8 @@ import React, { memo } from 'react';
 import { Handle, Position, NodeProps } from '@xyflow/react';
 import { BpmnNodeData, BPMN_NODE_TYPES } from '../../../types/process';
 import { hexToRgba } from '../../../types/theme';
-import { getNodeTextContrast } from '../../../utils/nodeContrast';
+import { resolveNodeTextColors } from '../../../utils/nodeContrast';
+import { useIsDarkTheme } from '../../../store/useUiStore';
 import { GitBranch, X, Plus } from 'lucide-react';
 
 export const GatewayNode = memo(({ data, selected }: NodeProps<any>) => {
@@ -11,7 +12,8 @@ export const GatewayNode = memo(({ data, selected }: NodeProps<any>) => {
   const isTitleOnly = nodeData.displayMode === 'title_only';
 
   const opacity = nodeData.customBgOpacity ?? 95;
-  const contrast = getNodeTextContrast(nodeData.customHeaderBgColor || nodeData.customBgColor, opacity);
+  const isDarkTheme = useIsDarkTheme();
+  const resolved = resolveNodeTextColors(nodeData, opacity, isDarkTheme);
 
   const customContainerStyle: React.CSSProperties = {
     backgroundColor: nodeData.customBgColor ? hexToRgba(nodeData.customBgColor, opacity) : undefined,
@@ -20,7 +22,7 @@ export const GatewayNode = memo(({ data, selected }: NodeProps<any>) => {
 
   const customHeaderStyle: React.CSSProperties = {
     backgroundColor: nodeData.customHeaderBgColor || undefined,
-    color: nodeData.customHeaderTextColor || undefined,
+    color: resolved.headerIdColor || undefined,
   };
 
   const titleFontSize = nodeData.customFontSize ? `${nodeData.customFontSize}px` : undefined;
@@ -84,14 +86,20 @@ export const GatewayNode = memo(({ data, selected }: NodeProps<any>) => {
       >
         {!isTitleOnly && (
           <div className="flex items-center justify-center space-x-1 truncate">
-            <GitBranch className={`w-2.5 h-2.5 ${gwColor.textColor} shrink-0`} />
-            <span className={`text-[9px] font-mono font-bold ${gwColor.textColor} truncate`}>
+            <GitBranch
+              style={resolved.headerIdColor ? { color: resolved.headerIdColor } : undefined}
+              className={`w-2.5 h-2.5 ${gwColor.textColor} shrink-0`}
+            />
+            <span
+              style={resolved.headerIdColor ? { color: resolved.headerIdColor } : undefined}
+              className={`text-[9px] font-mono font-bold ${gwColor.textColor} truncate`}
+            >
               {nodeData.standardId || (isExclusive ? 'GTW' : 'PAR')}
             </span>
           </div>
         )}
         <p
-          style={{ fontSize: titleFontSize, color: nodeData.customTextColor || contrast.titleColor }}
+          style={{ fontSize: titleFontSize, color: resolved.titleColor }}
           className="text-[10px] font-medium line-clamp-2 leading-tight mt-0.5 break-words overflow-hidden text-ellipsis"
         >
           {nodeData.title}
