@@ -38,11 +38,13 @@ export function generateSipocMatrix(
   });
 
   const entries: SipocEntry[] = [];
+  const excludedTypes = new Set(['PoolLane', 'StickyNote', 'StartEvent', 'EndEvent']);
 
-  // Filter for substantive process steps (Tasks, Checkpoints, SubProcesses, Events)
+  // Filter for substantive process steps (Tasks, Checkpoints, SubProcesses, Gateways; exclude lanes, notes, start/end)
   nodes.forEach(node => {
     const data = node.data;
-    if (!data) return;
+    const nodeType = node.type || data?.nodeType || '';
+    if (!data || excludedTypes.has(nodeType)) return;
 
     const laneInfo = laneMap.get(data.laneId) || {
       laneName: data.laneName || 'General',

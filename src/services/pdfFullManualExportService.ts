@@ -149,7 +149,7 @@ export async function exportFullStandardizedManualPdf(project: ProcessProjectFil
   const meta = autoGenerateManualMetadataFromGraph(project);
   const report = generateTechnicalReport(dc, project.nodes, project.edges, project.pools);
   const sipocRows = generateSipocMatrix(project.nodes, project.edges, project.pools);
-  const raciData = computeRaciMatrix(project.nodes, project.edges, project.pools);
+  const raciData = computeRaciMatrix(project.nodes, project.edges, project.pools, project.raciOverrides);
 
   // Intentar renderizar imagen HD del diagrama del lienzo para incrustar en el PDF
   let diagramDataUrl: string | null = null;

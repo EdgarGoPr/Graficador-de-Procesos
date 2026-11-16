@@ -1,16 +1,20 @@
-import React, { useState, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { useProjectStore } from '../../store/useProjectStore';
+import { useAuthStore } from '../../store/useAuthStore';
 import { useUiStore } from '../../store/useUiStore';
 import { computeRaciMatrix, exportRaciMatrixToExcel } from '../../services/raciCalculator';
-import { RaciRoleType, RaciMatrixData } from '../../types/raci';
+import { RaciRoleType } from '../../types/raci';
 import {
   Table,
   Download,
   Printer,
-  Info
+  Info,
+  AlertTriangle,
+  RotateCcw
 } from 'lucide-react';
 
 const RACI_BADGES: Record<string, { label: string; full: string; bg: string; text: string; border: string }> = {
+  'A/R': { label: 'A/R', full: 'Accountable & Responsible', bg: 'bg-sky-500/20', text: 'text-sky-400', border: 'border-sky-500/40' },
   R: { label: 'R', full: 'Responsible', bg: 'bg-emerald-500/20', text: 'text-emerald-400', border: 'border-emerald-500/40' },
   A: { label: 'A', full: 'Accountable', bg: 'bg-blue-500/20', text: 'text-blue-400', border: 'border-blue-500/40' },
   C: { label: 'C', full: 'Consulted', bg: 'bg-amber-500/20', text: 'text-amber-400', border: 'border-amber-500/40' },
@@ -18,22 +22,19 @@ const RACI_BADGES: Record<string, { label: string; full: string; bg: string; tex
 };
 
 export const RaciMatrixView: React.FC = () => {
-  const { currentProject } = useProjectStore();
+  const { currentProject, setProjectData, pushSnapshot } = useProjectStore();
+  const { currentCanvasPermission } = useAuthStore();
   const { showNotification } = useUiStore();
 
-  const initialMatrix = useMemo(() => {
+  const matrixData = useMemo(() => {
     if (!currentProject) return null;
-    return computeRaciMatrix(currentProject.nodes, currentProject.edges, currentProject.pools);
+    return computeRaciMatrix(
+      currentProject.nodes,
+      currentProject.edges,
+      currentProject.pools,
+      currentProject.raciOverrides
+    );
   }, [currentProject]);
-
-  const [matrixData, setMatrixData] = useState<RaciMatrixData | null>(initialMatrix);
-
-  // Sync state if initial changes
-  React.useEffect(() => {
-    if (initialMatrix) {
-      setMatrixData(initialMatrix);
-    }
-  }, [initialMatrix]);
 
   if (!currentProject || !matrixData) {
     return (
@@ -43,25 +44,44 @@ export const RaciMatrixView: React.FC = () => {
     );
   }
 
+  const canEdit = currentCanvasPermission !== 'READ_ONLY' && currentCanvasPermission !== 'COMMENTS';
+  const hasOverrides = Boolean(currentProject.raciOverrides && Object.keys(currentProject.raciOverrides).length > 0);
+
   const handleCellClick = (taskIdx: number, roleId: string) => {
-    const cycle: RaciRoleType[] = ['R', 'A', 'C', 'I', ''];
-    const current = matrixData.rows[taskIdx].assignments[roleId] || '';
-    const nextIdx = (cycle.indexOf(current) + 1) % cycle.length;
-    const nextVal = cycle[nextIdx];
+    if (!canEdit) {
+      showNotification('No tienes permisos de edición para modificar la matriz RACI.', 'warning');
+      return;
+    }
 
-    const newRows = [...matrixData.rows];
-    newRows[taskIdx] = {
-      ...newRows[taskIdx],
-      assignments: {
-        ...newRows[taskIdx].assignments,
-        [roleId]: nextVal
+    const cycle: RaciRoleType[] = ['A/R', 'R', 'A', 'C', 'I', ''];
+    const row = matrixData.rows[taskIdx];
+    const current = row.assignments[roleId] || '';
+    const currentIdx = cycle.indexOf(current);
+    const nextVal = cycle[(currentIdx + 1) % cycle.length];
+
+    pushSnapshot('Editar asignación RACI');
+    const prevOverrides = currentProject.raciOverrides || {};
+    const prevTaskOverrides = prevOverrides[row.taskId] || {};
+
+    setProjectData({
+      ...currentProject,
+      raciOverrides: {
+        ...prevOverrides,
+        [row.taskId]: {
+          ...prevTaskOverrides,
+          [roleId]: nextVal
+        }
       }
-    };
-
-    setMatrixData({
-      ...matrixData,
-      rows: newRows
     });
+  };
+
+  const handleResetOverrides = () => {
+    if (!canEdit || !hasOverrides) return;
+    pushSnapshot('Restaurar matriz RACI por defecto');
+    const nextProject = { ...currentProject };
+    delete nextProject.raciOverrides;
+    setProjectData(nextProject);
+    showNotification('Matriz RACI restaurada a los valores por defecto.', 'info');
   };
 
   const handleExportExcel = () => {
@@ -95,6 +115,17 @@ export const RaciMatrixView: React.FC = () => {
         </div>
 
         <div className="flex items-center space-x-2">
+          {hasOverrides && canEdit && (
+            <button
+              onClick={handleResetOverrides}
+              className="flex items-center space-x-1.5 px-3 py-1.5 bg-theme-surface-subtle hover:bg-theme-surface-hover text-theme-text-muted hover:text-theme-text border border-theme-border rounded-xl text-xs font-medium transition-all"
+              title="Restaurar asignaciones RACI por defecto"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span>Restaurar RACI</span>
+            </button>
+          )}
+
           <button
             onClick={handleExportExcel}
             className="flex items-center space-x-1.5 px-3 py-1.5 bg-[#10B981]/15 hover:bg-[#10B981]/25 text-[#10B981] border border-[#10B981]/30 rounded-xl text-xs font-bold transition-all"
@@ -138,7 +169,7 @@ export const RaciMatrixView: React.FC = () => {
               <div className="flex flex-wrap items-center gap-2 bg-theme-surface-subtle p-2.5 rounded-xl border border-theme-border print:bg-slate-100 print:border-slate-300">
                 {Object.entries(RACI_BADGES).map(([key, item]) => (
                   <div key={key} className="flex items-center space-x-1 text-[11px] font-mono">
-                    <span className={`w-5 h-5 rounded flex items-center justify-center font-bold border ${item.bg} ${item.text} ${item.border}`}>
+                    <span className={`min-w-6 px-1 h-5 rounded flex items-center justify-center font-bold border ${item.bg} ${item.text} ${item.border}`}>
                       {item.label}
                     </span>
                     <span className="text-theme-text-muted print:text-slate-700 text-[10px]">{item.full}</span>
@@ -147,6 +178,27 @@ export const RaciMatrixView: React.FC = () => {
               </div>
             </div>
           </div>
+
+          {matrixData.accountableWarnings.length > 0 && (
+            <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs text-amber-300 flex items-start gap-2.5 print:hidden">
+              <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+              <div className="space-y-1">
+                <div className="font-bold text-amber-400">
+                  Regla de gobernanza RACI: cada actividad debe tener exactamente un responsable que rinde cuentas (&quot;A&quot; o &quot;A/R&quot;).
+                </div>
+                <ul className="list-disc list-inside text-[11px] text-amber-200/90 space-y-0.5">
+                  {matrixData.accountableWarnings.map((w) => (
+                    <li key={w.taskId}>
+                      <span className="font-mono font-bold">{w.standardId}</span> ({w.title}):{' '}
+                      {w.accountableCount === 0
+                        ? 'sin ningún "A" asignado.'
+                        : `${w.accountableCount} roles con "A" (debe haber uno solo).`}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          )}
 
           {/* RACI Grid Table */}
           <div className="overflow-x-auto rounded-xl border border-theme-border">
@@ -192,11 +244,11 @@ export const RaciMatrixView: React.FC = () => {
                           key={role.id}
                           onClick={() => handleCellClick(rIdx, role.id)}
                           className="p-2.5 text-center border-l border-theme-border cursor-pointer hover:bg-theme-accent/10 transition-colors"
-                          title="Haz clic para alternar: R -> A -> C -> I -> Vacío"
+                          title="Haz clic para alternar: A/R -> R -> A -> C -> I -> Vacío"
                         >
                           {badge ? (
                             <span
-                              className={`inline-flex items-center justify-center w-7 h-7 rounded-lg font-mono font-black text-xs border shadow-xs ${badge.bg} ${badge.text} ${badge.border}`}
+                              className={`inline-flex items-center justify-center min-w-8 px-1.5 h-7 rounded-lg font-mono font-black text-xs border shadow-xs ${badge.bg} ${badge.text} ${badge.border}`}
                             >
                               {badge.label}
                             </span>
@@ -215,9 +267,11 @@ export const RaciMatrixView: React.FC = () => {
           <div className="p-3 rounded-xl bg-theme-surface-subtle border border-theme-border text-[11px] text-theme-text-muted flex items-center justify-between print:hidden">
             <span className="flex items-center gap-1.5">
               <Info className="w-3.5 h-3.5 text-theme-accent" />
-              Haz clic en cualquier celda para alternar el rol asignado (<strong>R</strong>, <strong>A</strong>, <strong>C</strong>, <strong>I</strong> o vacío).
+              Haz clic en cualquier celda para alternar el rol asignado (<strong>A/R</strong>, <strong>R</strong>, <strong>A</strong>, <strong>C</strong>, <strong>I</strong> o vacío).
             </span>
-            <span className="font-mono font-semibold text-theme-accent">Auto-guardado en memoria</span>
+            <span className="font-mono font-semibold text-theme-accent">
+              {hasOverrides ? 'Cambios guardados en el proyecto' : 'Valores por defecto'}
+            </span>
           </div>
         </div>
       </div>

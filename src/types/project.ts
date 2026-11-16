@@ -2,6 +2,7 @@ import { Node, Edge } from '@xyflow/react';
 import { BpmnNodeData, SequenceFlowData, PoolDefinition } from './process';
 import { PrintFrame } from './printFrame';
 import { ProcessDocumentationVault } from './ai';
+import type { RaciRoleType } from './raci';
 
 /**
  * ISO/IEC 11179 & ISO 9001:2015 Document Control and Project Schema
@@ -84,6 +85,8 @@ export interface ProcessProjectFile {
   printFrames?: PrintFrame[];
   documentationVault?: ProcessDocumentationVault;
   catalogs?: ProcessCatalogs;
+  /** Ediciones manuales de la matriz RACI por nodo y rol (PST-115). */
+  raciOverrides?: Record<string, Record<string, RaciRoleType>>;
   fileName?: string; // e.g. "2026-09-01_proc-tribunal-faltas-v1.json"
 }
 

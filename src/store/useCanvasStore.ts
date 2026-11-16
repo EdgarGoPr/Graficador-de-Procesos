@@ -28,6 +28,7 @@ import {
   getNextSubProcessCode,
   formatHierarchicalStandardId
 } from '../services/processHierarchyService';
+import { detectLaneIdAtY, placeNodeWithoutOverlap } from '../utils/layoutGeometry';
 
 export interface SubProcessPathItem {
   id: string;
@@ -873,8 +874,10 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
 
     const active = get().getActiveGraph();
     const firstLane = currentProject.pools[0]?.lanes[0];
-    const targetLaneId = laneId || firstLane?.id || 'lane-default';
+    const detectedLaneId = laneId || detectLaneIdAtY(active.nodes, position.y);
+    const targetLaneId = detectedLaneId || firstLane?.id || 'lane-default';
     const targetLane = currentProject.pools[0]?.lanes.find(l => l.id === targetLaneId);
+    const finalPosition = placeNodeWithoutOverlap(position, nodeType, active.nodes, targetLaneId);
 
     // Hierarchical Standard ID
     const currentPath = get().subProcessPath;
@@ -1021,7 +1024,7 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
     const newNode: Node<BpmnNodeData> = {
       id: newNodeId,
       type: nodeType,
-      position,
+      position: finalPosition,
       style: isLane ? { width: 2200, height: 160, zIndex: -1 } : isSticky ? { width: 220, height: 140, zIndex: 10 } : undefined,
       zIndex: isLane ? -1 : isSticky ? 10 : 1,
       data: {
@@ -1067,9 +1070,9 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
     const sourceWidth = ((sourceNode.measured?.width || sourceNode.width || 210) as number);
 
     // Determine target position: if not provided, place ~140px to the right of sourceNode, aligned with sourceNode Y
-    let finalPosition = targetPosition;
-    if (!finalPosition) {
-      finalPosition = {
+    let desiredPosition = targetPosition;
+    if (!desiredPosition) {
+      desiredPosition = {
         x: sourceNode.position.x + sourceWidth + 140,
         y: sourceNode.position.y
       };
@@ -1077,6 +1080,7 @@ export const useCanvasStore = create<CanvasStoreState>((set, get) => ({
 
     const targetLaneId = sourceNode.data.laneId || currentProject.pools[0]?.lanes[0]?.id || 'lane-default';
     const targetLane = currentProject.pools[0]?.lanes.find(l => l.id === targetLaneId);
+    const finalPosition = placeNodeWithoutOverlap(desiredPosition, nodeType, active.nodes, targetLaneId);
 
     // Hierarchical Standard ID
     const currentPath = get().subProcessPath;

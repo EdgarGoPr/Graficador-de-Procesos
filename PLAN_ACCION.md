@@ -2255,3 +2255,107 @@ Reflejar los colores personalizados de fondo y de cada texto visible en los diag
 - **Estado:** Implementado / Producción
 
 - **Diagnóstico de configuración** (2026-11-16): el error de configuración del backend indica en el log de dónde viene la conexión (variable, host, entorno y rama de Vercel), sin mostrar contraseñas, para resolver el error "servidor no configurado" del Preview.
+
+---
+
+## 33. Hoja de Ruta Técnica – FASE 3: Lógica de modelado y métricas (media) (`PST-112` a `PST-116`)
+
+> **Estado:** ✅ Aprobada e implementada (V 3.2.0 – 2026-11-16).
+> **Rama:** `fase-3-modelado`. **Sin migraciones de base**: según lo acordado, se publica directo en producción después de los tests y el build.
+
+### 33.1. Diagnóstico
+
+| Hallazgo | Causa en el código |
+| :--- | :--- |
+| Una compuerta XOR queda con una sola salida y "si cumple / si no cumple" salen en serie. | `generateDiagramFromNaturalText` encadena cada frase con la anterior y cualquier frase con "si cumple" crea una compuerta nueva. |
+| "Si cumple, Asuntos Jurídicos emite el dictamen" se dibuja como compuerta. | Misma detección por palabra clave ("si cumple"). |
+| IDs con saltos y formatos distintos (`TSK-0` + n da `TSK-010`; el generador usa `DEC-`, la paleta `GTW-`; la paleta agrega `P01-N00-`). | El generador arma los IDs a mano; la paleta usa `formatHierarchicalStandardId`, que además cuenta nodos (y puede repetir IDs después de borrar). |
+| El generador ignora los plazos ("en 3 días") y agrega un riesgo de ejemplo en la 2.ª frase. | SLA fijo de 24 h / 4 h y riesgo inventado. |
+| Nodos superpuestos al generar y tras "Auto-Ordenar". | `autoLayoutProcessCanvas` desplaza solo 40 px / 65 px a los nodos que caen en el mismo carril y columna; carriles de alto fijo (250 px). |
+| Al agregar desde la paleta, el nodo cae encima de otro. | `addNode` usa la posición del mouse sin comprobar si está ocupada. |
+| RACI: actividades sin "A" (las del primer carril) y las ediciones manuales no se guardan. | El "A" se asigna siempre al primer carril; la matriz vive solo en el estado del componente. Incluye eventos de inicio y fin como filas. |
+| SIPOC lista los carriles (CAR-xx) como etapas. | `generateSipocMatrix` recorre todos los nodos, incluidos `PoolLane` y notas. |
+| Simulador: utilización y efectividad "fijas" y "(X h / caso)" muestra un total. | `processSimulator` usa `Math.random()`; "92 %" está escrito en la vista; el valor "por caso" es la suma de todos los nodos. |
+| Comparador: por defecto compara contra otro proyecto. | `VersionDiffModal` toma el primer archivo distinto del actual. |
+| El Auditor no detecta tareas sin título. | No existe la regla. |
+
+### 33.2. Cambios propuestos
+
+**1. Generador "Texto a BPMN"** (nuevo módulo puro `src/services/textToBpmn.ts`, testeable)
+- **Clasificación de cada frase:**
+  - **Tarea:** frase común.
+  - **Decisión:** "verifica si", "evalúa si", "controla si", "¿…?". Genera una compuerta XOR titulada como pregunta (ej. "¿Cumple con la documentación obligatoria?").
+  - **Rama:** frase que empieza con "Si cumple", "Si no cumple", "Si <condición>,", "En caso contrario", "De lo contrario". Se convierte en una tarea dentro de la rama de la última compuerta. El texto de la condición pasa a ser la etiqueta del flujo ("Cumple" / "No cumple").
+- **Ramas:** todas salen de la misma compuerta, así que toda XOR queda con 2 salidas o más. Si una decisión no tiene ramas escritas, se crean "Sí" (continúa) y "No" (termina en un evento de fin).
+- **Rama negativa** ("no cumple", "rechaza", "deniega", "no corresponde"): termina en su propio evento de fin ("Trámite rechazado"). La positiva continúa con la frase siguiente. Si ninguna rama es negativa, todas confluyen en la frase siguiente.
+- **Plazos:** "en 1 día", "en 3 días hábiles", "en 48 horas" → SLA de la tarea. El texto del plazo se quita del título.
+- **Responsable (carril):**
+  - primero, el catálogo de Roles;
+  - si no hay coincidencia, el sujeto de la frase ("Mesa de Entradas", "Asuntos Jurídicos", "Dirección General");
+  - como último recurso, las palabras clave actuales.
+- **Datos inventados:** se eliminan el riesgo de ejemplo y las entradas genéricas.
+- **Caso de aceptación:** el texto del pedido debe dar **0 errores y 0 advertencias** en el Auditor. Queda como test automático.
+
+**2. Identificadores**
+- Un solo formato y prefijos iguales para generador y paleta: `INI-`, `TSK-`, `SRV-`, `MNL-`, `GTW-`, `PAR-`, `QCP-`, `SUB-`, `FIN-`, con dos dígitos.
+- Proceso principal: `TSK-03`. Dentro de un subproceso se mantiene el prefijo jerárquico (`P02-N01-TSK-01`) para distinguir diagramas.
+- El próximo número es "el mayor existente + 1": no se repiten IDs después de borrar. El generador numera sin saltos.
+
+**3. Layout sin superposiciones** (`src/utils/layoutGeometry.ts`, puro y testeable)
+- Tamaño estimado por tipo de nodo (o el medido por React Flow cuando existe).
+- Columnas con el ancho de su nodo más ancho, más un margen.
+- Nodos del mismo carril y la misma columna apilados con su alto real.
+- Alto de cada carril según su contenido.
+- **Paleta y "agregar siguiente":** si la posición está ocupada, se busca el espacio libre más cercano dentro del mismo carril.
+- Test: ningún par de nodos se superpone, ni al generar ni tras Auto-Ordenar, en el caso de aceptación y en grafos con ramas.
+
+**4. RACI**
+- **Filas:** solo actividades (tareas, subprocesos, controles de calidad y decisiones). Se excluyen los eventos de inicio y fin.
+- **Valores por defecto:** el carril responsable de cada actividad queda como **"A/R"** (nuevo valor: ejecuta y rinde cuentas). Los demás carriles quedan en "C" o "I", con la regla actual.
+- **Aviso:** se muestra un aviso con la lista de actividades que tengan 0 o más de un "A" (contando "A/R").
+- **Persistencia:** las ediciones manuales se guardan en el proyecto (`raciOverrides`), así no se pierden al cambiar de vista.
+
+**5. SIPOC:** se excluyen carriles (`PoolLane`), notas y eventos de inicio y fin de las filas de etapas.
+
+**6. Simulador determinista** (sin `Math.random`)
+- **Probabilidad de paso:** cada nodo recibe los casos según sus caminos. Las ramas XOR se reparten en partes iguales; las paralelas reciben todos los casos.
+- **Carga y capacidad:**
+  - carga por carril = casos × tiempo de proceso;
+  - capacidad = personas por carril × horas por día × días del período.
+  - Dos parámetros nuevos y editables en la vista: **personas por carril** (por defecto 1) y **días del período** (por defecto 20 hábiles).
+- **Utilización** por carril = carga / capacidad. La media se calcula con esos valores.
+- **Efectividad** = casos completados / casos totales. Un carril saturado limita los casos que se completan.
+- **"h / caso"** = tiempo de ciclo esperado por caso: suma ponderada de proceso más espera, con la espera estimada según la utilización.
+- Los supuestos se muestran en la vista.
+
+**7. Comparador:** por defecto compara la versión abierta con la **versión anterior del mismo proyecto** (mismo `projectId`). El selector lista primero las versiones del proyecto. Si hay una sola versión, se muestra un aviso.
+
+**8. Auditor:** nueva regla **WARN-QUAL-002 "Tarea sin título"** (advertencia) para tareas con título vacío o con el texto por defecto de la paleta.
+
+### 33.3. Archivos a tocar
+
+- **Servicios:**
+  - nuevo `src/services/textToBpmn.ts`;
+  - nuevo `src/utils/layoutGeometry.ts`;
+  - `autoLayoutAndGeneratorService.ts`;
+  - `processHierarchyService.ts` (IDs);
+  - `useCanvasStore.ts` (`addNode`, agregar siguiente);
+  - `raciCalculator.ts`, `sipocEngine.ts`, `processSimulator.ts`, `qualityLinter.ts`.
+- **Vistas:** `RaciMatrixView.tsx`, `SimulationModal.tsx`, `VersionDiffModal.tsx`.
+- **Tipos:** `raci.ts` (valor `A/R`) y `project.ts` (`raciOverrides`, opcional).
+- **Tests:** nueva carpeta `tests-client/` con tests puros de generador + auditor, layout, IDs, RACI, SIPOC y simulador.
+
+### 33.4. Riesgos
+
+- **Generador:** se basa en reglas de texto, no en IA. Cubre las formas habituales ("si…", "en caso contrario", plazos); frases muy libres pueden requerir ajuste manual.
+- **IDs existentes:** los proyectos guardados conservan sus IDs actuales. Solo cambian los nodos nuevos. Renumerar proyectos existentes queda fuera de alcance, salvo pedido.
+- **RACI:** la matriz mostrada cambia respecto de la actual (por ejemplo, desaparece el "A" del primer carril en actividades de otros carriles).
+- **Simulador:** sus números cambian respecto de los actuales (que eran aleatorios).
+
+### 33.5. Historias previstas
+
+- `PST-112` – Generador Texto a BPMN con decisiones, ramas y plazos.
+- `PST-113` – Identificadores correlativos unificados.
+- `PST-114` – Layout sin superposiciones.
+- `PST-115` – RACI con un único "A", SIPOC sin carriles y regla de tareas sin título.
+- `PST-116` – Simulador determinista y comparador por versiones.

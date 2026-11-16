@@ -2,7 +2,7 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
-    include: ['tests/**/*.test.ts'],
+    include: ['tests/**/*.test.ts', 'tests-client/**/*.test.ts'],
     environment: 'node',
     // Cada test levanta un Postgres en memoria (pglite): en paralelo agotan la memoria del worker.
     fileParallelism: false,

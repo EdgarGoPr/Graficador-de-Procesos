@@ -1,5 +1,35 @@
 # CHANGELOG – ProcesStudio
 
+## 3.2.0 – Fase 3: Lógica de modelado y métricas (2026-11-16) · `PST-112` a `PST-116`
+
+Rama: `fase-3-modelado`. **Sin migraciones de base**: publicación directa.
+
+**Qué cambió**
+- **Generador "Texto a BPMN" (`src/services/textToBpmn.ts`):**
+  - Clasifica frases en tareas, decisiones (`verifica/evalúa/controla/... si`, `¿...?`) y ramas (`Si cumple`, `Si no cumple`, `En caso contrario`, con o sin coma).
+  - Todas las ramas salen de la misma compuerta XOR (mínimo 2 salidas etiquetadas); las negativas cierran en su propio Evento de Fin y las positivas continúan el flujo.
+  - Extrae plazos (`en 3 días hábiles`, `en 48 horas`) al SLA de la tarea y limpia el texto del título.
+  - Resuelve carriles por catálogo de roles, sujeto de la frase o palabras clave, y elimina datos inventados (riesgos y entradas genéricas).
+- **Identificadores unificados (`processHierarchyService.ts`):**
+  - `formatHierarchicalStandardId` usa `PREFIJO-NN` (`TSK-01`, `GTW-01`...) en el proceso principal (`P01`/`N00`) y conserva `Pxx-Nyy-PREFIJO-NN` en subprocesos.
+  - Toma el mayor número existente + 1 para no repetir IDs tras borrar nodos y corregir saltos como `TSK-010`.
+- **Layout sin superposiciones (`src/utils/layoutGeometry.ts` + `useCanvasStore.ts`):**
+  - `autoLayoutProcessCanvas` calcula columnas según el nodo más ancho, apila celdas con su alto real y expande dinámicamente la altura de cada carril.
+  - `addNode` y `addConnectedNode` ("agregar siguiente") usan `placeNodeWithoutOverlap` / `findFreePosition` respetando los límites del carril.
+- **RACI (`raciCalculator.ts`, `RaciMatrixView.tsx`):**
+  - Excluye eventos de inicio/fin, asigna `"A/R"` por defecto al carril responsable, alerta sobre actividades con `0` o más de un `"A"` y persiste las ediciones manuales en `project.raciOverrides`.
+- **SIPOC (`sipocEngine.ts`):**
+  - Excluye `PoolLane`, `StickyNote`, `StartEvent` y `EndEvent` de las filas de etapas.
+- **Auditor (`qualityLinter.ts`):**
+  - Nueva regla `WARN-QUAL-002` ("Tarea sin título") para tareas con título vacío o texto por defecto de la paleta.
+- **Simulador determinista (`processSimulator.ts`, `SimulationModal.tsx`):**
+  - Elimina `Math.random()`. Reparte casos en XOR en partes iguales y envía el 100 % por ramas paralelas (`AND`).
+  - Incorpora **Personas / Carril** (por defecto `1`) y **Días del Período** (por defecto `20` hábiles), calcula utilización, efectividad real limitada por saturación, tiempo de ciclo esperado (`h / caso`) y muestra los supuestos en la vista.
+- **Comparador (`VersionDiffModal.tsx`):**
+  - Lista primero las versiones del mismo `projectId`, preselecciona por defecto la versión anterior del mismo proyecto y avisa si hay una sola versión.
+
+**Tests:** 91 en total (17 nuevos en `tests-client/` + 74 del servidor).
+
 ## 3.1.0 – Fase 2: Integridad de datos (2026-11-05) · `PST-108`, `PST-109`, `PST-110`
 
 Rama: `fase-2-integridad`.

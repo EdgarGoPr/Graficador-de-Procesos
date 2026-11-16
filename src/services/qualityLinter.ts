@@ -213,6 +213,31 @@ export function runQualityAudit(
       });
     }
 
+    // F2. Task missing Title (WARN-QUAL-002)
+    const normalizedTitle = (data.title || '').trim().toLowerCase();
+    const defaultTaskTitles = new Set([
+      'nueva tarea de usuario',
+      'nueva tarea de servicio / ti',
+      'nueva tarea manual',
+      'sin título',
+      'sin titulo',
+      'actividad sin título',
+      'actividad sin titulo'
+    ]);
+    if (isTask && (!normalizedTitle || defaultTaskTitles.has(normalizedTitle))) {
+      issues.push({
+        id: `task-no-title-${node.id}`,
+        code: 'WARN-QUAL-002',
+        title: `Tarea sin título: ${data.standardId}`,
+        description: 'La tarea no tiene un título descriptivo o conserva el texto por defecto de la paleta.',
+        severity: 'WARNING',
+        category: 'ISO_9001_QUALITY',
+        nodeId: node.id,
+        nodeTitle: data.title,
+        suggestion: 'Asigna un título claro con verbo en acción en el panel de propiedades.'
+      });
+    }
+
     // G. Task missing IT System
     if (isTask && (!data.itSystem || data.itSystem.trim() === '')) {
       issues.push({
