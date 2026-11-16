@@ -18,7 +18,8 @@ const MIGRATIONS = [
   '002_preserve_name_based_access.sql',
   '003_app_role.sql',
   '004_audit_append_only.sql',
-  '005_sessions_rate_limit.sql'
+  '005_sessions_rate_limit.sql',
+  '006_project_identity.sql'
 ];
 
 export const DEV_USERS = [

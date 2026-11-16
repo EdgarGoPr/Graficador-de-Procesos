@@ -38,7 +38,7 @@ export const EditProjectModal: React.FC<EditProjectModalProps> = ({
   onClose,
   project
 }) => {
-  const { currentProject, refreshProjectList } = useProjectStore();
+  const { currentProject, refreshProjectList, projectList } = useProjectStore();
   const { showNotification } = useUiStore();
   const { currentUser } = useAuthStore();
 
@@ -81,9 +81,29 @@ export const EditProjectModal: React.FC<EditProjectModalProps> = ({
 
   if (!isOpen || !project) return null;
 
+  // El código documental es único entre proyectos: aviso inmediato (el servidor lo vuelve a validar).
+  const editedProjectId = projectList.find((p) => p.fileName === project.fileName)?.projectId;
+  const trimmedCode = code.trim();
+  const codeOwner = trimmedCode
+    ? projectList.find(
+        (p) =>
+          p.documentCode.trim().toUpperCase() === trimmedCode.toUpperCase() &&
+          (p.projectId ? p.projectId !== editedProjectId : p.fileName !== project.fileName)
+      )
+    : undefined;
+  const codeError = !trimmedCode
+    ? 'El código documental no puede quedar vacío.'
+    : codeOwner
+    ? `El código ${trimmedCode} ya pertenece al proyecto «${codeOwner.documentTitle}». Elegí otro código.`
+    : null;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim() || !project) return;
+    if (codeError) {
+      showNotification(codeError, 'warning');
+      return;
+    }
 
     setIsSaving(true);
     try {
@@ -216,8 +236,19 @@ export const EditProjectModal: React.FC<EditProjectModalProps> = ({
                 placeholder="Ej. PRC-9413"
                 value={code}
                 onChange={(e) => setCode(e.target.value)}
-                className="w-full bg-theme-surface-subtle border border-theme-border rounded-xl px-3 py-2 text-theme-text placeholder-theme-text-muted focus:border-sky-400 outline-none text-xs font-mono font-semibold"
+                aria-invalid={!!codeError}
+                className={`w-full bg-theme-surface-subtle border rounded-xl px-3 py-2 text-theme-text placeholder-theme-text-muted outline-none text-xs font-mono font-semibold ${
+                  codeError ? 'border-red-500/70 focus:border-red-400' : 'border-theme-border focus:border-sky-400'
+                }`}
               />
+              {codeError && !isLoading && (
+                <p className="mt-1 text-[11px] text-red-400 font-medium">{codeError}</p>
+              )}
+              {!codeError && (
+                <p className="mt-1 text-[10px] text-theme-text-muted">
+                  Si lo cambiás, se actualiza en todas las versiones de este proyecto.
+                </p>
+              )}
             </div>
 
             {/* Author Name */}

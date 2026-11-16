@@ -33,6 +33,16 @@ export interface SaveProjectOptions {
   sourceFileName?: string;
 }
 
+export interface SaveProjectResult {
+  fileName: string;
+  projectId?: string;
+  /** Código documental efectivo (lo asigna o confirma el servidor). */
+  documentCode?: string;
+  /** Si el código pedido ya pertenecía a otro proyecto, el servidor asignó uno libre. */
+  codeReassignedFrom?: string | null;
+  created?: boolean;
+}
+
 /**
  * Almacenamiento de proyectos a través del backend (/api/projects).
  * El servidor valida sesión y permiso por proyecto en cada operación.
@@ -66,6 +76,14 @@ export class StorageService {
 
   /** Guarda o crea un proyecto. Lanza error si el servidor lo rechaza. */
   public static async saveProject(project: ProcessProjectFile, options: SaveProjectOptions = {}): Promise<string> {
+    return (await this.saveProjectDetailed(project, options)).fileName;
+  }
+
+  /** Igual que saveProject, pero devuelve la identidad y el código que asignó el servidor. */
+  public static async saveProjectDetailed(
+    project: ProcessProjectFile,
+    options: SaveProjectOptions = {}
+  ): Promise<SaveProjectResult> {
     const updatedProject: ProcessProjectFile = {
       ...project,
       documentControl: {
@@ -83,10 +101,10 @@ export class StorageService {
       );
     updatedProject.fileName = fileName;
 
-    await api('PUT', `/projects/${enc(fileName)}`, {
+    const res = await api<SaveProjectResult>('PUT', `/projects/${enc(fileName)}`, {
       body: { project: updatedProject, sourceFileName: options.sourceFileName }
     });
-    return fileName;
+    return { ...res, fileName };
   }
 
   /** Envía el proyecto a la papelera del servidor (solo propietario o Administrador). */
@@ -100,27 +118,45 @@ export class StorageService {
     }
   }
 
-  public static async duplicateProject(sourceFileName: string): Promise<string | null> {
+  /**
+   * Duplica un proyecto como proyecto NUEVO e independiente: identidad y código propios
+   * (los asigna el servidor), versión 1.0 e historial reiniciado. No arrastra participantes.
+   */
+  public static async duplicateProject(sourceFileName: string): Promise<SaveProjectResult | null> {
     const original = await this.loadProject(sourceFileName);
     if (!original) return null;
 
-    const copyTitle = `${original.documentControl.documentTitle} (Copia)`;
-    const newFileName = sanitizeFilename(copyTitle, original.documentControl.version);
+    const now = new Date().toISOString();
+    const source = original.documentControl;
+    const copyTitle = `${source.documentTitle} (Copia)`;
+    const newFileName = sanitizeFilename(copyTitle, '1.0', now);
 
+    const { projectId: _sourceProjectId, ...rest } = original;
     const duplicated: ProcessProjectFile = {
-      ...original,
+      ...rest,
       documentControl: {
-        ...original.documentControl,
+        ...source,
         documentTitle: copyTitle,
-        documentCode: `${original.documentControl.documentCode}-CPY`,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        documentCode: '', // el servidor asigna el próximo código libre
+        version: '1.0',
+        status: 'DRAFT',
+        createdAt: now,
+        updatedAt: now,
+        createdByEmail: undefined,
+        createdByUserId: undefined,
+        revisionHistory: [
+          {
+            revisionDate: now,
+            version: '1.0',
+            author: source.authorName || 'Analista de Procesos',
+            changeDescription: `Creado como copia de ${source.documentCode} v${source.version}`
+          }
+        ]
       },
       fileName: newFileName
     };
 
-    await this.saveProject(duplicated);
-    return newFileName;
+    return this.saveProjectDetailed(duplicated);
   }
 
   /**
@@ -145,7 +181,9 @@ export class StorageService {
   /**
    * Import project from a JSON file (drag-and-drop or file selector)
    */
-  public static async importProjectFromJsonFile(file: File): Promise<{ success: boolean; fileName?: string; error?: string }> {
+  public static async importProjectFromJsonFile(
+    file: File
+  ): Promise<{ success: boolean; fileName?: string; error?: string; notice?: string }> {
     try {
       const text = await file.text();
       const parsed = JSON.parse(text) as ProcessProjectFile;
@@ -165,8 +203,13 @@ export class StorageService {
       );
 
       parsed.fileName = fileName;
-      await this.saveProject(parsed);
-      return { success: true, fileName };
+      // Lo importado es siempre un proyecto nuevo (no se mezcla con uno existente).
+      const { projectId: _importedProjectId, ...toImport } = parsed;
+      const res = await this.saveProjectDetailed(toImport as ProcessProjectFile);
+      const notice = res.codeReassignedFrom
+        ? `El código ${res.codeReassignedFrom} ya pertenecía a otro proyecto: el proyecto importado quedó con el código ${res.documentCode}.`
+        : undefined;
+      return { success: true, fileName, notice };
     } catch (err: unknown) {
       console.error('Error importing project JSON:', err);
       return { success: false, error: err instanceof Error ? err.message : 'Error desconocido al procesar el archivo JSON.' };

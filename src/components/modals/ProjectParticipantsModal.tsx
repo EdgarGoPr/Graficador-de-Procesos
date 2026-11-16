@@ -53,6 +53,7 @@ export const ProjectParticipantsModal: React.FC<ProjectParticipantsModalProps> =
       organizationUnit: string;
       permissionLevel: CanvasPermission;
       assignedAt: string;
+      isOwner?: boolean;
     }>
   >([]);
   const [allUsers, setAllUsers] = useState<AppUser[]>([]);
@@ -551,7 +552,14 @@ export const ProjectParticipantsModal: React.FC<ProjectParticipantsModalProps> =
 
                     {/* Actions: Change level & remove */}
                     <div className="flex items-center space-x-2 shrink-0 self-end sm:self-center">
-                      {canManage ? (
+                      {participant.isOwner ? (
+                        <span
+                          className="text-[11px] font-semibold px-2.5 py-1 rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
+                          title="El propietario siempre tiene acceso de editor"
+                        >
+                          Propietario
+                        </span>
+                      ) : canManage ? (
                         <>
                           <select
                             value={participant.permissionLevel}

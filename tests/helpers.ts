@@ -18,7 +18,8 @@ export const MIGRATIONS = [
   '002_preserve_name_based_access.sql',
   '003_app_role.sql',
   '004_audit_append_only.sql',
-  '005_sessions_rate_limit.sql'
+  '005_sessions_rate_limit.sql',
+  '006_project_identity.sql'
 ];
 
 export const IDS = {
@@ -99,6 +100,8 @@ export interface TestAppOptions {
    */
   baseline?: 'reconstructed' | 'scripts';
   config?: Partial<ServerConfig>;
+  /** Datos adicionales cargados antes de correr las migraciones (estado "previo"). */
+  extraSeed?: (pg: PGlite) => Promise<void>;
 }
 
 async function loadBaseline(pg: PGlite, baseline: 'reconstructed' | 'scripts') {
@@ -136,6 +139,7 @@ export async function createTestApp(options: TestAppOptions = {}): Promise<TestA
 
   await loadBaseline(pg, options.baseline || 'reconstructed');
   await seed(pg);
+  if (options.extraSeed) await options.extraSeed(pg);
   for (const m of MIGRATIONS) {
     await pg.exec(readFileSync(join(ROOT, 'db/migrations', m), 'utf8'));
   }

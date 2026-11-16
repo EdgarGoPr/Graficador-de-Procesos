@@ -1,15 +1,22 @@
 import { ProjectSummary, ProcessGroupSummary, ProcessProjectFile } from '../types/project';
 
 /**
- * Normalizes a document title or code into a clean canonical grouping key
+ * Clave de agrupación de versiones. Desde la Fase 2 se usa el identificador estable del proyecto
+ * (projectId): editar el código documental ya no mezcla ni oculta proyectos.
+ * El código/título queda solo como respaldo si algún dato llega sin projectId.
+ */
+export function processGroupKey(p: { projectId?: string; documentCode: string; documentTitle: string }): string {
+  return p.projectId ? `id:${p.projectId}` : `legacy:${normalizeProcessKey(p.documentCode, p.documentTitle)}`;
+}
+
+/**
+ * Normalizes a document title or code into a clean canonical grouping key (respaldo heredado)
  */
 export function normalizeProcessKey(documentCode: string, documentTitle: string): string {
-  // If code is standardized (e.g. PRC-1511 or PRC-DGSTI-01), use it after stripping copy prefixes
+  // Una copia ("-CPY") es otro proyecto: ya no se agrupa con el original.
   const cleanCode = (documentCode || '')
     .trim()
-    .toUpperCase()
-    .replace(/-CPY$/i, '')
-    .replace(/_COPIA_LOCAL$/i, '');
+    .toUpperCase();
 
   if (cleanCode && cleanCode !== 'PRC-0000' && cleanCode !== 'PRC-PROCESO') {
     return cleanCode;
@@ -99,7 +106,7 @@ export function groupProjectsByProcess(projectList: ProjectSummary[]): ProcessGr
   const map = new Map<string, ProjectSummary[]>();
 
   for (const proj of projectList) {
-    const key = normalizeProcessKey(proj.documentCode, proj.documentTitle);
+    const key = processGroupKey(proj);
     const list = map.get(key) || [];
     list.push(proj);
     map.set(key, list);
@@ -150,19 +157,17 @@ export function detectNewerVersionAvailable(
 ): ProjectSummary | null {
   if (!currentProject) return null;
 
-  const currentKey = normalizeProcessKey(
-    currentProject.documentControl.documentCode,
-    currentProject.documentControl.documentTitle
-  );
+  const currentKey = processGroupKey({
+    projectId: currentProject.projectId,
+    documentCode: currentProject.documentControl.documentCode,
+    documentTitle: currentProject.documentControl.documentTitle
+  });
 
   const currentTimestamp = new Date(currentProject.documentControl.updatedAt).getTime();
   const currentFileName = currentProject.fileName || '';
 
-  // Find all summaries for the same process
-  const matching = projectList.filter(p => {
-    const key = normalizeProcessKey(p.documentCode, p.documentTitle);
-    return key === currentKey;
-  });
+  // Versiones del mismo proyecto
+  const matching = projectList.filter(p => processGroupKey(p) === currentKey);
 
   for (const candidate of matching) {
     if (candidate.fileName === currentFileName) continue;

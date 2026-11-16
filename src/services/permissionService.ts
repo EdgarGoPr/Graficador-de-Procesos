@@ -141,6 +141,8 @@ export class PermissionService {
       organizationUnit: string;
       permissionLevel: CanvasPermission;
       assignedAt: string;
+      /** El propietario aparece fijo: no se puede quitar ni cambiar su nivel. */
+      isOwner?: boolean;
     }>
   > {
     const res = await api<{ participants: any[] }>('GET', `/projects/${enc(projectFileName)}/participants`);
