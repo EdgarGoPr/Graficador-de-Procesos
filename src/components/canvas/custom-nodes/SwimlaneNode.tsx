@@ -2,7 +2,9 @@ import React, { memo, useState } from 'react';
 import { NodeProps, NodeResizer } from '@xyflow/react';
 import { BpmnNodeData } from '../../../types/process';
 import { hexToRgba } from '../../../types/theme';
+import { resolveNodeTextColors } from '../../../utils/nodeContrast';
 import { useCanvasStore } from '../../../store/useCanvasStore';
+import { useIsDarkTheme } from '../../../store/useUiStore';
 import { Layers, Server, UserCheck, Edit2, Check, Palette, X, RotateCcw, Lock, Unlock } from 'lucide-react';
 
 const PRESET_COLORS = [
@@ -32,11 +34,24 @@ export const SwimlaneNode = memo(({ id, data, selected }: NodeProps<any>) => {
   });
 
   const opacity = nodeData.customBgOpacity ?? 15;
+  const isDarkTheme = useIsDarkTheme();
+  const resolved = resolveNodeTextColors(
+    {
+      ...nodeData,
+      // El banner del carril utiliza customHeaderBgColor o el fondo del tema activo si no se personalizó
+      customBgColor: nodeData.customHeaderBgColor || nodeData.customBgColor,
+    },
+    nodeData.customHeaderBgColor ? 95 : opacity,
+    isDarkTheme
+  );
+
   const customBg = nodeData.customBgColor
     ? hexToRgba(nodeData.customBgColor, opacity)
     : 'rgba(128, 128, 128, 0.04)';
 
   const accentColor = nodeData.customBorderColor || formData.colorHex || '#38bdf8';
+  const bannerBg = nodeData.customHeaderBgColor || (nodeData.customBgColor ? hexToRgba(nodeData.customBgColor, Math.max(opacity, 75)) : undefined);
+  const titleFontSize = nodeData.customFontSize ? `${nodeData.customFontSize}px` : undefined;
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
@@ -87,20 +102,26 @@ export const SwimlaneNode = memo(({ id, data, selected }: NodeProps<any>) => {
         } shrink-0 border-theme-border/80 flex flex-col justify-between bg-theme-surface/95 backdrop-blur-md transition-colors shadow-sm relative z-10`}
         style={
           isVertical
-            ? { borderTop: `6px solid ${accentColor}` }
-            : { borderLeft: `6px solid ${accentColor}` }
+            ? { borderTop: `6px solid ${accentColor}`, backgroundColor: bannerBg }
+            : { borderLeft: `6px solid ${accentColor}`, backgroundColor: bannerBg }
         }
       >
         {/* Top: Order & Action Buttons */}
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-1.5">
             <span
-              className="text-[10px] font-mono font-bold px-2 py-0.5 rounded text-white shadow-sm"
-              style={{ backgroundColor: accentColor }}
+              className="text-[10px] font-mono font-bold px-2 py-0.5 rounded shadow-sm"
+              style={{
+                backgroundColor: accentColor,
+                color: resolved.headerIdColor || '#FFFFFF'
+              }}
             >
               {nodeData.standardId || 'CAR'}
             </span>
-            <span className="text-[10px] text-theme-text-muted font-mono uppercase tracking-wider">
+            <span
+              style={{ color: resolved.badgeColor || resolved.contrast.mutedColor }}
+              className="text-[10px] font-mono uppercase tracking-wider"
+            >
               {isVertical ? 'Columna' : 'Carril'}
             </span>
           </div>
@@ -156,20 +177,30 @@ export const SwimlaneNode = memo(({ id, data, selected }: NodeProps<any>) => {
         {/* Middle: Lane Title */}
         <div className="my-1">
           <h3
-            className="text-xs font-bold text-theme-text line-clamp-2 leading-tight cursor-pointer hover:text-theme-accent transition-colors"
+            style={{ fontSize: titleFontSize, color: resolved.titleColor }}
+            className="text-xs font-bold line-clamp-2 leading-tight cursor-pointer hover:opacity-80 transition-opacity"
             onClick={() => setIsEditing(true)}
             title="Clic para editar"
           >
             {nodeData.title || 'Carril Operativo / Funcional'}
           </h3>
-          <div className="flex items-center text-[10px] text-theme-text-muted mt-0.5 truncate">
-            <UserCheck className="w-3 h-3 mr-1 text-theme-text-muted shrink-0" />
+          <div
+            style={{ color: resolved.descriptionColor }}
+            className="flex items-center text-[10px] mt-0.5 truncate"
+          >
+            <UserCheck className="w-3 h-3 mr-1 shrink-0 opacity-80" />
             <span className="truncate">{nodeData.roleName || 'Responsable de Área'}</span>
           </div>
         </div>
 
         {/* Bottom: IT System tag */}
-        <div className="flex items-center text-[9px] font-mono text-theme-accent bg-theme-surface-subtle px-2 py-0.5 rounded border border-theme-border truncate">
+        <div
+          style={{
+            color: nodeData.customMetaTextColor || nodeData.customTextColor || undefined,
+            borderColor: resolved.contrast.borderColor,
+          }}
+          className="flex items-center text-[9px] font-mono text-theme-accent bg-theme-surface-subtle px-2 py-0.5 rounded border truncate"
+        >
           <Server className="w-2.5 h-2.5 mr-1 shrink-0" />
           <span className="truncate">{nodeData.itSystem || 'Sistema Informático'}</span>
         </div>

@@ -2100,3 +2100,18 @@ Navegador (React)  ──fetch same-origin + cookie httpOnly──►  /api/* (V
 8. **Limpieza final del navegador e IA** (aprobado 2026-11-05, tras confirmar que los 4 proyectos locales están en la base): se borran `procesos_studio_proj_*`, `procesos_studio_project_index` y `procesos_gemini_api_key`; se elimina la clave de Gemini en el navegador (solo proxy del servidor); el proxy reintenta una vez si Gemini está saturado (429/503) e informa un mensaje claro; `connect-src` de la CSP pasa a `'self'`.
 9. **Respuesta de IA cortada** (reportado en producción 2026-11-05): `maxOutputTokens: 1024` no alcanza con modelos que razonan antes de responder (el razonamiento consume ese límite) y el JSON llega truncado. Se amplía el límite, se unen todas las partes de texto de la respuesta, se extrae el JSON de forma tolerante y se informa un mensaje claro si igual llega incompleto.
 10. **CSP obligatoria** (2026-11-05): tras la prueba de uso general en producción sin avisos `[Report Only]`, el encabezado pasa de `Content-Security-Policy-Report-Only` a `Content-Security-Policy`. Con esto se cierra la Fase 1.
+
+
+---
+
+## 32. Hoja de Ruta Técnica: Personalización Granular de Colores para Cada Texto Visible de la Tarjeta (`PST-111`)
+
+### 32.1. Resumen de Implementación
+- **Modelo (`src/types/process.ts`):** Se incorporan `customBadgeTextColor`, `customTitleTextColor`, `customDescriptionTextColor` y `customMetaTextColor` en `BpmnNodeData` junto con `customHeaderTextColor` y `customTextColor`.
+- **UI (`src/components/layout/PropertiesPanel.tsx`):** Subsección *Colores de Textos* en *Estilo & Apariencia* con selector maestro y selectores independientes (paleta rápida, color libre `<input type="color">` y *Auto*) para cada texto visible de la tarjeta, integrados con el ámbito (*Solo este*, *Mismo tipo*, *Todos*), *Restablecer* y *Aplicar a todos los nodos*.
+- **Renderizado y Exportaciones:** Actualización de todos los componentes de nodos (`custom-nodes/*.tsx`), contraste adaptativo unificado (`resolveNodeTextColors` en `src/utils/nodeContrast.ts`) y exportaciones SVG/PNG/PDF (`imageExportService.ts`, `pdfDiagramExportService.ts`).
+
+### 32.2. Registro de Historia de Usuario (`PST-111`)
+- **ID:** `PST-111`
+- **Versión en `main`:** `3.0.4` (`V 03.00.04`)
+- **Estado:** Implementado / Producción

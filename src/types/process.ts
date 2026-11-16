@@ -148,8 +148,12 @@ export interface BpmnNodeData {
   customBgOpacity?: number; // Nivel de opacidad / transparencia (0 a 100)
   customBorderColor?: string; // Color personalizado de borde de la tarjeta
   customHeaderBgColor?: string; // Color personalizado del recuadro del título / cabecera
-  customHeaderTextColor?: string; // Color personalizado del texto del título / cabecera
-  customTextColor?: string; // Color personalizado del texto de la tarjeta
+  customHeaderTextColor?: string; // Color personalizado del Código/ID en cabecera
+  customBadgeTextColor?: string; // Color personalizado de la etiqueta / badge de tipo
+  customTitleTextColor?: string; // Color personalizado del título principal
+  customDescriptionTextColor?: string; // Color personalizado de la descripción / detalle
+  customMetaTextColor?: string; // Color personalizado de metadatos / pie (herramienta, responsable, plazo)
+  customTextColor?: string; // Color personalizado general del texto de la tarjeta (legado / maestro)
   customFontSize?: number; // Tamaño de letra personalizado en px (ej: 10, 12, 14, 16, 18)
   displayMode?: 'full' | 'title_only'; // Modo de visualización: 'full' (completo) o 'title_only' (solo título)
   orientation?: 'horizontal' | 'vertical'; // Orientación: 'horizontal' (apaisado) o 'vertical' (columna)

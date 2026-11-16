@@ -1,6 +1,7 @@
 import React from 'react';
 import { NodeProps, Handle, Position, NodeResizer, useNodes } from '@xyflow/react';
 import { useCanvasStore } from '../../../store/useCanvasStore';
+import { BpmnNodeData } from '../../../types/process';
 import { Lock, Pin, User, Link2 } from 'lucide-react';
 
 const STICKY_COLORS: Record<string, { bg: string; border: string; text: string; header: string }> = {
@@ -14,9 +15,15 @@ const STICKY_COLORS: Record<string, { bg: string; border: string; text: string; 
 export const StickyNoteNode: React.FC<NodeProps<any>> = ({ id, data, selected }) => {
   const { updateNodeData } = useCanvasStore();
   const nodes = useNodes();
+  const noteData = (data || {}) as BpmnNodeData;
 
-  const colorKey = (data?.customBgColor as string) || 'yellow';
+  const colorKey = (noteData.customBgColor as string) || 'yellow';
   const colorScheme = STICKY_COLORS[colorKey] || STICKY_COLORS.yellow;
+  const titleColor = noteData.customTitleTextColor || noteData.customTextColor || colorScheme.text;
+  const bodyColor = noteData.customDescriptionTextColor || noteData.customTextColor || colorScheme.text;
+  const metaColor = noteData.customMetaTextColor || noteData.customTextColor || colorScheme.text;
+  const idColor = noteData.customHeaderTextColor || noteData.customTextColor || colorScheme.text;
+  const titleFontSize = noteData.customFontSize ? `${noteData.customFontSize}px` : undefined;
 
   // Resolve related card and inherit its Responsible field
   const relatedNode = data?.relatedNodeId ? nodes.find((n) => n.id === data.relatedNodeId) : null;
@@ -103,7 +110,7 @@ export const StickyNoteNode: React.FC<NodeProps<any>> = ({ id, data, selected })
             onChange={handleTitleChange}
             placeholder="Título de la nota..."
             className="text-xs font-bold bg-transparent border-none focus:outline-none w-full truncate placeholder-black/40"
-            style={{ color: colorScheme.text }}
+            style={{ color: titleColor, fontSize: titleFontSize }}
           />
         </div>
 
@@ -118,12 +125,13 @@ export const StickyNoteNode: React.FC<NodeProps<any>> = ({ id, data, selected })
         onChange={handleTextChange}
         placeholder="Escribe un comentario, hallazgo o recordatorio de auditoría..."
         className="w-full flex-1 bg-transparent text-xs leading-relaxed resize-none focus:outline-none border-none placeholder-black/40"
-        style={{ color: colorScheme.text, minHeight: '40px' }}
+        style={{ color: bodyColor, minHeight: '40px' }}
       />
 
       {/* Footer / Responsible & Standard ID */}
       <div className="pt-1.5 border-t border-black/10 flex items-center justify-between text-[10px] font-mono opacity-80 mt-auto">
         <div
+          style={{ color: metaColor }}
           className="flex items-center space-x-1 truncate max-w-[130px]"
           title={
             relatedNode
@@ -135,7 +143,7 @@ export const StickyNoteNode: React.FC<NodeProps<any>> = ({ id, data, selected })
           <User className="w-2.5 h-2.5 shrink-0 opacity-60" />
           <span className="truncate font-semibold">{effectiveResponsible || 'Sin responsable'}</span>
         </div>
-        <span className="shrink-0 ml-1">{data?.standardId || 'NOT'}</span>
+        <span style={{ color: idColor }} className="shrink-0 ml-1">{data?.standardId || 'NOT'}</span>
       </div>
     </div>
   );

@@ -960,6 +960,15 @@ function generateExcel() {
       criteriosAceptacion: '1. Migración 005: app_users.session_version y tabla auth_rate_limits.\n2. Cambiar la contraseña (usuario o Administrador) o emitir un código de reseteo invalida las sesiones abiertas.\n3. 30 fallos de autenticación por IP cada 15 minutos y 10 envíos por hora en formularios públicos.\n4. Secreto TOTP cifrado con AES-256-GCM cuando se define TOTP_ENCRYPTION_KEY, con migración progresiva de los existentes.\n5. Encabezados Content-Security-Policy-Report-Only y Permissions-Policy.\n6. Migraciones probadas contra los scripts de esquema reales del repositorio; 52 tests automatizados.',
       fechaImplementacion: '2026-11-05',
       estado: 'Implementado / Producción'
+    },
+    {
+      id: 'PST-111',
+      modulo: 'Estilo & Apariencia de Nodos / Propiedades del Lienzo',
+      titulo: 'Personalización individual de color para cada texto visible de las tarjetas en Propiedades -> Estilo & Apariencia',
+      historiaUsuario: 'Como modelador de procesos de ProcesStudio, quiero poder cambiar desde Propiedades -> Estilo & Apariencia el color de cada uno de los textos visibles de una tarjeta (código/ID, etiqueta de tipo, título, descripción y metadatos del pie), para asegurar una legibilidad óptima sobre cualquier fondo y resaltar visualmente la información clave en mis diagramas.',
+      criteriosAceptacion: '1. La pestaña Estilo & Apariencia de PropertiesPanel ofrece selectores de color (paleta rápida, selector libre y Auto) para Código/ID, Etiqueta de tipo, Título, Descripción y Metadatos/Pie, además de un selector rápido general.\n2. Todos los tipos de nodo (TaskNode, SubProcessNode, StartEventNode, EndEventNode, GatewayNode, QualityCheckpointNode, TimerBoundaryNode, SwimlaneNode, StickyNoteNode) reflejan en tiempo real cada color configurado.\n3. El ámbito de aplicación (Solo este, Mismo tipo, Todos), Restablecer y Aplicar a todos propagan correctamente todos los colores de texto.\n4. Se corrige el contraste adaptativo en Código/ID de TaskNode y textos de SwimlaneNode.\n5. Las exportaciones SVG, PNG y PDF respetan los colores de texto configurados.',
+      fechaImplementacion: '2026-11-16',
+      estado: 'Implementado / Producción'
     }
   );
   console.log('📊 Generando archivo Excel de Historias de Usuario...');

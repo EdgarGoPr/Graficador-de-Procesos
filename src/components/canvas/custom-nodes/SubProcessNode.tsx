@@ -2,8 +2,9 @@ import React, { memo } from 'react';
 import { Handle, Position, NodeProps, NodeResizer } from '@xyflow/react';
 import { BpmnNodeData } from '../../../types/process';
 import { hexToRgba } from '../../../types/theme';
-import { getNodeTextContrast } from '../../../utils/nodeContrast';
+import { resolveNodeTextColors } from '../../../utils/nodeContrast';
 import { useCanvasStore } from '../../../store/useCanvasStore';
+import { useIsDarkTheme } from '../../../store/useUiStore';
 import { Layers, ListOrdered, Plus, ExternalLink } from 'lucide-react';
 
 export const SubProcessNode = memo(({ id, data, selected }: NodeProps<any>) => {
@@ -28,17 +29,19 @@ export const SubProcessNode = memo(({ id, data, selected }: NodeProps<any>) => {
   const isTitleOnly = nodeData.displayMode === 'title_only';
 
   const opacity = nodeData.customBgOpacity ?? 95;
-  const contrast = getNodeTextContrast(nodeData.customBgColor, opacity);
+  const isDarkTheme = useIsDarkTheme();
+  const resolved = resolveNodeTextColors(nodeData, opacity, isDarkTheme);
+  const { contrast } = resolved;
 
   const customContainerStyle: React.CSSProperties = {
     backgroundColor: nodeData.customBgColor ? hexToRgba(nodeData.customBgColor, opacity) : undefined,
     borderColor: nodeData.customBorderColor || undefined,
-    color: nodeData.customTextColor || contrast.bodyColor,
+    color: resolved.descriptionColor,
   };
 
   const customHeaderStyle: React.CSSProperties = {
     backgroundColor: nodeData.customHeaderBgColor || undefined,
-    color: nodeData.customHeaderTextColor || undefined,
+    color: resolved.headerIdColor || undefined,
   };
 
   const titleFontSize = nodeData.customFontSize ? `${nodeData.customFontSize}px` : undefined;
@@ -78,10 +81,16 @@ export const SubProcessNode = memo(({ id, data, selected }: NodeProps<any>) => {
           className="flex items-center justify-between px-2.5 py-1.5 bg-gradient-to-r from-indigo-500/10 to-transparent rounded-t-lg border-b border-theme-border overflow-hidden shrink-0"
         >
           <div className="flex items-center space-x-1.5 min-w-0">
-            <div className="p-1 rounded bg-indigo-500/10 text-indigo-400 shrink-0">
+            <div
+              style={resolved.headerIdColor ? { color: resolved.headerIdColor } : undefined}
+              className="p-1 rounded bg-indigo-500/10 text-indigo-400 shrink-0"
+            >
               <Layers className="w-3 h-3" />
             </div>
-            <span className="text-[10px] font-mono font-bold tracking-wider text-indigo-400 truncate">
+            <span
+              style={resolved.headerIdColor ? { color: resolved.headerIdColor } : undefined}
+              className="text-[10px] font-mono font-bold tracking-wider text-indigo-400 truncate"
+            >
               {nodeData.standardId || 'SUB-01'}
             </span>
           </div>
@@ -96,7 +105,10 @@ export const SubProcessNode = memo(({ id, data, selected }: NodeProps<any>) => {
                 <ExternalLink className="w-2.5 h-2.5" />
               </button>
             )}
-            <span className="text-[9px] font-medium px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-300 border border-indigo-500/25">
+            <span
+              style={resolved.badgeColor ? { color: resolved.badgeColor, borderColor: resolved.badgeColor } : undefined}
+              className="text-[9px] font-medium px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-300 border border-indigo-500/25"
+            >
               Subproceso
             </span>
           </div>
@@ -106,14 +118,14 @@ export const SubProcessNode = memo(({ id, data, selected }: NodeProps<any>) => {
         <div className="p-2.5 flex-1 flex flex-col justify-between overflow-hidden">
           <div className="overflow-hidden">
             <h4
-              style={{ fontSize: titleFontSize, color: nodeData.customTextColor || contrast.titleColor }}
+              style={{ fontSize: titleFontSize, color: resolved.titleColor }}
               className="text-xs font-semibold leading-snug line-clamp-2 mb-1 group-hover:text-indigo-300 transition-colors break-words overflow-hidden text-ellipsis cursor-pointer"
             >
               {nodeData.title}
             </h4>
             {!isTitleOnly && nodeData.description && (
               <p
-                style={{ fontSize: descFontSize, color: contrast.bodyColor }}
+                style={{ fontSize: descFontSize, color: resolved.descriptionColor }}
                 className="text-[11px] line-clamp-2 leading-relaxed mb-2 break-words overflow-hidden text-ellipsis"
               >
                 {nodeData.description}
@@ -126,8 +138,11 @@ export const SubProcessNode = memo(({ id, data, selected }: NodeProps<any>) => {
             style={{ borderColor: contrast.borderColor }}
             className="flex items-center justify-between pt-1.5 border-t text-[10px] overflow-hidden"
           >
-            <div style={{ color: contrast.mutedColor }} className="flex items-center truncate">
-              <ListOrdered className="w-3 h-3 mr-1 text-indigo-400 shrink-0" />
+            <div style={{ color: resolved.metaColor }} className="flex items-center truncate">
+              <ListOrdered
+                style={resolved.metaColor ? { color: resolved.metaColor } : undefined}
+                className="w-3 h-3 mr-1 text-indigo-400 shrink-0"
+              />
               <span className="truncate">{stepsCount > 0 ? `${stepsCount} etapas` : 'Subproceso'}</span>
             </div>
           </div>

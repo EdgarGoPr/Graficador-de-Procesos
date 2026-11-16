@@ -2,7 +2,8 @@ import React, { memo } from 'react';
 import { Handle, Position, NodeProps } from '@xyflow/react';
 import { BpmnNodeData } from '../../../types/process';
 import { hexToRgba } from '../../../types/theme';
-import { getNodeTextContrast } from '../../../utils/nodeContrast';
+import { resolveNodeTextColors } from '../../../utils/nodeContrast';
+import { useIsDarkTheme } from '../../../store/useUiStore';
 import { Clock, AlertCircle } from 'lucide-react';
 
 export const TimerBoundaryNode = memo(({ data, selected }: NodeProps<any>) => {
@@ -11,7 +12,8 @@ export const TimerBoundaryNode = memo(({ data, selected }: NodeProps<any>) => {
   const isTitleOnly = nodeData.displayMode === 'title_only';
 
   const opacity = nodeData.customBgOpacity ?? 95;
-  const contrast = getNodeTextContrast(nodeData.customBgColor, opacity);
+  const isDarkTheme = useIsDarkTheme();
+  const resolved = resolveNodeTextColors(nodeData, opacity, isDarkTheme);
 
   const customContainerStyle: React.CSSProperties = {
     backgroundColor: nodeData.customBgColor ? hexToRgba(nodeData.customBgColor, opacity) : undefined,
@@ -20,7 +22,7 @@ export const TimerBoundaryNode = memo(({ data, selected }: NodeProps<any>) => {
 
   const customHeaderStyle: React.CSSProperties = {
     backgroundColor: nodeData.customHeaderBgColor || undefined,
-    color: nodeData.customHeaderTextColor || undefined,
+    color: resolved.headerIdColor || undefined,
   };
 
   const titleFontSize = nodeData.customFontSize ? `${nodeData.customFontSize}px` : undefined;
@@ -45,18 +47,24 @@ export const TimerBoundaryNode = memo(({ data, selected }: NodeProps<any>) => {
           <Clock className="w-3 h-3" />
         </div>
         {!isTitleOnly && (
-          <span className="text-[9px] font-mono font-bold text-amber-400 tracking-wider truncate max-w-[78px]">
+          <span
+            style={resolved.headerIdColor ? { color: resolved.headerIdColor } : undefined}
+            className="text-[9px] font-mono font-bold text-amber-400 tracking-wider truncate max-w-[78px]"
+          >
             {nodeData.standardId || 'TMR'}
           </span>
         )}
         <span
-          style={{ fontSize: titleFontSize, color: nodeData.customTextColor || contrast.titleColor }}
+          style={{ fontSize: titleFontSize, color: resolved.titleColor }}
           className="text-[9px] font-medium line-clamp-2 max-w-[78px] leading-tight break-words overflow-hidden text-ellipsis"
         >
           {!isTitleOnly && sla ? `${sla.value} ${sla.unit === 'BUSINESS_DAYS' ? 'días háb.' : 'hrs'}` : nodeData.title}
         </span>
         {!isTitleOnly && sla?.isPeremptory && (
-          <span className="flex items-center text-[8px] font-bold text-amber-400 mt-0.5 truncate">
+          <span
+            style={resolved.badgeColor ? { color: resolved.badgeColor } : undefined}
+            className="flex items-center text-[8px] font-bold text-amber-400 mt-0.5 truncate"
+          >
             <AlertCircle className="w-2 h-2 mr-0.5 shrink-0" />
             <span>ESTRICTO</span>
           </span>
