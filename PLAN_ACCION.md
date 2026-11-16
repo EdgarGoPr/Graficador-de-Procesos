@@ -2253,3 +2253,5 @@ Reflejar los colores personalizados de fondo y de cada texto visible en los diag
   5. Las exportaciones (SVG, PNG, PDF) respetan los colores de texto configurados.
   6. `npm run build` y `npm test` pasan sin errores; versión incrementada a `3.1.1` (`V 03.01.01`); push automático a la rama actual (`fase-2-integridad`).
 - **Estado:** Implementado / Producción
+
+- **Diagnóstico de configuración** (2026-11-16): el error de configuración del backend indica en el log de dónde viene la conexión (variable, host, entorno y rama de Vercel), sin mostrar contraseñas, para resolver el error "servidor no configurado" del Preview.

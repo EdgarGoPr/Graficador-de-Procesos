@@ -29,19 +29,29 @@ function deriveKey(text: string): Uint8Array {
 export function loadConfig(env: Record<string, string | undefined> = process.env): ServerConfig {
   // APP_DATABASE_URL es la variable propia del backend. La integración Vercel-Neon carga DATABASE_URL
   // con el rol dueño; se acepta solo como respaldo y nunca si es neondb_owner.
-  const databaseUrl = (env.APP_DATABASE_URL || env.DATABASE_URL || '').trim();
+  const appUrl = (env.APP_DATABASE_URL || '').trim();
+  const databaseUrl = appUrl || (env.DATABASE_URL || '').trim();
+  // Datos de diagnóstico para el log del servidor (nunca incluyen la contraseña).
+  const source = appUrl
+    ? 'APP_DATABASE_URL'
+    : 'DATABASE_URL de la integración de Neon (APP_DATABASE_URL no está definida en este entorno)';
+  const where = `entorno=${env.VERCEL_ENV || 'local'} rama=${env.VERCEL_GIT_COMMIT_REF || '-'}`;
   if (!databaseUrl) {
-    throw new ConfigError('Falta la variable de entorno APP_DATABASE_URL.');
+    throw new ConfigError(`Falta la variable de entorno APP_DATABASE_URL (${where}).`);
   }
   let dbUser = '';
+  let dbHost = '';
   try {
-    dbUser = decodeURIComponent(new URL(databaseUrl).username);
+    const parsed = new URL(databaseUrl);
+    dbUser = decodeURIComponent(parsed.username);
+    dbHost = parsed.hostname;
   } catch {
-    throw new ConfigError('APP_DATABASE_URL no es una cadena de conexión válida.');
+    throw new ConfigError(`APP_DATABASE_URL no es una cadena de conexión válida (origen: ${source}; ${where}).`);
   }
   if (dbUser === 'neondb_owner') {
     throw new ConfigError(
-      'El backend no puede conectarse con neondb_owner: definí APP_DATABASE_URL con el rol processtudio_app.'
+      `El backend no puede conectarse con neondb_owner: la conexión viene de ${source}, host ${dbHost} (${where}). ` +
+        'Definí APP_DATABASE_URL con el rol processtudio_app.'
     );
   }
 
